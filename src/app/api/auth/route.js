@@ -1,0 +1,54 @@
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { generateToken } from "../../utils/jwt";
+
+export const users = [
+  {
+    id: 1,
+    email: "admin@example.com",
+    password: "admin123", // Note: In real apps, use hashed passwords
+    role: "Admin",
+  },
+  {
+    id: 2,
+    email: "owner@example.com",
+    password: "owner123",
+    role: "Owner",
+  },
+  {
+    id: 3,
+    email: "salesman@example.com",
+    password: "salesman123",
+    role: "SalesMan",
+  },
+];
+
+// Replace with a strong secret
+
+export async function POST(req) {
+  const { email, password, role } = await req.json(); // Get email, password, role from request body
+
+  // Find user in the mock database
+  const user = users.find(
+    (user) =>
+      user.email === email && user.password === password && user.role === role
+  );
+
+  if (!user) {
+    // return res.status(401).json({ message: 'Invalid credentials' });
+    return NextResponse.json({
+      messages: "Invalid credentials",
+      success: false,
+    });
+  }
+
+  const token = await generateToken(user);
+
+  cookies().set({
+    name: "authToken",
+    value: token,
+    path: "/",
+  });
+
+  return NextResponse.json({ messages: "Login successful", success: true });
+}
