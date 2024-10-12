@@ -30,14 +30,21 @@ function page() {
       name: "Doctors",
       description: "You can show & add the doctors of diffrent hospitals",
       icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/",
+      link: "/dashboard-admin/doctors",
+      color: "yellow",
+    },
+    {
+      name: "Patients",
+      description: "You can show & add the patients",
+      icon: <BsFillPersonBadgeFill size={30} />,
+      link: "/dashboard-admin/patients",
       color: "yellow",
     },
     {
       name: "Prescription",
       description: "You can see all the prescription",
       icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/",
+      link: "/dashboard-admin/prescriptions",
       color: "yellow",
     },
   ];

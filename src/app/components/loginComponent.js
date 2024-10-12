@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 // import axios from "axios";
 import Loading from "./Loading";
+import { useRouter } from "next/navigation";
 
 function LoginComponent() {
-  // const router = useRouter();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -32,8 +32,8 @@ function LoginComponent() {
 
       // Check if login was successful
       if (result.success) {
-        console.log("Login successful, redirecting...");
-        // router.push("/dashboard-admin");
+        console.log("Login successful, redirecting...", result.route);
+        router.push(result.route);
       } else {
         console.error("Login failed:", result.message);
       }

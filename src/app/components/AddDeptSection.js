@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import NewDeptForm from "./NewDeptForm";
 import EditDeptForm from "./EditDeptForm";
 
-function AddDeptSection({ setNewUserSection,departments, setDepartments }) {
+function AddDeptSection({ setNewUserSection, departments, setDepartments }) {
   const [mode, setMode] = useState(null);
   return (
     <>
@@ -28,6 +28,15 @@ function AddDeptSection({ setNewUserSection,departments, setDepartments }) {
                   className="rounded-xl w-full p-4 bg-slate-800"
                 >
                   Edit Current Department
+                </button>
+                <hr className="border border-slate-800 w-full my-2" />
+                <button
+                  className="p-2 border text-white border-slate-700 rounded-lg font-semibold"
+                  onClick={() => {
+                    setNewUserSection((prev) => !prev);
+                  }}
+                >
+                  Cancel
                 </button>
               </div>
             )}

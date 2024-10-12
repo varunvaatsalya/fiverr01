@@ -79,7 +79,7 @@ function DepartmentSearchList({ departments, setDepartments }) {
                     setActiveIndex(activeIndex === index ? null : index)
                   }
                 >
-                  <h3 className="font-semibold text-lg">{department.name}</h3>
+                  <h3 className="font-semibold text-lg capitalize">{department.name}</h3>
                   <span className="text-gray-500">
                     {activeIndex === index ? "-" : "+"}
                   </span>

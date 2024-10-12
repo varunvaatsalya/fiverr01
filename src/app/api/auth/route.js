@@ -8,18 +8,21 @@ export const users = [
     email: "admin@example.com",
     password: "admin123", // Note: In real apps, use hashed passwords
     role: "Admin",
+    route:'/dashboard-admin'
   },
   {
     id: 2,
     email: "owner@example.com",
     password: "owner123",
     role: "Owner",
+    route:'/dashboard-owner'
   },
   {
     id: 3,
     email: "salesman@example.com",
     password: "salesman123",
     role: "SalesMan",
+    route:'/dashboard-salesman'
   },
 ];
 
@@ -50,5 +53,5 @@ export async function POST(req) {
     path: "/",
   });
 
-  return NextResponse.json({ messages: "Login successful", success: true });
+  return NextResponse.json({ messages: "Login successful", route:user.route, success: true });
 }

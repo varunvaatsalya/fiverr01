@@ -2,40 +2,6 @@
 import React, { useEffect, useState } from "react";
 import DepartmentSearchList from "../../components/DepartmentSearchList";
 
-// const deptData = [
-//   {
-//     _id:1234,
-//     name: "nurology",
-//     items: [
-//       { name: "x-ray", price: 150 },
-//       { name: "ultrasound", price: 150 },
-//       { name: "abcd", price: 150 },
-//       { name: "absc", price: 150 },
-//     ],
-//   },
-//   {
-//     _id:1235,
-//     name: "dermatology",
-//     items: [
-//       { name: "x-ray", price: 150 },
-//       { name: "ultrasound", price: 150 },
-//       { name: "abcd", price: 150 },
-//       { name: "absc", price: 150 },
-//     ],
-//   },
-//   {
-//     _id:1236,
-//     name: "nurologyY",
-//     items: [
-//       { name: "x-ray", price: 150 },
-//       { name: "ultrasound", price: 150 },
-//       { name: "abcd", price: 150 },
-//       { name: "absc", price: 150 },
-//       { name: "nidhi", price: 2 },
-//       { name: "nidhiw", price: 21 },
-//     ],
-//   },
-// ]
 
 
 function page() {
