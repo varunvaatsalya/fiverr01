@@ -27,13 +27,20 @@ function PatientSearchList({ patients, setPatients }) {
     console.log(query);
     let filterRes = patients.filter((patient) => {
       let lowerCaseQuery = query.toLowerCase();
-      return patient.name.toLowerCase().includes(lowerCaseQuery);
+      return (
+        patient.name.toLowerCase().includes(lowerCaseQuery) ||
+        patient.uhid.includes(lowerCaseQuery) ||
+        patient.gender.toLowerCase().includes(lowerCaseQuery) ||
+        patient.address.toLowerCase().includes(lowerCaseQuery) ||
+        patient.aadharNumber.toString().includes(lowerCaseQuery) ||
+        patient.mobileNumber.toString().includes(lowerCaseQuery)
+      );
     });
     setResData(filterRes);
   }
 
   async function handleShowPatientPrescription(id) {
-    console.log(id)
+    console.log(id);
     setSubmitting(true);
     try {
       let result = await fetch(`/api/newPatient?patient=${id}`);
@@ -58,8 +65,8 @@ function PatientSearchList({ patients, setPatients }) {
       {newUserSection ? (
         <AddSection
           setNewUserSection={setNewUserSection}
-          setEntity={prescriptions?setPrescriptions:setPatients}
-          FormComponent={prescriptions?PrescriptionList:NewPatientForm}
+          setEntity={prescriptions ? setPrescriptions : setPatients}
+          FormComponent={prescriptions ? PrescriptionList : NewPatientForm}
           prescriptions={prescriptions}
         />
       ) : (

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import SearchList from "../../components/SearchList";
 
-function page() {
+function Page() {
   const [salesMen, setSalesMen] = useState([]);
   useEffect(() => {
     async function fetchData() {
@@ -25,4 +25,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

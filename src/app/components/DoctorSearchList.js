@@ -23,6 +23,7 @@ function DoctorSearchList({ doctors, setDoctors }) {
       let lowerCaseQuery = query.toLowerCase();
       return (
         doctor.name.toLowerCase().includes(lowerCaseQuery) ||
+        doctor.email.toLowerCase().includes(lowerCaseQuery) ||
         doctor.specialty.toLowerCase().includes(lowerCaseQuery) ||
         doctor.department.name.toLowerCase().includes(lowerCaseQuery)
       );

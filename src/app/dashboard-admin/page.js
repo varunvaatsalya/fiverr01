@@ -3,7 +3,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { BsFillPersonBadgeFill } from "react-icons/bs";
 
-function page() {
+function Page() {
   const Works = [
     {
       name: "Sales Men",
@@ -75,4 +75,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

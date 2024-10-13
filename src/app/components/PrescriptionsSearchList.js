@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import AddSection from "./AddSection";
-// import NewPrescriptionForm from "./NewPrescriptionForm";
+import NewPrescriptionForm from "./NewPrescriptionForm";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { IoPersonAdd } from "react-icons/io5";
@@ -127,9 +127,9 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions }) {
                         </div>
                         
                       </div>
-                      {prescription.itmes.map((item) => {
+                      {prescription.itmes.map((item, it) => {
                         return (
-                          <div className="border-b-2 w-4/5 mx-auto border-gray-300 flex">
+                          <div className="border-b-2 w-4/5 mx-auto border-gray-300 flex" key={it}>
                             <div className="w-1/2 p-2 text-center">{item.name}</div>
                             <div className="w-1/2 p-2 text-center">{item.price}</div>
                           </div>

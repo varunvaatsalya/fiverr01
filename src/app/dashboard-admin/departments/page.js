@@ -4,7 +4,7 @@ import DepartmentSearchList from "../../components/DepartmentSearchList";
 
 
 
-function page() {
+function Page() {
   const [departments, setDepartments] = useState([]);
   useEffect(() => {
     async function fetchData() {
@@ -27,4 +27,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

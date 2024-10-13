@@ -81,7 +81,7 @@ const NewDeptForm = ({ setNewUserSection, setDepartments }) => {
         <h3 className="font-semibold text-lg mb-2">Items</h3>
         {fields.length === 0 && (
           <p className="text-gray-500">
-            No items added yet. Click "Add Item" to start.
+            No items added yet. Click <u>Add Item</u>  to start.
           </p>
         )}
 

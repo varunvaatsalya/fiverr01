@@ -47,7 +47,7 @@ const dummydoctors = [
   },
 ];
 
-function page() {
+function Page() {
   const [doctors, setDoctors] = useState([]);
   useEffect(() => {
     async function fetchData() {
@@ -70,4 +70,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

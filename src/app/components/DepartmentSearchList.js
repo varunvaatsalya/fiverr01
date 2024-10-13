@@ -7,7 +7,6 @@ import Footer from "./Footer";
 import { IoPersonAdd } from "react-icons/io5";
 
 function DepartmentSearchList({ departments, setDepartments }) {
-  
   const [newUserSection, setNewUserSection] = useState(false);
   const [resData, setResData] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -21,9 +20,9 @@ function DepartmentSearchList({ departments, setDepartments }) {
     console.log(query);
     let filterRes = departments.filter((department) => {
       let lowerCaseQuery = query.toLowerCase();
-      let isDepartmentMatch = department.name
-        .toLowerCase()
-        .includes(lowerCaseQuery);
+      let isDepartmentMatch =
+        department.name.toLowerCase().includes(lowerCaseQuery) ||
+        department.uid.toLowerCase().includes(lowerCaseQuery);
       let isItemMatch = department.items.some(
         (item) =>
           item.name.toLowerCase().includes(lowerCaseQuery) ||
@@ -79,7 +78,9 @@ function DepartmentSearchList({ departments, setDepartments }) {
                     setActiveIndex(activeIndex === index ? null : index)
                   }
                 >
-                  <h3 className="font-semibold text-lg capitalize">{department.name}</h3>
+                  <h3 className="font-semibold text-lg capitalize">
+                    {department.name}
+                  </h3>
                   <span className="text-gray-500">
                     {activeIndex === index ? "-" : "+"}
                   </span>

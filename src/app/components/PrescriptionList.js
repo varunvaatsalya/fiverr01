@@ -82,9 +82,9 @@ function PrescriptionList({ setNewUserSection, setEntity, prescriptions1 }) {
                   <span className="text-blue-500 font-semibold">{prescription.department.name}</span>
                 </div>
               </div>
-              {prescription.itmes.map((item) => {
+              {prescription.itmes.map((item, it) => {
                 return (
-                  <div className="border-b-2 w-4/5 mx-auto border-gray-800 flex">
+                  <div className="border-b-2 w-4/5 mx-auto border-gray-800 flex" key={it}>
                     <div className="w-1/2 p-2">{item.name}</div>
                     <div className="w-1/2 p-2">{item.price}</div>
                   </div>

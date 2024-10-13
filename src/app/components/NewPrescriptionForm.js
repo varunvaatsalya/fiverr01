@@ -3,9 +3,43 @@ import React, { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import Loading from "./Loading";
 
-const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
+const fakedetails = {
+  patients: [
+    { _id: "12345", name: "John Doe", uhid: "UH1234" },
+    { _id: "67890", name: "Jane Smith", uhid: "UH5678" },
+  ],
+  doctors: [
+    { _id: "54321", name: "Dr. Alice", department: "98765" },
+    { _id: "09876", name: "Dr. Bob", department: "56789" },
+  ],
+  departments: [
+    {
+      _id: "98765",
+      name: "Cardiology",
+      itmes: [
+        { name: "x-ray", price: 125 },
+        { name: "x-mas", price: 5412 },
+      ],
+    },
+    {
+      _id: "56789",
+      name: "Neurology",
+      itmes: [
+        { name: "x-ray", price: 125 },
+        { name: "x-mas", price: 5412 },
+      ],
+    },
+  ],
+};
+
+const NewPrescriptionForm = ({
+  setNewUserSection,
+  departments,
+  setDepartments,
+}) => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
+  const [details, setDetails] = useState(fakedetails);
 
   const { register, control, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
@@ -49,7 +83,7 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
         headers: {
           "Content-Type": "application/json", // Set the header for JSON
         },
-        body: JSON.stringify({...data, _id:selectedDepartment._id}), // Properly stringify the data
+        body: JSON.stringify({ ...data, _id: selectedDepartment._id }), // Properly stringify the data
       });
 
       // Parsing the response as JSON
@@ -75,6 +109,13 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
       setSubmitting(false);
     }
   };
+
+  if (details)
+    return (
+      <div className="p-4 flex justify-center">
+        <Loading size={50} />
+      </div>
+    );
 
   return (
     <form
@@ -190,4 +231,4 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
   );
 };
 
-export default EditDeptForm;
+export default NewPrescriptionForm;

@@ -38,7 +38,7 @@ const prescriptions1 = [
   },
 ];
 
-function page() {
+function Page() {
   const [prescriptions, setPrescriptions] = useState(prescriptions1);
   useEffect(() => {
     // async function fetchData() {
@@ -64,4 +64,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;
