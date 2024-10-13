@@ -8,7 +8,7 @@ const prescriptions1 = [
     patient: { name: "varun gupta", uhid: 125478 },
     doctor: { name: "varun gupta" },
     department: { name: "nurology" },
-    itmes: [
+    items: [
       { name: "x-ray", price: 125 },
       { name: "ct-scan", price: 215 },
     ],
@@ -19,7 +19,7 @@ const prescriptions1 = [
     patient: { name: "varun gupta", uhid: 125478 },
     doctor: { name: "shiv shankar" },
     department: { name: "brianology" },
-    itmes: [
+    items: [
       { name: "x-ray", price: 125 },
       { name: "ct-scan", price: 215 },
     ],
@@ -30,7 +30,7 @@ const prescriptions1 = [
     patient: { name: "varun gupta", uhid: 125478 },
     doctor: { name: "varun gupta" },
     department: { name: "nurology" },
-    itmes: [
+    items: [
       { name: "x-ray", price: 125 },
       { name: "ct-scan", price: 215 },
     ],
@@ -39,20 +39,20 @@ const prescriptions1 = [
 ];
 
 function Page() {
-  const [prescriptions, setPrescriptions] = useState(prescriptions1);
+  const [prescriptions, setPrescriptions] = useState([]);
   useEffect(() => {
-    // async function fetchData() {
-    //   try {
-    //     let result = await fetch("/api/newPrescriptions");
-    //     result = await result.json();
-    //     if (result.success) {
-    //       setPrescriptions(result.prescriptions);
-    //     }
-    //   } catch (err) {
-    //     console.log("error: ", err);
-    //   }
-    // }
-    // fetchData();
+    async function fetchData() {
+      try {
+        let result = await fetch("/api/newPrescription");
+        result = await result.json();
+        if (result.success) {
+          setPrescriptions(result.allPrescription);
+        }
+      } catch (err) {
+        console.log("error: ", err);
+      }
+    }
+    fetchData();
   }, []);
   return (
     <>

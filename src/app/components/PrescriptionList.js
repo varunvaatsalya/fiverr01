@@ -1,8 +1,8 @@
 "use client";
 import { formatDateToIST } from "../utils/date";
 
-function PrescriptionList({ setNewUserSection, setEntity, prescriptions1 }) {
-  const prescriptions = [
+function PrescriptionList({ setNewUserSection, setEntity, prescriptions }) {
+  const prescriptions1 = [
     {
       pid: 1245,
       doctor: { name: "varun gupta" },
@@ -39,6 +39,7 @@ function PrescriptionList({ setNewUserSection, setEntity, prescriptions1 }) {
     setEntity(null);
     setNewUserSection((prev) => !prev);
   }
+  console.log(prescriptions.patientDetails)
 
   return (
     <div className="">
@@ -48,11 +49,11 @@ function PrescriptionList({ setNewUserSection, setEntity, prescriptions1 }) {
       <div className="flex flex-wrap justify-around">
         <div className="py-1 px-4 ">
           Patient Name:{" "}
-          <span className="text-blue-500 font-semibold">Varun Gupta</span>
+          <span className="text-blue-500 font-semibold">{prescriptions.patientDetails.name}</span>
         </div>
         <div className="py-1 px-4 ">
           UHID:{" "}
-          <span className="text-blue-500 font-semibold capitalize">125478</span>
+          <span className="text-blue-500 font-semibold capitalize">{prescriptions.patientDetails.uhid}</span>
         </div>
       </div>
       <hr className="border border-slate-800 w-full my-2" />
@@ -82,7 +83,7 @@ function PrescriptionList({ setNewUserSection, setEntity, prescriptions1 }) {
                   <span className="text-blue-500 font-semibold">{prescription.department.name}</span>
                 </div>
               </div>
-              {prescription.itmes.map((item, it) => {
+              {prescription.items.map((item, it) => {
                 return (
                   <div className="border-b-2 w-4/5 mx-auto border-gray-800 flex" key={it}>
                     <div className="w-1/2 p-2">{item.name}</div>

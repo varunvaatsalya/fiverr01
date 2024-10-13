@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import Loading from "./Loading";
 
@@ -32,85 +32,113 @@ const fakedetails = {
   ],
 };
 
-const NewPrescriptionForm = ({
-  setNewUserSection,
-  departments,
-  setDepartments,
-}) => {
+const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
-  const [details, setDetails] = useState(fakedetails);
+  const [details, setDetails] = useState(null);
 
-  const { register, control, handleSubmit, reset, setValue } = useForm({
-    defaultValues: {
-      name: "", // Department name
-      items: [], // Items array based on selected department
-    },
-  });
+  const { register, handleSubmit, setValue } = useForm();
 
-  // useFieldArray to manage dynamic items
-  const { fields, append, remove, replace } = useFieldArray({
-    control,
-    name: "items",
-  });
-
-  // Store selected department
+  const [selectedPatient, setSelectedPatient] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [availableItems, setAvailableItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
+  useEffect(() => {
+    setValue("items", selectedItems);
+  }, [selectedItems]);
 
-  // Handle department selection
-  const handleDepartmentChange = (event) => {
-    const selectedName = event.target.value;
-    const selectedDept = departments.find((dept) => dept.name === selectedName);
-    setSelectedDepartment(selectedDept);
-
-    // Set department name and replace items in form
-    if (selectedDept) {
-      setValue("name", selectedDept.name);
-      replace(selectedDept.items); // Replace items with the selected department's items
-    } else {
-      reset(); // Reset if no department selected
+  useEffect(() => {
+    if (details?.departments && selectedDepartment) {
+      const department = details.departments.find(
+        (department) => department._id === selectedDepartment
+      );
+      if (department) {
+        setAvailableItems(department.items);
+      }
     }
-  };
+  }, [selectedDepartment, details]);
 
-  // Handle form submission
+  //   // Handle form submission
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        let result = await fetch("/api/newPrescription?componentDetails=1");
+        result = await result.json();
+        if (result.success) {
+          setDetails({
+            patients: result.patients,
+            doctors: result.doctors,
+            departments: result.departments,
+          });
+        }
+      } catch (err) {
+        console.log("error: ", err);
+      }
+    }
+    fetchData();
+  }, []);
 
   const onSubmit = async (data) => {
-    setSubmitting(true);
-    try {
-      console.log(data);
-      let result = await fetch("/api/updatedepartment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json", // Set the header for JSON
-        },
-        body: JSON.stringify({ ...data, _id: selectedDepartment._id }), // Properly stringify the data
-      });
+    if (selectedItems.length > 0) {
+      setMessage(null);
+      setSubmitting(true);
+      try {
+        console.log(data, selectedItems.length);
+        let result = await fetch("/api/newPrescription", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json", // Set the header for JSON
+          },
+          body: JSON.stringify(data), // Properly stringify the data
+        });
 
-      // Parsing the response as JSON
-      result = await result.json();
-      // Check if login was successful
-      if (result.success) {
-        // setDepartments((prevDepartments) => [result.department, ...prevDepartments]);
-        setDepartments((prevDepartments) =>
-          prevDepartments.map((dept) =>
-            dept._id === selectedDepartment._id
-              ? { ...dept, ...result.updatedDepartment }
-              : dept
-          )
-        );
-        console.log(result.department);
-        setNewUserSection((prev) => !prev);
-      } else {
-        setMessage(result.message);
+        // Parsing the response as JSON
+        result = await result.json();
+        // Check if login was successful
+        if (result.success) {
+          const departmentData = details.departments.find(
+            (department) => department._id === result.newPrescription.department
+          );
+          const patientData = details.patients.find(
+            (patient) => patient._id === result.newPrescription.patient
+          );
+          const doctorData = details.doctors.find(
+            (doctor) => doctor._id === result.newPrescription.doctor
+          );
+          result.newPrescription.patient = patientData;
+          result.newPrescription.department = departmentData;
+          result.newPrescription.doctor = doctorData;
+          setEntity((prevPrescription) => [
+            result.newPrescription,
+            ...prevPrescription,
+          ]);
+          setNewUserSection((prev) => !prev);
+        } else {
+          setMessage(result.message);
+        }
+      } catch (error) {
+        console.error("Error submitting application:", error);
+      } finally {
+        setSubmitting(false);
       }
-    } catch (error) {
-      console.error("Error submitting application:", error);
-    } finally {
-      setSubmitting(false);
+    } else {
+      setMessage("choose atleast one items");
     }
   };
 
-  if (details)
+  // Handle item selection via checkbox
+  const handleItemSelection = (item, isChecked) => {
+    if (isChecked) {
+      setSelectedItems([...selectedItems, item]); // Add item to selected items
+    } else {
+      setSelectedItems(
+        selectedItems.filter((selectedItem) => selectedItem.name !== item.name)
+      ); // Remove item by name
+    }
+  };
+
+  if (!details)
     return (
       <div className="p-4 flex justify-center">
         <Loading size={50} />
@@ -130,79 +158,128 @@ const NewPrescriptionForm = ({
       {message && (
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
-      <div className="mb-4">
-        <label className="block font-semibold mb-2" htmlFor="department">
-          Select Department
-        </label>
+      <select
+        id="patient"
+        {...register("patient", { required: "patient is required" })}
+        onChange={(e) => {
+          setSelectedPatient(e.target.value);
+          console.log(e.target.value);
+        }}
+        className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+      >
+        <option value="">-- Select Patient --</option>
+        {details.patients.map((patient, index) => (
+          <option key={index} value={patient._id}>
+            {patient.name + ", UHID: " + patient.uhid}
+          </option>
+        ))}
+      </select>
+      {selectedPatient && (
         <select
           id="department"
-          onChange={handleDepartmentChange}
-          className="mt-1 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          {...register("department", { required: "department is required" })}
+          onChange={(e) => {
+            setSelectedDepartment(e.target.value);
+          }}
+          className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         >
           <option value="">-- Select a Department --</option>
-          {departments.map((department, index) => (
-            <option key={index} value={department.name}>
+          {details.departments.map((department, index) => (
+            <option key={index} value={department._id}>
               {department.name}
             </option>
           ))}
         </select>
-      </div>
+      )}
 
       {/* Display items if a department is selected */}
-      {selectedDepartment && (
+      {selectedDepartment && selectedPatient && (
         <>
-          <div className="mb-4">
-            <label className="block font-semibold mb-2">Department Name</label>
-            <input
-              {...register("name")}
-              type="text"
-              className="px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-            />
+          <select
+            id="doctor"
+            {...register("doctor", { required: "doctor is required" })}
+            className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          >
+            <option value="">-- Select a Doctor --</option>
+            {details.doctors.map((doctor, index) => (
+              <option key={index} value={doctor._id}>
+                {doctor.name}
+              </option>
+            ))}
+          </select>
+
+          <div className="mb-6">
+            {availableItems.length > 0 ? (
+              availableItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center mb-4 justify-center space-x-2"
+                >
+                  <input
+                    type="checkbox"
+                    id={`item-checkbox-${index}`}
+                    checked={selectedItems.some(
+                      (selectedItem) => selectedItem.name === item.name
+                    )} // <-- Corrected: Check if item is selected based on name
+                    onChange={(e) =>
+                      handleItemSelection(item, e.target.checked)
+                    }
+                    className="block size-5 bg-red-600 border-gray-800 rounded focus:ring-blue-800 focus:ring-2"
+                  />
+
+                  {/* Display item name */}
+                  <label
+                    htmlFor={`item-checkbox-${index}`}
+                    className="text-gray-400 w-1/2 bg-gray-700 rounded"
+                  >
+                    {item.name} (Price: {item.price})
+                  </label>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">
+                No items available for this department.
+              </p>
+            )}
           </div>
 
+          {/* Render selected items dynamically using useFieldArray */}
           <div>
-            <h3 className="font-semibold text-lg mb-2">Items</h3>
-            {fields.map((field, index) => (
-              <div key={field._id} className="flex items-center mb-4 space-x-4">
+            <h3 className="text-md font-semibold mb-2">Selected Items:</h3>
+            {selectedItems.map((selectedItem, index) => (
+              <div key={index} className="flex items-center mb-4 space-x-4">
                 {/* Item Name */}
                 <div className="flex-1">
                   <input
-                    {...register(`items[${index}].name`, { required: true })}
+                    {...register(`items[${index}].name`)}
                     type="text"
-                    defaultValue={field.name} // Set default value for item name
-                    className="px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+                    defaultValue={selectedItem.name}
+                    className="px-4 py-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
+                    readOnly
                   />
                 </div>
 
                 {/* Item Price */}
                 <div className="w-24">
                   <input
-                    {...register(`items[${index}].price`, { required: true })}
+                    {...register(`items[${index}].price`)}
                     type="number"
-                    defaultValue={field.price} // Set default value for price
-                    className="px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+                    defaultValue={selectedItem.price}
+                    className="px-4 py-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
+                    readOnly
                   />
                 </div>
 
-                {/* Delete Button */}
+                {/* Delete button to remove the selected item */}
                 <button
                   type="button"
-                  onClick={() => remove(index)}
+                  onClick={() => handleItemSelection(selectedItem, false)} // Uncheck the item
                   className="text-red-500 font-semibold hover:text-red-700"
                 >
-                  Delete
+                  Remove
                 </button>
               </div>
             ))}
-
-            {/* Add New Item Button */}
-            <button
-              type="button"
-              onClick={() => append({ name: "", price: "" })}
-              className="p-2 bg-blue-500 rounded-lg font-semibold text-white"
-            >
-              Add Item
-            </button>
           </div>
         </>
       )}

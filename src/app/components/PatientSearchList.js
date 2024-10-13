@@ -43,11 +43,13 @@ function PatientSearchList({ patients, setPatients }) {
     console.log(id);
     setSubmitting(true);
     try {
-      let result = await fetch(`/api/newPatient?patient=${id}`);
+      let result = await fetch(`/api/newPrescription?patient=${id}`);
       result = await result.json();
       console.log(result, result.success);
       // Check if login was successful
       if (result.success) {
+        let patientDetails = patients.find((patient)=>patient._id==id);
+        result.prescriptions.patientDetails = patientDetails;
         setPrescriptions(result.prescriptions);
       } else {
         setMessage(result.message);

@@ -10,7 +10,6 @@ function generateUID() {
 
 export async function GET(req) {
   await dbConnect();
-  const patient = req.nextUrl.searchParams.get("patient");
   // const token = req.cookies.get("authToken");
   // if (!token) {
   //   console.log("Token not found. Redirecting to login.");
@@ -36,26 +35,6 @@ export async function GET(req) {
   // }
 
   try {
-    // const query = patient ? { patient } : {};
-
-    if (patient) {
-      // const prescriptions = await Prescription.find({ patient });
-      const prescriptions = await Prescription.find({ patient })
-        .populate({
-          path: "doctor", // Populate the doctor field
-          select: "name", // Only select the name of the doctor
-        })
-        .populate({
-          path: "department", // Populate the department field
-          select: "name", // Only select the name of the department
-        })
-        .select("-patient") // Exclude the patient details
-        .exec();
-      return NextResponse.json(
-        { prescriptions, success: true },
-        { status: 200 }
-      );
-    }
     const patients = await Patient.find();
     return NextResponse.json({ patients, success: true }, { status: 200 });
   } catch (error) {

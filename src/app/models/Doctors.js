@@ -3,6 +3,7 @@
 import mongoose from "mongoose";
 
 const doctorSchema = new mongoose.Schema({
+  drid: { type: String, required: [true, "Please provide a DRID"] },
   name: { type: String, required: true },
   email: {
     type: String,

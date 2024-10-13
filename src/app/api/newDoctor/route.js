@@ -83,7 +83,7 @@ export async function POST(req) {
     }
 
     // Generate a 6-digit UID
-    const uid = generateUID();
+    const drid = generateUID();
     // console.log(departmentId)
 
     // Create new user
@@ -92,7 +92,7 @@ export async function POST(req) {
       email,
       specialty,
       department,
-      uid,
+      drid,
     });
 
     // Save user to the database

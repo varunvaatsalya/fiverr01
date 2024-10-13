@@ -17,6 +17,10 @@ const prescriptionSchema = new mongoose.Schema({
     required: true,
   },
   items: [{ name: String, price: Number }],
+  pid: {
+    type: String,
+    required: [true, 'Please provide a UID'],
+  },
   createdAt: { type: Date, default: Date.now, required: true },
 });
 

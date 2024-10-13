@@ -127,7 +127,7 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions }) {
                         </div>
                         
                       </div>
-                      {prescription.itmes.map((item, it) => {
+                      {prescription.items.map((item, it) => {
                         return (
                           <div className="border-b-2 w-4/5 mx-auto border-gray-300 flex" key={it}>
                             <div className="w-1/2 p-2 text-center">{item.name}</div>
