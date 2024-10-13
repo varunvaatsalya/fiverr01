@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { generateToken } from "../../utils/jwt";
 
-export const users = [
+
+export async function POST(req) {
+
+const users = [
   {
     id: 1,
     email: "admin@example.com",
@@ -28,7 +31,6 @@ export const users = [
 
 // Replace with a strong secret
 
-export async function POST(req) {
   const { email, password, role } = await req.json(); // Get email, password, role from request body
 
   // Find user in the mock database
