@@ -21,6 +21,23 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions }) {
     console.log(prescriptions);
   }, [prescriptions]);
 
+  async function prescriptionPrinted(id) {
+    if (printPrescription && !printPrescription.isPrint) {
+      let result = await fetch(`/api/print?id=${id}`);
+      result = await result.json();
+      if (result.success) {
+        console.log(result, id);
+        setPrescriptions((prevPrescriptions) =>
+          prevPrescriptions.map((prescription) =>
+            prescription._id === result.id
+              ? { ...prescription, isPrint: true }
+              : prescription
+          )
+        );
+      }
+    }
+  }
+
   function updatedata(query) {
     console.log(query);
     let filterRes = prescriptions.filter((prescription) => {
@@ -49,6 +66,7 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions }) {
           <Invoice
             printPrescription={printPrescription}
             setPrintPrescription={setPrintPrescription}
+            prescriptionPrinted={prescriptionPrinted}
           />
         </div>
       </>
@@ -164,25 +182,30 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions }) {
                         );
                       })}
                       <div className="flex justify-around items-center gap-2 mt-3">
-                      {
+                        {!prescription.isPrint && (
+                          <button
+                            className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
+                            onClick={() => {
+                              setEditPrescription(prescription);
+                              setNewUserSection((prev) => !prev);
+                            }}
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {prescription.isPrint && (
+                          <div className="text-sm text-black text-center">
+                            Prescription has been printed
+                          </div>
+                        )}
                         <button
-                          className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
+                          className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
                           onClick={() => {
-                            setEditPrescription(prescription);
-                            setNewUserSection((prev) => !prev);
+                            setPrintPrescription(prescription);
                           }}
                         >
-                          Edit
+                          Print
                         </button>
-                      }
-                      <button
-                        className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
-                        onClick={() => {
-                          setPrintPrescription(prescription);
-                        }}
-                      >
-                        Print
-                      </button>
                       </div>
                     </div>
                   )}

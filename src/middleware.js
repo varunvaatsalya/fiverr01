@@ -134,17 +134,18 @@ export async function middleware(req) {
     // Get the current path the user is trying to access
     const pathname = req.nextUrl.pathname;
     // console.log(userRole, roleRoutes.admin);
+    console.log(userRole, pathname, token)
     
     // Check if the user has the correct role for the requested route
-    if (userRole === "Admin" && pathname.startsWith(roleRoutes.admin)) {
+    if (userRole === "admin" && pathname.startsWith(roleRoutes.admin)) {
       const response = NextResponse.next();
       response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
       return response; // Allow access to admin dashboard
-    } else if (userRole === "Owner" && pathname.startsWith(roleRoutes.owner)) {
+    } else if (userRole === "owner" && pathname.startsWith(roleRoutes.owner)) {
       const response = NextResponse.next();
       response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
       return response; // Allow access to owner dashboard
-    } else if (userRole === "SalesMan" && pathname.startsWith(roleRoutes.salesman)) {
+    } else if (userRole === "salesman" && pathname.startsWith(roleRoutes.salesman)) {
       const response = NextResponse.next();
       response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
       return response; // Allow access to salesman dashboard

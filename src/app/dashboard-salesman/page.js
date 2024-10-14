@@ -9,48 +9,17 @@ function Page() {
   const router = useRouter();
   const Works = [
     {
-      name: "Sales Men",
-      description:
-        "You can Show all the salesman of diffrent hospitals, also add the new salesman & give the access to edit the invoice",
-      icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/salesman",
-      color: "yellow",
-    },
-    {
-      name: "Owners",
-      description:
-        "You can Show all the owners of diffrent hospitals, also create the new owner",
-      icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/owners",
-      color: "yellow",
-    },
-    {
-      name: "Departments",
-      description:
-        "You can show & add the departsments of diffrent hospitals & thier respective itmes",
-      icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/departments",
-      color: "yellow",
-    },
-    {
-      name: "Doctors",
-      description: "You can show & add the doctors of diffrent hospitals",
-      icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/doctors",
-      color: "yellow",
-    },
-    {
       name: "Patients",
       description: "You can show & add the patients",
       icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/patients",
+      link: "/dashboard-salesman/patients",
       color: "yellow",
     },
     {
       name: "Prescription",
       description: "You can see all the prescription",
       icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/prescriptions",
+      link: "/dashboard-salesman/prescriptions",
       color: "yellow",
     },
   ];

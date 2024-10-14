@@ -14,8 +14,10 @@ function Page() {
     formState: { errors },
   } = useForm();
   const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const onSubmit = async (data) => {
+    setMessage(null);
     setSubmitting(true);
     try {
       // Sending data as JSON
@@ -35,6 +37,7 @@ function Page() {
         console.log("Login successful, redirecting...", result.route);
         router.push(result.route);
       } else {
+        setMessage(result.message)
         console.error("Login failed:", result.message);
       }
     } catch (error) {
@@ -61,6 +64,7 @@ function Page() {
             onSubmit={handleSubmit(onSubmit)}
             className="max-w-2xl mx-auto space-y-4 bg-white px-8 py-6 rounded-lg shadow-lg"
           >
+            {message && (<div className="text-red-500 text-sm text-center">{message}</div>)}
             <div>
               <label
                 htmlFor="email"
@@ -108,9 +112,9 @@ function Page() {
                 {...register("role", { required: "Role is required" })}
                 className="my-2 block w-full px-4 py-3 bg-white border border-black rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-150 ease-in-out"
               >
-                <option value="SalesMan">Sales Man</option>
-                <option value="Owner">Owner</option>
-                <option value="Admin">Admin</option>
+                <option value="salesman">Sales Man</option>
+                <option value="owner">Owner</option>
+                <option value="admin">Admin</option>
               </select>
               {errors.role && (
                 <p className="mt-2 text-sm text-red-500">

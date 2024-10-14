@@ -24,7 +24,7 @@ const items = [
   },
 ];
 
-function Invoice({ printPrescription, setPrintPrescription }) {
+function Invoice({ printPrescription, setPrintPrescription, prescriptionPrinted }) {
   console.log(printPrescription);
   return (
     <>
@@ -40,6 +40,7 @@ function Invoice({ printPrescription, setPrintPrescription }) {
             <div className="flex justify-center space-x-2">
               <button
                 onClick={() => {
+                  prescriptionPrinted(printPrescription._id);
                   window.print();
                 }}
                 className="bg-blue-600 hover:bg-blue-500 rounded px-6 py-2 my-2 font-semibold text-lg text-white"

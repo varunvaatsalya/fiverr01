@@ -66,7 +66,7 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "Admin") {
+  if (userRole !== "admin") {
     return NextResponse.json(
       { message: "Access denied. Admins only.", success: false },
       { status: 403 }
