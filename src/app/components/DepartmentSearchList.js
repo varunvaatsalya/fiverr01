@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import AddDeptSection from "./AddDeptSection";
 import Navbar from "./Navbar";
 import Footer from "./Footer";

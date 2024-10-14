@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import AddSection from "./AddSection";
 import NewPatientForm from "./NewPatientForm";
+import EditPatientForm from "./EditPatientForm";
 import PrescriptionList from "./PrescriptionList";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -16,6 +16,7 @@ function PatientSearchList({ patients, setPatients }) {
   const [activeIndex, setActiveIndex] = useState(null);
   const [prescriptions, setPrescriptions] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [editPatient, setEditPatient] = useState(null);
 
   useEffect(() => {
     setResData(patients);
@@ -48,7 +49,7 @@ function PatientSearchList({ patients, setPatients }) {
       console.log(result, result.success);
       // Check if login was successful
       if (result.success) {
-        let patientDetails = patients.find((patient)=>patient._id==id);
+        let patientDetails = patients.find((patient) => patient._id == id);
         result.prescriptions.patientDetails = patientDetails;
         setPrescriptions(result.prescriptions);
       } else {
@@ -67,9 +68,23 @@ function PatientSearchList({ patients, setPatients }) {
       {newUserSection ? (
         <AddSection
           setNewUserSection={setNewUserSection}
-          setEntity={prescriptions ? setPrescriptions : setPatients}
-          FormComponent={prescriptions ? PrescriptionList : NewPatientForm}
+          setEntity={
+            editPatient
+              ? setPatients // Assuming you want to update patients
+              : prescriptions
+              ? setPrescriptions
+              : setPatients
+          }
+          FormComponent={
+            editPatient
+              ? EditPatientForm // Create an EditPatientForm component for editing
+              : prescriptions
+              ? PrescriptionList
+              : NewPatientForm
+          }
           prescriptions={prescriptions}
+          editPatient={editPatient}
+          setEditPatient={setEditPatient}
         />
       ) : (
         <></>
@@ -121,47 +136,64 @@ function PatientSearchList({ patients, setPatients }) {
 
                 {/* Patient Items (Shown when expanded) */}
                 {activeIndex === index && (
-                  <div className="w-full p-3 bg-gray-200 rounded-b-xl flex flex-wrap gap-4 justify-around">
-                    <div className="py-1 px-4 ">
-                      Age:{" "}
-                      <span className="text-blue-500 font-semibold">
-                        {patient.age}
-                      </span>
+                  <div className="w-full p-2 bg-gray-200 rounded-b-xl ">
+                    <div className="flex flex-wrap gap-2 justify-around border-b-2 border-gray-300 py-2">
+                      <div className="py-1 px-4 ">
+                        Age:{" "}
+                        <span className="text-blue-500 font-semibold">
+                          {patient.age}
+                        </span>
+                      </div>
+                      <div className="py-1 px-4 ">
+                        Gender:{" "}
+                        <span className="text-blue-500 font-semibold capitalize">
+                          {patient.gender}
+                        </span>
+                      </div>
+                      {patient.aadharNumber && (
+                        <div className="py-1 px-4 ">
+                          Aadhar No.:{" "}
+                          <span className="text-blue-500 font-semibold">
+                            {patient.aadharNumber}
+                          </span>
+                        </div>
+                      )}
+                      <div className="py-1 px-4 ">
+                        Registration Date:{" "}
+                        <span className="text-blue-500 font-semibold uppercase">
+                          {formatDateToIST(patient.createdAt)}
+                        </span>
+                      </div>
+                      <div className="w-3/4 text-center">
+                        Address:{" "}
+                        <span className="text-blue-500 font-semibold">
+                          {patient.address}
+                        </span>
+                      </div>
                     </div>
-                    <div className="py-1 px-4 ">
-                      Gender:{" "}
-                      <span className="text-blue-500 font-semibold capitalize">
-                        {patient.gender}
-                      </span>
+                    <div className="flex justify-center gap-2 my-3">
+                      {
+                        <button
+                          className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
+                          onClick={() => {
+                            setEditPatient(patient);
+                            setNewUserSection((prev) => !prev);
+                          }}
+                        >
+                          Edit
+                        </button>
+                      }
+                      <button
+                        className="p-2 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
+                        onClick={() => {
+                          handleShowPatientPrescription(patient._id);
+                        }}
+                        disabled={submitting}
+                      >
+                        {submitting ? <Loading size={15} /> : <></>}
+                        {submitting ? "Showing..." : "Show Presriptions"}
+                      </button>
                     </div>
-                    <div className="py-1 px-4 ">
-                      Aadhar No.:{" "}
-                      <span className="text-blue-500 font-semibold">
-                        {patient.aadharNumber}
-                      </span>
-                    </div>
-                    <div className="py-1 px-4 ">
-                      Registration Date:{" "}
-                      <span className="text-blue-500 font-semibold uppercase">
-                        {formatDateToIST(patient.createdAt)}
-                      </span>
-                    </div>
-                    <div className="w-3/4 text-center">
-                      Address:{" "}
-                      <span className="text-blue-500 font-semibold">
-                        {patient.address}
-                      </span>
-                    </div>
-                    <button
-                      className="p-2 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
-                      onClick={() => {
-                        handleShowPatientPrescription(patient._id);
-                      }}
-                      disabled={submitting}
-                    >
-                      {submitting ? <Loading size={15} /> : <></>}
-                      {submitting ? "Showing..." : "Show Presriptions"}
-                    </button>
                   </div>
                 )}
               </div>

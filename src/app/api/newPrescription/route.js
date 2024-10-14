@@ -82,11 +82,11 @@ export async function GET(req) {
     const allPrescription = await Prescription.find()
       .populate({
         path: "patient", // Populate the department field
-        select: "name uhid",
+        select: "name uhid address age gender mobileNumber",
       })
       .populate({
         path: "doctor", // Populate the department field
-        select: "name",
+        select: "name specialty",
       })
       .populate({
         path: "department", // Populate the department field
@@ -130,14 +130,14 @@ export async function POST(req) {
   //     { status: 403 }
   //   );
   // }
-  const { patient, items, doctor, department } = await req.json();
+  const { patient, items, doctor, department, paymentMode } = await req.json();
 
   try {
     // Check if email is unique
     console.log(patient, items, doctor, department);
 
     // // Generate a 6-digit UID
-    const pid = "125478";
+    const pid = generateUID();
     // // console.log(departmentId)
 
     // // Create new user
@@ -147,6 +147,7 @@ export async function POST(req) {
       doctor,
       department,
       pid,
+      paymentMode,
     });
 
     // // Save user to the database

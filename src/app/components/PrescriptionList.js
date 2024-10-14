@@ -58,7 +58,7 @@ function PrescriptionList({ setNewUserSection, setEntity, prescriptions }) {
       </div>
       <hr className="border border-slate-800 w-full my-2" />
 
-      <div className="w-4/5 px-2 mx-auto my-2 max-h-[60vh] overflow-auto space-y-2">
+      <div className="w-full md:w-4/5 px-2 mx-auto my-2 max-h-[60vh] overflow-auto space-y-2">
         {prescriptions.map((prescription, index) => {
           return (
             <div

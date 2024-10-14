@@ -1,5 +1,13 @@
-
-function AddSection({ setNewUserSection, setEntity, FormComponent, prescriptions }) {
+function AddSection({
+  setNewUserSection,
+  setEntity,
+  FormComponent,
+  prescriptions,
+  editPatient,
+  setEditPatient,
+  editPrescription,
+  setEditPrescription
+}) {
   return (
     <div className="absolute top-0 left-0">
       <div className="fixed w-screen h-screen bg-gray-700/[.5] z-30 flex justify-center items-center">
@@ -8,6 +16,10 @@ function AddSection({ setNewUserSection, setEntity, FormComponent, prescriptions
             setNewUserSection={setNewUserSection}
             setEntity={setEntity}
             prescriptions={prescriptions}
+            editPatient={editPatient}
+            setEditPatient={setEditPatient}
+            editPrescription={editPrescription}
+            setEditPrescription={setEditPrescription}
           />
         </div>
       </div>

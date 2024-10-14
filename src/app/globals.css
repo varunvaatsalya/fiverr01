@@ -25,3 +25,31 @@ body {
     text-wrap: balance;
   }
 }
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact; /* Adjust colors for printing */
+  }
+
+  #invoice {
+    width: 100%;
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
+    color: black;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  .print-btn {
+    display: none;
+  }
+}

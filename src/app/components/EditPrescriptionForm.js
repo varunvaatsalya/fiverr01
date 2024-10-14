@@ -32,7 +32,12 @@ const fakedetails = {
   ],
 };
 
-const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
+const NewPrescriptionForm = ({
+  setNewUserSection,
+  setEntity,
+  editPrescription,
+  setEditPrescription,
+}) => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
   const [details, setDetails] = useState(null);
@@ -40,12 +45,27 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
   const { register, handleSubmit, setValue } = useForm();
 
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState(editPrescription.department._id);
   const [availableItems, setAvailableItems] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState(editPrescription.items);
+
+  setValue("department", editPrescription.department._id);
+  setValue("doctor", editPrescription.doctor._id);
+    setValue('items', editPrescription.items)
+  setValue("paymentMode", editPrescription.paymentMode);
+
   useEffect(() => {
     setValue("items", selectedItems);
   }, [selectedItems]);
+  //   console.log(editPrescription)
+
+  //   if (editPrescription) {
+  //     Object.entries(editPrescription).forEach(([key, value]) => {
+  //       setValue(key, value);
+  //     });
+  //   } else {
+  //     reset(); // Reset if no patient selected
+  //   }
 
   useEffect(() => {
     if (details?.departments && selectedDepartment) {
@@ -80,51 +100,52 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
   }, []);
 
   const onSubmit = async (data) => {
-    if (selectedItems.length > 0) {
-      setMessage(null);
-      setSubmitting(true);
-      try {
-        console.log(data, selectedItems.length);
-        let result = await fetch("/api/newPrescription", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json", // Set the header for JSON
-          },
-          body: JSON.stringify(data), // Properly stringify the data
-        });
+    console.log(data);
+    // if (selectedItems.length > 0) {
+    //   setMessage(null);
+    //   setSubmitting(true);
+    //   try {
+    //     console.log(data, selectedItems.length);
+    //     let result = await fetch("/api/newPrescription", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json", // Set the header for JSON
+    //       },
+    //       body: JSON.stringify(data), // Properly stringify the data
+    //     });
 
-        // Parsing the response as JSON
-        result = await result.json();
-        // Check if login was successful
-        if (result.success) {
-          const departmentData = details.departments.find(
-            (department) => department._id === result.newPrescription.department
-          );
-          const patientData = details.patients.find(
-            (patient) => patient._id === result.newPrescription.patient
-          );
-          const doctorData = details.doctors.find(
-            (doctor) => doctor._id === result.newPrescription.doctor
-          );
-          result.newPrescription.patient = patientData;
-          result.newPrescription.department = departmentData;
-          result.newPrescription.doctor = doctorData;
-          setEntity((prevPrescription) => [
-            result.newPrescription,
-            ...prevPrescription,
-          ]);
-          setNewUserSection((prev) => !prev);
-        } else {
-          setMessage(result.message);
-        }
-      } catch (error) {
-        console.error("Error submitting application:", error);
-      } finally {
-        setSubmitting(false);
-      }
-    } else {
-      setMessage("choose atleast one items");
-    }
+    //     // Parsing the response as JSON
+    //     result = await result.json();
+    //     // Check if login was successful
+    //     if (result.success) {
+    //       const departmentData = details.departments.find(
+    //         (department) => department._id === result.newPrescription.department
+    //       );
+    //       const patientData = details.patients.find(
+    //         (patient) => patient._id === result.newPrescription.patient
+    //       );
+    //       const doctorData = details.doctors.find(
+    //         (doctor) => doctor._id === result.newPrescription.doctor
+    //       );
+    //       result.newPrescription.patient = patientData;
+    //       result.newPrescription.department = departmentData;
+    //       result.newPrescription.doctor = doctorData;
+    //       setEntity((prevPrescription) => [
+    //         result.newPrescription,
+    //         ...prevPrescription,
+    //       ]);
+    //       setNewUserSection((prev) => !prev);
+    //     } else {
+    //       setMessage(result.message);
+    //     }
+    //   } catch (error) {
+    //     console.error("Error submitting application:", error);
+    //   } finally {
+    //     setSubmitting(false);
+    //   }
+    // } else {
+    //   setMessage("choose atleast one items");
+    // }
   };
 
   // Handle item selection via checkbox
@@ -152,13 +173,13 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
     >
       {/* Department Selection */}
       <h2 className="font-bold text-2xl text-white">
-        New <span className="text-blue-500">Prescription</span>
+        edit the <span className="text-blue-500">Prescription</span>
       </h2>
       <hr className="border border-slate-800 w-full my-2" />
       {message && (
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
-      <select
+      {/* <select
         id="patient"
         {...register("patient", { required: "patient is required" })}
         onChange={(e) => {
@@ -173,27 +194,25 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
             {patient.name + ", UHID: " + patient.uhid}
           </option>
         ))}
+      </select> */}
+      <select
+        id="department"
+        {...register("department", { required: "department is required" })}
+        onChange={(e) => {
+          setSelectedDepartment(e.target.value);
+        }}
+        className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+      >
+        <option value="">-- Select a Department --</option>
+        {details.departments.map((department, index) => (
+          <option key={index} value={department._id}>
+            {department.name}
+          </option>
+        ))}
       </select>
-      {selectedPatient && (
-        <select
-          id="department"
-          {...register("department", { required: "department is required" })}
-          onChange={(e) => {
-            setSelectedDepartment(e.target.value);
-          }}
-          className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        >
-          <option value="">-- Select a Department --</option>
-          {details.departments.map((department, index) => (
-            <option key={index} value={department._id}>
-              {department.name}
-            </option>
-          ))}
-        </select>
-      )}
 
       {/* Display items if a department is selected */}
-      {selectedDepartment && selectedPatient && (
+      {editPrescription?.department && (
         <>
           <select
             id="doctor"
@@ -286,7 +305,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
           </div>
         </>
       )}
-      {selectedItems.length>0 && (
+      {selectedItems.length > 0 && (
         <select
           id="paymentMode"
           {...register("paymentMode", { required: "Payment Mode is required" })}
@@ -305,6 +324,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         <div
           className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
           onClick={() => {
+            setEditPrescription(null);
             setNewUserSection((prev) => !prev);
           }}
         >

@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import LoginComponent from "../components/loginComponent";
+import LoginComponent from "../components/LoginComponent";
 
 export default function Page() {
   

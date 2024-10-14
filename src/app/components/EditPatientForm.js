@@ -3,38 +3,58 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
 
-function NewPatientForm({ setNewUserSection, setEntity }) {
+function EditPatientForm({
+  setNewUserSection,
+  setEntity,
+  editPatient,
+  setEditPatient,
+}) {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm();
 
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
 
+  if (editPatient) {
+    Object.entries(editPatient).forEach(([key, value]) => {
+      setValue(key, value);
+    });
+  } else {
+    reset(); // Reset if no patient selected
+  }
+
   const onSubmit = async (data) => {
     setSubmitting(true);
     try {
-        let result = await fetch("/api/newPatient", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json", // Set the header for JSON
-          },
-          body: JSON.stringify(data), // Properly stringify the data
-        });
+      let result = await fetch("/api/newPatient", {
+        method: "PUT", // Change method to PUT for updates
+        headers: {
+          "Content-Type": "application/json", // Set the header for JSON
+        },
+        body: JSON.stringify(data), // Properly stringify the data
+      });
 
-        // Parsing the response as JSON
-        result = await result.json();
-        console.log(result, result.success, result.status);
-        // Check if login was successful
-        if (result.success) {
-          setEntity((prevPatient) => [result.patient, ...prevPatient]);
-          console.log(result.patient);
-          setNewUserSection((prev) => !prev);
-        } else {
-          setMessage(result.message);
-        }
+      // Parsing the response as JSON
+      result = await result.json();
+      console.log(result, result.success);
+
+      // Check if update was successful
+      if (result.success) {
+        setEntity((prevPatients) =>
+          prevPatients.map((patient) =>
+            patient._id === result.patient._id ? result.patient : patient
+          )
+        );
+        console.log(result.patient);
+        setEditPatient(null);
+        setNewUserSection((prev) => !prev);
+      } else {
+        setMessage(result.message);
+      }
       console.log(data);
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -45,7 +65,7 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
   return (
     <div>
       <h2 className="font-bold text-2xl text-white">
-        Details of new <span className="text-blue-500">Patient</span>
+        Edit the <span className="text-blue-500">Patient</span>
       </h2>
       <hr className="border border-slate-800 w-full my-2" />
       {message && (
@@ -53,7 +73,7 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="w-[95%] px-2 md:w-4/5 lg:w-3/4 mx-auto my-2">
-      <input
+        <input
           id="name"
           type="text"
           placeholder={"Enter the Patient's name"}
@@ -126,6 +146,7 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
           <div
             className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
             onClick={() => {
+              setEditPatient(null);
               setNewUserSection((prev) => !prev);
             }}
           >
@@ -145,4 +166,4 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
   );
 }
 
-export default NewPatientForm;
+export default EditPatientForm;
