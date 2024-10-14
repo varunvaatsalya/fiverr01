@@ -1,10 +1,9 @@
 import React from "react";
-import Link from "next/link";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoginComponent from "../components/LoginComponent";
 
-export default function Page() {
+function Page() {
   
   return (
     <div className=" flex flex-col min-h-screen bg-white">
@@ -26,3 +25,5 @@ export default function Page() {
     </div>
   );
 }
+
+export default Page;
