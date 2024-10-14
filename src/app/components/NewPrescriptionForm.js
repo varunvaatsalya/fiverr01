@@ -48,6 +48,10 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
   }, [selectedItems]);
 
   useEffect(() => {
+    setSelectedItems([]);
+  }, [selectedDepartment]);
+
+  useEffect(() => {
     if (details?.departments && selectedDepartment) {
       const department = details.departments.find(
         (department) => department._id === selectedDepartment
@@ -97,18 +101,6 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         result = await result.json();
         // Check if login was successful
         if (result.success) {
-          const departmentData = details.departments.find(
-            (department) => department._id === result.newPrescription.department
-          );
-          const patientData = details.patients.find(
-            (patient) => patient._id === result.newPrescription.patient
-          );
-          const doctorData = details.doctors.find(
-            (doctor) => doctor._id === result.newPrescription.doctor
-          );
-          result.newPrescription.patient = patientData;
-          result.newPrescription.department = departmentData;
-          result.newPrescription.doctor = doctorData;
           setEntity((prevPrescription) => [
             result.newPrescription,
             ...prevPrescription,
@@ -201,11 +193,15 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
             className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
           >
             <option value="">-- Select a Doctor --</option>
-            {details.doctors.map((doctor, index) => (
-              <option key={index} value={doctor._id}>
-                {doctor.name}
-              </option>
-            ))}
+            {details.doctors
+              .filter(
+                (doctor) => doctor.department === selectedDepartment
+              )
+              .map((doctor, index) => (
+                <option key={index} value={doctor._id}>
+                  {doctor.name}
+                </option>
+              ))}
           </select>
 
           <div className="mb-6">
@@ -286,7 +282,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
           </div>
         </>
       )}
-      {selectedItems.length>0 && (
+      {selectedItems.length > 0 && (
         <select
           id="paymentMode"
           {...register("paymentMode", { required: "Payment Mode is required" })}

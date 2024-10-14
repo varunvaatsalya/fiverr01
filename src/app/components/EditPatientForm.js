@@ -28,6 +28,7 @@ function EditPatientForm({
   }
 
   const onSubmit = async (data) => {
+    console.log(data);
     setSubmitting(true);
     try {
       let result = await fetch("/api/newPatient", {

@@ -84,13 +84,16 @@ function Invoice({ printPrescription, setPrintPrescription }) {
                 <p>
                   <strong>Gender/Age:</strong>{" "}
                   <span className="uppercase">
-                    {printPrescription.patient.gender[0] +
+                    {(printPrescription.patient.gender
+                      ? printPrescription.patient.gender[0]
+                      : "-") +
                       "/" +
                       printPrescription.patient.age}
                   </span>
                 </p>
                 <p>
-                  <strong>Mobile:</strong> {printPrescription.patient.mobileNumber}
+                  <strong>Mobile:</strong>{" "}
+                  {printPrescription.patient.mobileNumber}
                 </p>
                 <p>
                   <strong>UHID:</strong> {printPrescription.patient.uhid}
@@ -105,10 +108,12 @@ function Invoice({ printPrescription, setPrintPrescription }) {
                   <strong>Invoice ID:</strong> {printPrescription.pid}
                 </p>
                 <p>
-                  <strong>Date:</strong> {formatDateToIST(printPrescription.createdAt)}
+                  <strong>Date:</strong>{" "}
+                  {formatDateToIST(printPrescription.createdAt)}
                 </p>
                 <p>
-                  <strong>Mode of Payment:</strong> {printPrescription.paymentMode}
+                  <strong>Mode of Payment:</strong>{" "}
+                  {printPrescription.paymentMode}
                 </p>
               </div>
             </div>
@@ -133,27 +138,37 @@ function Invoice({ printPrescription, setPrintPrescription }) {
                   {printPrescription.items.map((item, index) => {
                     return (
                       <tr key={index}>
-                        <td className="py-1 px-2 border w-16">{index+1}.</td>
+                        <td className="py-1 px-2 border w-16">{index + 1}.</td>
                         <td className="py-1 px-4 border">{item.name}</td>
-                        <td className="py-1 px-4 border text-center">{item.price}</td>
+                        <td className="py-1 px-4 border text-center">
+                          {item.price}
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
               <div className="mt-4 flex justify-end">
-                <p className="font-semibold text-lg">Grand Total: ₹ {printPrescription.items.reduce((sum, item) => sum + item.price, 0)}</p>
+                <p className="font-semibold text-lg">
+                  Grand Total: ₹{" "}
+                  {printPrescription.items.reduce(
+                    (sum, item) => sum + item.price,
+                    0
+                  )}
+                </p>
               </div>
             </div>
             <hr className="my-4" />
-            
+
             <div className="mb-6 capitalize">
               <h2 className="text-lg font-bold mb-2 ">Doctor Details</h2>
               <p className="text-sm">
-                <strong>Doctor Name:</strong> Dr. {printPrescription.doctor.name}
+                <strong>Doctor Name:</strong> Dr.{" "}
+                {printPrescription.doctor.name}
               </p>
               <p className="text-sm">
-                <strong>Speciality:</strong> {printPrescription.doctor.specialty}
+                <strong>Speciality:</strong>{" "}
+                {printPrescription.doctor.specialty}
               </p>
             </div>
           </div>

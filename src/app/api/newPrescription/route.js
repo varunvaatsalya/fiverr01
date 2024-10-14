@@ -152,16 +152,114 @@ export async function POST(req) {
 
     // // Save user to the database
     await newPrescription.save();
+
+
+    const updatedNewPrescription = await Prescription.findById(newPrescription._id)
+    .populate({
+      path: "patient",
+      select: "name uhid address age gender mobileNumber"
+    })
+    .populate({
+      path: "doctor",
+      select: "name specialty"
+    })
+    .populate({
+      path: "department",
+      select: "name"
+    });
+
+
     // Send response with UID
     return NextResponse.json(
       {
-        newPrescription,
+        newPrescription:updatedNewPrescription,
         success: true,
       },
       { status: 201 }
     );
   } catch (error) {
     console.error("Error during registration:", error);
+    return NextResponse.json(
+      { message: "Internal server error", success: false },
+      { status: 500 }
+    );
+  }
+}
+
+
+
+export async function PUT(req) {
+  await dbConnect();
+
+  // const token = req.cookies.get("authToken");
+  // if (!token) {
+  //   console.log("Token not found. Redirecting to login.");
+  //   return NextResponse.json(
+  //     { message: "Access denied. No token provided.", success: false },
+  //     { status: 401 }
+  //   );
+  // }
+
+  // const decoded = await verifyToken(token.value);
+  // const userRole = decoded.role;
+  // if (!decoded || !userRole) {
+  //   return NextResponse.json(
+  //     { message: "Invalid token.", success: false },
+  //     { status: 403 }
+  //   );
+  // }
+  // if (userRole !== "Admin") {
+  //   return NextResponse.json(
+  //     { message: "Access denied. Admins only.", success: false },
+  //     { status: 403 }
+  //   );
+  // }
+
+  const { _id, patient, department, doctor, items, paymentMode } =
+    await req.json();
+
+  try {
+    // Check if patient exists
+    const existingPrescription = await Prescription.findById(_id);
+    if (!existingPrescription) {
+      return NextResponse.json(
+        { message: "Prescription not found", success: false },
+        { status: 404 }
+      );
+    }
+
+    // Update patient details
+    existingPrescription.patient = patient;
+    existingPrescription.department = department;
+    existingPrescription.doctor = doctor;
+    existingPrescription.items = items;
+    existingPrescription.paymentMode = paymentMode;
+
+    // Save updated patient to the database
+    await existingPrescription.save();
+
+    const updatedPrescription = await Prescription.findById(existingPrescription._id)
+    .populate({
+      path: "patient",
+      select: "name uhid address age gender mobileNumber"
+    })
+    .populate({
+      path: "doctor",
+      select: "name specialty"
+    })
+    .populate({
+      path: "department",
+      select: "name"
+    });
+
+
+    // Send response with updated patient details
+    return NextResponse.json(
+      { prescription: updatedPrescription, success: true },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error during update:", error);
     return NextResponse.json(
       { message: "Internal server error", success: false },
       { status: 500 }

@@ -44,36 +44,46 @@ const NewPrescriptionForm = ({
 
   const { register, handleSubmit, setValue } = useForm();
 
-  const [selectedPatient, setSelectedPatient] = useState(null);
-  const [selectedDepartment, setSelectedDepartment] = useState(editPrescription.department._id);
+  const [selectedDepartment, setSelectedDepartment] = useState(
+    editPrescription.department._id
+  );
   const [availableItems, setAvailableItems] = useState([]);
+  // details.departments.find(
+  //   (department) => department._id === editPrescription.department._id
+  // ).items;
   const [selectedItems, setSelectedItems] = useState(editPrescription.items);
 
-  setValue("department", editPrescription.department._id);
-  setValue("doctor", editPrescription.doctor._id);
-    setValue('items', editPrescription.items)
-  setValue("paymentMode", editPrescription.paymentMode);
+  useEffect(() => {
+    setValue("_id", editPrescription._id);
+    setValue("patient", editPrescription.patient._id);
+    setValue("department", editPrescription.department._id);
+    setValue("doctor", editPrescription.doctor._id);
+    setValue("items", editPrescription.items);
+    setValue("paymentMode", editPrescription.paymentMode);
+  }, [editPrescription]);
 
   useEffect(() => {
     setValue("items", selectedItems);
   }, [selectedItems]);
-  //   console.log(editPrescription)
-
-  //   if (editPrescription) {
-  //     Object.entries(editPrescription).forEach(([key, value]) => {
-  //       setValue(key, value);
-  //     });
-  //   } else {
-  //     reset(); // Reset if no patient selected
-  //   }
 
   useEffect(() => {
-    if (details?.departments && selectedDepartment) {
+    // if (selectedDepartment !== editPrescription.department._id) {
+    setSelectedItems([]);
+    setValue("doctor", "");
+    console.log(selectedDepartment)
+    // }
+  }, [selectedDepartment]);
+  
+  useEffect(() => {
+    if (details?.departments) {
       const department = details.departments.find(
         (department) => department._id === selectedDepartment
       );
       if (department) {
         setAvailableItems(department.items);
+      }else{
+        setAvailableItems([]);
+
       }
     }
   }, [selectedDepartment, details]);
@@ -101,51 +111,41 @@ const NewPrescriptionForm = ({
 
   const onSubmit = async (data) => {
     console.log(data);
-    // if (selectedItems.length > 0) {
-    //   setMessage(null);
-    //   setSubmitting(true);
-    //   try {
-    //     console.log(data, selectedItems.length);
-    //     let result = await fetch("/api/newPrescription", {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json", // Set the header for JSON
-    //       },
-    //       body: JSON.stringify(data), // Properly stringify the data
-    //     });
+    if (selectedItems.length > 0) {
+      setMessage(null);
+      setSubmitting(true);
+      try {
+        console.log(data, selectedItems.length);
+        let result = await fetch("/api/newPrescription", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json", // Set the header for JSON
+          },
+          body: JSON.stringify(data), // Properly stringify the data
+        });
 
-    //     // Parsing the response as JSON
-    //     result = await result.json();
-    //     // Check if login was successful
-    //     if (result.success) {
-    //       const departmentData = details.departments.find(
-    //         (department) => department._id === result.newPrescription.department
-    //       );
-    //       const patientData = details.patients.find(
-    //         (patient) => patient._id === result.newPrescription.patient
-    //       );
-    //       const doctorData = details.doctors.find(
-    //         (doctor) => doctor._id === result.newPrescription.doctor
-    //       );
-    //       result.newPrescription.patient = patientData;
-    //       result.newPrescription.department = departmentData;
-    //       result.newPrescription.doctor = doctorData;
-    //       setEntity((prevPrescription) => [
-    //         result.newPrescription,
-    //         ...prevPrescription,
-    //       ]);
-    //       setNewUserSection((prev) => !prev);
-    //     } else {
-    //       setMessage(result.message);
-    //     }
-    //   } catch (error) {
-    //     console.error("Error submitting application:", error);
-    //   } finally {
-    //     setSubmitting(false);
-    //   }
-    // } else {
-    //   setMessage("choose atleast one items");
-    // }
+        // Parsing the response as JSON
+        result = await result.json();
+        // Check if login was successful
+        if (result.success) {
+          setEntity((prevPrescription) =>
+            prevPrescription.map((prescription) =>
+              prescription._id === result.prescription._id ? result.prescription : prescription
+            )
+          );
+          setEditPrescription(null);
+          setNewUserSection((prev) => !prev);
+        } else {
+          setMessage(result.message);
+        }
+      } catch (error) {
+        console.error("Error submitting application:", error);
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      setMessage("choose atleast one items");
+    }
   };
 
   // Handle item selection via checkbox
@@ -179,7 +179,7 @@ const NewPrescriptionForm = ({
       {message && (
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
-      {/* <select
+      <select
         id="patient"
         {...register("patient", { required: "patient is required" })}
         onChange={(e) => {
@@ -194,11 +194,12 @@ const NewPrescriptionForm = ({
             {patient.name + ", UHID: " + patient.uhid}
           </option>
         ))}
-      </select> */}
+      </select>
       <select
         id="department"
         {...register("department", { required: "department is required" })}
         onChange={(e) => {
+          console.log(e.target.value)
           setSelectedDepartment(e.target.value);
         }}
         className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
@@ -220,11 +221,13 @@ const NewPrescriptionForm = ({
             className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
           >
             <option value="">-- Select a Doctor --</option>
-            {details.doctors.map((doctor, index) => (
-              <option key={index} value={doctor._id}>
-                {doctor.name}
-              </option>
-            ))}
+            {details.doctors
+              .filter((doctor) => doctor.department === selectedDepartment)
+              .map((doctor, index) => (
+                <option key={index} value={doctor._id}>
+                  {doctor.name}
+                </option>
+              ))}
           </select>
 
           <div className="mb-6">
