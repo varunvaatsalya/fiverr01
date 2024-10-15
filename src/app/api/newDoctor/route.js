@@ -35,7 +35,7 @@ export async function GET(req) {
   }
 
   try {
-    const doctors = await Doctor.find().populate('department', 'name _id');
+    const doctors = await Doctor.find().sort({ _id: -1 }).populate('department', 'name _id');
     return NextResponse.json({ doctors, userRole, userEditPermission, success: true }, { status: 200 });
   } catch (error) {
     console.error("Error fetching doctors:", error);

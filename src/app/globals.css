@@ -28,13 +28,22 @@ body {
 
 @media print {
   @page {
-    size: A4 portrait;
+    size: A4 landscape;
     margin: 15mm;
   }
 
-  body {
-    -webkit-print-color-adjust: exact; /* Adjust colors for printing */
+   body {
+    -webkit-print-color-adjust: exact; 
   }
+
+  /* @page {
+    size: 4in 3in landscape;
+    margin: 5mm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+  } */
 
   #invoice {
     width: 100%;

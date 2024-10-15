@@ -29,7 +29,7 @@ export async function GET(req) {
   }
 
   try {
-    const patients = await Patient.find();
+    const patients = await Patient.find().sort({ _id: -1 });
     return NextResponse.json(
       { patients, userRole, userEditPermission, success: true },
       { status: 200 }

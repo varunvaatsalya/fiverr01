@@ -42,7 +42,7 @@ function DepartmentSearchList({ departments, setDepartments, accessInfo }) {
       ) : (
         <></>
       )}
-      <div className="flex flex-col min-h-screen bg-gray-100">
+      <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow">
           <div className="px-2 lg:px-4 max-w-screen-xl mx-auto">
@@ -53,7 +53,7 @@ function DepartmentSearchList({ departments, setDepartments, accessInfo }) {
                 onChange={(e) => {
                   updatedata(e.target.value);
                 }}
-                className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-transparent"
+                className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
               />
               {accessInfo?.accessRole === "admin" && (
                 <button

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { formatDateToIST } from "../utils/date";
 
 const items = [
@@ -24,7 +24,13 @@ const items = [
   },
 ];
 
-function Invoice({ printPrescription, setPrintPrescription, prescriptionPrinted }) {
+function Invoice({
+  printPrescription,
+  setPrintPrescription,
+  prescriptionPrinted,
+}) {
+  const [items, setItems] = useState(printPrescription.items);
+
   console.log(printPrescription);
   return (
     <>
@@ -40,6 +46,19 @@ function Invoice({ printPrescription, setPrintPrescription, prescriptionPrinted 
             <div className="flex justify-center space-x-2">
               <button
                 onClick={() => {
+                  setItems([]);
+                  setTimeout(() => {
+                    window.print();
+                    setItems(printPrescription.items);
+                  }, 100);
+                }}
+                className="text-blue-600 border border-blue-600 hover:bg-blue-100 rounded px-6 py-2 my-2 font-semibold text-lg"
+              >
+                Print without price
+              </button>
+              <button
+                onClick={() => {
+                  setItems(printPrescription.items);
                   prescriptionPrinted(printPrescription._id);
                   window.print();
                 }}
@@ -142,7 +161,7 @@ function Invoice({ printPrescription, setPrintPrescription, prescriptionPrinted 
                         <td className="py-1 px-2 border w-16">{index + 1}.</td>
                         <td className="py-1 px-4 border">{item.name}</td>
                         <td className="py-1 px-4 border text-center">
-                          {item.price}
+                          {items[index]?.price}
                         </td>
                       </tr>
                     );
@@ -150,13 +169,12 @@ function Invoice({ printPrescription, setPrintPrescription, prescriptionPrinted 
                 </tbody>
               </table>
               <div className="mt-4 flex justify-end">
-                <p className="font-semibold text-lg">
-                  Grand Total: ₹{" "}
-                  {printPrescription.items.reduce(
-                    (sum, item) => sum + item.price,
-                    0
-                  )}
-                </p>
+                {items.length > 0 && (
+                  <p className="font-semibold text-lg">
+                    Grand Total: ₹{" "}
+                    {items.reduce((sum, item) => sum + item.price, 0)}
+                  </p>
+                )}
               </div>
             </div>
             <hr className="my-4" />

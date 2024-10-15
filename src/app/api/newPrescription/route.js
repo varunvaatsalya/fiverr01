@@ -15,7 +15,6 @@ export async function GET(req) {
   const patient = req.nextUrl.searchParams.get("patient");
   const componentDetails = req.nextUrl.searchParams.get("componentDetails");
 
-  
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -40,6 +39,7 @@ export async function GET(req) {
 
     if (patient) {
       const prescriptions = await Prescription.find({ patient })
+        .sort({ _id: -1 })
         .populate({
           path: "doctor", // Populate the doctor field
           select: "name", // Only select the name of the doctor
@@ -76,6 +76,7 @@ export async function GET(req) {
     }
 
     const allPrescription = await Prescription.find()
+      .sort({ _id: -1 })
       .populate({
         path: "patient", // Populate the department field
         select: "name uhid address age gender mobileNumber",

@@ -3,7 +3,11 @@ import Link from "next/link";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
-import { BsFillPersonBadgeFill } from "react-icons/bs";
+import { BsBuildingFillAdd, BsFillPersonBadgeFill } from "react-icons/bs";
+import { FaFilePrescription } from "react-icons/fa";
+import { FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
+import { IoMdAnalytics } from "react-icons/io";
+import { IoLogOut } from "react-icons/io5";
 
 function Page() {
   const router = useRouter();
@@ -11,39 +15,46 @@ function Page() {
     {
       name: "Prescription",
       description: "You can see all the prescription",
-      icon: <BsFillPersonBadgeFill size={30} />,
+      icon: <FaFilePrescription size={50} />,
       link: "/dashboard-owner/prescriptions",
-      color: "yellow",
+      color: "bg-blue-700",
+    },    
+    {
+      name: "Analytics",
+      description: "You can show the analytics",
+      icon: <IoMdAnalytics size={50} />,
+      link: "/dashboard-owner/analytics",
+      color: "bg-purple-700",
     },
     {
       name: "Sales Men",
       description:
-        "You can Show all the salesman of diffrent hospitals, also add the new salesman & give the access to edit the invoice",
-      icon: <BsFillPersonBadgeFill size={30} />,
+        "Show, add the new salesman & give the access to edit the invoice",
+      icon: <BsFillPersonBadgeFill size={40} />,
       link: "/dashboard-owner/salesman",
-      color: "yellow",
+      color: "bg-amber-700",
     },
     {
       name: "Patients",
       description: "You can show & add the patients",
-      icon: <BsFillPersonBadgeFill size={30} />,
+      icon: <FaPersonCirclePlus size={50} />,
       link: "/dashboard-owner/patients",
-      color: "yellow",
+      color: "bg-pink-700",
     },
     {
       name: "Departments",
       description:
         "You can show & add the departsments of diffrent hospitals & thier respective itmes",
-      icon: <BsFillPersonBadgeFill size={30} />,
+      icon: <BsBuildingFillAdd size={50} />,
       link: "/dashboard-owner/departments",
-      color: "yellow",
+      color: "bg-orange-700",
     },
     {
       name: "Doctors",
       description: "You can show & add the doctors of diffrent hospitals",
-      icon: <BsFillPersonBadgeFill size={30} />,
+      icon: <FaUserDoctor size={50} />,
       link: "/dashboard-owner/doctors",
-      color: "yellow",
+      color: "bg-green-700",
     },
   ];
   return (
@@ -57,7 +68,7 @@ function Page() {
                 <Link
                   href={workCard.link}
                   key={index}
-                  className="w-full p-3 h-60 md:w-2/5 lg:w-1/5 bg-black text-white rounded-xl flex flex-col justify-center items-center space-y-1"
+                  className={`w-full p-3 h-60 md:w-2/5 lg:w-1/5 ${workCard.color} text-white rounded-xl flex flex-col justify-center items-center space-y-1`}
                 >
                   {workCard.icon}
                   <div className="font-bold text-xl">{workCard.name}</div>
@@ -72,9 +83,9 @@ function Page() {
                 "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
               router.push("/login");
             }}
-            className="w-full p-3 h-60 md:w-2/5 lg:w-1/5 bg-black text-white rounded-xl flex flex-col justify-center items-center space-y-1"
+            className="w-full p-3 h-60 md:w-2/5 lg:w-1/5 bg-red-700 text-white rounded-xl flex flex-col justify-center items-center space-y-1"
           >
-            <BsFillPersonBadgeFill size={30} />
+            <IoLogOut size={60} />
             <div className="font-bold text-xl">Logout</div>
           </button>
         </div>

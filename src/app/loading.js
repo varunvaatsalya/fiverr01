@@ -9,7 +9,7 @@ function loading() {
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             // stroke="#000"
-            className="motion-reduce:hidden animate-spin text-5xl font-bold text-black dark:text-white "
+            className="motion-reduce:hidden animate-spin text-5xl font-bold text-black"
           >
             <circle
               cx="50"
@@ -21,8 +21,8 @@ function loading() {
               className="stroke-current"
             ></circle>
           </svg>
-          <div className="mt-3 text-4xl font-bold">Loading</div>
-          <div className="text-xl font-medium">Please Wait...</div>
+          <div className="mt-3 text-4xl font-bold text-gray-900">Loading</div>
+          <div className="text-xl font-medium text-gray-900">Please Wait...</div>
         </div>
       </>
     );

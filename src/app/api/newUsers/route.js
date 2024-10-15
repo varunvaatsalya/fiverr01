@@ -38,7 +38,7 @@ export async function GET(req) {
 
   try {
     const query = role ? { role } : {};
-    const users = await User.find(query);
+    const users = await User.find(query).sort({ _id: -1 });
     return NextResponse.json(
       { users, userRole, userEditPermission, success: true },
       { status: 200 }

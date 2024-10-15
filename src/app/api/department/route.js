@@ -42,7 +42,7 @@ export async function GET(req) {
     if (name === "1") {
       departments = await Department.find({}, "_id name");
     } else {
-      departments = await Department.find();
+      departments = await Department.find().sort({ _id: -1 });
     }
     return NextResponse.json({ departments, userRole, userEditPermission, success: true }, { status: 200 });
   } catch (error) {

@@ -98,7 +98,7 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
                 onChange={(e) => {
                   updatedata(e.target.value);
                 }}
-                className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-transparent"
+                className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
               />
               {(accessInfo?.accessRole === "admin" ||
                 accessInfo?.accessRole === "salesman") &&<button
