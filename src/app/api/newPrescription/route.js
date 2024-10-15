@@ -14,6 +14,8 @@ export async function GET(req) {
   await dbConnect();
   const patient = req.nextUrl.searchParams.get("patient");
   const componentDetails = req.nextUrl.searchParams.get("componentDetails");
+
+  
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");

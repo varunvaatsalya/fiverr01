@@ -1,32 +1,34 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { generateToken } from "../../utils/jwt";
+import { generateToken, verifyToken } from "../../utils/jwt";
 import User from "../../models/Users";
 
+export async function GET(req) {
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { route: "/login", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { route: "/login", success: false },
+      { status: 403 }
+    );
+  }
+
+  return NextResponse.json(
+    { route: `/dashboard-${userRole}`, success: true },
+    { status: 200 }
+  );
+}
+
 export async function POST(req) {
-  const users = [
-    {
-      id: 1,
-      email: "admin@example.com",
-      password: "admin123", // Note: In real apps, use hashed passwords
-      role: "admin",
-      route: "/dashboard-admin",
-    },
-    {
-      id: 2,
-      email: "owner@example.com",
-      password: "owner123",
-      role: "Owner",
-      route: "/dashboard-owner",
-    },
-    {
-      id: 3,
-      email: "salesman@example.com",
-      password: "salesman123",
-      role: "SalesMan",
-      route: "/dashboard-salesman",
-    },
-  ];
   const userRole = {
     admin: "/dashboard-admin",
     owner: "/dashboard-owner",
@@ -45,7 +47,12 @@ export async function POST(req) {
         email == process.env.ADMIN_EMAIL &&
         password == process.env.ADMIN_PASSWORD
       ) {
-        const token = await generateToken({ email, password, role, editPermission:true });
+        const token = await generateToken({
+          email,
+          password,
+          role,
+          editPermission: true,
+        });
 
         cookies().set({
           name: "authToken",
@@ -118,9 +125,4 @@ export async function POST(req) {
     );
   }
 
-  return NextResponse.json({
-    messages: "Login successful",
-    route: user.route,
-    success: true,
-  });
 }

@@ -8,8 +8,6 @@ import { BsFillPersonBadgeFill } from "react-icons/bs";
 
 function Page() {
   const router = useRouter();
-  // const {role, isPrint} = useRole();
-  // console.log(role, isPrint)
   const Works = [
     {
       name: "Prescription",
@@ -23,6 +21,21 @@ function Page() {
       description: "You can show & add the patients",
       icon: <BsFillPersonBadgeFill size={30} />,
       link: "/dashboard-admin/patients",
+      color: "yellow",
+    },
+    {
+      name: "Analytics",
+      description: "You can show the analytics",
+      icon: <BsFillPersonBadgeFill size={30} />,
+      link: "/dashboard-admin/analytics",
+      color: "yellow",
+    },
+    {
+      name: "Sales Men",
+      description:
+        "You can Show all the salesman of diffrent hospitals, also add the new salesman & give the access to edit the invoice",
+      icon: <BsFillPersonBadgeFill size={30} />,
+      link: "/dashboard-admin/salesman",
       color: "yellow",
     },
     {
@@ -41,14 +54,6 @@ function Page() {
       color: "yellow",
     },
     {
-      name: "Sales Men",
-      description:
-        "You can Show all the salesman of diffrent hospitals, also add the new salesman & give the access to edit the invoice",
-      icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/salesman",
-      color: "yellow",
-    },
-    {
       name: "Owners",
       description:
         "You can Show all the owners of diffrent hospitals, also create the new owner",
@@ -56,9 +61,6 @@ function Page() {
       link: "/dashboard-admin/owners",
       color: "yellow",
     },
-    
-    
-    
   ];
   return (
     <>

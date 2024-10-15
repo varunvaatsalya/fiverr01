@@ -1,8 +1,27 @@
+"use client";
+import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Link from "next/link";
 
 export default function Home() {
+  const [success, setSuccess] = useState(false);
+  const [route, setRoute] = useState('/login')
+  useEffect(() => {
+    async function fetchRoute() {
+      try {
+        let result = await fetch("/api/auth");
+        result = await result.json();
+        if (result.success) {
+          setSuccess(result.success);
+          setRoute(result.route);
+        }
+      } catch (err) {
+        console.log("error: ", err);
+      }
+    }
+    fetchRoute();
+  }, []);
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -15,18 +34,21 @@ export default function Home() {
           <p className="text-xl mb-10 text-gray-700">
             Simplify your billing process with our easy-to-use platform.
           </p>
-          <Link
-            href="/login"
-            className="bg-black text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
-          >
-            Login
-          </Link>
-          <Link
-            href="/dashboard-admin"
-            className="bg-black text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
-          >
-            admin
-          </Link>
+          {success ? (
+            <Link
+              href={route}
+              className="bg-black text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="bg-black text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
+            >
+              Login
+            </Link>
+          )}
         </div>
       </main>
 

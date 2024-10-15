@@ -66,7 +66,7 @@ function DoctorSearchList({ doctors, setDoctors, accessInfo }) {
                 </button>
               )}
             </div>
-            <div className="h-12 flex justify-center items-center text-xl rounded-full w-3/4 mx-auto bg-black text-white">
+            <div className="h-12 flex justify-center items-center lg:text-xl rounded-full w-full md:w-4/5 lg:w-3/4 mx-auto bg-black text-white">
               Doctors, Specialty & their Department
             </div>
             <div className="flex flex-wrap justify-center items-center gap-4 mx-auto p-4">

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import Patient from "../../models/Patients";
-import Prescription from "../../models/Prescriptions";
 import { verifyToken } from "../../utils/jwt";
 
 function generateUID() {
