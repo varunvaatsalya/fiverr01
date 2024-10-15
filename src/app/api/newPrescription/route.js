@@ -14,35 +14,29 @@ export async function GET(req) {
   await dbConnect();
   const patient = req.nextUrl.searchParams.get("patient");
   const componentDetails = req.nextUrl.searchParams.get("componentDetails");
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
-  // if (userRole !== "Admin") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. Admins only.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  const userEditPermission = decoded.editPermission;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
 
   try {
     // const query = patient ? { patient } : {};
 
     if (patient) {
-      // const prescriptions = await Prescription.find({ patient });
       const prescriptions = await Prescription.find({ patient })
         .populate({
           path: "doctor", // Populate the doctor field
@@ -93,7 +87,7 @@ export async function GET(req) {
         select: "name",
       });
     return NextResponse.json(
-      { allPrescription, success: true },
+      { allPrescription, userRole, userEditPermission, success: true },
       { status: 200 }
     );
   } catch (error) {
@@ -107,29 +101,29 @@ export async function GET(req) {
 
 export async function POST(req) {
   await dbConnect();
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
-  // if (userRole !== "Admin") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. Admins only.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin" && userRole !== "salesman") {
+    return NextResponse.json(
+      { message: "Access denied. admins only.", success: false },
+      { status: 403 }
+    );
+  }
   const { patient, items, doctor, department, paymentMode } = await req.json();
 
   try {
@@ -153,26 +147,26 @@ export async function POST(req) {
     // // Save user to the database
     await newPrescription.save();
 
-
-    const updatedNewPrescription = await Prescription.findById(newPrescription._id)
-    .populate({
-      path: "patient",
-      select: "name uhid address age gender mobileNumber"
-    })
-    .populate({
-      path: "doctor",
-      select: "name specialty"
-    })
-    .populate({
-      path: "department",
-      select: "name"
-    });
-
+    const updatedNewPrescription = await Prescription.findById(
+      newPrescription._id
+    )
+      .populate({
+        path: "patient",
+        select: "name uhid address age gender mobileNumber",
+      })
+      .populate({
+        path: "doctor",
+        select: "name specialty",
+      })
+      .populate({
+        path: "department",
+        select: "name",
+      });
 
     // Send response with UID
     return NextResponse.json(
       {
-        newPrescription:updatedNewPrescription,
+        newPrescription: updatedNewPrescription,
         success: true,
       },
       { status: 201 }
@@ -186,34 +180,33 @@ export async function POST(req) {
   }
 }
 
-
-
 export async function PUT(req) {
   await dbConnect();
 
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
-  // if (userRole !== "Admin") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. Admins only.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  const userEditPermission = decoded.editPermission;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin" && userRole !== "salesman" && userEditPermission) {
+    return NextResponse.json(
+      { message: "Access denied. admins only.", success: false },
+      { status: 403 }
+    );
+  }
 
   const { _id, patient, department, doctor, items, paymentMode } =
     await req.json();
@@ -238,20 +231,21 @@ export async function PUT(req) {
     // Save updated patient to the database
     await existingPrescription.save();
 
-    const updatedPrescription = await Prescription.findById(existingPrescription._id)
-    .populate({
-      path: "patient",
-      select: "name uhid address age gender mobileNumber"
-    })
-    .populate({
-      path: "doctor",
-      select: "name specialty"
-    })
-    .populate({
-      path: "department",
-      select: "name"
-    });
-
+    const updatedPrescription = await Prescription.findById(
+      existingPrescription._id
+    )
+      .populate({
+        path: "patient",
+        select: "name uhid address age gender mobileNumber",
+      })
+      .populate({
+        path: "doctor",
+        select: "name specialty",
+      })
+      .populate({
+        path: "department",
+        select: "name",
+      });
 
     // Send response with updated patient details
     return NextResponse.json(

@@ -6,13 +6,12 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { IoPersonAdd } from "react-icons/io5";
 
-function SearchList({ users, updateUsers, role }) {
+function SearchList({ users, updateUsers, role, accessInfo }) {
   const [newUserSection, setNewUserSection] = useState(false);
   const [resData, setResData] = useState(users);
 
   useEffect(() => {
     setResData(users);
-    console.log(users);
   }, [users]);
 
   function updatedata(query) {
@@ -30,7 +29,15 @@ function SearchList({ users, updateUsers, role }) {
   }
   return (
     <>
-      {newUserSection ? <AddUserSection setNewUserSection={setNewUserSection} role={role} updateUsers={updateUsers} /> : <></>}
+      {newUserSection ? (
+        <AddUserSection
+          setNewUserSection={setNewUserSection}
+          role={role}
+          updateUsers={updateUsers}
+        />
+      ) : (
+        <></>
+      )}
       <div className="flex flex-col min-h-screen bg-gray-100">
         <Navbar />
         <main className="flex-grow">
@@ -44,15 +51,17 @@ function SearchList({ users, updateUsers, role }) {
                 }}
                 className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-transparent"
               />
-              <button
-                onClick={() => {
-                  setNewUserSection((newUserSection) => !newUserSection);
-                }}
-                className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
-              >
-                <IoPersonAdd />
-                <div>Add</div>
-              </button>
+              {accessInfo?.accessRole === "admin" && (
+                <button
+                  onClick={() => {
+                    setNewUserSection((newUserSection) => !newUserSection);
+                  }}
+                  className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
+                >
+                  <IoPersonAdd />
+                  <div>Add</div>
+                </button>
+              )}
             </div>
             <div className="h-12 flex rounded-full bg-black text-white">
               <div className="w-2/5 md:w-1/5 px-2 flex items-center justify-center">

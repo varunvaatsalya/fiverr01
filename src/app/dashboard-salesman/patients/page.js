@@ -74,6 +74,7 @@ const dummydoctors = [
 
 function Page() {
   const [patients, setPatients] = useState([]);
+  const [accessInfo, setAccessInfo] = useState(null);
   useEffect(() => {
     async function fetchData() {
       try {
@@ -81,6 +82,10 @@ function Page() {
         result = await result.json();
         if (result.success) {
           setPatients(result.patients);
+          setAccessInfo({
+            accessRole: result.userRole,
+            accessEditPermission: result.userEditPermission,
+          });
         }
       } catch (err) {
         console.log("error: ", err);
@@ -90,7 +95,7 @@ function Page() {
   }, []);
   return (
     <>
-      <PatientSearchList patients={patients} setPatients={setPatients} />
+      <PatientSearchList patients={patients} setPatients={setPatients} accessInfo={accessInfo} />
     </>
   );
 }

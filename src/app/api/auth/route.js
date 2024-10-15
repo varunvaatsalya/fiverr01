@@ -9,7 +9,7 @@ export async function POST(req) {
       id: 1,
       email: "admin@example.com",
       password: "admin123", // Note: In real apps, use hashed passwords
-      role: "Admin",
+      role: "admin",
       route: "/dashboard-admin",
     },
     {
@@ -45,7 +45,7 @@ export async function POST(req) {
         email == process.env.ADMIN_EMAIL &&
         password == process.env.ADMIN_PASSWORD
       ) {
-        const token = await generateToken({ email, password, role });
+        const token = await generateToken({ email, password, role, editPermission:true });
 
         cookies().set({
           name: "authToken",
@@ -56,10 +56,11 @@ export async function POST(req) {
         return NextResponse.json({
           messages: "Login successful",
           route: userRole.admin,
+          editPermission: true,
+          role,
           success: true,
         });
-      }
-      else{
+      } else {
         return NextResponse.json(
           { message: "Invalid Credentials", success: false },
           { status: 401 }
@@ -100,7 +101,13 @@ export async function POST(req) {
     });
     // If everything matches, return success
     return NextResponse.json(
-      { message: "Login successful", user, route:userRole[user.role], success: true },
+      {
+        message: "Login successful",
+        role: user.role,
+        editPermission: user.editPermission,
+        route: userRole[user.role],
+        success: true,
+      },
       { status: 200 }
     );
   } catch (error) {

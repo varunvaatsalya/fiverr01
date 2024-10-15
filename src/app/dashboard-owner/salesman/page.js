@@ -1,17 +1,18 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import DepartmentSearchList from "../../components/DepartmentSearchList";
+import { useEffect, useState } from "react";
+import SearchList from "../../components/SearchList";
 
 function Page() {
-  const [departments, setDepartments] = useState([]);
+  const [salesMen, setSalesMen] = useState([]);
   const [accessInfo, setAccessInfo] = useState(null);
   useEffect(() => {
     async function fetchData() {
       try {
-        let result = await fetch("/api/department");
+        let result = await fetch("/api/newUsers?role=salesman");
         result = await result.json();
         if (result.success) {
-          setDepartments(result.departments);
+          setSalesMen(result.users);
+          console.log(result.users, result)
           setAccessInfo({
             accessRole: result.userRole,
             accessEditPermission: result.userEditPermission,
@@ -25,9 +26,10 @@ function Page() {
   }, []);
   return (
     <>
-      <DepartmentSearchList
-        departments={departments}
-        setDepartments={setDepartments}
+      <SearchList
+        users={salesMen}
+        updateUsers={setSalesMen}
+        role={"salesman"}
         accessInfo={accessInfo}
       />
     </>

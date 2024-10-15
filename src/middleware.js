@@ -134,7 +134,7 @@ export async function middleware(req) {
     // Get the current path the user is trying to access
     const pathname = req.nextUrl.pathname;
     // console.log(userRole, roleRoutes.admin);
-    console.log(userRole, pathname, token)
+    // console.log(userRole, pathname, token)
     
     // Check if the user has the correct role for the requested route
     if (userRole === "admin" && pathname.startsWith(roleRoutes.admin)) {
@@ -164,38 +164,38 @@ export async function middleware(req) {
   }
 }
 
-export async function userRouteMiddleware(req) {
-  const token = req.cookies.get("authToken");
-  if (!token) {
-    console.log("Token not found. Redirecting to login.");
-    const response = NextResponse.json(
-      { message: "Access denied. No token provided.", success: false },
-      { status: 401 }
-    );
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-    return response;
-  }
+// export async function userRouteMiddleware(req) {
+//   const token = req.cookies.get("authToken");
+//   if (!token) {
+//     console.log("Token not found. Redirecting to login.");
+//     const response = NextResponse.json(
+//       { message: "Access denied. No token provided.", success: false },
+//       { status: 401 }
+//     );
+//     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+//     return response;
+//   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
-  if (!decoded || !userRole) {
-    const response = NextResponse.json(
-      { message: "Invalid token.", success: false },
-      { status: 403 }
-    );
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-    return response;
-  }
-  if (userRole !== "Admin") {
-    const response = NextResponse.json(
-      { message: "Access denied. Admins only.", success: false },
-      { status: 403 }
-    );
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-    return response;
-  }
-  req.user = decoded;
-}
+//   const decoded = await verifyToken(token.value);
+//   const userRole = decoded.role;
+//   if (!decoded || !userRole) {
+//     const response = NextResponse.json(
+//       { message: "Invalid token.", success: false },
+//       { status: 403 }
+//     );
+//     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+//     return response;
+//   }
+//   if (userRole !== "Admin") {
+//     const response = NextResponse.json(
+//       { message: "Access denied. Admins only.", success: false },
+//       { status: 403 }
+//     );
+//     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+//     return response;
+//   }
+//   req.user = decoded;
+// }
 
 // Define the paths where this middleware should run (protect dashboard routes)
 export const config = {

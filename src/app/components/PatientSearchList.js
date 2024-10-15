@@ -10,7 +10,7 @@ import { formatDateToIST } from "../utils/date";
 import { IoPersonAdd } from "react-icons/io5";
 import Loading from "./Loading";
 
-function PatientSearchList({ patients, setPatients }) {
+function PatientSearchList({ patients, setPatients, accessInfo }) {
   const [newUserSection, setNewUserSection] = useState(false);
   const [resData, setResData] = useState(patients);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -102,15 +102,18 @@ function PatientSearchList({ patients, setPatients }) {
                 }}
                 className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-transparent"
               />
-              <button
-                onClick={() => {
-                  setNewUserSection((newUserSection) => !newUserSection);
-                }}
-                className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
-              >
-                <IoPersonAdd />
-                <div>Add</div>
-              </button>
+              {(accessInfo?.accessRole === "admin" ||
+                accessInfo?.accessRole === "salesman") && (
+                <button
+                  onClick={() => {
+                    setNewUserSection((newUserSection) => !newUserSection);
+                  }}
+                  className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
+                >
+                  <IoPersonAdd />
+                  <div>Add</div>
+                </button>
+              )}
             </div>
             <div className="h-12 flex justify-center items-center text-xl rounded-full w-3/4 mx-auto bg-black text-white">
               Patients Details
@@ -172,7 +175,7 @@ function PatientSearchList({ patients, setPatients }) {
                       </div>
                     </div>
                     <div className="flex justify-center gap-2 my-3">
-                      {
+                      {accessInfo?.accessEditPermission && (
                         <button
                           className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
                           onClick={() => {
@@ -182,7 +185,7 @@ function PatientSearchList({ patients, setPatients }) {
                         >
                           Edit
                         </button>
-                      }
+                      )}
                       <button
                         className="p-2 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
                         onClick={() => {

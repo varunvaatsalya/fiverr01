@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import PrescriptionsSearchList from "../../components/PrescriptionsSearchList";
+// import { useRole } from "../../RoleContext";
 
 const prescriptions1 = [
   {
@@ -38,8 +39,11 @@ const prescriptions1 = [
   },
 ];
 
+
+
 function Page() {
   const [prescriptions, setPrescriptions] = useState([]);
+  const [accessInfo, setAccessInfo] = useState(null);
   useEffect(() => {
     async function fetchData() {
       try {
@@ -47,6 +51,10 @@ function Page() {
         result = await result.json();
         if (result.success) {
           setPrescriptions(result.allPrescription);
+          setAccessInfo({
+            accessRole: result.userRole,
+            accessEditPermission: result.userEditPermission,
+          });
         }
       } catch (err) {
         console.log("error: ", err);
@@ -58,7 +66,7 @@ function Page() {
     <>
       <PrescriptionsSearchList
         prescriptions={prescriptions}
-        setPrescriptions={setPrescriptions}
+        setPrescriptions={setPrescriptions} accessInfo={accessInfo}
       />
     </>
   );

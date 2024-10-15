@@ -4,24 +4,25 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { BsFillPersonBadgeFill } from "react-icons/bs";
+// import { useRole } from "../RoleContext";
 
 function Page() {
   const router = useRouter();
+  // const {role, isPrint} = useRole();
+  // console.log(role, isPrint)
   const Works = [
     {
-      name: "Sales Men",
-      description:
-        "You can Show all the salesman of diffrent hospitals, also add the new salesman & give the access to edit the invoice",
+      name: "Prescription",
+      description: "You can see all the prescription",
       icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/salesman",
+      link: "/dashboard-admin/prescriptions",
       color: "yellow",
     },
     {
-      name: "Owners",
-      description:
-        "You can Show all the owners of diffrent hospitals, also create the new owner",
+      name: "Patients",
+      description: "You can show & add the patients",
       icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/owners",
+      link: "/dashboard-admin/patients",
       color: "yellow",
     },
     {
@@ -40,19 +41,24 @@ function Page() {
       color: "yellow",
     },
     {
-      name: "Patients",
-      description: "You can show & add the patients",
+      name: "Sales Men",
+      description:
+        "You can Show all the salesman of diffrent hospitals, also add the new salesman & give the access to edit the invoice",
       icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/patients",
+      link: "/dashboard-admin/salesman",
       color: "yellow",
     },
     {
-      name: "Prescription",
-      description: "You can see all the prescription",
+      name: "Owners",
+      description:
+        "You can Show all the owners of diffrent hospitals, also create the new owner",
       icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-admin/prescriptions",
+      link: "/dashboard-admin/owners",
       color: "yellow",
     },
+    
+    
+    
   ];
   return (
     <>
@@ -64,7 +70,7 @@ function Page() {
               <>
                 <Link
                   href={workCard.link}
-                  key={index}
+                  key={workCard.name}
                   className="w-full p-3 h-60 md:w-2/5 lg:w-1/5 bg-black text-white rounded-xl flex flex-col justify-center items-center space-y-1"
                 >
                   {workCard.icon}

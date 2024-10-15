@@ -9,6 +9,21 @@ function Page() {
   const router = useRouter();
   const Works = [
     {
+      name: "Prescription",
+      description: "You can see all the prescription",
+      icon: <BsFillPersonBadgeFill size={30} />,
+      link: "/dashboard-owner/prescriptions",
+      color: "yellow",
+    },
+    {
+      name: "Sales Men",
+      description:
+        "You can Show all the salesman of diffrent hospitals, also add the new salesman & give the access to edit the invoice",
+      icon: <BsFillPersonBadgeFill size={30} />,
+      link: "/dashboard-owner/salesman",
+      color: "yellow",
+    },
+    {
       name: "Patients",
       description: "You can show & add the patients",
       icon: <BsFillPersonBadgeFill size={30} />,
@@ -16,10 +31,18 @@ function Page() {
       color: "yellow",
     },
     {
-      name: "Prescription",
-      description: "You can see all the prescription",
+      name: "Departments",
+      description:
+        "You can show & add the departsments of diffrent hospitals & thier respective itmes",
       icon: <BsFillPersonBadgeFill size={30} />,
-      link: "/dashboard-owner/prescriptions",
+      link: "/dashboard-owner/departments",
+      color: "yellow",
+    },
+    {
+      name: "Doctors",
+      description: "You can show & add the doctors of diffrent hospitals",
+      icon: <BsFillPersonBadgeFill size={30} />,
+      link: "/dashboard-owner/doctors",
       color: "yellow",
     },
   ];

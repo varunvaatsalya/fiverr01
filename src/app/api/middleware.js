@@ -14,8 +14,8 @@ export async function middleware(req) {
     if(!decoded || !userRole){
         return NextResponse.json({message: 'Invalid token.'},{ success: false }, { status: 403 });
     }
-    if(userRole !== "Admin"){
-        return NextResponse.json({message: 'Access denied. Admins only.'},{ success: false }, { status: 403 });
+    if(userRole !== "admin"){
+        return NextResponse.json({message: 'Access denied. admins only.'},{ success: false }, { status: 403 });
     }
     req.user = decoded
 }

@@ -9,7 +9,7 @@ import { IoPersonAdd } from "react-icons/io5";
 import { formatDateToIST } from "../utils/date";
 import Invoice from "./Invoice";
 
-function PrescriptionsSearchList({ prescriptions, setPrescriptions }) {
+function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo }) {
   const [newUserSection, setNewUserSection] = useState(false);
   const [resData, setResData] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -100,7 +100,8 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions }) {
                 }}
                 className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-transparent"
               />
-              <button
+              {(accessInfo?.accessRole === "admin" ||
+                accessInfo?.accessRole === "salesman") &&<button
                 onClick={() => {
                   setNewUserSection((newUserSection) => !newUserSection);
                 }}
@@ -108,7 +109,7 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions }) {
               >
                 <IoPersonAdd />
                 <div>Add</div>
-              </button>
+              </button>}
             </div>
             <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 md:w-4/5 lg:w-3/4 mx-auto bg-black text-white">
               List of all the Prescriptions
@@ -182,7 +183,7 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions }) {
                         );
                       })}
                       <div className="flex justify-around items-center gap-2 mt-3">
-                        {!prescription.isPrint && (
+                        {!prescription.isPrint && accessInfo?.accessEditPermission && (
                           <button
                             className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
                             onClick={() => {

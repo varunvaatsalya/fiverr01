@@ -5,7 +5,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { IoPersonAdd } from "react-icons/io5";
 
-function DepartmentSearchList({ departments, setDepartments }) {
+function DepartmentSearchList({ departments, setDepartments, accessInfo }) {
   const [newUserSection, setNewUserSection] = useState(false);
   const [resData, setResData] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -55,17 +55,19 @@ function DepartmentSearchList({ departments, setDepartments }) {
                 }}
                 className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-transparent"
               />
-              <button
-                onClick={() => {
-                  setNewUserSection((newUserSection) => !newUserSection);
-                }}
-                className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
-              >
-                <IoPersonAdd />
-                <div>Add</div>
-              </button>
+              {accessInfo?.accessRole === "admin" && (
+                <button
+                  onClick={() => {
+                    setNewUserSection((newUserSection) => !newUserSection);
+                  }}
+                  className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
+                >
+                  <IoPersonAdd />
+                  <div>Add</div>
+                </button>
+              )}
             </div>
-            <div className="h-12 flex justify-center items-center text-xl rounded-full w-3/4 mx-auto bg-black text-white">
+            <div className="h-12 flex justify-center items-center lg:text-xl rounded-full w-3/4 mx-auto bg-black text-white">
               Departments, Items & their prices
             </div>
             {resData.map((department, index) => (

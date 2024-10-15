@@ -9,35 +9,40 @@ function generateUID() {
 
 export async function GET(req) {
   await dbConnect();
-  const role = req.nextUrl.searchParams.get('role');
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided." , success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const role = req.nextUrl.searchParams.get("role");
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token." , success: false },
-  //     { status: 403 }
-  //   );
-  // }
-  // if (userRole !== "Admin") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. Admins only." , success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  const userEditPermission = decoded.editPermission;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  console.log(userRole);
+  if (userRole !== "admin" && userRole !== "owner") {
+    return NextResponse.json(
+      { message: "Access denied. Admins only.", success: false },
+      { status: 403 }
+    );
+  }
 
   try {
     const query = role ? { role } : {};
     const users = await User.find(query);
-    return NextResponse.json({ users, success: true }, { status: 200 });
+    return NextResponse.json(
+      { users, userRole, userEditPermission, success: true },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(
@@ -72,8 +77,8 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { name, email, password, role } = await req.json();
-  console.log("calleed: ",name, email, password, role)
+  const { name, email, password, role, editPermission  } = await req.json();
+  console.log("calleed: ", name, email, password, role);
 
   try {
     // Check if email is unique
@@ -94,6 +99,7 @@ export async function POST(req) {
       email,
       password,
       role,
+      editPermission,
       uid,
     });
 

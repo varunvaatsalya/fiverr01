@@ -10,33 +10,31 @@ function generateUID() {
 
 export async function GET(req) {
   await dbConnect();
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
-  // if (userRole !== "Admin") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. Admins only.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  const userEditPermission = decoded.editPermission;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
 
   try {
     const patients = await Patient.find();
-    return NextResponse.json({ patients, success: true }, { status: 200 });
+    return NextResponse.json(
+      { patients, userRole, userEditPermission, success: true },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching patients:", error);
     return NextResponse.json(
@@ -48,29 +46,29 @@ export async function GET(req) {
 
 export async function POST(req) {
   await dbConnect();
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
-  // if (userRole !== "Admin") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. Admins only.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin" && userRole !== "salesman") {
+    return NextResponse.json(
+      { message: "Access denied. Admins only.", success: false },
+      { status: 403 }
+    );
+  }
   const { name, age, gender, mobileNumber, aadharNumber, address } =
     await req.json();
 
@@ -120,29 +118,29 @@ export async function POST(req) {
 export async function PUT(req) {
   await dbConnect();
 
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
-  // if (userRole !== "Admin") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. Admins only.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin" && userRole !== "salesman") {
+    return NextResponse.json(
+      { message: "Access denied. Admins only.", success: false },
+      { status: 403 }
+    );
+  }
 
   const { _id, name, age, gender, mobileNumber, aadharNumber, address } =
     await req.json();
