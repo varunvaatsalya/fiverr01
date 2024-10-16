@@ -7,6 +7,7 @@ import { BsFillPersonBadgeFill,BsBuildingFillAdd, BsFillPersonVcardFill } from "
 import { FaFilePrescription } from "react-icons/fa";
 import { FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
 import { IoMdAnalytics } from "react-icons/io";
+import { MdAdminPanelSettings } from "react-icons/md";
 import { IoLogOut } from "react-icons/io5";
 
 function Page() {
@@ -63,6 +64,14 @@ function Page() {
       icon: <BsFillPersonVcardFill size={50} />,
       link: "/dashboard-admin/owners",
       color: "bg-cyan-700",
+    },
+    {
+      name: "Admins",
+      description:
+        "You can Show all the admins also create & delete",
+      icon: <MdAdminPanelSettings size={50} />,
+      link: "/dashboard-admin/admins",
+      color: "bg-gray-700",
     },
   ];
   return (

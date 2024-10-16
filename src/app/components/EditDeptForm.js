@@ -79,7 +79,7 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="w-3/4 max-h-[80vh] overflow-auto mx-auto px-2 my-2"
+      className="w-full md:w-4/5 lg:w-3/4 max-h-[80vh] overflow-auto mx-auto px-2 my-2"
     >
       {/* Department Selection */}
       <h2 className="font-bold text-2xl text-white">

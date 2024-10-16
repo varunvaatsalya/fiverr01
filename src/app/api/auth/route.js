@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { generateToken, verifyToken } from "../../utils/jwt";
 import User from "../../models/Users";
+import Admin from "../../models/Admins";
+import {credentials} from "../../credentials";
 
 export async function GET(req) {
   const token = req.cookies.get("authToken");
@@ -43,36 +45,45 @@ export async function POST(req) {
 
   try {
     if (role === "admin") {
-      if (
-        email == process.env.ADMIN_EMAIL &&
-        password == process.env.ADMIN_PASSWORD
-      ) {
-        const token = await generateToken({
-          email,
-          password,
-          role,
-          editPermission: true,
-        });
-
-        cookies().set({
-          name: "authToken",
-          value: token,
-          path: "/",
-        });
-
-        return NextResponse.json({
-          messages: "Login successful",
-          route: userRole.admin,
-          editPermission: true,
-          role,
-          success: true,
-        });
+      let admin;
+      if (email == credentials.email) {
+        admin = credentials;
       } else {
+        admin = await Admin.findOne({ email });
+        if (!admin) {
+          return NextResponse.json(
+            { message: "User not found", success: false },
+            { status: 404 }
+          );
+        }
+      }
+      if (admin.password !== password) {
         return NextResponse.json(
-          { message: "Invalid Credentials", success: false },
+          { message: "Invalid password", success: false },
           { status: 401 }
         );
       }
+
+      const token = await generateToken({
+        email,
+        password,
+        role,
+        editPermission: true,
+      });
+
+      cookies().set({
+        name: "authToken",
+        value: token,
+        path: "/",
+      });
+
+      return NextResponse.json({
+        messages: "Login successful",
+        route: userRole.admin,
+        editPermission: true,
+        role,
+        success: true,
+      });
     }
     // Find the user by email
     const user = await User.findOne({ email });
@@ -124,5 +135,4 @@ export async function POST(req) {
       { status: 500 }
     );
   }
-
 }
