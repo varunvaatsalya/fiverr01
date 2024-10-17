@@ -43,7 +43,6 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
   const onSubmit = async (data) => {
     setSubmitting(true);
     try {
-      console.log(data);
       let result = await fetch("/api/updatedepartment", {
         method: "POST",
         headers: {
@@ -64,7 +63,6 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
               : dept
           )
         );
-        console.log(result.department);
         setNewUserSection((prev) => !prev);
       } else {
         setMessage(result.message);

@@ -19,7 +19,6 @@ export async function GET(req) {
   }
 
   const decoded = await verifyToken(token.value);
-  console.log(token, decoded);
   const userRole = decoded.role;
   if (!decoded || !userRole) {
     return NextResponse.json(
@@ -27,7 +26,6 @@ export async function GET(req) {
       { status: 403 }
     );
   }
-  console.log(userRole);
   if (userRole !== "admin" && userRole !== "owner") {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },

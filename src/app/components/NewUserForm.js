@@ -26,11 +26,9 @@ function NewUserForm({ setNewUserSection, role, updateUsers }) {
 
       // Parsing the response as JSON
       result = await result.json();
-      console.log(result, result.success, result.status);
       // Check if login was successful
       if (result.success) {
         updateUsers((prevUsers) => [result.user, ...prevUsers]);
-        console.log(result.user);
         setNewUserSection((prev) => !prev);
       } else {
         setMessage(result.message);

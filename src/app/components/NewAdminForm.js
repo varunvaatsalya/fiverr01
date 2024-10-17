@@ -34,7 +34,6 @@ function NewAdminForm({ setNewUserSection, setAdmins }) {
         // Check if login was successful
         if (result.success) {
           setAdmins((prevAdmins) => [result.admin, ...prevAdmins]);
-          console.log(result.admin);
           setNewUserSection((prev) => !prev);
         } else {
           setMessage(result.message);

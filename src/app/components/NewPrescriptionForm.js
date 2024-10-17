@@ -155,7 +155,6 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         {...register("patient", { required: "patient is required" })}
         onChange={(e) => {
           setSelectedPatient(e.target.value);
-          console.log(e.target.value);
         }}
         className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
       >

@@ -32,7 +32,6 @@ export async function POST(req) {
   const { name, items, _id } = await req.json();
 
   try {
-    console.log(name, items, _id);
     const updatedDepartment = await Department.findByIdAndUpdate(
       _id,
       { name, items },

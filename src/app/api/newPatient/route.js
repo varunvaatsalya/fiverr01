@@ -4,7 +4,10 @@ import Patient from "../../models/Patients";
 import { verifyToken } from "../../utils/jwt";
 
 function generateUID() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const prefix = "PT";
+  const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
+  const uniqueID = `${prefix}${timestamp}`;
+  return uniqueID;
 }
 
 export async function GET(req) {
@@ -72,10 +75,24 @@ export async function POST(req) {
     await req.json();
 
   try {
-    // Check if email is unique
-    const existingPatient = await Patient.find({
-      $or: [{ $and: [{ mobileNumber }, { name }] }, { aadharNumber }],
-    });
+    // const existingPatient = await Patient.find({
+    //   $or: [{ $and: [{ mobileNumber }, { name }] }, { aadharNumber }],
+    // });
+
+    const query = {
+      $or: [
+        {
+          $and: [{ mobileNumber }, { name }],
+        },
+      ],
+    };
+
+    if (aadharNumber) {
+      query.$or.push({ aadharNumber });
+    }
+
+    const existingPatient = await Patient.find(query);
+
     if (existingPatient.length > 0) {
       return NextResponse.json(
         { message: "Patient already exists", success: false },
@@ -83,11 +100,8 @@ export async function POST(req) {
       );
     }
 
-    // Generate a 6-digit UID
     const uhid = generateUID();
-    // console.log(departmentId)
 
-    // Create new user
     const newPatient = new Patient({
       name,
       age,

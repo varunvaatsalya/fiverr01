@@ -25,7 +25,6 @@ const NewDeptForm = ({ setNewUserSection, setDepartments }) => {
     reset(); // Reset the form after submission
     setSubmitting(true);
     try {
-      console.log(data)
       let result = await fetch("/api/department", {
         method: "POST",
         headers: {
@@ -39,7 +38,6 @@ const NewDeptForm = ({ setNewUserSection, setDepartments }) => {
       // Check if login was successful
       if (result.success) {
         setDepartments((prevDepartments) => [result.department, ...prevDepartments]);
-        console.log(result.department);
         setNewUserSection((prev) => !prev);
       } else {
         setMessage(result.message);

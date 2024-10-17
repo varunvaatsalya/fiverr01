@@ -45,11 +45,9 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
 
       // Parsing the response as JSON
       result = await result.json();
-      console.log(result, result.success, result.status);
       // Check if login was successful
       if (result.success) {
         setEntity((prevDoctors) => [result.doctor, ...prevDoctors]);
-        console.log(result.doctor);
         setNewUserSection((prev) => !prev);
       } else {
         setMessage(result.message);

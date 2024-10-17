@@ -7,7 +7,10 @@ import Prescription from "../../models/Prescriptions";
 import { verifyToken } from "../../utils/jwt";
 
 function generateUID() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const prefix = "PR";
+  const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
+  const uniqueID = `${prefix}${timestamp}`;
+  return uniqueID;
 }
 
 export async function GET(req) {
@@ -56,7 +59,9 @@ export async function GET(req) {
       );
     } else if (componentDetails == "1") {
       // const prescriptions = await Prescription.find({ patient });
-      const patients = await Patient.find({}, "_id name uhid").exec();
+      const patients = await Patient.find({}, "_id name uhid")
+        .sort({ _id: -1 })
+        .exec();
 
       // Fetch all doctors with only _id, name, and associated department ID
       const doctors = await Doctor.find({}, "_id name department").exec();
@@ -130,10 +135,6 @@ export async function POST(req) {
   const { patient, items, doctor, department, paymentMode } = await req.json();
 
   try {
-    // Check if email is unique
-    console.log(patient, items, doctor, department);
-
-    // // Generate a 6-digit UID
     const pid = generateUID();
     // // console.log(departmentId)
 

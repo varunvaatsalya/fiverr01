@@ -28,8 +28,7 @@ body {
 
 @media print {
   @page {
-    size: A4 landscape;
-    margin: 15mm;
+    size: A4 portrait;
   }
 
    body {

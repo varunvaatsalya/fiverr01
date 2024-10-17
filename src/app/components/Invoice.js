@@ -31,16 +31,15 @@ function Invoice({
 }) {
   const [items, setItems] = useState(printPrescription.items);
 
-  console.log(printPrescription);
   return (
     <>
       <div
         id="invoice"
-        className="bg-gray-100 text-black flex flex-col justify-center items-center"
+        className="bg-white text-black flex flex-col justify-center items-center"
       >
         <div
           id="invoice"
-          className="max-w-4xl w-full bg-white shadow-md p-6 flex flex-col justify-between"
+          className="max-w-4xl w-full min-h-[90vh] bg-white shadow-md p-6 flex flex-col justify-between"
         >
           <div className="print-btn">
             <div className="flex justify-center space-x-2">

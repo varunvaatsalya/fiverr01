@@ -4,7 +4,10 @@ import { verifyToken } from "../../utils/jwt";
 import Department from "../../models/Departments";
 
 function generateUID() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const prefix = "DT";
+  const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
+  const uniqueID = `${prefix}${timestamp}`;
+  return uniqueID;
 }
 
 export async function GET(req) {
@@ -20,7 +23,6 @@ export async function GET(req) {
     }
 
     const decoded = await verifyToken(token.value);
-    console.log(token, decoded)
     const userRole = decoded.role;
     const userEditPermission = decoded.editPermission;
     if (!decoded || !userRole) {
@@ -29,7 +31,6 @@ export async function GET(req) {
         { status: 403 }
       );
     }
-    console.log(userRole)
     if (userRole !== "admin" && userRole !== "owner") {
       return NextResponse.json(
         { message: "Access denied. admins only.", success: false },

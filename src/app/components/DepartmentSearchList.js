@@ -12,11 +12,9 @@ function DepartmentSearchList({ departments, setDepartments, accessInfo }) {
 
   useEffect(() => {
     setResData(departments);
-    console.log(departments);
   }, [departments]);
 
   function updatedata(query) {
-    console.log(query);
     let filterRes = departments.filter((department) => {
       let lowerCaseQuery = query.toLowerCase();
       let isDepartmentMatch =
@@ -43,7 +41,7 @@ function DepartmentSearchList({ departments, setDepartments, accessInfo }) {
         <></>
       )}
       <div className="flex flex-col min-h-screen">
-        <Navbar />
+        <Navbar route={['Departments']} />
         <main className="flex-grow">
           <div className="px-2 lg:px-4 max-w-screen-xl mx-auto">
             <div className="h-16 py-2 flex justify-center gap-2 items-center">

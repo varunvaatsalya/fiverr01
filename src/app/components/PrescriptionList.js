@@ -39,7 +39,6 @@ function PrescriptionList({ setNewUserSection, setEntity, prescriptions }) {
     setEntity(null);
     setNewUserSection((prev) => !prev);
   }
-  console.log(prescriptions.patientDetails)
 
   return (
     <div className="">

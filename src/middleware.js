@@ -11,13 +11,11 @@ const roleRoutes = {
 
 // Middleware function to check for JWT and user role
 export async function middleware(req) {
-  console.log("middleware called");
   try {
     // Get the token from cookies (if not in cookies, log it)
     const token = req.cookies.get("authToken");
     // console.log("token", token);
     if (!token) {
-      console.log("Token not found. Redirecting to login.");
       // Redirect to login if no token is found
       const response = NextResponse.redirect(new URL("/login", req.url));
       response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -25,18 +23,13 @@ export async function middleware(req) {
     }
 
     // Verify the token and get decoded information
-    // console.log(1);
     const decoded = await verifyToken(token.value);
-    // console.log(2);
-    // console.log("Decoded Token:", decoded);
 
     // Get user's role from the decoded token
     const userRole = decoded.role;
 
     // Get the current path the user is trying to access
     const pathname = req.nextUrl.pathname;
-    // console.log(userRole, roleRoutes.admin);
-    // console.log(userRole, pathname, token)
     
     // Check if the user has the correct role for the requested route
     if (userRole === "admin" && pathname.startsWith(roleRoutes.admin)) {

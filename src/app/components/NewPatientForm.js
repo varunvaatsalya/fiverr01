@@ -26,16 +26,13 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
 
         // Parsing the response as JSON
         result = await result.json();
-        console.log(result, result.success, result.status);
         // Check if login was successful
         if (result.success) {
           setEntity((prevPatient) => [result.patient, ...prevPatient]);
-          console.log(result.patient);
           setNewUserSection((prev) => !prev);
         } else {
           setMessage(result.message);
         }
-      console.log(data);
     } catch (error) {
       console.error("Error submitting application:", error);
     } finally {

@@ -55,7 +55,7 @@ const NewPrescriptionForm = ({
 
   useEffect(() => {
     setValue("_id", editPrescription._id);
-    setValue("patient", editPrescription.patient._id);
+    setValue("patient", editPrescription.patient?._id);
     setValue("department", editPrescription.department._id);
     setValue("doctor", editPrescription.doctor._id);
     setValue("items", editPrescription.items);
@@ -70,7 +70,6 @@ const NewPrescriptionForm = ({
     // if (selectedDepartment !== editPrescription.department._id) {
     setSelectedItems([]);
     setValue("doctor", "");
-    console.log(selectedDepartment)
     // }
   }, [selectedDepartment]);
   
@@ -110,12 +109,10 @@ const NewPrescriptionForm = ({
   }, []);
 
   const onSubmit = async (data) => {
-    console.log(data);
     if (selectedItems.length > 0) {
       setMessage(null);
       setSubmitting(true);
       try {
-        console.log(data, selectedItems.length);
         let result = await fetch("/api/newPrescription", {
           method: "PUT",
           headers: {
@@ -182,10 +179,6 @@ const NewPrescriptionForm = ({
       <select
         id="patient"
         {...register("patient", { required: "patient is required" })}
-        onChange={(e) => {
-          setSelectedPatient(e.target.value);
-          console.log(e.target.value);
-        }}
         className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
       >
         <option value="">-- Select Patient --</option>
@@ -199,7 +192,6 @@ const NewPrescriptionForm = ({
         id="department"
         {...register("department", { required: "department is required" })}
         onChange={(e) => {
-          console.log(e.target.value)
           setSelectedDepartment(e.target.value);
         }}
         className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"

@@ -18,7 +18,6 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
 
   useEffect(() => {
     setResData(prescriptions);
-    console.log(prescriptions);
   }, [prescriptions]);
 
   async function prescriptionPrinted(id) {
@@ -26,7 +25,6 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
       let result = await fetch(`/api/print?id=${id}`);
       result = await result.json();
       if (result.success) {
-        console.log(result, id);
         setPrescriptions((prevPrescriptions) =>
           prevPrescriptions.map((prescription) =>
             prescription._id === result.id
@@ -39,7 +37,6 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
   }
 
   function updatedata(query) {
-    console.log(query);
     let filterRes = prescriptions.filter((prescription) => {
       let lowerCaseQuery = query.toLowerCase();
       let isPrescriptionMatch =
@@ -62,7 +59,7 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
   if (printPrescription) {
     return (
       <>
-        <div className="">
+        <div className="bg-white h-full">
           <Invoice
             printPrescription={printPrescription}
             setPrintPrescription={setPrintPrescription}
@@ -88,7 +85,7 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
         <></>
       )}
       <div className="flex flex-col min-h-screen bg-gray-100">
-        <Navbar />
+        <Navbar route={['Prescriptions']} />
         <main className="flex-grow">
           <div className="px-2 lg:px-4 max-w-screen-xl mx-auto">
             <div className="h-16 py-2 flex justify-center gap-2 items-center">
@@ -129,7 +126,7 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
                   >
                     <div className="">{index + 1}</div>
                     <h3 className="font-semibold text-lg capitalize">
-                      {prescription.patient.name}
+                      {prescription.patient?.name}
                     </h3>
                     <div className="">{prescription.pid}</div>
                     <span className="text-gray-500">
@@ -144,7 +141,7 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
                         <div className="py-1 px-4 ">
                           UHID:{" "}
                           <span className="text-blue-500 font-semibold">
-                            {prescription.patient.uhid}
+                            {prescription.patient?.uhid}
                           </span>
                         </div>
                         <div className="py-1 px-4 ">

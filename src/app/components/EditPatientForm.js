@@ -41,7 +41,6 @@ function EditPatientForm({
 
       // Parsing the response as JSON
       result = await result.json();
-      console.log(result, result.success);
 
       // Check if update was successful
       if (result.success) {
@@ -50,13 +49,11 @@ function EditPatientForm({
             patient._id === result.patient._id ? result.patient : patient
           )
         );
-        console.log(result.patient);
         setEditPatient(null);
         setNewUserSection((prev) => !prev);
       } else {
         setMessage(result.message);
       }
-      console.log(data);
     } catch (error) {
       console.error("Error submitting application:", error);
     } finally {

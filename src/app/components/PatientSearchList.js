@@ -20,12 +20,9 @@ function PatientSearchList({ patients, setPatients, accessInfo }) {
 
   useEffect(() => {
     setResData(patients);
-    console.log(patients);
   }, [patients]);
-  console.log(patients);
 
   function updatedata(query) {
-    console.log(query);
     let filterRes = patients.filter((patient) => {
       let lowerCaseQuery = query.toLowerCase();
       return (
@@ -33,7 +30,7 @@ function PatientSearchList({ patients, setPatients, accessInfo }) {
         patient.uhid.includes(lowerCaseQuery) ||
         patient.gender.toLowerCase().includes(lowerCaseQuery) ||
         patient.address.toLowerCase().includes(lowerCaseQuery) ||
-        patient.aadharNumber.toString().includes(lowerCaseQuery) ||
+        patient.aadharNumber?.toString().includes(lowerCaseQuery) ||
         patient.mobileNumber.toString().includes(lowerCaseQuery)
       );
     });
@@ -41,12 +38,10 @@ function PatientSearchList({ patients, setPatients, accessInfo }) {
   }
 
   async function handleShowPatientPrescription(id) {
-    console.log(id);
     setSubmitting(true);
     try {
       let result = await fetch(`/api/newPrescription?patient=${id}`);
       result = await result.json();
-      console.log(result, result.success);
       // Check if login was successful
       if (result.success) {
         let patientDetails = patients.find((patient) => patient._id == id);
@@ -90,7 +85,7 @@ function PatientSearchList({ patients, setPatients, accessInfo }) {
         <></>
       )}
       <div className="flex flex-col min-h-screen bg-gray-100">
-        <Navbar />
+        <Navbar route={['Patient']} />
         <main className="flex-grow">
           <div className="px-2 lg:px-4 max-w-screen-xl mx-auto">
             <div className="h-16 py-2 flex justify-center gap-2 items-center">
@@ -151,6 +146,12 @@ function PatientSearchList({ patients, setPatients, accessInfo }) {
                         Gender:{" "}
                         <span className="text-blue-500 font-semibold capitalize">
                           {patient.gender}
+                        </span>
+                      </div>
+                      <div className="py-1 px-4 ">
+                        Mo No.:{" "}
+                        <span className="text-blue-500 font-semibold capitalize">
+                          {patient.mobileNumber}
                         </span>
                       </div>
                       {patient.aadharNumber && (

@@ -15,7 +15,6 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
   }, [users]);
 
   function updatedata(query) {
-    console.log(query);
     let filterRes = users.filter((user) => {
       let lowerCaseQuery = query.toLowerCase();
       return (
@@ -39,7 +38,7 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
         <></>
       )}
       <div className="flex flex-col min-h-screen bg-gray-100">
-        <Navbar />
+        <Navbar route={[role]} />
         <main className="flex-grow">
           <div className="px-2 lg:px-4 max-w-screen-xl mx-auto">
             <div className="h-16 py-2 flex justify-center gap-2 items-center">

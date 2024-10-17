@@ -4,7 +4,10 @@ import Doctor from "../../models/Doctors";
 import { verifyToken } from "../../utils/jwt";
 
 function generateUID() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const prefix = "DR";
+  const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
+  const uniqueID = `${prefix}${timestamp}`;
+  return uniqueID;
 }
 
 export async function GET(req) {
@@ -27,7 +30,7 @@ export async function GET(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin"&&userRole !== "owner") {
+  if (userRole !== "admin" && userRole !== "owner") {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }
@@ -35,8 +38,13 @@ export async function GET(req) {
   }
 
   try {
-    const doctors = await Doctor.find().sort({ _id: -1 }).populate('department', 'name _id');
-    return NextResponse.json({ doctors, userRole, userEditPermission, success: true }, { status: 200 });
+    const doctors = await Doctor.find()
+      .sort({ _id: -1 })
+      .populate("department", "name _id");
+    return NextResponse.json(
+      { doctors, userRole, userEditPermission, success: true },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching doctors:", error);
     return NextResponse.json(
@@ -99,9 +107,14 @@ export async function POST(req) {
     // Save user to the database
     await newDoctor.save();
 
+    const updatedNewDoctor = await Doctor.findById(newDoctor._id).populate({
+      path: "department",
+      select: "name",
+    });
+
     // Send response with UID
     return NextResponse.json(
-      { doctor: newDoctor, success: true },
+      { doctor: updatedNewDoctor, success: true },
       { status: 201 }
     );
   } catch (error) {

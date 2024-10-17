@@ -23,7 +23,6 @@ export async function GET(req) {
       { status: 403 }
     );
   }
-  console.log(userRole);
   if (userRole !== "admin") {
     return NextResponse.json(
       { message: "Access denied. Admins only.", success: false },
@@ -69,7 +68,6 @@ export async function POST(req) {
     );
   }
   const { email, password } = await req.json();
-  console.log("calleed: ", email, password);
 
   try {
     // Check if email is unique
