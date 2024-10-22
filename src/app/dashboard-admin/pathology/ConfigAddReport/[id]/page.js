@@ -2,25 +2,25 @@
 import React, { useEffect, useState } from 'react'
 
 function page({params}) {
-  const id = params.id;
-  const [submitting, setSubmitting] = useState(false);
-  const [units, setUnits] = useState([]);
-  const [message, setMessage] = useState(null);
+  // const id = params.id;
+  // const [submitting, setSubmitting] = useState(false);
+  // const [units, setUnits] = useState([]);
+  // const [message, setMessage] = useState(null);
 
-  useEffect(()=>{
-    async function fetchData() {
-      try {
-        let result = await fetch("/api/units");
-        result = await result.json();
-        if (result.success) {
-          setUnits(result.units);
-        }
-      } catch (err) {
-        console.log("error: ", err);
-      }
-    }
-    // fetchData();
-  },[])
+  // useEffect(()=>{
+  //   async function fetchData() {
+  //     try {
+  //       let result = await fetch("/api/units");
+  //       result = await result.json();
+  //       if (result.success) {
+  //         setUnits(result.units);
+  //       }
+  //     } catch (err) {
+  //       console.log("error: ", err);
+  //     }
+  //   }
+  //   // fetchData();
+  // },[])
   return <div className='text-3xl font-bold text-red-400'>pending</div>
 
   return (

@@ -176,8 +176,8 @@ function AddLabReportSection({ setNewUserSection, setTests }) {
                         className=" px-1 text-sm py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
                       >
                         <option value="">Unit</option>
-                        {units.map((unit) => {
-                          return <option value={unit.name}>{unit.name}</option>;
+                        {units.map((unit, index) => {
+                          return <option value={unit.name} key={index}>{unit.name}</option>;
                         })}
                       </select>
                     </div>

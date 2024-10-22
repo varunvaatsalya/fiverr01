@@ -171,7 +171,7 @@ function PatientSearchList({
                       </div>
                       {patient.fathersName && (
                         <div className="py-1 px-4 ">
-                          Father's Name:{" "}
+                          Father&#39;s Name:{" "}
                           <span className="text-blue-500 font-semibold capitalize">
                             {patient.fathersName}
                           </span>

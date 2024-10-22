@@ -46,9 +46,9 @@ function Report({ printReport, setPrintReport }) {
           Cancel
         </button>
       </div>
-      {prescriptions.tests.map((test) => {
+      {prescriptions.tests.map((test, index) => {
         return (
-          <div class="max-w-4xl mx-auto bg-white text-black p-8 rounded-lg shadow-lg">
+          <div key={index} class="max-w-4xl mx-auto bg-white text-black p-8 rounded-lg shadow-lg">
             <h1 class="text-2xl font-bold mb-8 text-center">
               Pathology Report
             </h1>

@@ -24,7 +24,7 @@ function Page() {
             className="bg-pink-600 w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1"
           >
             <div className="h-1/5 w-full border-b-2 border-pink-500 text-center py-1 text-lg font-semibold">
-              Lab's Config
+              Lab&#39;s Config
             </div>
             <Link
               href={"/dashboard-pathologist/pathology/ConfigAddReport"}

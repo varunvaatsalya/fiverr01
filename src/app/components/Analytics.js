@@ -247,7 +247,7 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) 
       </div>
       <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl p-2 gap-x-5">
         <span>
-          Today's Prescriptions:{" "}
+          Today&#39;s Prescriptions:{" "}
           <span className="font-bold">{filteredPrescriptions.length}</span>
         </span>
         <span>
@@ -257,7 +257,7 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) 
       </div>
       <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl p-2 gap-x-5">
         <span>
-          Today's Expenses:{" "}
+          Today&#39;s Expenses:{" "}
           <span className="font-bold">{expenses.length}</span>
         </span>
         <span>
