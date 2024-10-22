@@ -114,3 +114,31 @@ export async function POST(req) {
     );
   }
 }
+
+
+
+export async function DELETE(req) {
+  await dbConnect();
+  const { id } = await req.json();
+
+  try {
+    const deletedUser = await User.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return NextResponse.json(
+        { message: "User not found", success: false },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: "User deleted successfully", success: true },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting admin:", error);
+    return NextResponse.json(
+      { message: "Internal server error", success: false },
+      { status: 500 }
+    );
+  }
+}

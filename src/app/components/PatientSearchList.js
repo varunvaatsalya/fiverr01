@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import AddSection from "./AddSection";
 import NewPatientForm from "./NewPatientForm";
 import EditPatientForm from "./EditPatientForm";
+import AdvPatientSearch from "./AdvPatientSearch";
 import PrescriptionList from "./PrescriptionList";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -19,16 +20,28 @@ function PatientSearchList({
   totalPages,
   setPage,
 }) {
+  const [searchedPatient, setSearchedPatient] = useState(null);
+  const [copyPatients, setCopyPatients] = useState(patients);
+
   const [newUserSection, setNewUserSection] = useState(false);
   const [resData, setResData] = useState(patients);
   const [activeIndex, setActiveIndex] = useState(null);
   const [prescriptions, setPrescriptions] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [editPatient, setEditPatient] = useState(null);
+  const [advSearch, setAdvSearch] = useState(false);
 
   useEffect(() => {
-    setResData(patients);
-  }, [patients]);
+    setResData(copyPatients);
+  }, [copyPatients]);
+
+  useEffect(() => {
+    if (searchedPatient) {
+      setCopyPatients(searchedPatient);
+    } else {
+      setCopyPatients(patients);
+    }
+  }, [searchedPatient, patients]);
 
   const handleNextPage = () => {
     if (page < totalPages) {
@@ -43,11 +56,11 @@ function PatientSearchList({
   };
 
   function updatedata(query) {
-    let filterRes = patients.filter((patient) => {
+    let filterRes = copyPatients.filter((patient) => {
       let lowerCaseQuery = query.toLowerCase();
       return (
         patient.name.toLowerCase().includes(lowerCaseQuery) ||
-        patient.fathersName.toLowerCase().includes(lowerCaseQuery) ||
+        patient.fathersName?.toLowerCase().includes(lowerCaseQuery) ||
         patient.uhid.toLowerCase().includes(lowerCaseQuery) ||
         patient.gender.toLowerCase().includes(lowerCaseQuery) ||
         patient.address.toLowerCase().includes(lowerCaseQuery) ||
@@ -65,7 +78,7 @@ function PatientSearchList({
       result = await result.json();
       // Check if login was successful
       if (result.success) {
-        let patientDetails = patients.find((patient) => patient._id == id);
+        let patientDetails = copyPatients.find((patient) => patient._id == id);
         result.prescriptions.patientDetails = patientDetails;
         setPrescriptions(result.prescriptions);
       } else {
@@ -86,7 +99,7 @@ function PatientSearchList({
           setNewUserSection={setNewUserSection}
           setEntity={
             editPatient
-              ? setPatients // Assuming you want to update patients
+              ? setPatients
               : prescriptions
               ? setPrescriptions
               : setPatients
@@ -233,27 +246,43 @@ function PatientSearchList({
             ))}
           </div>
         </main>
-        <div className="flex justify-end pr-4 ">
-          <div className="bg-gray-900 rounded-lg">
-            <button
-              onClick={handlePreviousPage}
-              disabled={page === 1}
-              className="p-3"
-            >
-              <FaArrowLeft size={20} />
-            </button>
-            <span className="text-white border-x border-white p-3">
-              Page {page} of {totalPages}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={page === totalPages}
-              className="p-3"
-            >
-              <FaArrowRight size={20} />
-            </button>
+        <div className="flex justify-end pr-4 gap-3">
+          <div
+            className="px-4 py-3 bg-gray-900 text-white text-lg rounded-lg font-bold cursor-pointer"
+            onClick={() => {
+              if (advSearch) {
+                setSearchedPatient(null);
+              }
+              setAdvSearch(!advSearch);
+            }}
+          >
+            {advSearch ? "Close" : "Advanced Search"}
           </div>
+          {!advSearch && (
+            <div className="bg-gray-900 rounded-lg">
+              <button
+                onClick={handlePreviousPage}
+                disabled={page === 1}
+                className="p-3"
+              >
+                <FaArrowLeft size={20} />
+              </button>
+              <span className="text-white border-x border-white p-3">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={handleNextPage}
+                disabled={page === totalPages}
+                className="p-3"
+              >
+                <FaArrowRight size={20} />
+              </button>
+            </div>
+          )}
         </div>
+        {advSearch && (
+          <AdvPatientSearch setSearchedPatient={setSearchedPatient} />
+        )}
         <Footer />
       </div>
     </>

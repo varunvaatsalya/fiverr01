@@ -31,7 +31,7 @@ export async function GET(req) {
         { status: 403 }
       );
     }
-    if (userRole !== "admin" && userRole !== "owner") {
+    if (userRole !== "admin" && userRole !== "owner" && userRole !== "salesman") {
       return NextResponse.json(
         { message: "Access denied. admins only.", success: false },
         { status: 403 }

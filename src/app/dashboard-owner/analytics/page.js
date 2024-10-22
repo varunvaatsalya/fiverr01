@@ -14,8 +14,8 @@ function Page() {
           setData({
             departments: result.departments,
             doctors: result.doctors,
-            salesmen: result.salesmen,
             prescriptions: result.prescriptions,
+            expenses: result.expenses,
           });
         }
       } catch (err) {
@@ -27,7 +27,7 @@ function Page() {
 
   if (!data) {
     return (
-      <div className="min-h-screen w-full flex flex-col justify-center items-center">
+      <div className="min-h-screen bg-slate-900 w-full flex flex-col justify-center items-center">
         <Loading size={50} />
         <div className="text-xl">Loading...</div>
       </div>
@@ -40,7 +40,8 @@ function Page() {
         prescriptions={data?.prescriptions}
         departments={data?.departments}
         doctors={data?.doctors}
-        salesmen={data?.salesmen}
+        expenses={data?.expenses}
+        setData={setData}
       />
     </>
   );

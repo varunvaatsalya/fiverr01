@@ -14,7 +14,6 @@ function Page() {
           setData({
             departments: result.departments,
             doctors: result.doctors,
-            salesmen: result.salesmen,
             prescriptions: result.prescriptions,
             expenses: result.expenses,
           });
@@ -41,8 +40,8 @@ function Page() {
         prescriptions={data?.prescriptions}
         departments={data?.departments}
         doctors={data?.doctors}
-        salesmen={data?.salesmen}
         expenses={data?.expenses}
+        setData={setData}
       />
     </>
   );

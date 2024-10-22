@@ -9,6 +9,7 @@ import { IoPersonAdd } from "react-icons/io5";
 import { formatDateTimeToIST } from "../utils/date";
 import Invoice from "./Invoice";
 import Report from "./Report";
+import AdvPrescSearch from "./AdvPrescSearch";
 import BlankPrescription from "./BlankPrescription";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
@@ -20,6 +21,9 @@ function PrescriptionsSearchList({
   setPage,
   totalPages,
 }) {
+  const [searchedPrescription, setSearchedPrescription] = useState(null);
+  const [copyPrescriptions, setCopyPrescriptions] = useState(prescriptions);
+
   const [newUserSection, setNewUserSection] = useState(false);
   const [resData, setResData] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -27,10 +31,19 @@ function PrescriptionsSearchList({
   const [printReport, setPrintReport] = useState(null);
   const [blankPrescPrint, setBlankPrescPrint] = useState(null);
   const [editPrescription, setEditPrescription] = useState(null);
+  const [advSearch, setAdvSearch] = useState(false);
 
   useEffect(() => {
-    setResData(prescriptions);
-  }, [prescriptions]);
+    setResData(copyPrescriptions);
+  }, [copyPrescriptions]);
+
+  useEffect(() => {
+    if (searchedPrescription) {
+      setCopyPrescriptions(searchedPrescription);
+    } else {
+      setCopyPrescriptions(prescriptions);
+    }
+  }, [searchedPrescription, prescriptions]);
 
   const handleNextPage = () => {
     if (page < totalPages) {
@@ -65,12 +78,12 @@ function PrescriptionsSearchList({
   };
 
   function updatedata(query) {
-    let filterRes = prescriptions.filter((prescription) => {
+    let filterRes = copyPrescriptions.filter((prescription) => {
       let lowerCaseQuery = query.toLowerCase();
       let isPrescriptionMatch =
-        prescription.pid.toString().includes(lowerCaseQuery) ||
-        prescription.prescription.name.toLowerCase().includes(lowerCaseQuery) ||
-        prescription.prescription.uhid.toString().includes(lowerCaseQuery) ||
+        prescription.pid.toLowerCase().includes(lowerCaseQuery) ||
+        prescription.patient.name.toLowerCase().includes(lowerCaseQuery) ||
+        prescription.patient.uhid.toLowerCase().includes(lowerCaseQuery) ||
         prescription.doctor.name.toLowerCase().includes(lowerCaseQuery) ||
         prescription.department.name.toLowerCase().includes(lowerCaseQuery);
       let isItemMatch = prescription.items.some(
@@ -302,27 +315,43 @@ function PrescriptionsSearchList({
             </div>
           </div>
         </main>
-        <div className="flex justify-end pr-4 ">
-          <div className="bg-gray-900 rounded-lg">
-          <button
-            onClick={handlePreviousPage}
-            disabled={page === 1}
-            className="p-3"
+        <div className="flex justify-end gap-2 pr-4 ">
+          <div
+            className="px-4 py-3 bg-gray-900 text-white text-lg rounded-lg font-bold cursor-pointer"
+            onClick={() => {
+              if (advSearch) {
+                setSearchedPrescription(null);
+              }
+              setAdvSearch(!advSearch);
+            }}
           >
-            <FaArrowLeft size={20}/>
-          </button>
-          <span className="text-white border-x border-white p-3">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={handleNextPage}
-            disabled={page === totalPages}
-            className="p-3"
-          >
-            <FaArrowRight size={20}/>
-          </button>
+            {advSearch ? "Close" : "Advanced Search"}
           </div>
+          {!advSearch && (
+            <div className="bg-gray-900 rounded-lg">
+              <button
+                onClick={handlePreviousPage}
+                disabled={page === 1}
+                className="p-3"
+              >
+                <FaArrowLeft size={20} />
+              </button>
+              <span className="text-white border-x border-white p-3">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={handleNextPage}
+                disabled={page === totalPages}
+                className="p-3"
+              >
+                <FaArrowRight size={20} />
+              </button>
+            </div>
+          )}
         </div>
+        {advSearch && (
+          <AdvPrescSearch setSearchedPrescription={setSearchedPrescription} />
+        )}
         <Footer />
       </div>
     </>

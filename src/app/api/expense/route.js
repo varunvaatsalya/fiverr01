@@ -26,7 +26,7 @@ export async function GET(req) {
   }
 
   try {
-    const expenses = await Expense.find().sort({ _id: -1 });
+    const expenses = await Expense.find().sort({ _id: -1 }).limit(150);
     return NextResponse.json({ expenses, success: true }, { status: 200 });
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -62,10 +62,9 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { name, amount, quantity, validity, expenseMessage, } = await req.json();
+  const { name, amount, quantity, validity, expenseMessage } = await req.json();
 
   try {
-    
     const newExpense = new Expense({
       name,
       amount,
@@ -84,32 +83,6 @@ export async function POST(req) {
     );
   } catch (error) {
     console.error("Error during registration:", error);
-    return NextResponse.json(
-      { message: "Internal server error", success: false },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(req) {
-  await dbConnect();
-  const { id } = await req.json();
-
-  try {
-    const deletedAdmin = await Admin.findByIdAndDelete(id);
-    if (!deletedAdmin) {
-      return NextResponse.json(
-        { message: "Admin not found", success: false },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: "Admin deleted successfully", success: true },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error deleting admin:", error);
     return NextResponse.json(
       { message: "Internal server error", success: false },
       { status: 500 }

@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import AddUserSection from "./AddUserSection";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -8,6 +7,7 @@ import { IoPersonAdd } from "react-icons/io5";
 
 function SearchList({ users, updateUsers, role, accessInfo }) {
   const [newUserSection, setNewUserSection] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(null);
   const [resData, setResData] = useState(users);
 
   useEffect(() => {
@@ -26,6 +26,28 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
     });
     setResData(filterRes);
   }
+  async function removeUser(id) {
+    try {
+      const response = await fetch(`/api/newUsers`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setActiveIndex(null);
+        updateUsers((prevUsers) =>
+          prevUsers.filter((user) => user._id !== id)
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  }
+
   return (
     <>
       {newUserSection ? (
@@ -74,28 +96,48 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
                 Edit Access
               </div>
             </div>
-            {resData.map((user) => {
+            {resData.map((user, index) => {
               return (
-                <Link
-                  href="#"
-                  className="h-12 flex hover:rounded-full text-black border-b-2 border-gray-300 hover:bg-gray-300"
-                  key={user.uid}
-                >
-                  <div className="w-2/5 md:w-1/5 px-2 flex items-center justify-center">
-                    {user.uid}
+                <>
+                  <div
+                    onClick={() =>
+                      setActiveIndex(activeIndex === index ? null : index)
+                    }
+                    className="h-12 flex hover:rounded-full text-black border-b-2 border-gray-300 hover:bg-gray-300 cursor-pointer"
+                    key={index}
+                  >
+                    <div className="w-2/5 md:w-1/5 px-2 flex items-center justify-center">
+                      {user.uid}
+                    </div>
+                    <div className="w-2/5 md:w-1/5 px-2 flex items-center">
+                      {user.name}
+                    </div>
+                    <div className="w-2/5 px-2 flex items-center max-md:hidden">
+                      {user.email}
+                    </div>
+                    <div className="w-1/5 flex items-center justify-center">
+                      {user.role == "salesman" && user.editPermission
+                        ? "Edit Access"
+                        : ""}
+                    </div>
                   </div>
-                  <div className="w-2/5 md:w-1/5 px-2 flex items-center">
-                    {user.name}
-                  </div>
-                  <div className="w-2/5 px-2 flex items-center max-md:hidden">
-                    {user.email}
-                  </div>
-                  <div className="w-1/5 flex items-center justify-center">
-                    {user.role == "salesman" && user.editPermission
-                      ? "Edit Access"
-                      : ""}
-                  </div>
-                </Link>
+                  {activeIndex === index && (
+                    <div className="w-full px-3 py-3 bg-gray-200 rounded-b-xl text-center">
+                      <div className="font-bold text-black">
+                        Password:{" "}
+                        <span className="text-red-500">{user.password}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          removeUser(user._id);
+                        }}
+                        className="py-2 px-4 text-white bg-red-700 rounded-lg font-semibold flex gap-1 items-center"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </>
               );
             })}
           </div>

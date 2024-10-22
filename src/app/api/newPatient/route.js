@@ -36,7 +36,7 @@ export async function GET(req) {
 
   try {
     page = parseInt(page) || 1;
-    const limit = 2; // Number of prescriptions per page
+    const limit = 40; // Number of prescriptions per page
     const skip = (page - 1) * limit;
 
     const patients = await Patient.find()
@@ -100,9 +100,6 @@ export async function POST(req) {
   } = await req.json();
 
   try {
-    // const existingPatient = await Patient.find({
-    //   $or: [{ $and: [{ mobileNumber }, { name }] }, { aadharNumber }],
-    // });
 
     const query = {
       $or: [

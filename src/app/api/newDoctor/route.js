@@ -30,17 +30,24 @@ export async function GET(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin" && userRole !== "owner") {
+  if (userRole !== "admin" && userRole !== "owner" && userRole !== "salesman") {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }
     );
   }
+  const name = req.nextUrl.searchParams.get("name");
 
   try {
-    const doctors = await Doctor.find()
-      .sort({ _id: -1 })
-      .populate("department", "name _id");
+    let doctors;
+    if (name === "1") {
+      doctors = await Doctor.find({}, "_id name");
+    } else {
+      doctors = await Doctor.find()
+        .sort({ _id: -1 })
+        .populate("department", "name _id");
+    }
+
     return NextResponse.json(
       { doctors, userRole, userEditPermission, success: true },
       { status: 200 }
@@ -119,6 +126,75 @@ export async function POST(req) {
     );
   } catch (error) {
     console.error("Error during registration:", error);
+    return NextResponse.json(
+      { message: "Internal server error", success: false },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req) {
+  await dbConnect();
+
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin" && userRole !== "salesman") {
+    return NextResponse.json(
+      { message: "Access denied. Admins only.", success: false },
+      { status: 403 }
+    );
+  }
+
+  const { _id, name, email, specialty, department } = await req.json();
+
+  try {
+    // Check if patient exists
+    const existingDoctor = await Doctor.findById(_id);
+    if (!existingDoctor) {
+      return NextResponse.json(
+        { message: "Doctor not found", success: false },
+        { status: 404 }
+      );
+    }
+
+    // Update patient details
+    existingDoctor.name = name;
+    existingDoctor.email = email;
+    existingDoctor.specialty = specialty;
+    existingDoctor.department = department;
+
+    // Save updated patient to the database
+    await existingDoctor.save();
+
+    const updatedNewDoctor = await Doctor.findById(existingDoctor._id).populate(
+      {
+        path: "department",
+        select: "name",
+      }
+    );
+
+    // Send response with updated patient details
+    return NextResponse.json(
+      { doctor: updatedNewDoctor, success: true },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error during update:", error);
     return NextResponse.json(
       { message: "Internal server error", success: false },
       { status: 500 }

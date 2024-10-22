@@ -2,12 +2,19 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 
-const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) => {
+const Analytics = ({
+  prescriptions,
+  departments,
+  doctors,
+  expenses,
+  setData,
+}) => {
   const [selectedDepartment, setSelectedDepartment] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState([]);
-  // const [selectedSalesman, setSelectedSalesman] = useState([]);
   const [selectedPaymentMode, setSelectedPaymentMode] = useState("");
   const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState(null);
   const [dateRange, setDateRange] = useState({
     startDate: "",
     startTime: "00:00", // default start time
@@ -15,13 +22,42 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) 
     endTime: "23:59", // default end time
   });
 
+  useEffect(() => {}, [setData]);
+
+  const onSubmit = async () => {
+    setSubmitting(true);
+    try {
+      let result = await fetch("/api/analytics", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // Set the header for JSON
+        },
+        body: JSON.stringify(dateRange), // Properly stringify the data
+      });
+
+      result = await result.json();
+      if (result.success) {
+        setData((prevData) => ({
+          ...prevData,
+          prescriptions: result.prescriptions,
+          expenses: result.expenses,
+        }));
+      } else {
+        setMessage(result.message);
+      }
+    } catch (error) {
+      console.error("Error submitting application:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleFilter = () => {
     let filtered = prescriptions;
-  
+
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().slice(0, 10);
-  
+
     if (selectedDepartment.length) {
       filtered = filtered.filter((p) =>
         selectedDepartment.includes(p.department._id)
@@ -33,7 +69,7 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) 
     if (selectedPaymentMode) {
       filtered = filtered.filter((p) => p.paymentMode === selectedPaymentMode);
     }
-  
+
     // Filter by date and time
     if (dateRange.startTime || dateRange.endTime) {
       const startDateTime = new Date(
@@ -42,17 +78,17 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) 
       const endDateTime = new Date(
         `${dateRange.endDate || today}T${dateRange.endTime || "23:59"}`
       );
-  
+
       filtered = filtered.filter((p) => {
         const prescriptionDate = new Date(p.createdAt);
-        return prescriptionDate >= startDateTime && prescriptionDate <= endDateTime;
+        return (
+          prescriptionDate >= startDateTime && prescriptionDate <= endDateTime
+        );
       });
     }
-  
+
     setFilteredPrescriptions(filtered);
   };
-  
-  
 
   useEffect(() => {
     handleFilter();
@@ -63,9 +99,8 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) 
     dateRange.startDate,
     dateRange.startTime,
     dateRange.endDate,
-    dateRange.endTime
+    dateRange.endTime,
   ]);
-  
 
   const getTotalAmount = () => {
     return filteredPrescriptions.reduce(
@@ -109,23 +144,6 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) 
     return summary;
   };
 
-  // const salesmanSummary = () => {
-  //   const summary = {};
-  //   filteredPrescriptions.forEach((p) => {
-  //     const amount = p.items.reduce((sum, item) => sum + item.price, 0);
-  //     if (!summary[p.salesman?._id]) {
-  //       summary[p.salesman?._id] = {
-  //         name: p.salesman?.name,
-  //         count: 0,
-  //         total: 0,
-  //       };
-  //     }
-  //     summary[p.salesman?._id].count += 1;
-  //     summary[p.salesman?._id].total += amount;
-  //   });
-  //   return summary;
-  // };
-
   const paymentData = paymentSummary();
   const departmentData = departmentSummary();
   // const salesmanData = salesmanSummary();
@@ -133,6 +151,9 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) 
   return (
     <div className="bg-black min-h-screen">
       <Navbar route={["Analytics"]} />
+      {message && (
+        <div className="my-1 w-full text-center text-red-500">{message}</div>
+      )}
       <div className="w-full flex flex-wrap justify-center gap-2 bg-slate-800 p-4 text-gray-100">
         <select
           onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -243,6 +264,12 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) 
               className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
             />
           </div>
+          <button
+            onClick={onSubmit}
+            className="px-3 py-1 flex items-center justify-center gap-2 bg-blue-500 rounded-lg font-semibold cursor-pointer text-white"
+          >
+            {submitting ? "Searching..." : "Search"}
+          </button>
         </div>
       </div>
       <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl p-2 gap-x-5">
@@ -261,7 +288,11 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) 
           <span className="font-bold">{expenses.length}</span>
         </span>
         <span>
-          Total Amount: <span className="font-bold">{expenses.reduce((total, expense) => total + expense.amount, 0)}</span>/-
+          Total Amount:{" "}
+          <span className="font-bold">
+            {expenses.reduce((total, expense) => total + expense.amount, 0)}
+          </span>
+          /-
         </span>
         {/* Render filtered prescriptions if needed */}
       </div>

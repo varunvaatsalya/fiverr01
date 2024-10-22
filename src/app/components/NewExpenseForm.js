@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
-import { credentials } from "../credentials";
 
 function NewExpenseForm({ setNewUserSection, setExpenses }) {
   // const router = useRouter();

@@ -3,9 +3,22 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
 
-function NewDoctorForm({ setNewUserSection, setEntity }) {
-  // const router = useRouter();
-  const [departments, setDepartments] = useState([])
+function EditDoctorForm({
+  setNewUserSection,
+  setEntity,
+  editDoctor,
+  setEditDoctor,
+}) {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm();
+
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -22,32 +35,37 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
     fetchData();
   }, []);
 
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
-  const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState(null);
-
+  if (editDoctor) {
+    setValue("name", editDoctor.name);
+    setValue("email", editDoctor.email);
+    setValue("specialty", editDoctor.specialty);
+    setValue("department", editDoctor.department._id);
+  } else {
+    reset(); // Reset if no patient selected
+  }
 
   const onSubmit = async (data) => {
     setSubmitting(true);
     try {
       let result = await fetch("/api/newDoctor", {
-        method: "POST",
+        method: "PUT", // Change method to PUT for updates
         headers: {
           "Content-Type": "application/json", // Set the header for JSON
         },
-        body: JSON.stringify(data), // Properly stringify the data
+        body: JSON.stringify({ ...data, _id: editDoctor._id }), // Properly stringify the data
       });
 
       // Parsing the response as JSON
       result = await result.json();
-      // Check if login was successful
+
+      // Check if update was successful
       if (result.success) {
-        setEntity((prevDoctors) => [result.doctor, ...prevDoctors]);
+        setEntity((prevDoctors) =>
+          prevDoctors.map((doctor) =>
+            doctor._id === result.doctor._id ? result.doctor : doctor
+          )
+        );
+        setEditDoctor(null);
         setNewUserSection((prev) => !prev);
       } else {
         setMessage(result.message);
@@ -61,14 +79,17 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
   return (
     <div>
       <h2 className="font-bold text-2xl text-white">
-        Details of new <span className="text-blue-500">Doctors</span>
+        Edit the <span className="text-blue-500">Doctor</span>
       </h2>
       <hr className="border border-slate-800 w-full my-2" />
       {message && (
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="w-[95%] px-2 md:w-4/5 lg:w-3/4 mx-auto my-2">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-[95%] px-2 md:w-4/5 lg:w-3/4 mx-auto my-2"
+      >
         <input
           id="name"
           type="text"
@@ -101,22 +122,22 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
         </div>
 
         <div className="mb-4">
-        <label className="block font-semibold mb-2" htmlFor="department">
-          Select Department
-        </label>
-        <select
-          id="department"
-          {...register("department", { required: "Department is required" })}
-          className="mt-1 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        >
-          <option value="">-- Select a Department --</option>
-          {departments.map((department, index) => (
-            <option key={index} value={department._id}>
-              {department.name}
-            </option>
-          ))}
-        </select>
-      </div>
+          <label className="block font-semibold mb-2" htmlFor="department">
+            Select Department
+          </label>
+          <select
+            id="department"
+            {...register("department", { required: "Department is required" })}
+            className="mt-1 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          >
+            <option value="">-- Select a Department --</option>
+            {departments.map((department, index) => (
+              <option key={index} value={department._id}>
+                {department.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <hr className="border border-slate-800 w-full my-2" />
         <div className="flex px-4 gap-3 justify-end">
@@ -142,4 +163,4 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
   );
 }
 
-export default NewDoctorForm;
+export default EditDoctorForm;

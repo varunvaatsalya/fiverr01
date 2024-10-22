@@ -32,7 +32,7 @@ export async function GET(req) {
 
   const decoded = await verifyToken(token.value);
   const userRole = decoded.role;
-  const userEditPermission = decoded.editPermission;
+  // const userEditPermission = decoded.editPermission;
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -137,3 +137,66 @@ export async function POST(req) {
     );
   }
 }
+
+export async function PUT(req) {
+  await dbConnect();
+
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin" && userRole !== "pathologist") {
+    return NextResponse.json(
+      { message: "Access denied. Admins only.", success: false },
+      { status: 403 }
+    );
+  }
+
+  const { id, name, price, items } =
+    await req.json();
+
+  try {
+    // Check if patient exists
+    const existingLabTest = await LabTest.findById(id);
+    if (!existingLabTest) {
+      return NextResponse.json(
+        { message: "Patient not found", success: false },
+        { status: 404 }
+      );
+    }
+
+    // Update patient details
+    existingLabTest.name = name;
+    existingLabTest.price = price;
+    existingLabTest.items = items;
+
+    // Save updated patient to the database
+    await existingLabTest.save();
+
+    // Send response with updated patient details
+    return NextResponse.json(
+      { message: "Updated Succesfully", success: true },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error during update:", error);
+    return NextResponse.json(
+      { message: "Internal server error", success: false },
+      { status: 500 }
+    );
+  }
+}
+

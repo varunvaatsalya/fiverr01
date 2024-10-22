@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const [success, setSuccess] = useState(false);
-  const [route, setRoute] = useState('/login')
+  const [route, setRoute] = useState("/login");
   useEffect(() => {
     async function fetchRoute() {
       try {
@@ -16,6 +18,7 @@ export default function Home() {
           setSuccess(result.success);
           setRoute(result.route);
         }
+        router.push(result.route);
       } catch (err) {
         console.log("error: ", err);
       }

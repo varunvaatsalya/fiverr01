@@ -6,7 +6,6 @@ import Loading from "./Loading";
 function AddLabReportSection({ setNewUserSection, setTests }) {
   const [submitting, setSubmitting] = useState(false);
   const [units, setUnits] = useState([]);
-  const [labTest, setLabTest] = useState(null);
   const [message, setMessage] = useState(null);
 
   const units1 = [
@@ -27,17 +26,11 @@ function AddLabReportSection({ setNewUserSection, setTests }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [unitResult, labTestResult] = await Promise.all([
-          fetch("/api/units").then((res) => res.json()),
-          // fetch(`/api/pathologyLabTest?id=${id}`).then((res) => res.json()),
-        ]);
+        let unitResult = await fetch("/api/units");
+        unitResult = await unitResult.json();
 
         if (unitResult.success) {
           setUnits(unitResult.units);
-        }
-
-        if (labTestResult.success) {
-          setLabTest(labTestResult.pathologyLabTest);
         }
       } catch (err) {
         console.error("error:", err);
@@ -62,7 +55,7 @@ function AddLabReportSection({ setNewUserSection, setTests }) {
   });
   // Handle form submission
   const onSubmit = async (data) => {
-    // reset(); // Reset the form after submission
+    reset(); // Reset the form after submission
     setSubmitting(true);
     try {
       let result = await fetch("/api/pathologyLabTest", {
