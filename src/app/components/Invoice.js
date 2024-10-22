@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { formatDateTimeToIST } from "../utils/date";
+import { HospitalDetails } from "../HospitalDeatils";
 
 function Invoice({
   printPrescription,
@@ -61,12 +62,17 @@ function Invoice({
           </div>
           <div>
             <div className={"mb-6 " + (IsToken ? "text-start" : "text-center")}>
-              <h1 className="text-3xl font-bold uppercase">City Hospital</h1>
-              <p className={"text-xs "+(IsToken?"w-1/5":"")}>
-                123 Main Street, City, Country | Phone: +91-9876543210
+              <h1 className="text-3xl font-bold uppercase">
+                {HospitalDetails?.name}
+              </h1>
+              <p className={"text-xs " + (IsToken ? "w-1/5" : "")}>
+                {HospitalDetails?.address} | Phone: {HospitalDetails?.phone}
               </p>
-              <p className={"text-xs "+(IsToken?"w-1/5":"")}>
-                Email: info@cityhospital.com | Website: www.cityhospital.com
+              <p className={"text-xs " + (IsToken ? "w-1/5" : "")}>
+                Email: {HospitalDetails?.address}{" "}
+                {HospitalDetails.website
+                  ? `| Website: ${HospitalDetails.website}`
+                  : ""}
               </p>
             </div>
             <hr className="my-4" />
@@ -106,7 +112,13 @@ function Invoice({
                 </p>
               </div>
               <div>
-                <h2 className={(IsToken?"mt-3":"")+" text-lg font-semibold mb-2"}>Invoice Info</h2>
+                <h2
+                  className={
+                    (IsToken ? "mt-3" : "") + " text-lg font-semibold mb-2"
+                  }
+                >
+                  Invoice Info
+                </h2>
                 <p>
                   <strong>Invoice ID:</strong> {printPrescription.pid}
                 </p>
@@ -129,12 +141,22 @@ function Invoice({
               <p className="text-base">
                 <strong>Department:</strong> {printPrescription.department.name}
               </p>
-              <table className={(IsToken?"min-w-1/4":"min-w-full")+" bg-white text-sm"}>
+              <table
+                className={
+                  (IsToken ? "min-w-1/4" : "min-w-full") + " bg-white text-sm"
+                }
+              >
                 <thead>
                   <tr>
                     <th className="py-2 px-2 border w-16">Sr No.</th>
                     <th className="py-2 px-4 border text-start">Item Name</th>
-                    <th className={(IsToken?"hidden":"")+" py-2 px-4 border"}>Price (₹)</th>
+                    <th
+                      className={
+                        (IsToken ? "hidden" : "") + " py-2 px-4 border"
+                      }
+                    >
+                      Price (₹)
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -146,7 +168,12 @@ function Invoice({
                             {index + 1}.
                           </td>
                           <td className="py-1 px-4 border">{item.name}</td>
-                          <td className={(IsToken?"hidden":"")+" py-1 px-4 border text-center"}>
+                          <td
+                            className={
+                              (IsToken ? "hidden" : "") +
+                              " py-1 px-4 border text-center"
+                            }
+                          >
                             {items[index]?.price}
                           </td>
                         </tr>
@@ -189,7 +216,9 @@ function Invoice({
 
           <hr className="my-4" />
 
-          <div className={(IsToken?"text-start":"text-center")+" text-xs"}>
+          <div
+            className={(IsToken ? "text-start" : "text-center") + " text-xs"}
+          >
             <p>Thank you for choosing City Hospital</p>
             <p className="mt-1">This is a computer-generated invoice.</p>
           </div>

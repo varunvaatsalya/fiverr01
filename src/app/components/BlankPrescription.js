@@ -21,55 +21,54 @@ function Report({ blankPrescPrint, setBlankPrescPrint }) {
           Cancel
         </button>
       </div>
-          <div class="max-w-4xl py-44 mx-auto bg-white text-black p-8 rounded-lg shadow-lg">
-            <h1 class="text-2xl font-bold mb-8">
-              Prescription
-            </h1>
-
-            <div class=" mb-6">
-              <p class="text-base">
-                <span class="font-semibold">Patient: </span>
-                {blankPrescPrint.patient.name}
-              </p>
-              <p class="text-base">
-                <span class="font-semibold">UHID: </span>
-                {blankPrescPrint.patient.uhid}
-              </p>
-              <p class="text-base capitalize">
-                <span class="font-semibold">Gender/Age: </span>
-                {blankPrescPrint.patient?.gender[0] +
-                  "/" +
-                  blankPrescPrint.patient.age}
-              </p>
-              <p class="text-base">
-                <span class="font-semibold">Mo. No.: </span>
-                {blankPrescPrint.patient.mobileNumber}
-              </p>
-              <p class="text-base">
-                <span class="font-semibold">Address: </span>
-                {blankPrescPrint.patient?.address}
-              </p>
-            </div>
-
-            <div class="mb-6">
-              <p class="text-base">
-                <span class="font-semibold">PID#: </span>
-                {blankPrescPrint.pid}
-              </p>
-              <p class="text-base">
-                <span class="font-semibold">Doctor: </span>
-                {"Dr. " + blankPrescPrint.doctor.name}
-              </p>
-              <p class="text-base">
-                <span class="font-semibold">Department: </span>
-                {blankPrescPrint.department.name}
-              </p>
-              <p class="text-base">
-                <span class="font-semibold">Date Requested: </span>
-                {formatDateTimeToIST(blankPrescPrint.createdAt)}
-              </p>
-            </div>
+      <div class="max-w-4xl py-44 mx-auto bg-white text-black p-8 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold mb-8 text-center">Prescription</h1>
+        <div className="flex justify-between">
+          <div class="mb-6">
+            <p class="text-base">
+              <span class="font-semibold">Patient: </span>
+              {blankPrescPrint.patient.name}
+            </p>
+            <p class="text-base">
+              <span class="font-semibold">UHID: </span>
+              {blankPrescPrint.patient.uhid}
+            </p>
+            <p class="text-base capitalize">
+              <span class="font-semibold">Gender/Age: </span>
+              {blankPrescPrint.patient?.gender[0] +
+                "/" +
+                blankPrescPrint.patient.age}
+            </p>
+            <p class="text-base">
+              <span class="font-semibold">Mo. No.: </span>
+              {blankPrescPrint.patient.mobileNumber}
+            </p>
+            <p class="text-base">
+              <span class="font-semibold">Address: </span>
+              {blankPrescPrint.patient?.address}
+            </p>
           </div>
+
+          <div class="mb-6">
+            <p class="text-base">
+              <span class="font-semibold">PID#: </span>
+              {blankPrescPrint.pid}
+            </p>
+            <p class="text-base">
+              <span class="font-semibold">Doctor: </span>
+              {"Dr. " + blankPrescPrint.doctor.name}
+            </p>
+            <p class="text-base">
+              <span class="font-semibold">Department: </span>
+              {blankPrescPrint.department.name}
+            </p>
+            <p class="text-base">
+              <span class="font-semibold">Date Requested: </span>
+              {formatDateTimeToIST(blankPrescPrint.createdAt)}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
