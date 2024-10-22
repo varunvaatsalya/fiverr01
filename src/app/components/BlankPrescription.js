@@ -21,7 +21,7 @@ function Report({ blankPrescPrint, setBlankPrescPrint }) {
           Cancel
         </button>
       </div>
-          <div class="max-w-4xl mx-auto bg-white text-black p-8 rounded-lg shadow-lg">
+          <div class="max-w-4xl py-44 mx-auto bg-white text-black p-8 rounded-lg shadow-lg">
             <h1 class="text-2xl font-bold mb-8">
               Prescription
             </h1>
@@ -62,7 +62,7 @@ function Report({ blankPrescPrint, setBlankPrescPrint }) {
               </p>
               <p class="text-base">
                 <span class="font-semibold">Department: </span>
-                {"Dr. " + blankPrescPrint.department.name}
+                {blankPrescPrint.department.name}
               </p>
               <p class="text-base">
                 <span class="font-semibold">Date Requested: </span>

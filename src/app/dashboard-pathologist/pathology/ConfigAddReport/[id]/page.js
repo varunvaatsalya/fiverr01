@@ -2,6 +2,7 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
+import Loading from "../../../../components/Loading";
 
 function Page({ params }) {
   const id = params.id;

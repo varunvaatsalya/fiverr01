@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { formatDateTimeToIST } from "../utils/date";
 
-
 function Invoice({
   printPrescription,
   setPrintPrescription,
   prescriptionPrinted,
 }) {
   const [items, setItems] = useState(printPrescription.items);
+  const [IsToken, setIstoken] = useState(false);
 
   return (
     <>
@@ -24,9 +24,11 @@ function Invoice({
               <button
                 onClick={() => {
                   setItems([]);
+                  setIstoken(true);
                   setTimeout(() => {
                     window.print();
                     setItems(printPrescription.items);
+                    setIstoken(false);
                   }, 100);
                 }}
                 className="text-blue-600 border border-blue-600 hover:bg-blue-100 rounded px-6 py-2 my-2 font-semibold text-lg"
@@ -58,18 +60,22 @@ function Invoice({
             </div>
           </div>
           <div>
-            <div className="text-center mb-6">
+            <div className={"mb-6 " + (IsToken ? "text-start" : "text-center")}>
               <h1 className="text-3xl font-bold uppercase">City Hospital</h1>
-              <p className="text-xs">
+              <p className={"text-xs "+(IsToken?"w-1/5":"")}>
                 123 Main Street, City, Country | Phone: +91-9876543210
               </p>
-              <p className="text-xs">
+              <p className={"text-xs "+(IsToken?"w-1/5":"")}>
                 Email: info@cityhospital.com | Website: www.cityhospital.com
               </p>
             </div>
             <hr className="my-4" />
 
-            <div className="flex justify-between mb-6 text-sm">
+            <div
+              className={
+                (IsToken ? "" : "flex") + " justify-between mb-6 text-sm"
+              }
+            >
               <div>
                 <h2 className="text-lg font-semibold mb-2">Patient Details</h2>
                 <p>
@@ -100,7 +106,7 @@ function Invoice({
                 </p>
               </div>
               <div>
-                <h2 className="text-lg font-semibold mb-2">Invoice Info</h2>
+                <h2 className={(IsToken?"mt-3":"")+" text-lg font-semibold mb-2"}>Invoice Info</h2>
                 <p>
                   <strong>Invoice ID:</strong> {printPrescription.pid}
                 </p>
@@ -123,24 +129,36 @@ function Invoice({
               <p className="text-base">
                 <strong>Department:</strong> {printPrescription.department.name}
               </p>
-              <table className="min-w-full bg-white text-sm">
+              <table className={(IsToken?"min-w-1/4":"min-w-full")+" bg-white text-sm"}>
                 <thead>
                   <tr>
                     <th className="py-2 px-2 border w-16">Sr No.</th>
                     <th className="py-2 px-4 border text-start">Item Name</th>
-                    <th className="py-2 px-4 border">Price (₹)</th>
+                    <th className={(IsToken?"hidden":"")+" py-2 px-4 border"}>Price (₹)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {printPrescription.items.map((item, index) => {
                     return (
-                      <tr key={index}>
-                        <td className="py-1 px-2 border w-16">{index + 1}.</td>
-                        <td className="py-1 px-4 border">{item.name}</td>
-                        <td className="py-1 px-4 border text-center">
-                          {items[index]?.price}
-                        </td>
-                      </tr>
+                      <>
+                        <tr key={index}>
+                          <td className="py-1 px-2 border w-16">
+                            {index + 1}.
+                          </td>
+                          <td className="py-1 px-4 border">{item.name}</td>
+                          <td className={(IsToken?"hidden":"")+" py-1 px-4 border text-center"}>
+                            {items[index]?.price}
+                          </td>
+                        </tr>
+                        {IsToken && (
+                          <tr key={index}>
+                            <td className="py-1 px-2 border font-semibold">
+                              Price
+                            </td>
+                            <td className="py-1 px-4 border"></td>
+                          </tr>
+                        )}
+                      </>
                     );
                   })}
                 </tbody>
@@ -171,7 +189,7 @@ function Invoice({
 
           <hr className="my-4" />
 
-          <div className="text-center text-xs">
+          <div className={(IsToken?"text-start":"text-center")+" text-xs"}>
             <p>Thank you for choosing City Hospital</p>
             <p className="mt-1">This is a computer-generated invoice.</p>
           </div>
