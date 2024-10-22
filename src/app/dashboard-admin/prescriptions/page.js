@@ -2,68 +2,40 @@
 import React, { useEffect, useState } from "react";
 import PrescriptionsSearchList from "../../components/PrescriptionsSearchList";
 
-const prescriptions1 = [
-  {
-    pid: 1245,
-    patient: { name: "varun gupta", uhid: 125478 },
-    doctor: { name: "varun gupta" },
-    department: { name: "nurology" },
-    items: [
-      { name: "x-ray", price: 125 },
-      { name: "ct-scan", price: 215 },
-    ],
-    createdAt: "2024-10-12T15:39:20.000+00:00",
-  },
-  {
-    pid: 1245,
-    patient: { name: "varun gupta", uhid: 125478 },
-    doctor: { name: "shiv shankar" },
-    department: { name: "brianology" },
-    items: [
-      { name: "x-ray", price: 125 },
-      { name: "ct-scan", price: 215 },
-    ],
-    createdAt: "2024-10-15T15:39:20.000+00:00",
-  },
-  {
-    pid: 1245,
-    patient: { name: "varun gupta", uhid: 125478 },
-    doctor: { name: "varun gupta" },
-    department: { name: "nurology" },
-    items: [
-      { name: "x-ray", price: 125 },
-      { name: "ct-scan", price: 215 },
-    ],
-    createdAt: "2024-10-12T15:39:20.000+00:00",
-  },
-];
-
 function Page() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [accessInfo, setAccessInfo] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   useEffect(() => {
-    async function fetchData() {
+    async function fetchData(page) {
       try {
-        let result = await fetch("/api/newPrescription");
+        let result = await fetch(`/api/newPrescription?page=${page}`);
         result = await result.json();
         if (result.success) {
           setPrescriptions(result.allPrescription);
+          setTotalPages(result.totalPages);
           setAccessInfo({
             accessRole: result.userRole,
             accessEditPermission: result.userEditPermission,
           });
+          console.log(result.allPrescription)
         }
       } catch (err) {
         console.log("error: ", err);
       }
     }
-    fetchData();
-  }, []);
+    fetchData(page);
+  }, [page]);
   return (
     <>
       <PrescriptionsSearchList
+        page={page}
+        setPage={setPage}
+        totalPages={totalPages}
         prescriptions={prescriptions}
-        setPrescriptions={setPrescriptions} accessInfo={accessInfo}
+        setPrescriptions={setPrescriptions}
+        accessInfo={accessInfo}
       />
     </>
   );

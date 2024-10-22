@@ -16,6 +16,7 @@ function Page() {
             doctors: result.doctors,
             salesmen: result.salesmen,
             prescriptions: result.prescriptions,
+            expenses: result.expenses,
           });
         }
       } catch (err) {
@@ -41,6 +42,7 @@ function Page() {
         departments={data?.departments}
         doctors={data?.doctors}
         salesmen={data?.salesmen}
+        expenses={data?.expenses}
       />
     </>
   );

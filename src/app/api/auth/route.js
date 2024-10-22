@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { generateToken, verifyToken } from "../../utils/jwt";
 import User from "../../models/Users";
 import Admin from "../../models/Admins";
-import {credentials} from "../../credentials";
+import { credentials } from "../../credentials";
+import Pathologist from "../../models/Pathologist";
 
 export async function GET(req) {
   const token = req.cookies.get("authToken");
@@ -35,6 +36,7 @@ export async function POST(req) {
     admin: "/dashboard-admin",
     owner: "/dashboard-owner",
     salesman: "/dashboard-salesman",
+    pathologist: "/dashboard-pathologist",
   };
 
   // Replace with a strong secret
@@ -84,6 +86,48 @@ export async function POST(req) {
         role,
         success: true,
       });
+    } else if (role === "pathologist") {
+      const pathologist = await Pathologist.findOne({ email });
+      if (!pathologist) {
+        return NextResponse.json(
+          { message: "User not found", success: false },
+          { status: 404 }
+        );
+      }
+
+      // Check if the role matches
+      if (pathologist.role !== role) {
+        return NextResponse.json(
+          { message: "Role mismatch", success: false },
+          { status: 403 }
+        );
+      }
+
+      // Check if the password matches
+      if (pathologist.password !== password) {
+        return NextResponse.json(
+          { message: "Invalid password", success: false },
+          { status: 401 }
+        );
+      }
+
+      const token = await generateToken(pathologist);
+
+      cookies().set({
+        name: "authToken",
+        value: token,
+        path: "/",
+      });
+      // If everything matches, return success
+      return NextResponse.json(
+        {
+          message: "Login successful",
+          role: pathologist.role,
+          route: userRole.pathologist,
+          success: true,
+        },
+        { status: 200 }
+      );
     }
     // Find the user by email
     const user = await User.findOne({ email });

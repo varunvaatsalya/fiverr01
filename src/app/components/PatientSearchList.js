@@ -6,11 +6,19 @@ import EditPatientForm from "./EditPatientForm";
 import PrescriptionList from "./PrescriptionList";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { formatDateToIST } from "../utils/date";
+import { formatDateTimeToIST } from "../utils/date";
 import { IoPersonAdd } from "react-icons/io5";
 import Loading from "./Loading";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
-function PatientSearchList({ patients, setPatients, accessInfo }) {
+function PatientSearchList({
+  patients,
+  setPatients,
+  accessInfo,
+  page,
+  totalPages,
+  setPage,
+}) {
   const [newUserSection, setNewUserSection] = useState(false);
   const [resData, setResData] = useState(patients);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -22,12 +30,25 @@ function PatientSearchList({ patients, setPatients, accessInfo }) {
     setResData(patients);
   }, [patients]);
 
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      setPage(page + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (page > 1) {
+      setPage(page - 1);
+    }
+  };
+
   function updatedata(query) {
     let filterRes = patients.filter((patient) => {
       let lowerCaseQuery = query.toLowerCase();
       return (
         patient.name.toLowerCase().includes(lowerCaseQuery) ||
-        patient.uhid.includes(lowerCaseQuery) ||
+        patient.fathersName.toLowerCase().includes(lowerCaseQuery) ||
+        patient.uhid.toLowerCase().includes(lowerCaseQuery) ||
         patient.gender.toLowerCase().includes(lowerCaseQuery) ||
         patient.address.toLowerCase().includes(lowerCaseQuery) ||
         patient.aadharNumber?.toString().includes(lowerCaseQuery) ||
@@ -85,7 +106,7 @@ function PatientSearchList({ patients, setPatients, accessInfo }) {
         <></>
       )}
       <div className="flex flex-col min-h-screen bg-gray-100">
-        <Navbar route={['Patient']} />
+        <Navbar route={["Patient"]} />
         <main className="flex-grow">
           <div className="px-2 lg:px-4 max-w-screen-xl mx-auto">
             <div className="h-16 py-2 flex justify-center gap-2 items-center">
@@ -148,6 +169,14 @@ function PatientSearchList({ patients, setPatients, accessInfo }) {
                           {patient.gender}
                         </span>
                       </div>
+                      {patient.fathersName && (
+                        <div className="py-1 px-4 ">
+                          Father's Name:{" "}
+                          <span className="text-blue-500 font-semibold capitalize">
+                            {patient.fathersName}
+                          </span>
+                        </div>
+                      )}
                       <div className="py-1 px-4 ">
                         Mo No.:{" "}
                         <span className="text-blue-500 font-semibold capitalize">
@@ -165,7 +194,7 @@ function PatientSearchList({ patients, setPatients, accessInfo }) {
                       <div className="py-1 px-4 ">
                         Registration Date:{" "}
                         <span className="text-blue-500 font-semibold uppercase">
-                          {formatDateToIST(patient.createdAt)}
+                          {formatDateTimeToIST(patient.createdAt)}
                         </span>
                       </div>
                       <div className="w-3/4 text-center">
@@ -204,6 +233,27 @@ function PatientSearchList({ patients, setPatients, accessInfo }) {
             ))}
           </div>
         </main>
+        <div className="flex justify-end pr-4 ">
+          <div className="bg-gray-900 rounded-lg">
+            <button
+              onClick={handlePreviousPage}
+              disabled={page === 1}
+              className="p-3"
+            >
+              <FaArrowLeft size={20} />
+            </button>
+            <span className="text-white border-x border-white p-3">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={page === totalPages}
+              className="p-3"
+            >
+              <FaArrowRight size={20} />
+            </button>
+          </div>
+        </div>
         <Footer />
       </div>
     </>

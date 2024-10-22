@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
 import AddAdminSection from "./AddAdminSection";
 import Navbar from "./Navbar";
 import Footer from "./Footer";

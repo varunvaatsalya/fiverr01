@@ -2,17 +2,26 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 
-const Analytics = ({ prescriptions, departments, doctors, salesmen }) => {
+const Analytics = ({ prescriptions, departments, doctors, salesmen, expenses }) => {
   const [selectedDepartment, setSelectedDepartment] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState([]);
   // const [selectedSalesman, setSelectedSalesman] = useState([]);
   const [selectedPaymentMode, setSelectedPaymentMode] = useState("");
-  const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
+  const [dateRange, setDateRange] = useState({
+    startDate: "",
+    startTime: "00:00", // default start time
+    endDate: "",
+    endTime: "23:59", // default end time
+  });
+
 
   const handleFilter = () => {
     let filtered = prescriptions;
-
+  
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().slice(0, 10);
+  
     if (selectedDepartment.length) {
       filtered = filtered.filter((p) =>
         selectedDepartment.includes(p.department._id)
@@ -21,34 +30,42 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen }) => {
     if (selectedDoctor.length) {
       filtered = filtered.filter((p) => selectedDoctor.includes(p.doctor._id));
     }
-    // if (selectedSalesman.length) {
-    //   filtered = filtered.filter((p) =>
-    //     selectedSalesman.includes(p.salesman._id)
-    //   );
-    // }
     if (selectedPaymentMode) {
       filtered = filtered.filter((p) => p.paymentMode === selectedPaymentMode);
     }
-    if (dateRange.start && dateRange.end) {
-      filtered = filtered.filter(
-        (p) =>
-          new Date(p.createdAt) >= new Date(dateRange.start) &&
-          new Date(p.createdAt) <= new Date(dateRange.end)
+  
+    // Filter by date and time
+    if (dateRange.startTime || dateRange.endTime) {
+      const startDateTime = new Date(
+        `${dateRange.startDate || today}T${dateRange.startTime || "00:00"}`
       );
+      const endDateTime = new Date(
+        `${dateRange.endDate || today}T${dateRange.endTime || "23:59"}`
+      );
+  
+      filtered = filtered.filter((p) => {
+        const prescriptionDate = new Date(p.createdAt);
+        return prescriptionDate >= startDateTime && prescriptionDate <= endDateTime;
+      });
     }
-
+  
     setFilteredPrescriptions(filtered);
   };
+  
+  
 
   useEffect(() => {
     handleFilter();
   }, [
     selectedDepartment,
     selectedDoctor,
-    // selectedSalesman,
     selectedPaymentMode,
-    dateRange,
+    dateRange.startDate,
+    dateRange.startTime,
+    dateRange.endDate,
+    dateRange.endTime
   ]);
+  
 
   const getTotalAmount = () => {
     return filteredPrescriptions.reduce(
@@ -171,7 +188,7 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen }) => {
               id="sdate"
               type="date"
               onChange={(e) =>
-                setDateRange({ ...dateRange, start: e.target.value })
+                setDateRange({ ...dateRange, startDate: e.target.value })
               }
               className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
             />
@@ -187,7 +204,41 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen }) => {
               id="edate"
               type="date"
               onChange={(e) =>
-                setDateRange({ ...dateRange, end: e.target.value })
+                setDateRange({ ...dateRange, endDate: e.target.value })
+              }
+              className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+            />
+          </div>
+        </div>
+        <div className="w-full flex justify-center gap-x-3">
+          <div className="flex flex-col lg:flex-row justify-center items-center gap-x-2">
+            <label
+              htmlFor="sdate"
+              className=" text-sm lg:text-base font-medium text-gray-100"
+            >
+              Start Time
+            </label>
+            <input
+              id="stime"
+              type="time"
+              onChange={(e) =>
+                setDateRange({ ...dateRange, startTime: e.target.value })
+              }
+              className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+            />
+          </div>
+          <div className="flex flex-col lg:flex-row justify-center items-center gap-x-2">
+            <label
+              htmlFor="edate"
+              className=" text-sm lg:text-base font-medium text-gray-100"
+            >
+              End Time
+            </label>
+            <input
+              id="etime"
+              type="time"
+              onChange={(e) =>
+                setDateRange({ ...dateRange, endTime: e.target.value })
               }
               className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
             />
@@ -196,11 +247,21 @@ const Analytics = ({ prescriptions, departments, doctors, salesmen }) => {
       </div>
       <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl p-2 gap-x-5">
         <span>
-          Total Prescriptions:{" "}
+          Today's Prescriptions:{" "}
           <span className="font-bold">{filteredPrescriptions.length}</span>
         </span>
         <span>
           Total Amount: <span className="font-bold">{getTotalAmount()}</span>/-
+        </span>
+        {/* Render filtered prescriptions if needed */}
+      </div>
+      <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl p-2 gap-x-5">
+        <span>
+          Today's Expenses:{" "}
+          <span className="font-bold">{expenses.length}</span>
+        </span>
+        <span>
+          Total Amount: <span className="font-bold">{expenses.reduce((total, expense) => total + expense.amount, 0)}</span>/-
         </span>
         {/* Render filtered prescriptions if needed */}
       </div>

@@ -1,5 +1,5 @@
 "use client";
-import { formatDateToIST } from "../utils/date";
+import { formatDateTimeToIST } from "../utils/date";
 
 function PrescriptionList({ setNewUserSection, setEntity, prescriptions }) {
   const prescriptions1 = [
@@ -91,7 +91,7 @@ function PrescriptionList({ setNewUserSection, setEntity, prescriptions }) {
                 );
               })}
               <div className="text-gray-500 text-sm">
-                Created at {formatDateToIST(prescription.createdAt)}
+                Created at {formatDateTimeToIST(prescription.createdAt)}
               </div>
             </div>
           );

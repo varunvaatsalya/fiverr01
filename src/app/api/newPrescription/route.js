@@ -4,6 +4,7 @@ import Patient from "../../models/Patients";
 import Doctor from "../../models/Doctors";
 import Department from "../../models/Departments";
 import Prescription from "../../models/Prescriptions";
+import LabTest from "../../models/LabTests";
 import { verifyToken } from "../../utils/jwt";
 
 function generateUID() {
@@ -16,6 +17,7 @@ function generateUID() {
 export async function GET(req) {
   await dbConnect();
   const patient = req.nextUrl.searchParams.get("patient");
+  let page = req.nextUrl.searchParams.get("page");
   const componentDetails = req.nextUrl.searchParams.get("componentDetails");
 
   const token = req.cookies.get("authToken");
@@ -80,8 +82,14 @@ export async function GET(req) {
       );
     }
 
+    page = parseInt(page) || 1;
+    const limit = 50; // Number of prescriptions per page
+    const skip = (page - 1) * limit;
+
     const allPrescription = await Prescription.find()
       .sort({ _id: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate({
         path: "patient", // Populate the department field
         select: "name uhid address age gender mobileNumber",
@@ -91,11 +99,25 @@ export async function GET(req) {
         select: "name specialty",
       })
       .populate({
+        path: "tests.test",
+        select: "name",
+      })
+      .populate({
         path: "department", // Populate the department field
         select: "name",
-      });
+      })
+      .select("-tests.results");
+
+    const totalPrescriptions = await Prescription.countDocuments();
+
     return NextResponse.json(
-      { allPrescription, userRole, userEditPermission, success: true },
+      {
+        allPrescription,
+        totalPages: Math.ceil(totalPrescriptions / limit),
+        userRole,
+        userEditPermission,
+        success: true,
+      },
       { status: 200 }
     );
   } catch (error) {
@@ -136,7 +158,27 @@ export async function POST(req) {
 
   try {
     const pid = generateUID();
-    // // console.log(departmentId)
+
+    let departmentchk = await Department.findById(department);
+    let filteredTests = [];
+    if (departmentchk.name == "pathology") {
+      const tests = await Promise.all(
+        items.map(async (item) => {
+          const labTest = await LabTest.findOne({ name: item.name });
+          if (labTest) {
+            return {
+              test: labTest._id,
+              results: [],
+              isCompleted: false,
+            };
+          }
+          return null;
+        })
+      );
+
+      // Remove null values (items not found in LabTest)
+      filteredTests = tests.filter((test) => test !== null);
+    }
 
     // // Create new user
     const newPrescription = new Prescription({
@@ -146,6 +188,7 @@ export async function POST(req) {
       department,
       pid,
       paymentMode,
+      tests: filteredTests,
     });
 
     // // Save user to the database

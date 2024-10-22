@@ -7,81 +7,84 @@ const dummydoctors = [
     _id: "ndcejdbehj356",
     name: "manik chandra",
     uhid: "1254789653214",
-    age:21,
-    gender:"male",
-    aadharNumber:125478966321,
-    mobileNumber:9855789632,
-    address:"sector-F, Jankipuram, Lucknow",
-    date:"27 sep, 2024"
+    age: 21,
+    gender: "male",
+    aadharNumber: 125478966321,
+    mobileNumber: 9855789632,
+    address: "sector-F, Jankipuram, Lucknow",
+    date: "27 sep, 2024",
   },
   {
     _id: "ndcejdbehj356",
     name: "manik chandra",
     uhid: "1254789653214",
-    age:21,
-    gender:"male",
-    aadharNumber:125478966321,
-    mobileNumber:9855789632,
-    address:"sector-F, Jankipuram, Lucknow",
-    date:"27 sep, 2024"
+    age: 21,
+    gender: "male",
+    aadharNumber: 125478966321,
+    mobileNumber: 9855789632,
+    address: "sector-F, Jankipuram, Lucknow",
+    date: "27 sep, 2024",
   },
   {
     _id: "ndcejdbehj356",
     name: "manik chandra",
     uhid: "1254789653214",
-    age:21,
-    gender:"male",
-    aadharNumber:125478966321,
-    mobileNumber:9855789632,
-    address:"sector-F, Jankipuram, Lucknow",
-    date:"27 sep, 2024"
+    age: 21,
+    gender: "male",
+    aadharNumber: 125478966321,
+    mobileNumber: 9855789632,
+    address: "sector-F, Jankipuram, Lucknow",
+    date: "27 sep, 2024",
   },
   {
     _id: "ndcejdbehj356",
     name: "manik chandra",
     uhid: "1254789653214",
-    age:21,
-    gender:"male",
-    aadharNumber:125478966321,
-    mobileNumber:9855789632,
-    address:"sector-F, Jankipuram, Lucknow",
-    date:"27 sep, 2024"
+    age: 21,
+    gender: "male",
+    aadharNumber: 125478966321,
+    mobileNumber: 9855789632,
+    address: "sector-F, Jankipuram, Lucknow",
+    date: "27 sep, 2024",
   },
   {
     _id: "ndcejdbehj356",
     name: "manik chandra",
     uhid: "1254789653214",
-    age:21,
-    gender:"male",
-    aadharNumber:125478966321,
-    mobileNumber:9855789632,
-    address:"sector-F, Jankipuram, Lucknow",
-    date:"27 sep, 2024"
+    age: 21,
+    gender: "male",
+    aadharNumber: 125478966321,
+    mobileNumber: 9855789632,
+    address: "sector-F, Jankipuram, Lucknow",
+    date: "27 sep, 2024",
   },
   {
     _id: "ndcejdbehj356",
     name: "manik chandra",
     uhid: "1254789653214",
-    age:21,
-    gender:"male",
-    aadharNumber:125478966321,
-    mobileNumber:9855789632,
-    address:"sector-F, Jankipuram, Lucknow",
-    date:"27 sep, 2024"
+    age: 21,
+    gender: "male",
+    aadharNumber: 125478966321,
+    mobileNumber: 9855789632,
+    address: "sector-F, Jankipuram, Lucknow",
+    date: "27 sep, 2024",
   },
-  
 ];
 
 function Page() {
   const [patients, setPatients] = useState([]);
   const [accessInfo, setAccessInfo] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
-    async function fetchData() {
+    async function fetchData(page) {
       try {
-        let result = await fetch("/api/newPatient");
+        let result = await fetch(`/api/newPatient?page=${page}`);
         result = await result.json();
         if (result.success) {
           setPatients(result.patients);
+          setTotalPages(result.totalPages);
           setAccessInfo({
             accessRole: result.userRole,
             accessEditPermission: result.userEditPermission,
@@ -91,11 +94,18 @@ function Page() {
         console.log("error: ", err);
       }
     }
-    fetchData();
-  }, []);
+    fetchData(page);
+  }, [page]);
   return (
     <>
-      <PatientSearchList patients={patients} setPatients={setPatients} accessInfo={accessInfo} />
+      <PatientSearchList
+        page={page}
+        setPage={setPage}
+        totalPages={totalPages}
+        patients={patients}
+        setPatients={setPatients}
+        accessInfo={accessInfo}
+      />
     </>
   );
 }

@@ -5,6 +5,7 @@ import Doctor from "../../models/Doctors";
 import User from "../../models/Users";
 import Department from "../../models/Departments";
 import Prescription from "../../models/Prescriptions";
+import Expense from "../../models/Expenses";
 
 export async function GET(req) {
   await dbConnect();
@@ -37,7 +38,27 @@ export async function GET(req) {
     const salesmen = await User.find({ role: "salesman" }, "_id name").exec();
     const doctors = await Doctor.find({}, "_id name department").exec();
     const departments = await Department.find({}, "_id name").exec();
-    const prescriptions = await Prescription.find()
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set the time to the start of the day (00:00:00)
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1); // Set the time to the start of the next day
+
+    const expenses = await Expense.find({
+      createdAt: {
+        $gte: today, // From the start of today
+        $lt: tomorrow, // Until the start of tomorrow
+      },
+    })
+
+
+    // Query to find prescriptions created today
+    const prescriptions = await Prescription.find({
+      createdAt: {
+        $gte: today, // From the start of today
+        $lt: tomorrow, // Until the start of tomorrow
+      },
+    })
       .select("-patient") // Exclude the patient field entirely
       .populate({
         path: "doctor",
@@ -49,7 +70,7 @@ export async function GET(req) {
       });
 
     return NextResponse.json(
-      { prescriptions, departments, salesmen, doctors, success: true },
+      { prescriptions, expenses, departments, salesmen, doctors, success: true },
       { status: 200 }
     );
   } catch (error) {

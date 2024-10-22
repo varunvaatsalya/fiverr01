@@ -6,19 +6,43 @@ import EditPrescriptionForm from "./EditPrescriptionForm";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { IoPersonAdd } from "react-icons/io5";
-import { formatDateToIST } from "../utils/date";
+import { formatDateTimeToIST } from "../utils/date";
 import Invoice from "./Invoice";
+import Report from "./Report";
+import BlankPrescription from "./BlankPrescription";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
-function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo }) {
+function PrescriptionsSearchList({
+  prescriptions,
+  setPrescriptions,
+  accessInfo,
+  page,
+  setPage,
+  totalPages,
+}) {
   const [newUserSection, setNewUserSection] = useState(false);
   const [resData, setResData] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
   const [printPrescription, setPrintPrescription] = useState(null);
+  const [printReport, setPrintReport] = useState(null);
+  const [blankPrescPrint, setBlankPrescPrint] = useState(null);
   const [editPrescription, setEditPrescription] = useState(null);
 
   useEffect(() => {
     setResData(prescriptions);
   }, [prescriptions]);
+
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      setPage(page + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (page > 1) {
+      setPage(page - 1);
+    }
+  };
 
   async function prescriptionPrinted(id) {
     if (printPrescription && !printPrescription.isPrint) {
@@ -35,6 +59,10 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
       }
     }
   }
+
+  const hasOPDItem = (items) => {
+    return items.some((item) => item.name.toLowerCase().includes("opd"));
+  };
 
   function updatedata(query) {
     let filterRes = prescriptions.filter((prescription) => {
@@ -69,6 +97,23 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
       </>
     );
   }
+  if (printReport) {
+    return (
+      <div className="bg-white h-full">
+        <Report printReport={printReport} setPrintReport={setPrintReport} />
+      </div>
+    );
+  }
+  if (blankPrescPrint) {
+    return (
+      <div className="bg-white h-full">
+        <BlankPrescription
+          blankPrescPrint={blankPrescPrint}
+          setBlankPrescPrint={setBlankPrescPrint}
+        />
+      </div>
+    );
+  }
   return (
     <>
       {newUserSection ? (
@@ -85,7 +130,7 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
         <></>
       )}
       <div className="flex flex-col min-h-screen bg-gray-100">
-        <Navbar route={['Prescriptions']} />
+        <Navbar route={["invoices"]} />
         <main className="flex-grow">
           <div className="px-2 lg:px-4 max-w-screen-xl mx-auto">
             <div className="h-16 py-2 flex justify-center gap-2 items-center">
@@ -98,18 +143,20 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
                 className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
               />
               {(accessInfo?.accessRole === "admin" ||
-                accessInfo?.accessRole === "salesman") &&<button
-                onClick={() => {
-                  setNewUserSection((newUserSection) => !newUserSection);
-                }}
-                className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
-              >
-                <IoPersonAdd />
-                <div>Add</div>
-              </button>}
+                accessInfo?.accessRole === "salesman") && (
+                <button
+                  onClick={() => {
+                    setNewUserSection((newUserSection) => !newUserSection);
+                  }}
+                  className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
+                >
+                  <IoPersonAdd />
+                  <div>Add</div>
+                </button>
+              )}
             </div>
             <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 md:w-4/5 lg:w-3/4 mx-auto bg-black text-white">
-              List of all the Prescriptions
+              List of all the Invoices
             </div>
             <div className="flex flex-wrap justify-center items-center mx-auto py-4">
               {resData.map((prescription, index) => (
@@ -160,11 +207,16 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
                         <div className="py-1 px-4 ">
                           Create At:{" "}
                           <span className="text-blue-500 font-semibold uppercase">
-                            {formatDateToIST(prescription.createdAt)}
+                            {formatDateTimeToIST(prescription.createdAt)}
                           </span>
                         </div>
                       </div>
                       {prescription.items.map((item, it) => {
+                        // Find the test that matches the current item name, if any
+                        const matchingTest = prescription.tests.find(
+                          (test) => test.test.name === item.name
+                        );
+
                         return (
                           <div
                             className="border-b-2 w-4/5 mx-auto border-gray-300 flex"
@@ -176,25 +228,63 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
                             <div className="w-1/2 p-2 text-center">
                               {item.price}
                             </div>
+                            <div className="w-1/2 p-2 text-center">
+                              {/* Display "Pending" or "Completed" based on isCompleted status */}
+                              {matchingTest ? (
+                                matchingTest.isCompleted ? (
+                                  <span className="text-green-700">
+                                    Completed
+                                  </span>
+                                ) : (
+                                  <span className="text-red-500">Pending</span>
+                                )
+                              ) : (
+                                ""
+                              )}
+                            </div>
                           </div>
                         );
                       })}
+
                       <div className="flex justify-around items-center gap-2 mt-3">
-                        {!prescription.isPrint && accessInfo?.accessEditPermission && (
-                          <button
-                            className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
-                            onClick={() => {
-                              setEditPrescription(prescription);
-                              setNewUserSection((prev) => !prev);
-                            }}
-                          >
-                            Edit
-                          </button>
-                        )}
+                        {!prescription.isPrint &&
+                          accessInfo?.accessEditPermission && (
+                            <button
+                              className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
+                              onClick={() => {
+                                setEditPrescription(prescription);
+                                setNewUserSection((prev) => !prev);
+                              }}
+                            >
+                              Edit
+                            </button>
+                          )}
                         {prescription.isPrint && (
                           <div className="text-sm text-black text-center">
                             Prescription has been printed
                           </div>
+                        )}
+                        {hasOPDItem(prescription.items) && (
+                          <button
+                            className="py-2 px-4 text-white bg-green-900 rounded-lg font-semibold flex gap-1 items-center"
+                            onClick={() => {
+                              setBlankPrescPrint(prescription);
+                            }}
+                          >
+                            Blank Presc.
+                          </button>
+                        )}
+                        {prescription.tests.some(
+                          (test) => test.isCompleted
+                        ) && (
+                          <button
+                            className="py-2 px-4 text-white bg-yellow-900 rounded-lg font-semibold flex gap-1 items-center"
+                            onClick={() => {
+                              setPrintReport(prescription._id);
+                            }}
+                          >
+                            Report Print
+                          </button>
                         )}
                         <button
                           className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
@@ -212,6 +302,27 @@ function PrescriptionsSearchList({ prescriptions, setPrescriptions,accessInfo })
             </div>
           </div>
         </main>
+        <div className="flex justify-end pr-4 ">
+          <div className="bg-gray-900 rounded-lg">
+          <button
+            onClick={handlePreviousPage}
+            disabled={page === 1}
+            className="p-3"
+          >
+            <FaArrowLeft size={20}/>
+          </button>
+          <span className="text-white border-x border-white p-3">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={handleNextPage}
+            disabled={page === totalPages}
+            className="p-3"
+          >
+            <FaArrowRight size={20}/>
+          </button>
+          </div>
+        </div>
         <Footer />
       </div>
     </>

@@ -1,28 +1,6 @@
 import React, { useState } from "react";
-import { formatDateToIST } from "../utils/date";
+import { formatDateTimeToIST } from "../utils/date";
 
-const items = [
-  {
-    name: "ECG",
-    price: 125,
-  },
-  {
-    name: "X-RAY",
-    price: 254,
-  },
-  {
-    name: "RBC test",
-    price: 452,
-  },
-  {
-    name: "ultrasound",
-    price: 125,
-  },
-  {
-    name: "Medicenes",
-    price: 125,
-  },
-];
 
 function Invoice({
   printPrescription,
@@ -53,7 +31,7 @@ function Invoice({
                 }}
                 className="text-blue-600 border border-blue-600 hover:bg-blue-100 rounded px-6 py-2 my-2 font-semibold text-lg"
               >
-                Print without price
+                Token
               </button>
               <button
                 onClick={() => {
@@ -128,7 +106,7 @@ function Invoice({
                 </p>
                 <p>
                   <strong>Date:</strong>{" "}
-                  {formatDateToIST(printPrescription.createdAt)}
+                  {formatDateTimeToIST(printPrescription.createdAt)}
                 </p>
                 <p>
                   <strong>Mode of Payment:</strong>{" "}

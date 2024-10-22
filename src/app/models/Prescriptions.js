@@ -29,6 +29,23 @@ const prescriptionSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  tests: [
+    {
+      test: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "LabTest", // Reference to the LabTest schema
+      },
+      results: [
+        {
+          name: String,
+          result: String,
+          unit: String,
+        },
+      ],
+      resultDate: { type: Date },
+      isCompleted: { type: Boolean, default: false },
+    },
+  ],
   createdAt: { type: Date, default: Date.now, required: true },
 });
 

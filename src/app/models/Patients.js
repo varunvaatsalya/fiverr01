@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 const patientSchema = new mongoose.Schema({
   uhid: { type: String, required: [true, "Please provide a UHID"] },
   name: { type: String, required: true },
+  fathersName: { type: String},
   age: { type: Number, required: true },
   gender: { type: String, required: true },
   mobileNumber: { type: Number, required: true },

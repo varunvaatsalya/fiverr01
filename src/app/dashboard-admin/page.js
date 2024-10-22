@@ -5,16 +5,17 @@ import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { BsFillPersonBadgeFill,BsBuildingFillAdd, BsFillPersonVcardFill } from "react-icons/bs";
 import { FaFilePrescription } from "react-icons/fa";
-import { FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
+import { FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
 import { IoMdAnalytics } from "react-icons/io";
 import { MdAdminPanelSettings } from "react-icons/md";
+import { GrTest } from "react-icons/gr";
 import { IoLogOut } from "react-icons/io5";
 
 function Page() {
   const router = useRouter();
   const Works = [
     {
-      name: "Prescription",
+      name: "Invoices",
       description: "You can see all the prescription",
       icon: <FaFilePrescription size={50} />,
       link: "/dashboard-admin/prescriptions",
@@ -43,6 +44,22 @@ function Page() {
       color: "bg-yellow-700",
     },
     {
+      name: "Expenses",
+      description:
+        "You can show & add the all the Expenses.",
+      icon: <FaMoneyBillTrendUp size={50} />,
+      link: "/dashboard-admin/expenses",
+      color: "bg-fuchsia-700",
+    },
+    {
+      name: "Pathology",
+      description:
+        "You can manage here your pathology data",
+      icon: <GrTest size={50} />,
+      link: "/dashboard-admin/pathology",
+      color: "bg-teal-700",
+    },
+    {
       name: "Departments",
       description:
         "You can show & add the departsments of diffrent hospitals & thier respective itmes",
@@ -56,6 +73,13 @@ function Page() {
       icon: <FaUserDoctor size={50} />,
       link: "/dashboard-admin/doctors",
       color: "bg-green-700",
+    },
+    {
+      name: "Pathologist",
+      description: "You can show & add the doctors of diffrent hospitals",
+      icon: <FaUserDoctor size={50} />,
+      link: "/dashboard-admin/pathologist",
+      color: "bg-black",
     },
     {
       name: "Owners",

@@ -10,8 +10,11 @@ function generateUID() {
   return uniqueID;
 }
 
+
 export async function GET(req) {
+  let page = req.nextUrl.searchParams.get("page");
   await dbConnect();
+  
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -32,9 +35,24 @@ export async function GET(req) {
   }
 
   try {
-    const patients = await Patient.find().sort({ _id: -1 });
+    page = parseInt(page) || 1;
+    const limit = 2; // Number of prescriptions per page
+    const skip = (page - 1) * limit;
+
+    const patients = await Patient.find()
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPatient = await Patient.countDocuments();
     return NextResponse.json(
-      { patients, userRole, userEditPermission, success: true },
+      {
+        patients,
+        totalPages: Math.ceil(totalPatient / limit),
+        userRole,
+        userEditPermission,
+        success: true,
+      },
       { status: 200 }
     );
   } catch (error) {
@@ -71,8 +89,15 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { name, age, gender, mobileNumber, aadharNumber, address } =
-    await req.json();
+  const {
+    name,
+    fathersName,
+    age,
+    gender,
+    mobileNumber,
+    aadharNumber,
+    address,
+  } = await req.json();
 
   try {
     // const existingPatient = await Patient.find({
@@ -104,6 +129,7 @@ export async function POST(req) {
 
     const newPatient = new Patient({
       name,
+      fathersName,
       age,
       gender,
       mobileNumber,

@@ -115,6 +115,7 @@ function Page() {
                 <option value="salesman">Sales Man</option>
                 <option value="owner">Owner</option>
                 <option value="admin">Admin</option>
+                <option value="pathologist">Pathologist</option>
               </select>
               {errors.role && (
                 <p className="mt-2 text-sm text-red-500">
