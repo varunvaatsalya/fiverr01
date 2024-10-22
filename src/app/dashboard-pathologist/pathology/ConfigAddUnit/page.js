@@ -5,7 +5,7 @@ import Footer from "../../../components/Footer";
 import { IoPersonAdd } from "react-icons/io5";
 import AddUnitSection from "../../../components/AddUnitSection";
 
-function page() {
+function Page() {
   const [units, setUnits] = useState([]);
   const [newUserSection, setNewUserSection] = useState(false);
 
@@ -70,4 +70,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

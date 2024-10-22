@@ -6,7 +6,7 @@ import { IoPersonAdd } from "react-icons/io5";
 import AddLabReportSection from "../../../components/AddLabReportSection";
 import Link from "next/link";
 
-function page() {
+function Page() {
   const [tests, setTests] = useState([]);
   const [newUserSection, setNewUserSection] = useState(false);
 
@@ -82,4 +82,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

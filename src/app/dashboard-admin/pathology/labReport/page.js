@@ -71,7 +71,7 @@ const testFormat = {
   ],
 };
 
-function page() {
+function Page() {
   const [tests, setTests] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [allTests, setAllTests] = useState([]);
@@ -288,4 +288,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;
