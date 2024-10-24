@@ -1,67 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-const tests = [
-  {
-    patient: { _id: "bhguthnh123", name: "varun", uhid: "PR151315" },
-    doctor: { name: "nidhi agrahari" },
-    tests: [
-      {
-        test: {
-          _id: "hbdwh142",
-          name: "cbc",
-          price: 300,
-        },
-      },
-    ],
-  },
-  {
-    patient: { _id: "bhguthnh123", name: "varun", uhid: "PR151315" },
-    doctor: { name: "nidhi agrahari" },
-    tests: [
-      {
-        test: {
-          _id: "hbdwh125",
-          name: "cbc",
-          price: 300,
-        },
-      },
-      {
-        test: {
-          _id: "hbdwh184",
-          name: "liver test",
-          price: 800,
-        },
-      },
-    ],
-  },
-  {
-    patient: { _id: "bhguthnh152", name: "tarun", uhid: "PR151316" },
-    doctor: { name: "nidhi agrahari" },
-    tests: [
-      {
-        test: {
-          _id: "hbdwh192",
-          name: "cbc",
-          price: 300,
-        },
-      },
-    ],
-  },
-  {
-    patient: { _id: "bhguthnh178", name: "arun", uhid: "PR151317" },
-    doctor: { name: "nidhi agrahari" },
-    tests: [
-      {
-        test: {
-          _id: "hbdwh122",
-          name: "cbc",
-          price: 300,
-        },
-      },
-    ],
-  },
-];
 
 const testFormat = {
   items: [

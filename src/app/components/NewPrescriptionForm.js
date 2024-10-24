@@ -3,34 +3,34 @@ import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import Loading from "./Loading";
 
-const fakedetails = {
-  patients: [
-    { _id: "12345", name: "John Doe", uhid: "UH1234" },
-    { _id: "67890", name: "Jane Smith", uhid: "UH5678" },
-  ],
-  doctors: [
-    { _id: "54321", name: "Dr. Alice", department: "98765" },
-    { _id: "09876", name: "Dr. Bob", department: "56789" },
-  ],
-  departments: [
-    {
-      _id: "98765",
-      name: "Cardiology",
-      itmes: [
-        { name: "x-ray", price: 125 },
-        { name: "x-mas", price: 5412 },
-      ],
-    },
-    {
-      _id: "56789",
-      name: "Neurology",
-      itmes: [
-        { name: "x-ray", price: 125 },
-        { name: "x-mas", price: 5412 },
-      ],
-    },
-  ],
-};
+// const fakedetails = {
+//   patients: [
+//     { _id: "12345", name: "John Doe", uhid: "UH1234" },
+//     { _id: "67890", name: "Jane Smith", uhid: "UH5678" },
+//   ],
+//   doctors: [
+//     { _id: "54321", name: "Dr. Alice", department: "98765" },
+//     { _id: "09876", name: "Dr. Bob", department: "56789" },
+//   ],
+//   departments: [
+//     {
+//       _id: "98765",
+//       name: "Cardiology",
+//       itmes: [
+//         { name: "x-ray", price: 125 },
+//         { name: "x-mas", price: 5412 },
+//       ],
+//     },
+//     {
+//       _id: "56789",
+//       name: "Neurology",
+//       itmes: [
+//         { name: "x-ray", price: 125 },
+//         { name: "x-mas", price: 5412 },
+//       ],
+//     },
+//   ],
+// };
 
 const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
   const [submitting, setSubmitting] = useState(false);

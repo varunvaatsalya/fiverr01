@@ -10,44 +10,6 @@ function ExpensesList({ expenses, setExpenses }) {
   const [newUserSection, setNewUserSection] = useState(false);
   const [activeIndex, setActiveIndex] = useState(null);
 
-  const fakeExpenses = [
-    {
-      name: "filter",
-      amount: 6400,
-      quantity: 2,
-      validity: "23/05/2025",
-      message: "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ratione sunt nisi accusantium amet ipsa ab, laborum magni sit suscipit a illum accusamus id quibusdam? Corrupti quam et, inventore obcaecati dolores tempore ipsam. Hic necessitatibus blanditiis recusandae quo possimus unde, fugit provident officia ad ipsum iste nostrum quaerat molestiae debitis odio cupiditate aliquid.",
-    },
-    {
-      name: "Gas",
-      amount: 5200,
-      quantity: 2,
-      validity: "23/05/2025",
-      message: "",
-    },
-    {
-      name: "filter",
-      amount: 6400,
-      quantity: 2,
-      validity: "23/05/2025",
-      message: "",
-    },
-    {
-      name: "filter",
-      amount: 6400,
-      quantity: 2,
-      validity: "23/05/2025",
-      message: "",
-    },
-    {
-      name: "filter",
-      amount: 6400,
-      quantity: 2,
-      validity: "23/05/2025",
-      message: "",
-    },
-  ];
-
 
   return (
     <>
