@@ -28,7 +28,7 @@ body {
 
 @media print {
   @page {
-    size: A4 portrait;
+    /* size: A4 portrait; */
   }
 
    body {
