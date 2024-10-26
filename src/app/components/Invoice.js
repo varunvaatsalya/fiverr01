@@ -20,7 +20,7 @@ function Invoice({
           id="invoice"
           className={
             IsToken
-              ? "max-w-sm"
+              ? "max-w-4xl"
               : "max-w-4xl" +
                 " w-full min-h-[90vh] bg-white shadow-md p-6 flex flex-col justify-between"
           }
@@ -70,10 +70,10 @@ function Invoice({
               <h1 className="text-3xl font-bold uppercase">
                 {HospitalDetails?.name}
               </h1>
-              <p className={"text-xs " + (IsToken ? "w-1/5" : "")}>
+              <p className={"text-xs " + (IsToken ? "" : "")}>
                 {HospitalDetails?.address} | Phone: {HospitalDetails?.phone}
               </p>
-              <p className={"text-xs " + (IsToken ? "w-1/5" : "")}>
+              <p className={"text-xs " + (IsToken ? "" : "")}>
                 Email: {HospitalDetails?.address}{" "}
                 {HospitalDetails.website
                   ? `| Website: ${HospitalDetails.website}`
