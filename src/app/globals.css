@@ -29,7 +29,7 @@ body {
 @media print {
   @page {
     /* size: A4 portrait; */
-    size: 8cm 20cm;
+    size: 8cm 30cm;
   }
 
    body {
@@ -49,7 +49,7 @@ body {
     width: 100%;
     font-family: 'Arial', sans-serif;
     font-size: 12px;
-    line-height: 1.6;
+    /* line-height: 1.6; */
     color: black;
   }
 
