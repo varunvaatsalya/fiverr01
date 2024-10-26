@@ -18,7 +18,12 @@ function Invoice({
       >
         <div
           id="invoice"
-          className="max-w-4xl w-full min-h-[90vh] bg-white shadow-md p-6 flex flex-col justify-between"
+          className={
+            IsToken
+              ? "max-w-sm"
+              : "max-w-4xl" +
+                " w-full min-h-[90vh] bg-white shadow-md p-6 flex flex-col justify-between"
+          }
         >
           <div className="print-btn">
             <div className="flex justify-center space-x-2">
