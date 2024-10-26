@@ -29,6 +29,7 @@ body {
 @media print {
   @page {
     /* size: A4 portrait; */
+    size: 8cm 20cm;
   }
 
    body {
