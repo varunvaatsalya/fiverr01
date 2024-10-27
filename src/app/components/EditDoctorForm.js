@@ -122,7 +122,7 @@ function EditDoctorForm({
         </div>
 
         <div className="mb-4">
-          <label className="block font-semibold mb-2" htmlFor="department">
+          <label className="block font-semibold mb-2 text-gray-100" htmlFor="department">
             Select Department
           </label>
           <select

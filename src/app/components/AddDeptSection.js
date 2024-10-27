@@ -11,7 +11,7 @@ function AddDeptSection({ setNewUserSection, departments, setDepartments }) {
         <div className="fixed w-screen h-screen bg-gray-700/[.5] z-30 flex justify-center items-center">
           <div className="w-[95%] md:w-1/2 py-4 text-center bg-slate-950 px-4 rounded-xl">
             {!mode && (
-              <div className=" space-y-3 font-semibold text-xl">
+              <div className=" space-y-3 font-semibold text-xl text-gray-100">
                 <div className="text-center">Choose the mode</div>
                 <button
                   onClick={() => {

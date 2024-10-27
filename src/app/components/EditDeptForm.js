@@ -88,7 +88,7 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
       <div className="mb-4">
-        <label className="block font-semibold mb-2" htmlFor="department">
+        <label className="block font-semibold mb-2 text-gray-100" htmlFor="department">
           Select Department
         </label>
         <select
@@ -109,7 +109,7 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
       {selectedDepartment && (
         <>
           <div className="mb-4">
-            <label className="block font-semibold mb-2">Department Name</label>
+            <label className="block font-semibold mb-2 text-gray-100">Department Name</label>
             <input
               {...register("name")}
               type="text"
@@ -118,7 +118,7 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
           </div>
 
           <div>
-            <h3 className="font-semibold text-lg mb-2">Items</h3>
+            <h3 className="font-semibold text-lg mb-2 text-gray-100">Items</h3>
             {fields.map((field, index) => (
               <div key={field._id} className="flex items-center mb-4 space-x-4">
                 {/* Item Name */}

@@ -193,9 +193,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
           >
             <option value="">-- Select a Doctor --</option>
             {details.doctors
-              .filter(
-                (doctor) => doctor.department === selectedDepartment
-              )
+              .filter((doctor) => doctor.department === selectedDepartment)
               .map((doctor, index) => (
                 <option key={index} value={doctor._id}>
                   {doctor.name}
@@ -240,7 +238,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
 
           {/* Render selected items dynamically using useFieldArray */}
           <div>
-            <h3 className="text-md font-semibold mb-2">Selected Items:</h3>
+            <h3 className="text-md font-semibold mb-2 text-gray-100">Selected Items:</h3>
             {selectedItems.map((selectedItem, index) => (
               <div
                 key={index}
@@ -282,16 +280,24 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         </>
       )}
       {selectedItems.length > 0 && (
-        <select
-          id="paymentMode"
-          {...register("paymentMode", { required: "Payment Mode is required" })}
-          className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        >
-          <option value="">-- Payment Mode --</option>
-          <option value="Cash">Cash</option>
-          <option value="UPI">UPI</option>
-          <option value="Card">Card</option>
-        </select>
+        <>
+          <p className="font-semibold text-lg text-gray-100">
+            Grand Total: ₹{" "}
+            {selectedItems?.reduce((sum, item) => sum + item.price, 0)}
+          </p>
+          <select
+            id="paymentMode"
+            {...register("paymentMode", {
+              required: "Payment Mode is required",
+            })}
+            className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          >
+            <option value="">-- Payment Mode --</option>
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="Card">Card</option>
+          </select>
+        </>
       )}
 
       {/* Submit Button */}

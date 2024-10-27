@@ -180,7 +180,7 @@ function Page() {
         <form onSubmit={handleSubmit} className="py-3">
           <table className="table-auto w-full md:w-3/4 mx-auto text-left border-collapse px-3">
             <thead>
-              <tr className="bg-gray-700 px-2 py-1">
+              <tr className="bg-gray-700 px-2 py-1 text-gray-200">
                 <th>Test Name</th>
                 <th>Result</th>
                 <th>Normal Range</th>
@@ -190,7 +190,7 @@ function Page() {
             <tbody>
               {testFormat ? (
                 testFormat?.items?.map((test, index) => (
-                  <tr key={index} className="py-1">
+                  <tr key={index} className="py-1 text-gray-100">
                     <td>{test.name}</td>
                     <td>
                       <input

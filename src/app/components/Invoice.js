@@ -7,14 +7,16 @@ function Invoice({
   setPrintPrescription,
   prescriptionPrinted,
 }) {
-  const [items, setItems] = useState(printPrescription.items);
   const [IsToken, setIstoken] = useState(false);
 
   return (
     <>
       <div
         id="invoice"
-        className="bg-white text-black flex flex-col items-center"
+        className={
+          (IsToken ? "token-printing" : "invoice-printing") +
+          " bg-white text-black flex flex-col items-center"
+        }
       >
         <div
           id="invoice"
@@ -22,19 +24,22 @@ function Invoice({
             IsToken
               ? "max-w-4xl"
               : "max-w-4xl" +
-                " w-full min-h-[90vh]] bg-white shadow-md p-6 flex flex-col justify-between"
+                " w-full min-h-[90vh] bg-white shadow-md p-6 flex flex-col justify-between"
           }
         >
           <div className="print-btn">
             <div className="flex justify-center space-x-2">
               <button
                 onClick={() => {
-                  setItems([]);
                   setIstoken(true);
+                  const printStyle = document.createElement("style");
+                  printStyle.media = "print";
+                  printStyle.innerHTML = "@page { size: 8cm 30cm; }";
+                  document.head.appendChild(printStyle);
                   setTimeout(() => {
                     window.print();
-                    setItems(printPrescription.items);
                     setIstoken(false);
+                    document.head.removeChild(printStyle);
                   }, 100);
                 }}
                 className="text-blue-600 border border-blue-600 hover:bg-blue-100 rounded px-6 py-2 my-2 font-semibold text-lg"
@@ -43,7 +48,6 @@ function Invoice({
               </button>
               <button
                 onClick={() => {
-                  setItems(printPrescription.items);
                   prescriptionPrinted(printPrescription._id);
                   window.print();
                 }}
@@ -153,11 +157,16 @@ function Invoice({
               >
                 <thead>
                   <tr>
-                    <th className="py-2 px-2 border w-16">Sr No.</th>
-                    <th className="py-2 px-4 border text-start">Item Name</th>
+                    <th className="py-2 px-2 border border-black w-16">
+                      Sr No.
+                    </th>
+                    <th className="py-2 px-4 border border-black text-start">
+                      Item Name
+                    </th>
                     <th
                       className={
-                        (IsToken ? "hidden" : "") + " py-2 px-4 border"
+                        (IsToken ? "hidden" : "") +
+                        " py-2 px-4 border border-black"
                       }
                     >
                       Price (₹)
@@ -169,25 +178,29 @@ function Invoice({
                     return (
                       <>
                         <tr key={index}>
-                          <td className="py-1 px-2 border w-16">
+                          <td className="py-1 px-2 border border-black w-16">
                             {index + 1}.
                           </td>
-                          <td className="py-1 px-4 border">{item.name}</td>
+                          <td className="py-1 px-4 border border-black">
+                            {item.name}
+                          </td>
                           <td
                             className={
                               (IsToken ? "hidden" : "") +
-                              " py-1 px-4 border text-center"
+                              " py-1 px-4 border border-black text-center"
                             }
                           >
-                            {items[index]?.price}
+                            {item.price}
                           </td>
                         </tr>
                         {IsToken && (
                           <tr key={index}>
-                            <td className="py-1 px-2 border font-semibold">
+                            <td className="py-1 px-2 border border-black font-semibold">
                               Price
                             </td>
-                            <td className="py-1 px-4 border"></td>
+                            <td className="py-1 px-4 border border-black">
+                              {item.price}
+                            </td>
                           </tr>
                         )}
                       </>
@@ -195,13 +208,18 @@ function Invoice({
                   })}
                 </tbody>
               </table>
-              <div className="mt-4 flex justify-end">
-                {items.length > 0 && (
-                  <p className="font-semibold text-lg">
-                    Grand Total: ₹{" "}
-                    {items.reduce((sum, item) => sum + item.price, 0)}
-                  </p>
-                )}
+              <div
+                className={
+                  "mt-4 flex " + (IsToken ? "justify-start" : "justify-end")
+                }
+              >
+                <p className="font-semibold text-lg">
+                  Grand Total: ₹{" "}
+                  {printPrescription.items.reduce(
+                    (sum, item) => sum + item.price,
+                    0
+                  )}
+                </p>
               </div>
             </div>
             <hr className="my-4" />
