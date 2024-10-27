@@ -1,10 +1,66 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { formatDateTimeToIST } from "../utils/date";
 import Loading from "./Loading";
 
 function Report({ printReport, setPrintReport }) {
   const [prescriptions, setPrescriptions] = useState(null);
+
+  function parseRange(rangeStr, gender = null) {
+    // Remove spaces, commas, parentheses, and "millions" from the range string
+    let cleanedRange = rangeStr
+      .replace(/[\s,()]/g, "")
+      .replace("*millions", "");
+
+    // Detect and handle gender-specific ranges if present
+    const hasMaleRange = /Male/i.test(rangeStr);
+    const hasFemaleRange = /Female/i.test(rangeStr);
+
+    if (hasMaleRange || hasFemaleRange) {
+      const maleMatch = rangeStr.match(/Male.*?(\d+(\.\d+)?)-(\d+(\.\d+)?)/i);
+      const femaleMatch = rangeStr.match(
+        /Female.*?(\d+(\.\d+)?)-(\d+(\.\d+)?)/i
+      );
+
+      // Use the appropriate gender range if gender is specified
+      if (gender === "m" && maleMatch) {
+        return [parseFloat(maleMatch[1]), parseFloat(maleMatch[3])];
+      } else if (gender === "f" && femaleMatch) {
+        return [parseFloat(femaleMatch[1]), parseFloat(femaleMatch[3])];
+      } else {
+        return null; // Gender not specified correctly or doesn't match range
+      }
+    }
+
+    // Match basic or decimal range pattern, e.g., '200-300', '4.5-6.5'
+    const match = cleanedRange.match(/^(\d+(\.\d+)?)-(\d+(\.\d+)?)$/);
+    if (!match) return null;
+
+    // Parse the lower and upper bounds
+    const lower = parseFloat(match[1]);
+    const upper = parseFloat(match[3]);
+
+    return [lower, upper];
+  }
+
+  function normalizeValue(valueStr) {
+    // Remove commas from the value
+    let cleanedValue = valueStr.replace(/,/g, "");
+
+    // Convert to float or integer as appropriate
+    return parseFloat(cleanedValue);
+  }
+
+  function isInRange(rangeStr, value, gender = "m") {
+    // Parse the range limits
+    const range = parseRange(rangeStr, gender);
+    if (!range) return false;
+
+    const [lower, upper] = range;
+    const normalizedValue = normalizeValue(String(value));
+    return normalizedValue >= lower && normalizedValue <= upper;
+  }
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -22,7 +78,7 @@ function Report({ printReport, setPrintReport }) {
   if (!prescriptions)
     return (
       <div className="min-h-screen w-full flex justify-center gap-2 items-center bg-black">
-        <Loading size={50}/>
+        <Loading size={50} />
         <div className="text-2xl">Loading...</div>
       </div>
     );
@@ -48,7 +104,10 @@ function Report({ printReport, setPrintReport }) {
       </div>
       {prescriptions.tests.map((test, index) => {
         return (
-          <div key={index} class="max-w-4xl mx-auto bg-white text-black p-8 rounded-lg shadow-lg">
+          <div
+            key={index}
+            class="max-w-4xl mx-auto bg-white text-black p-8 pt-40 rounded-lg shadow-lg"
+          >
             <h1 class="text-2xl font-bold mb-8 text-center">
               Pathology Report
             </h1>
@@ -115,12 +174,23 @@ function Report({ printReport, setPrintReport }) {
                   const result = test.results.find((r) => r.name === item.name);
                   return (
                     <tr key={index}>
-                      <td class="border px-4 py-2 text-sm">{item.name}</td>
-                      <td class="border px-4 py-2 text-sm">
+                      <td class="border px-4 text-sm">{item.name}</td>
+                      <td
+                        class={
+                          " border px-4 text-sm " +
+                          (isInRange(
+                            item.range,
+                            result.result,
+                            prescriptions.patient?.gender[0]
+                          )
+                            ? ""
+                            : "font-bold underline")
+                        }
+                      >
                         {result ? result.result : "N/A"}
                       </td>
-                      <td class="border px-4 py-2 text-sm">{item.range}</td>
-                      <td class="border px-4 py-2 text-sm">
+                      <td class="border px-4 text-sm">{item.range}</td>
+                      <td class="border px-4 text-sm">
                         {result ? result.unit : item.unit}
                       </td>
                     </tr>

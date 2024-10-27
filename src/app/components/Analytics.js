@@ -22,8 +22,6 @@ const Analytics = ({
     endTime: "23:59", // default end time
   });
 
-  useEffect(() => {}, [setData]);
-
   const onSubmit = async () => {
     setSubmitting(true);
     try {
@@ -93,6 +91,8 @@ const Analytics = ({
   useEffect(() => {
     handleFilter();
   }, [
+    prescriptions,
+    expenses,
     selectedDepartment,
     selectedDoctor,
     selectedPaymentMode,
