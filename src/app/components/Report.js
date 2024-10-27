@@ -53,6 +53,7 @@ function Report({ printReport, setPrintReport }) {
 
   function isInRange(rangeStr, value, gender = "m") {
     // Parse the range limits
+    if (!rangeStr || !value) return true;
     const range = parseRange(rangeStr, gender);
     if (!range) return false;
 
@@ -106,7 +107,7 @@ function Report({ printReport, setPrintReport }) {
         return (
           <div
             key={index}
-            class="max-w-4xl mx-auto bg-white text-black p-8 pt-40 rounded-lg shadow-lg"
+            class="max-w-4xl mx-auto bg-white text-black p-8 pt-40 rounded-lg shadow-lg break-after-page"
           >
             <h1 class="text-2xl font-bold mb-8 text-center">
               Pathology Report
@@ -180,7 +181,7 @@ function Report({ printReport, setPrintReport }) {
                           " border px-4 text-sm " +
                           (isInRange(
                             item.range,
-                            result.result,
+                            result?.result,
                             prescriptions.patient?.gender[0]
                           )
                             ? ""
