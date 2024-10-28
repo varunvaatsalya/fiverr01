@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { BsFillPersonBadgeFill } from "react-icons/bs";
 import { FaFilePrescription } from "react-icons/fa";
-import { FaPersonCirclePlus } from "react-icons/fa6";
+import { FaMoneyBillTrendUp, FaPersonCirclePlus } from "react-icons/fa6";
 import { IoLogOut } from "react-icons/io5";
 
 function Page() {
@@ -24,6 +24,14 @@ function Page() {
       icon: <FaFilePrescription size={50} />,
       link: "/dashboard-salesman/prescriptions",
       color: "bg-pink-700",
+    },
+    {
+      name: "Expenses",
+      description:
+        "You can show & add the all the Expenses.",
+      icon: <FaMoneyBillTrendUp size={50} />,
+      link: "/dashboard-salesman/expenses",
+      color: "bg-fuchsia-700",
     },
   ];
   return (
