@@ -9,6 +9,8 @@ function AddSection({
   setEditPrescription,
   editDoctor,
   setEditDoctor,
+  EditReportForm,
+  editReport,
 }) {
   return (
     <div className="absolute top-0 left-0">
@@ -19,6 +21,8 @@ function AddSection({
             setEntity={setEntity}
             prescriptions={prescriptions}
             editPatient={editPatient}
+            editReport={editReport}
+            EditReportForm={EditReportForm}
             setEditPatient={setEditPatient}
             editPrescription={editPrescription}
             setEditPrescription={setEditPrescription}

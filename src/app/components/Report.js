@@ -149,7 +149,7 @@ function Report({ printReport, setPrintReport }) {
                 </p>
                 <p class="text-base">
                   <span class="font-semibold">Analysis Date: </span>
-                  {test.resultDate}
+                  {formatDateTimeToIST(test.resultDate)}
                 </p>
                 <p class="text-base">
                   <span class="font-semibold">Pathologist: </span>

@@ -4,18 +4,27 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { IoLogOut } from "react-icons/io5";
-import { GrTest } from "react-icons/gr";
+import { GrDocumentTest } from "react-icons/gr";
+import { MdRebaseEdit } from "react-icons/md";
 
 function Page() {
   const router = useRouter();
   const Works = [
     {
-      name: "Pathology",
+      name: "Lab Test report",
       description:
-        "You can manage here your pathology data",
-      icon: <GrTest size={50} />,
-      link: "/dashboard-pathologist/pathology",
-      color: "bg-teal-700",
+        "You can see all the reports",
+      icon: <GrDocumentTest size={50} />,
+      link: "/dashboard-pathologist/labReport",
+      color: "bg-blue-700",
+    },
+    {
+      name: "Edit Test report",
+      description:
+        "You can see & edit all the reports",
+      icon: <MdRebaseEdit size={50} />,
+      link: "/dashboard-pathologist/editLabReport",
+      color: "bg-gray-700",
     },
   ];
   return (

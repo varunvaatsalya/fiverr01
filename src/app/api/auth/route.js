@@ -77,6 +77,7 @@ export async function POST(req) {
         name: "authToken",
         value: token,
         path: "/",
+        maxAge: 2 * 24 * 60 * 60,
       });
 
       return NextResponse.json({
@@ -117,6 +118,7 @@ export async function POST(req) {
         name: "authToken",
         value: token,
         path: "/",
+        maxAge: 2 * 24 * 60 * 60,
       });
       // If everything matches, return success
       return NextResponse.json(
@@ -160,6 +162,7 @@ export async function POST(req) {
       name: "authToken",
       value: token,
       path: "/",
+      maxAge: 2 * 24 * 60 * 60,
     });
     // If everything matches, return success
     return NextResponse.json(

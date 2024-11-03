@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { GrDocumentTest } from "react-icons/gr";
 import { GiThermometerScale } from "react-icons/gi";
-import { MdOutlineAddChart } from "react-icons/md";
+import { MdOutlineAddChart,MdRebaseEdit } from "react-icons/md";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
@@ -17,12 +17,20 @@ function Page() {
           >
             <GrDocumentTest size={50} />
             <div className="font-bold text-xl">Lab Test report</div>
-            <div className="text-center">You can see all the prescription</div>
+            <div className="text-center">You can see all the reports</div>
+          </Link>
+          <Link
+            href="/dashboard-admin/pathology/editLabReport"
+            className="bg-gray-700 w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1"
+          >
+            <MdRebaseEdit size={50} />
+            <div className="font-bold text-xl">Edit Test report</div>
+            <div className="text-center">
+              You can see & edit all the reports
+            </div>
           </Link>
 
-          <div
-            className="bg-pink-600 w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1"
-          >
+          <div className="bg-pink-600 w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1">
             <div className="h-1/5 w-full border-b-2 border-pink-500 text-center py-1 text-lg font-semibold">
               Lab&#39;s Config
             </div>

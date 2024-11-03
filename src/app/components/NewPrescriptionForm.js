@@ -57,7 +57,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         (department) => department._id === selectedDepartment
       );
       if (department) {
-        setAvailableItems(department.items);
+        setAvailableItems(department.items.sort((a, b) => a.name.localeCompare(b.name)));
       }
     }
   }, [selectedDepartment, details]);

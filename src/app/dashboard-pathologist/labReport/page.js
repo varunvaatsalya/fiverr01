@@ -180,7 +180,7 @@ function Page() {
         <form onSubmit={handleSubmit} className="py-3">
           <table className="table-auto w-full md:w-3/4 mx-auto text-left border-collapse px-3">
             <thead>
-              <tr className="bg-gray-700 px-2 py-1 text-gray-200">
+              <tr className="bg-gray-700 text-gray-200 px-2 py-1">
                 <th>Test Name</th>
                 <th>Result</th>
                 <th>Normal Range</th>
