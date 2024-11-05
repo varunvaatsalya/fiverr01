@@ -41,8 +41,7 @@ function CompletedTestList({
         test.patientName.toLowerCase().includes(lowerCaseQuery) ||
         test.testName?.toLowerCase().includes(lowerCaseQuery) ||
         test.patientUHID.toLowerCase().includes(lowerCaseQuery) ||
-        test.pid.toLowerCase().includes(lowerCaseQuery) ||
-        test.testId.toLowerCase().includes(lowerCaseQuery)
+        test.pid.toLowerCase().includes(lowerCaseQuery)
       );
     });
     setResData(filterRes);

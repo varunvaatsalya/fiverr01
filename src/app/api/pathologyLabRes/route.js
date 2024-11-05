@@ -14,31 +14,31 @@ function generateTRID() {
 
 export async function GET(req) {
   await dbConnect();
-    // const get = req.nextUrl.searchParams.get("get");
+  // const get = req.nextUrl.searchParams.get("get");
 
-    const token = req.cookies.get("authToken");
-    if (!token) {
-      console.log("Token not found. Redirecting to login.");
-      return NextResponse.json(
-        { message: "Access denied. No token provided.", success: false },
-        { status: 401 }
-      );
-    }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-    const decoded = await verifyToken(token.value);
-    const userRole = decoded.role;
-    if (!decoded || !userRole) {
-      return NextResponse.json(
-        { message: "Invalid token.", success: false },
-        { status: 403 }
-      );
-    }
-    if (userRole !== "admin" && userRole !== "pathologist") {
-      return NextResponse.json(
-        { message: "Access denied. admins only.", success: false },
-        { status: 403 }
-      );
-    }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin" && userRole !== "pathologist") {
+    return NextResponse.json(
+      { message: "Access denied. admins only.", success: false },
+      { status: 403 }
+    );
+  }
 
   try {
     const pathologyDept = await Department.findOne({
@@ -142,15 +142,16 @@ export async function POST(req) {
     );
 
     if (updatedPrescription) {
-      return NextResponse.json({ success: true }, { status: 201 });
+      return NextResponse.json(
+        { message: "Updated Successfully", success: true },
+        { status: 201 }
+      );
     } else {
       return NextResponse.json(
         { message: "Internal server error", success: false },
         { status: 500 }
       );
     }
-
-    // Send response with UID
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(
