@@ -1,7 +1,9 @@
 function AddSection({
   setNewUserSection,
+  deleteDataEntry,
   setEntity,
   FormComponent,
+  setInvoiceGenerate,
   prescriptions,
   editPatient,
   setEditPatient,
@@ -18,7 +20,9 @@ function AddSection({
         <div className="w-[95%] md:w-4/5 lg:w-3/4 py-4 text-center bg-slate-950 px-4 rounded-xl">
           <FormComponent
             setNewUserSection={setNewUserSection}
+            deleteDataEntry={deleteDataEntry}
             setEntity={setEntity}
+            setInvoiceGenerate={setInvoiceGenerate}
             prescriptions={prescriptions}
             editPatient={editPatient}
             editReport={editReport}

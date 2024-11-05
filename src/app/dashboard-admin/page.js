@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { BsFillPersonBadgeFill,BsBuildingFillAdd, BsFillPersonVcardFill } from "react-icons/bs";
-import { FaFilePrescription } from "react-icons/fa";
+import { FaFilePrescription, FaShippingFast, FaUserNurse } from "react-icons/fa";
 import { FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
 import { IoMdAnalytics } from "react-icons/io";
 import { MdAdminPanelSettings } from "react-icons/md";
@@ -27,6 +27,13 @@ function Page() {
       icon: <FaPersonCirclePlus size={50} />,
       link: "/dashboard-admin/patients",
       color: "bg-pink-700",
+    },
+    {
+      name: "Express Billing",
+      description: "You can show & create invoice of data entry",
+      icon: <FaShippingFast size={50} />,
+      link: "/dashboard-admin/expressBilling",
+      color: "bg-amber-500",
     },
     {
       name: "Analytics",
@@ -73,6 +80,13 @@ function Page() {
       icon: <FaUserDoctor size={50} />,
       link: "/dashboard-admin/doctors",
       color: "bg-green-700",
+    },
+    {
+      name: "Nurse",
+      description: "You can show & add the Nurses",
+      icon: <FaUserNurse size={50} />,
+      link: "/dashboard-admin/nurse",
+      color: "bg-sky-800",
     },
     {
       name: "Pathologist",

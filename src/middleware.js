@@ -8,6 +8,7 @@ const roleRoutes = {
   owner: "/dashboard-owner",
   salesman: "/dashboard-salesman",
   pathologist: "/dashboard-pathologist",
+  nurse: "/dashboard-nurse",
 };
 
 // Middleware function to check for JWT and user role
@@ -46,6 +47,10 @@ export async function middleware(req) {
       response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
       return response; // Allow access to salesman dashboard
     } else if (userRole === "pathologist" && pathname.startsWith(roleRoutes.pathologist)) {
+      const response = NextResponse.next();
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      return response; // Allow access to salesman dashboard
+    } else if (userRole === "nurse" && pathname.startsWith(roleRoutes.nurse)) {
       const response = NextResponse.next();
       response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
       return response; // Allow access to salesman dashboard
@@ -104,5 +109,6 @@ export const config = {
     "/dashboard-owner/:path*",
     "/dashboard-salesman/:path*",
     "/dashboard-pathologist/:path*",
+    "/dashboard-nurse/:path*",
   ]
 };

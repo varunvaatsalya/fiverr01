@@ -5,6 +5,7 @@ import User from "../../models/Users";
 import Admin from "../../models/Admins";
 import { credentials } from "../../credentials";
 import Pathologist from "../../models/Pathologist";
+import Nurse from "../../models/Nurse";
 
 export async function GET(req) {
   const token = req.cookies.get("authToken");
@@ -37,6 +38,7 @@ export async function POST(req) {
     owner: "/dashboard-owner",
     salesman: "/dashboard-salesman",
     pathologist: "/dashboard-pathologist",
+    nurse: "/dashboard-nurse",
   };
 
   // Replace with a strong secret
@@ -126,6 +128,49 @@ export async function POST(req) {
           message: "Login successful",
           role: pathologist.role,
           route: userRole.pathologist,
+          success: true,
+        },
+        { status: 200 }
+      );
+    } else if (role === "nurse") {
+      const nurse = await Nurse.findOne({ email });
+      if (!nurse) {
+        return NextResponse.json(
+          { message: "User not found", success: false },
+          { status: 404 }
+        );
+      }
+
+      // Check if the role matches
+      if (nurse.role !== role) {
+        return NextResponse.json(
+          { message: "Role mismatch", success: false },
+          { status: 403 }
+        );
+      }
+
+      // Check if the password matches
+      if (nurse.password !== password) {
+        return NextResponse.json(
+          { message: "Invalid password", success: false },
+          { status: 401 }
+        );
+      }
+
+      const token = await generateToken(nurse);
+
+      cookies().set({
+        name: "authToken",
+        value: token,
+        path: "/",
+        maxAge: 2 * 24 * 60 * 60,
+      });
+      // If everything matches, return success
+      return NextResponse.json(
+        {
+          message: "Login successful",
+          role: nurse.role,
+          route: userRole.nurse,
           success: true,
         },
         { status: 200 }
