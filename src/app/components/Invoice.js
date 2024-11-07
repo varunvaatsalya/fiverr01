@@ -78,7 +78,7 @@ function Invoice({
                 {HospitalDetails?.address} | Phone: {HospitalDetails?.phone}
               </p>
               <p className={"text-xs " + (IsToken ? "" : "")}>
-                Email: {HospitalDetails?.address}{" "}
+                Email: {HospitalDetails?.email}{" "}
                 {HospitalDetails.website
                   ? `| Website: ${HospitalDetails.website}`
                   : ""}
