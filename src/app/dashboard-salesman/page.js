@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { FaFilePrescription, FaShippingFast } from "react-icons/fa";
 import { FaMoneyBillTrendUp, FaPersonCirclePlus } from "react-icons/fa6";
+import { TbReportMedical } from "react-icons/tb";
 import { IoLogOut } from "react-icons/io5";
 
 function Page() {
@@ -30,6 +31,14 @@ function Page() {
       icon: <FaShippingFast size={50} />,
       link: "/dashboard-salesman/expressBilling",
       color: "bg-amber-500",
+    },
+    {
+      name: "Reports",
+      description:
+        "You can see all pathology reports and print",
+      icon: <TbReportMedical size={50} />,
+      link: "/dashboard-salesman/reports",
+      color: "bg-orange-500",
     },
     {
       name: "Expenses",

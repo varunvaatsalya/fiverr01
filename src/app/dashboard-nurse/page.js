@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { FaShippingFast } from "react-icons/fa";
+import { TbReportMedical } from "react-icons/tb";
 import { IoLogOut } from "react-icons/io5";
 
 function Page() {
@@ -15,6 +16,14 @@ function Page() {
       icon: <FaShippingFast size={50} />,
       link: "/dashboard-nurse/expressBilling",
       color: "bg-amber-500",
+    },
+    {
+      name: "Reports",
+      description:
+        "You can see all pathology reports and print",
+      icon: <TbReportMedical size={50} />,
+      link: "/dashboard-nurse/reports",
+      color: "bg-pink-500",
     },
   ];
   return (

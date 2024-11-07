@@ -7,6 +7,7 @@ import { BsFillPersonBadgeFill,BsBuildingFillAdd, BsFillPersonVcardFill } from "
 import { FaFilePrescription, FaShippingFast, FaUserNurse } from "react-icons/fa";
 import { FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
 import { IoMdAnalytics } from "react-icons/io";
+import { TbReportMedical } from "react-icons/tb";
 import { MdAdminPanelSettings } from "react-icons/md";
 import { GrTest } from "react-icons/gr";
 import { IoLogOut } from "react-icons/io5";
@@ -43,12 +44,20 @@ function Page() {
       color: "bg-purple-700",
     },
     {
-      name: "Sales Men",
+      name: "Pathology",
       description:
-        "Show, add the new salesman & give the access to edit the invoice",
-      icon: <BsFillPersonBadgeFill size={40} />,
-      link: "/dashboard-admin/salesman",
-      color: "bg-yellow-700",
+        "You can manage here your pathology data",
+      icon: <GrTest size={50} />,
+      link: "/dashboard-admin/pathology",
+      color: "bg-teal-700",
+    },
+    {
+      name: "Reports",
+      description:
+        "You can see all pathology reports and print",
+      icon: <TbReportMedical size={50} />,
+      link: "/dashboard-admin/reports",
+      color: "bg-orange-500",
     },
     {
       name: "Expenses",
@@ -57,14 +66,6 @@ function Page() {
       icon: <FaMoneyBillTrendUp size={50} />,
       link: "/dashboard-admin/expenses",
       color: "bg-fuchsia-700",
-    },
-    {
-      name: "Pathology",
-      description:
-        "You can manage here your pathology data",
-      icon: <GrTest size={50} />,
-      link: "/dashboard-admin/pathology",
-      color: "bg-teal-700",
     },
     {
       name: "Departments",
@@ -80,6 +81,14 @@ function Page() {
       icon: <FaUserDoctor size={50} />,
       link: "/dashboard-admin/doctors",
       color: "bg-green-700",
+    },
+    {
+      name: "Sales Men",
+      description:
+        "Show, add the new salesman & give the access to edit the invoice",
+      icon: <BsFillPersonBadgeFill size={40} />,
+      link: "/dashboard-admin/salesman",
+      color: "bg-yellow-700",
     },
     {
       name: "Nurse",

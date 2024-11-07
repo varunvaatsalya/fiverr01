@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { IoLogOut } from "react-icons/io5";
+import { TbReportMedical } from "react-icons/tb";
 import { GrDocumentTest } from "react-icons/gr";
 import { MdRebaseEdit } from "react-icons/md";
 
@@ -17,6 +18,14 @@ function Page() {
       icon: <GrDocumentTest size={50} />,
       link: "/dashboard-pathologist/labReport",
       color: "bg-blue-700",
+    },
+    {
+      name: "Reports",
+      description:
+        "You can see all pathology reports and print",
+      icon: <TbReportMedical size={50} />,
+      link: "/dashboard-pathologist/reports",
+      color: "bg-orange-500",
     },
     {
       name: "Edit Test report",

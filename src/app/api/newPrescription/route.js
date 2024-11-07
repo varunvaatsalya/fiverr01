@@ -18,6 +18,7 @@ export async function GET(req) {
   await dbConnect();
   const patient = req.nextUrl.searchParams.get("patient");
   let page = req.nextUrl.searchParams.get("page");
+  let dept = req.nextUrl.searchParams.get("dept");
   const componentDetails = req.nextUrl.searchParams.get("componentDetails");
 
   const token = req.cookies.get("authToken");
@@ -85,8 +86,15 @@ export async function GET(req) {
     page = parseInt(page) || 1;
     const limit = 50; // Number of prescriptions per page
     const skip = (page - 1) * limit;
+    let query = {};
+    if (dept == "pathology") {
+      const pathologyDept = await Department.findOne({
+        name: "pathology",
+      }).select("_id");
+      query = { department: pathologyDept._id };
+    }
 
-    const allPrescription = await Prescription.find()
+    const allPrescription = await Prescription.find(query)
       .sort({ _id: -1 })
       .skip(skip)
       .limit(limit)
@@ -108,7 +116,7 @@ export async function GET(req) {
       })
       .select("-tests.results");
 
-    const totalPrescriptions = await Prescription.countDocuments();
+    const totalPrescriptions = await Prescription.countDocuments(query);
 
     return NextResponse.json(
       {
