@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import Patient from "../../models/Patients";
 import { verifyToken } from "../../utils/jwt";
+import { generateUniqueId } from "../../utils/counter";
 
-function generateUID() {
+async function generateUID() {
   const prefix = "PT";
-  const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
-  const uniqueID = `${prefix}${timestamp}`;
+  // const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
+  const uniqueDigit = await generateUniqueId('patient')
+  const uniqueID = `${prefix}${uniqueDigit}`;
   return uniqueID;
 }
 
@@ -122,7 +124,7 @@ export async function POST(req) {
       );
     }
 
-    const uhid = generateUID();
+    const uhid = await generateUID();
 
     const newPatient = new Patient({
       name,

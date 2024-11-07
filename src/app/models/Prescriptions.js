@@ -31,6 +31,9 @@ const prescriptionSchema = new mongoose.Schema({
   },
   tests: [
     {
+      ltrid: {
+        type: String,
+      },
       test: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "LabTest", // Reference to the LabTest schema

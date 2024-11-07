@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import DataEntry from "../../models/DataEntrys";
-import Patient from "../../models/Patients";
-import Doctor from "../../models/Doctors";
-import Department from "../../models/Departments";
-import Prescription from "../../models/Prescriptions";
-import LabTest from "../../models/LabTests";
 import { verifyToken } from "../../utils/jwt";
 
 export async function GET(req) {

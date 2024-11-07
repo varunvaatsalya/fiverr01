@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyToken } from "../../utils/jwt";
-import LabTest from "../../models/LabTests";
+// import LabTest from "../../models/LabTests";
 import Prescription from "../../models/Prescriptions";
 import Department from "../../models/Departments";
+import { generateUniqueId } from "../../utils/counter";
 
-function generateTRID() {
-  const prefix = "TR";
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const uniqueID = `${prefix}${timestamp}`;
+async function generateLTRID() {
+  const prefix = "LTR";
+  // const timestamp = Math.floor(Date.now() / 1000).toString();
+  const uniqueDigit = await generateUniqueId('report')
+  const uniqueID = `${prefix}${uniqueDigit}`;
   return uniqueID;
 }
 
@@ -126,6 +128,21 @@ export async function POST(req) {
   const { testResults, selectedTest, selectedPrescription } = await req.json();
   console.log(testResults, selectedTest, selectedPrescription);
   try {
+    const prescription = await Prescription.findOne({
+      _id: selectedPrescription,
+      "tests.test": selectedTest,
+    });
+
+    const testIndex = prescription.tests.findIndex(
+      (test) => test.test.toString() === selectedTest.toString()
+    );
+
+    let ltridUpdate={};
+    if(testIndex !== -1 && !prescription.tests[testIndex].ltrid){
+      const ltrid = await generateLTRID();
+      ltridUpdate={ "tests.$.ltrid": ltrid }
+    }
+
     const updatedPrescription = await Prescription.findOneAndUpdate(
       {
         _id: selectedPrescription,
@@ -136,6 +153,7 @@ export async function POST(req) {
           "tests.$.isCompleted": true, // Set the isCompleted flag to true for the specific test
           "tests.$.resultDate": Date.now(), // Set the isCompleted flag to true for the specific test
           "tests.$.results": testResults, // Save the new results array
+          ...ltridUpdate,
         },
       },
       { new: true } // Return the updated document

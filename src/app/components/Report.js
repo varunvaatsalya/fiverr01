@@ -140,12 +140,16 @@ function Report({ printReport, setPrintReport }) {
 
               <div class="">
                 <p class="text-base">
-                  <span class="font-semibold">Lab Test#: </span>
-                  {test.test.ltid}
+                  <span class="font-semibold">Lab Report ID: </span>
+                  {test.ltrid?test.ltrid:"#"}
                 </p>
                 <p class="text-base">
                   <span class="font-semibold">Test Name: </span>
                   {test.test.name}
+                </p>
+                <p class="text-base">
+                  <span class="font-semibold">Lab Test#: </span>
+                  {test.test.ltid}
                 </p>
                 <p class="text-base">
                   <span class="font-semibold">Analysis Date: </span>

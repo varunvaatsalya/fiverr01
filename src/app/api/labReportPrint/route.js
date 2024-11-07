@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
-import Patient from "../../models/Patients";
-import Doctor from "../../models/Doctors";
-import Department from "../../models/Departments";
 import Prescription from "../../models/Prescriptions";
-import LabTest from "../../models/LabTests";
 import { verifyToken } from "../../utils/jwt";
 
 
@@ -12,30 +8,23 @@ export async function GET(req) {
   await dbConnect();
   const id = req.nextUrl.searchParams.get("id");
 
-//   const token = req.cookies.get("authToken");
-//   if (!token) {
-//     console.log("Token not found. Redirecting to login.");
-//     return NextResponse.json(
-//       { message: "Access denied. No token provided.", success: false },
-//       { status: 401 }
-//     );
-//   }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-//   const decoded = await verifyToken(token.value);
-//   const userRole = decoded.role;
-//   const userEditPermission = decoded.editPermission;
-//   if (!decoded || !userRole) {
-//     return NextResponse.json(
-//       { message: "Invalid token.", success: false },
-//       { status: 403 }
-//     );
-//   }
-//   if (userRole !== "admin" && userRole !== "salesman") {
-//     return NextResponse.json(
-//       { message: "Access denied. admins only.", success: false },
-//       { status: 403 }
-//     );
-//   }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
 
   try {
       

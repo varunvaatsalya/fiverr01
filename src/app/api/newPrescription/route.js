@@ -6,11 +6,13 @@ import Department from "../../models/Departments";
 import Prescription from "../../models/Prescriptions";
 import LabTest from "../../models/LabTests";
 import { verifyToken } from "../../utils/jwt";
+import { generateUniqueId } from "../../utils/counter";
 
-function generateUID() {
+async function generateUID() {
   const prefix = "PR";
-  const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
-  const uniqueID = `${prefix}${timestamp}`;
+  // const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
+  const uniqueDigit = await generateUniqueId('prescription')
+  const uniqueID = `${prefix}${uniqueDigit}`;
   return uniqueID;
 }
 
@@ -165,7 +167,7 @@ export async function POST(req) {
   const { patient, items, doctor, department, paymentMode } = await req.json();
 
   try {
-    const pid = generateUID();
+    const pid = await generateUID();
 
     let departmentchk = await Department.findById(department);
     let filteredTests = [];
