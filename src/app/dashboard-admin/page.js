@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { BsFillPersonBadgeFill,BsBuildingFillAdd, BsFillPersonVcardFill } from "react-icons/bs";
 import { FaFilePrescription, FaShippingFast, FaUserNurse } from "react-icons/fa";
-import { FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
+import { FaKitMedical, FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
 import { IoMdAnalytics } from "react-icons/io";
 import { TbReportMedical } from "react-icons/tb";
 import { MdAdminPanelSettings } from "react-icons/md";
@@ -42,6 +42,14 @@ function Page() {
       icon: <IoMdAnalytics size={50} />,
       link: "/dashboard-admin/analytics",
       color: "bg-purple-700",
+    },
+    {
+      name: "IPD",
+      description:
+        "You can manage here your all IPD works",
+      icon: <FaKitMedical size={50} />,
+      link: "/dashboard-admin/ipd",
+      color: "bg-amber-800",
     },
     {
       name: "Pathology",

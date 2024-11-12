@@ -105,15 +105,9 @@ function AddLabReportSection({ setNewUserSection, setTests }) {
                     {...register("name", { required: true })}
                     type="text"
                     id="name"
-                    onChange={(e) =>
-                      (e.target.value = e.target.value.toLowerCase())
-                    }
                     className="mt-1 block px-4 h-12 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
                     placeholder="Enter the Test Name"
                   />
-                  <div className="text-sm text-gray-600 text-start">
-                    * Department names must be typed in lowercase only.
-                  </div>
                 </div>
                 <input
                   {...register("price", { required: true })}

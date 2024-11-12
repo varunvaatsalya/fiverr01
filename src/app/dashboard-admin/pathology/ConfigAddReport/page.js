@@ -11,10 +11,10 @@ function Page() {
   const [newUserSection, setNewUserSection] = useState(false);
 
   const tests1 = [
-    { name: "blood test", _id: "14fvsd", ltid:'yebdjh', price:200 },
-    { name: "liver test", _id: "15sdvds", ltid:'yebdjh', price:200 },
-    { name: "urine test", _id: "18fscevsd", ltid:'yebdjh', price:200 },
-    { name: "hand test", _id: "betb14fvsd", ltid:'yebdjh', price:200 },
+    { name: "blood test", _id: "14fvsd", ltid: "yebdjh", price: 200 },
+    { name: "liver test", _id: "15sdvds", ltid: "yebdjh", price: 200 },
+    { name: "urine test", _id: "18fscevsd", ltid: "yebdjh", price: 200 },
+    { name: "hand test", _id: "betb14fvsd", ltid: "yebdjh", price: 200 },
   ];
 
   useEffect(() => {
@@ -63,14 +63,20 @@ function Page() {
             <div className="flex flex-wrap justify-center w-full gap-3 p-3">
               {tests.map((test, index) => {
                 return (
-                  <Link
-                    href={`ConfigAddReport/${test._id}`}
+                  <div
                     className="py-4 w-full md:w-2/5 text-sm font-semibold text-center rounded-xl bg-black hover:bg-gray-900 text-white"
                     key={index}
                   >
                     <div>{test.ltid}</div>
-                    <div className="text-2xl font-bold capitalize">{test.name+', '+test.price+'/-'}</div>
-                  </Link>
+                    <div className="text-2xl font-bold capitalize">
+                      {test.name + ", " + test.price + "/-"}
+                    </div>
+                    <Link href={`ConfigAddReport/${test._id}`}>
+                      <div className="bg-white text-black py-3 px-4 font-bold mt-1 w-20 mx-auto rounded-full">
+                        Edit
+                      </div>
+                    </Link>
+                  </div>
                 );
               })}
             </div>

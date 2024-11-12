@@ -10,12 +10,6 @@ function generateLTID() {
   const uniqueID = `${prefix}${timestamp}`;
   return uniqueID;
 }
-function generateUID() {
-  const prefix = "DT";
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const uniqueID = `${prefix}${timestamp}`;
-  return uniqueID;
-}
 
 export async function GET(req) {
   await dbConnect();
@@ -119,13 +113,6 @@ export async function POST(req) {
     // Save user to the database
     await newLabTest.save();
 
-    let existingDepartment = await Department.findOne({ name: "pathology" });
-    if (!existingDepartment) {
-      const uid = generateUID();
-      existingDepartment = new Department({ uid, name: "pathology" });
-    }
-    existingDepartment.items.push({ name, price });
-    await existingDepartment.save();
 
     // Send response with UID
     return NextResponse.json({ newLabTest, success: true }, { status: 201 });

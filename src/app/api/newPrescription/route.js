@@ -7,6 +7,7 @@ import Prescription from "../../models/Prescriptions";
 import LabTest from "../../models/LabTests";
 import { verifyToken } from "../../utils/jwt";
 import { generateUniqueId } from "../../utils/counter";
+import LabTests from "../../models/LabTests";
 
 async function generateUID() {
   const prefix = "PR";
@@ -33,8 +34,8 @@ export async function GET(req) {
   }
 
   const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
-  const userEditPermission = decoded.editPermission;
+  let userRole = decoded.role;
+  let userEditPermission = decoded.editPermission;
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -49,12 +50,12 @@ export async function GET(req) {
       const prescriptions = await Prescription.find({ patient })
         .sort({ _id: -1 })
         .populate({
-          path: "doctor", // Populate the doctor field
-          select: "name", // Only select the name of the doctor
+          path: "doctor",
+          select: "name",
         })
         .populate({
-          path: "department", // Populate the department field
-          select: "name", // Only select the name of the department
+          path: "department",
+          select: "name",
         })
         .select("-patient") // Exclude the patient details
         .exec();
@@ -73,6 +74,16 @@ export async function GET(req) {
 
       // Fetch all departments with _id, name, and items with prices
       const departments = await Department.find({}, "_id name items").exec();
+
+      const pathologyLabTest = await LabTests.find({}, "_id name price").sort({
+        _id: -1,
+      });
+
+      departments.forEach((department) => {
+        if (department.name === "pathology") {
+          department.items = pathologyLabTest; // Replace items with pathologyLabTest
+        }
+      });
 
       return NextResponse.json(
         {
@@ -94,6 +105,8 @@ export async function GET(req) {
         name: "pathology",
       }).select("_id");
       query = { department: pathologyDept._id };
+      userRole = 'none';
+      userEditPermission = false;
     }
 
     const allPrescription = await Prescription.find(query)

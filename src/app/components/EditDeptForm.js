@@ -48,7 +48,7 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
         headers: {
           "Content-Type": "application/json", // Set the header for JSON
         },
-        body: JSON.stringify({...data, _id:selectedDepartment._id}), // Properly stringify the data
+        body: JSON.stringify({ ...data, _id: selectedDepartment._id }), // Properly stringify the data
       });
 
       // Parsing the response as JSON
@@ -88,7 +88,10 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
       <div className="mb-4">
-        <label className="block font-semibold mb-2 text-gray-100" htmlFor="department">
+        <label
+          className="block font-semibold mb-2 text-gray-100"
+          htmlFor="department"
+        >
           Select Department
         </label>
         <select
@@ -97,11 +100,13 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
           className="mt-1 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         >
           <option value="">-- Select a Department --</option>
-          {departments.map((department, index) => (
-            <option key={index} value={department.name}>
-              {department.name}
-            </option>
-          ))}
+          {departments
+            .filter((department) => department.name !== "pathology")
+            .map((department, index) => (
+              <option key={index} value={department.name}>
+                {department.name}
+              </option>
+            ))}
         </select>
       </div>
 
@@ -109,12 +114,18 @@ const EditDeptForm = ({ setNewUserSection, departments, setDepartments }) => {
       {selectedDepartment && (
         <>
           <div className="mb-4">
-            <label className="block font-semibold mb-2 text-gray-100">Department Name</label>
+            <label className="block font-semibold mb-2 text-gray-100">
+              Department Name
+            </label>
             <input
               {...register("name")}
               type="text"
+              onChange={(e) => (e.target.value = e.target.value.toLowerCase())}
               className="px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
             />
+            <div className="text-sm text-gray-600 text-start">
+              * Department names must be typed in lowercase only.
+            </div>
           </div>
 
           <div>
