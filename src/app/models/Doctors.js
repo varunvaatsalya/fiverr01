@@ -11,6 +11,7 @@ const doctorSchema = new mongoose.Schema({
     unique: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/],
   },
+  charge: { type: Number },
   specialty: { type: String, required: true },
   department: {
     type: mongoose.Schema.Types.ObjectId,
@@ -23,4 +24,4 @@ const doctorSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.models.Doctor || mongoose.model('Doctor', doctorSchema);
+export default mongoose.models.Doctor || mongoose.model("Doctor", doctorSchema);

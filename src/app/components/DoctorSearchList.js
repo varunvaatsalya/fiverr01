@@ -22,6 +22,7 @@ function DoctorSearchList({ doctors, setDoctors, accessInfo }) {
       return (
         doctor.name.toLowerCase().includes(lowerCaseQuery) ||
         doctor.email.toLowerCase().includes(lowerCaseQuery) ||
+        (doctor.charge && doctor.charge.toString().includes(lowerCaseQuery)) ||
         doctor.specialty.toLowerCase().includes(lowerCaseQuery) ||
         doctor.department.name.toLowerCase().includes(lowerCaseQuery)
       );
@@ -73,7 +74,7 @@ function DoctorSearchList({ doctors, setDoctors, accessInfo }) {
               {resData.map((doctor, index) => (
                 <div
                   key={index}
-                  className="w-full p-3 h-48 md:w-2/5 lg:w-1/5 bg-black text-white rounded-2xl flex flex-col justify-center items-center"
+                  className="w-full p-3 md:w-2/5 lg:w-1/5 bg-black text-white rounded-2xl flex flex-col justify-center items-center"
                 >
                   {/* Doctor Header */}
                   <h3 className="font-semibold text-xl capitalize">
@@ -85,8 +86,11 @@ function DoctorSearchList({ doctors, setDoctors, accessInfo }) {
                   <div className="text-gray-200 text-sm">
                     {"(" + doctor.email + ")"}
                   </div>
-                  <div className="text-xl my-2 font-semibold capitalize">
+                  <div className="text-xl my-1 font-semibold capitalize">
                     {doctor.department.name}
+                  </div>
+                  <div className="font-medium capitalize">
+                    Visting Charge: {doctor.charge?doctor.charge:"#"}
                   </div>
                   <div
                     className="mx-auto my-1 font-semibold py-2 px-5 cursor-pointer rounded-full bg-gray-100 text-black"

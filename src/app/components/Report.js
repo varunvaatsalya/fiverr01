@@ -148,10 +148,6 @@ function Report({ printReport, setPrintReport }) {
                   {test.test.name}
                 </p>
                 <p class="text-base">
-                  <span class="font-semibold">Lab Test#: </span>
-                  {test.test.ltid}
-                </p>
-                <p class="text-base">
                   <span class="font-semibold">Analysis Date: </span>
                   {formatDateTimeToIST(test.resultDate)}
                 </p>

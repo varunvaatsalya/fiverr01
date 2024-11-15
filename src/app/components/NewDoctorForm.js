@@ -98,6 +98,16 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
         />
         <div className=" py-1 text-sm text-red-500 text-start px-2">
           {errors.specialty ? "* " + errors.specialty.message : ""}
+        </div>        
+        <input
+          id="charge"
+          type="number"
+          placeholder={"Doctors's Visiting Charge"}
+          {...register("charge")}
+          className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+        />
+        <div className=" py-1 text-sm text-red-500 text-start px-2">
+          {errors.charge ? "* " + errors.charge.message : ""}
         </div>
 
         <div className="mb-4">

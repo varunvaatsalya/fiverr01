@@ -44,6 +44,14 @@ function Page() {
       color: "bg-purple-700",
     },
     {
+      name: "IPD",
+      description:
+        "You can manage here your all IPD works",
+      icon: <FaKitMedical size={50} />,
+      link: "/dashboard-admin/ipd",
+      color: "bg-amber-800",
+    },
+    {
       name: "Pathology",
       description:
         "You can manage here your pathology data",

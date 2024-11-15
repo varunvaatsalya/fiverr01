@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
-import Doctor from "../../models/Doctors";
 import { verifyToken } from "../../utils/jwt";
-
-function generateUID() {
-  const prefix = "DR";
-  const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
-  const uniqueID = `${prefix}${timestamp}`;
-  return uniqueID;
-}
+import { Surgery, Package } from "../../models/Surgerys";
 
 export async function GET(req) {
   await dbConnect();
+  let type = req.nextUrl.searchParams.get("type");
+
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -23,7 +18,7 @@ export async function GET(req) {
 
   const decoded = await verifyToken(token.value);
   const userRole = decoded.role;
-  const userEditPermission = decoded.editPermission;
+  //   const userEditPermission = decoded.editPermission;
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -36,24 +31,16 @@ export async function GET(req) {
       { status: 403 }
     );
   }
-  const name = req.nextUrl.searchParams.get("name");
 
   try {
-    let doctors;
-    if (name === "1") {
-      doctors = await Doctor.find({}, "_id name");
-    } else {
-      doctors = await Doctor.find()
-        .sort({ _id: -1 })
-        .populate("department", "name _id");
+    if (type == "2") {
+      let packages = await Package.find().sort({ _id: -1 });
+      return NextResponse.json({ packages, success: true }, { status: 200 });
     }
-
-    return NextResponse.json(
-      { doctors, userRole, userEditPermission, success: true },
-      { status: 200 }
-    );
+    let surgery = await Surgery.find().sort({ _id: -1 });
+    return NextResponse.json({ surgery, success: true }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching doctors:", error);
+    console.error("Error fetching departments:", error);
     return NextResponse.json(
       { message: "Internal server error", success: false },
       { status: 500 }
@@ -63,6 +50,8 @@ export async function GET(req) {
 
 export async function POST(req) {
   await dbConnect();
+  let type = req.nextUrl.searchParams.get("type");
+
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -86,45 +75,45 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { name, email, specialty, charge, department } = await req.json();
+
+  const { name, items, price } = await req.json();
 
   try {
-    // Check if email is unique
-    const existingDoctor = await Doctor.findOne({ email });
-    if (existingDoctor) {
+    if (type == "1") {
+      const existingSurgery = await Surgery.findOne({ name });
+      if (existingSurgery) {
+        return NextResponse.json(
+          { message: "Ward already exists", success: false },
+          { status: 200 }
+        );
+      }
+      const newSurgery = new Surgery({
+        name,
+        price,
+      });
+      await newSurgery.save();
+
       return NextResponse.json(
-        { message: "Email already exists", success: false },
-        { status: 400 }
+        { surgery: newSurgery, success: true },
+        { status: 201 }
       );
     }
 
-    // Generate a 6-digit UID
-    const drid = generateUID();
-    // console.log(departmentId)
-
-    // Create new user
-    const newDoctor = new Doctor({
+    const existingPackage = await Package.findOne({ name });
+    if (existingPackage) {
+      return NextResponse.json(
+        { message: "Package already exists", success: false },
+        { status: 200 }
+      );
+    }
+    const newPackage = new Package({
       name,
-      email,
-      specialty,
-      charge,
-      department,
-      drid,
+      items,
+      price,
     });
+    await newPackage.save();
 
-    // Save user to the database
-    await newDoctor.save();
-
-    const updatedNewDoctor = await Doctor.findById(newDoctor._id).populate({
-      path: "department",
-      select: "name",
-    });
-
-    // Send response with UID
-    return NextResponse.json(
-      { doctor: updatedNewDoctor, success: true },
-      { status: 201 }
-    );
+    return NextResponse.json({ newPackage, success: true }, { status: 201 });
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(
@@ -136,6 +125,7 @@ export async function POST(req) {
 
 export async function PUT(req) {
   await dbConnect();
+  let type = req.nextUrl.searchParams.get("type");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -154,49 +144,24 @@ export async function PUT(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin" && userRole !== "salesman") {
+  if (userRole !== "admin") {
     return NextResponse.json(
       { message: "Access denied. Admins only.", success: false },
       { status: 403 }
     );
   }
 
-  const { _id, name, email, specialty, charge, department } = await req.json();
+  const { _id, name, items, price } = await req.json();
 
   try {
-    // Check if patient exists
-    const existingDoctor = await Doctor.findById(_id);
-    if (!existingDoctor) {
-      return NextResponse.json(
-        { message: "Doctor not found", success: false },
-        { status: 404 }
-      );
+    if (type == "1") {
+      const surgery = await Surgery.findByIdAndUpdate(_id, { name, price },{ new: true });
+      return NextResponse.json({ surgery, success: true }, { status: 201 });
     }
-
-    // Update patient details
-    existingDoctor.name = name;
-    existingDoctor.email = email;
-    existingDoctor.specialty = specialty;
-    existingDoctor.charge = charge;
-    existingDoctor.department = department;
-
-    // Save updated patient to the database
-    await existingDoctor.save();
-
-    const updatedNewDoctor = await Doctor.findById(existingDoctor._id).populate(
-      {
-        path: "department",
-        select: "name",
-      }
-    );
-
-    // Send response with updated patient details
-    return NextResponse.json(
-      { doctor: updatedNewDoctor, success: true },
-      { status: 200 }
-    );
+    const updatedPackage = await Package.findByIdAndUpdate(_id, { name, items, price },{ new: true });
+    return NextResponse.json({ Package:updatedPackage, success: true }, { status: 201 });
   } catch (error) {
-    console.error("Error during update:", error);
+    console.error("Error during registration:", error);
     return NextResponse.json(
       { message: "Internal server error", success: false },
       { status: 500 }

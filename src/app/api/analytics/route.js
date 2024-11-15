@@ -39,21 +39,24 @@ export async function GET(req) {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set the time to the start of the day (00:00:00)
 
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1); // Set the time to the start of the next day
+    const ISTOffset = 5.5 * 60 * 60 * 1000; 
+    const todayIST = new Date(today.getTime() + ISTOffset);
+
+    const tomorrowIST = new Date(todayIST); 
+    tomorrowIST.setDate(todayIST.getDate() + 1);
 
     const expenses = await Expense.find({
       createdAt: {
-        $gte: today, // From the start of today
-        $lt: tomorrow, // Until the start of tomorrow
+        $gte: todayIST, // From the start of today
+        $lt: tomorrowIST, // Until the start of tomorrow
       },
     }).select("name amount");;
 
     // Query to find prescriptions created today
     const prescriptions = await Prescription.find({
       createdAt: {
-        $gte: today, // From the start of today
-        $lt: tomorrow, // Until the start of tomorrow
+        $gte: todayIST, // From the start of today
+        $lt: tomorrowIST, // Until the start of tomorrow
       },
     })
       .select("-patient -tests") // Exclude the patient field entirely
