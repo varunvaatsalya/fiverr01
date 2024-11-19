@@ -1,7 +1,8 @@
 import React from 'react'
-import { GrAnalytics } from "react-icons/gr";
+import { FaOutdent } from "react-icons/fa6";
 import { FaNetworkWired } from "react-icons/fa";
 import { MdFormatListBulletedAdd } from "react-icons/md";
+import { BsClipboardDataFill } from "react-icons/bs";
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
@@ -9,18 +10,25 @@ import Link from 'next/link';
 function Page() {
   const Works = [
     {
-      name: "Analysis",
-      description: "You can see all the available beds",
-      icon: <GrAnalytics size={50} />,
-      link: "/dashboard-admin/ipd/analysis",
-      color: "bg-gray-700",
-    },
-    {
       name: "Works",
       description: "You can show & manage the ipd patients here",
       icon: <FaNetworkWired size={50} />,
       link: "/dashboard-admin/ipd/works",
-      color: "bg-green-700",
+      color: "bg-red-900",
+    },
+    {
+      name: "Records",
+      description: "You can see all the IPD Patient Records",
+      icon: <BsClipboardDataFill size={50} />,
+      link: "/dashboard-admin/ipd/records",
+      color: "bg-gray-700",
+    },
+    {
+      name: "Out Standing Patients",
+      description: "You can view all the payments pending patients here",
+      icon: <FaOutdent size={50} />,
+      link: "/dashboard-admin/ipd/outstanding",
+      color: "bg-green-900",
     },
     {
       name: "IPD Config",

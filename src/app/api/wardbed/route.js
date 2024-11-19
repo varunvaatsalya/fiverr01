@@ -38,7 +38,10 @@ export async function GET(req) {
       .populate({
         path: "beds",
         select: "bedName isOccupied price occupancy",
-        populate: { path: "occupancy.patientId", select: "uhid name" },
+        populate: {
+          path: "occupancy.patientId",
+          select: "uhid name",
+        },
       })
       .exec();
 
@@ -110,6 +113,11 @@ export async function POST(req) {
         bedName: bed.bedName,
         isOccupied: false,
         price: bed.price || 0,
+        occupancy: {
+          patientId: null,
+          admissionId: null,
+          startDate: null // Any additional notes on occupancy (optional)
+        }
       }).save();
     });
     const savedBeds = await Promise.all(bedPromises); // Update the ward with the saved beds
@@ -195,6 +203,11 @@ export async function PUT(req) {
           bedName: bed.bedName,
           isOccupied: bed.isOccupied || false,
           price: bed.price || 0,
+          occupancy: {
+            patientId: null,
+            admissionId: null,
+            startDate: null // Any additional notes on occupancy (optional)
+          }
         }).save();
       }
     });

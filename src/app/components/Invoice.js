@@ -242,7 +242,7 @@ function Invoice({
           <div
             className={(IsToken ? "text-start" : "text-center") + " text-xs"}
           >
-            <p>Thank you for choosing City Hospital</p>
+            <p>Thank you for choosing Shivam Akshayvat Hospital</p>
             <p className="mt-1">This is a computer-generated invoice.</p>
           </div>
         </div>

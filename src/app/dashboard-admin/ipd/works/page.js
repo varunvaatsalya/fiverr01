@@ -2,14 +2,13 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
-import { IoPersonAdd } from "react-icons/io5";
-import AddLabReportSection from "../../../components/AddLabReportSection";
+// import { IoPersonAdd } from "react-icons/io5";
 import Link from "next/link";
 
 function Page() {
   const [wardBeds, setWardBeds] = useState([]);
   const [resData, setResData] = useState([]);
-  const [newUserSection, setNewUserSection] = useState(false);
+  // const [newUserSection, setNewUserSection] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -19,6 +18,7 @@ function Page() {
         if (result.success) {
           setWardBeds(result.wardBeds);
           setResData(result.wardBeds);
+          console.log(result.wardBeds);
         }
       } catch (err) {
         console.log("error: ", err);
@@ -35,12 +35,12 @@ function Page() {
         (bed) =>
           bed.bedName.toLowerCase().includes(lowerCaseQuery) ||
           bed.price.toString().includes(lowerCaseQuery) ||
-          (bed.occupancy &&
-            (bed.occupancy?.patientId.name
-              .toString()
+          (bed.occupancy.patientId &&
+            (bed.occupancy?.patientId?.name
+              .toLowerCase()
               .includes(lowerCaseQuery) ||
               bed.occupancy?.patientId.uhid
-                .toString()
+                .toLowerCase()
                 .includes(lowerCaseQuery))) ||
           bed.price.toString().includes(lowerCaseQuery)
       );
@@ -51,14 +51,14 @@ function Page() {
 
   return (
     <>
-      {newUserSection ? (
+      {/* {newUserSection ? (
         <AddLabReportSection
           setNewUserSection={setNewUserSection}
           setTests={setTests}
         />
       ) : (
         <></>
-      )}
+      )} */}
       <div className="flex flex-col min-h-screen bg-gray-200">
         <Navbar route={["IPD", "Works"]} />
         <main className="flex-grow">
@@ -78,8 +78,17 @@ function Page() {
                 }}
                 className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
               >
-                <IoPersonAdd />
-                <div>Add</div>
+                {/* <IoPersonAdd /> */}
+                <div>Occupied</div>
+              </button>
+              <button
+                onClick={() => {
+                  setNewUserSection((newUserSection) => !newUserSection);
+                }}
+                className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
+              >
+                {/* <IoPersonAdd /> */}
+                <div>available</div>
               </button>
             </div>
             {resData.map((wards, index) => (
@@ -89,21 +98,21 @@ function Page() {
                 </div>
 
                 <div className="flex flex-wrap justify-center w-full gap-3 p-3">
-                  {wards.beds.map((wardBed, index) => {
+                  {wards.beds.map((wardBed, it) => {
                     return (
                       <div
                         className={
                           "w-full md:w-[45%] flex items-center rounded-xl bg-black text-white " +
                           (wardBed.isOccupied ? "bg-red-600" : "bg-green-600")
                         }
-                        key={index}
+                        key={it}
                       >
                         <div className={"w-full py-1 "}>
                           <div className="font-bold text-xl text-center">
                             {wardBed.bedName}
                           </div>
                           <div className="capitalize text-center">
-                            {wardBed.occupancy
+                            {wardBed.occupancy?.patientId
                               ? wardBed.occupancy?.patientId.name +
                                 ", " +
                                 wardBed.occupancy?.patientId.uhid
@@ -111,7 +120,7 @@ function Page() {
                           </div>
                         </div>
                         <Link
-                          href={`ConfigAddReport/${wardBed._id}`}
+                          href={`works/${wardBed._id}`}
                           className="w-20 h-full py-2 px-1 bg-gray-900 rounded-r-xl text-white flex justify-center items-center text-center"
                         >
                           OPEN

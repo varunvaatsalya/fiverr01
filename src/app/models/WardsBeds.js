@@ -13,8 +13,9 @@ const bedSchema = new mongoose.Schema({
     
     // Occupancy details if the bed is occupied
     occupancy: {
-      patientId: { type: mongoose.Schema.Types.ObjectId, ref: "Patient" },
-      startDate: { type: Date },
+      patientId: { type: mongoose.Schema.Types.ObjectId, ref: "Patient", default: null },
+      admissionId: { type: mongoose.Schema.Types.ObjectId, ref: "Admission", default: null },
+      startDate: { type: Date, default: null },
       additionalInfo: { type: String } // Any additional notes on occupancy (optional)
     }
   });

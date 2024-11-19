@@ -201,6 +201,25 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
               ))}
           </select>
 
+          <div className="">
+            <div className="text-center text-white">Advanced/Discharge Amount</div>
+            <div className="flex gap-2">
+            <select
+            {...register("doctor", { required: "doctor is required" })}
+            className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          >
+            <option value="">-- Select a Doctor --</option>
+            {details.doctors
+              .filter((doctor) => doctor.department === selectedDepartment)
+              .map((doctor, index) => (
+                <option key={index} value={doctor._id}>
+                  {doctor.name}
+                </option>
+              ))}
+          </select>
+            </div>
+          </div>
+
           <div className="mb-6">
             {availableItems.length > 0 ? (
               availableItems.map((item, index) => (
