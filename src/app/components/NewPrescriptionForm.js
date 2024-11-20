@@ -43,6 +43,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [availableItems, setAvailableItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [ipdPrice, setIpdPrice] = useState(null);
   useEffect(() => {
     setValue("items", selectedItems);
   }, [selectedItems]);
@@ -57,7 +58,9 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         (department) => department._id === selectedDepartment
       );
       if (department) {
-        setAvailableItems(department.items.sort((a, b) => a.name.localeCompare(b.name)));
+        setAvailableItems(
+          department.items.sort((a, b) => a.name.localeCompare(b.name))
+        );
       }
     }
   }, [selectedDepartment, details]);
@@ -84,7 +87,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
   }, []);
 
   const onSubmit = async (data) => {
-    if (selectedItems.length > 0) {
+    if (selectedItems.length > 0 || ipdPrice) {
       setMessage(null);
       setSubmitting(true);
       try {
@@ -200,25 +203,35 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
                 </option>
               ))}
           </select>
-
-          <div className="">
-            <div className="text-center text-white">Advanced/Discharge Amount</div>
-            <div className="flex gap-2">
-            <select
-            {...register("doctor", { required: "doctor is required" })}
-            className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-          >
-            <option value="">-- Select a Doctor --</option>
-            {details.doctors
-              .filter((doctor) => doctor.department === selectedDepartment)
-              .map((doctor, index) => (
-                <option key={index} value={doctor._id}>
-                  {doctor.name}
-                </option>
-              ))}
-          </select>
+          {details.departments
+            .find((department) => department._id === selectedDepartment)
+            .name.toLowerCase()
+            .includes("ipd") && (
+            <div className="my-2">
+              <div className="text-center text-white py-1">
+                Advanced/Discharge Amount
+              </div>
+              <div className="flex gap-2">
+                <select
+                  {...register("ipdAmount.name", {
+                    required: "amount type is required",
+                  })}
+                  className="block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+                >
+                  <option value="">-- Select Payment Name --</option>
+                  <option value="Advance">Advance</option>
+                  <option value="Dicharge">Discharge</option>
+                </select>
+                <input
+                  {...register(`ipdAmount.amount`)}
+                  type="number"
+                  placeholder="Amount"
+                  onChange={(e)=>{setIpdPrice(e.target.value)}}
+                  className="px-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="mb-6">
             {availableItems.length > 0 ? (
@@ -257,7 +270,9 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
 
           {/* Render selected items dynamically using useFieldArray */}
           <div>
-            <h3 className="text-md font-semibold mb-2 text-gray-100">Selected Items:</h3>
+            <h3 className="text-md font-semibold mb-2 text-gray-100">
+              Selected Items:
+            </h3>
             {selectedItems.map((selectedItem, index) => (
               <div
                 key={index}
@@ -298,11 +313,11 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
           </div>
         </>
       )}
-      {selectedItems.length > 0 && (
+      {(selectedItems.length > 0 || ipdPrice) && (
         <>
           <p className="font-semibold text-lg text-gray-100">
             Grand Total: ₹{" "}
-            {selectedItems?.reduce((sum, item) => sum + item.price, 0)}
+            {selectedItems?.reduce((sum, item) => sum + item.price, 0) + (parseFloat(ipdPrice)||0) }
           </p>
           <select
             id="paymentMode"
@@ -315,6 +330,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
             <option value="Cash">Cash</option>
             <option value="UPI">UPI</option>
             <option value="Card">Card</option>
+            {!ipdPrice && <option value="Insurence">Insurence Patient</option>}
           </select>
         </>
       )}

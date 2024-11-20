@@ -8,11 +8,12 @@ import LabTest from "../../models/LabTests";
 import { verifyToken } from "../../utils/jwt";
 import { generateUniqueId } from "../../utils/counter";
 import LabTests from "../../models/LabTests";
+import Admission from "../../models/Admissions";
 
 async function generateUID() {
   const prefix = "PR";
   // const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
-  const uniqueDigit = await generateUniqueId('prescription')
+  const uniqueDigit = await generateUniqueId("prescription");
   const uniqueID = `${prefix}${uniqueDigit}`;
   return uniqueID;
 }
@@ -105,7 +106,7 @@ export async function GET(req) {
         name: "pathology",
       }).select("_id");
       query = { department: pathologyDept._id };
-      userRole = 'none';
+      userRole = "none";
       userEditPermission = false;
     }
 
@@ -177,7 +178,8 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { patient, items, doctor, department, paymentMode } = await req.json();
+  const { patient, items, doctor, ipdAmount, department, paymentMode } =
+    await req.json();
 
   try {
     const pid = await generateUID();
@@ -201,6 +203,62 @@ export async function POST(req) {
 
       // Remove null values (items not found in LabTest)
       filteredTests = tests.filter((test) => test !== null);
+    }
+
+    if (ipdAmount && ipdAmount.name && ipdAmount.amount) {
+      const admission = await Admission.findOne({
+        patientId: patient,
+        isCompleted: false,
+      });
+      if (!admission) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "No active admission found for this patient.",
+          },
+          { status: 404 }
+        );
+      }
+      items.push({ name: ipdAmount.name, price: ipdAmount.amount });
+      admission.ipdPayments.push({
+        name: ipdAmount.name,
+        amount: ipdAmount.amount,
+        date: Date.now(),
+      });
+      await admission.save();
+    }
+
+    if (paymentMode === "Insurence") {
+      const admission = await Admission.findOne({
+        patientId: patient,
+        isCompleted: false,
+      });
+      if (!admission) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "No active admission found for this patient.",
+          },
+          { status: 404 }
+        );
+      }
+      if (!admission.insuranceInfo || !admission.insuranceInfo.providerName) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "This Patient is not registered for the Insurence",
+          },
+          { status: 400 }
+        );
+      }
+      items.forEach((item) => {
+        admission.supplementaryService.push({
+          name: item.name,
+          amount: item.price,
+          date: new Date(),
+        });
+      });
+      await admission.save();
     }
 
     // // Create new user

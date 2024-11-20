@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { formatDateTimeToIST, timeDifference } from "../utils/date";
 import { useRouter } from "next/navigation";
+import { PiSealWarningBold } from "react-icons/pi";
 
 let data = {
   surgerys: [
@@ -36,17 +37,21 @@ function AdmissionForm({ bed, setBed }) {
   const [reason, setReason] = useState(bed.occupancy.admissionId.reason);
   const [activeReason, setActiveReason] = useState(null);
   const [activeInsurence, setActiveInsurence] = useState(null);
+  const [activeSupplementary, setActiveSupplementary] = useState(null);
   const [activeBedOperations, setActiveBedOperations] = useState(null);
   const [activeOtherServices, setActiveOtherServices] = useState(null);
   const [activePaymentSummery, setActivePaymentSummery] = useState(null);
+  const [activeChargeBalence, setActiveChargeBalence] = useState(null);
   const [selectedSurgeries, setSelectedSurgeries] = useState([]);
   const [selectedDoctorVisiting, setSelectedDoctorVisiting] = useState([]);
   const [selectedPackage, setSelectedPackage] = useState([]);
   const [availableBeds, setAvailableBeds] = useState([]);
   const [bedHistory, setBedHistory] = useState(null);
+  const [chargeBalenceDetails, setChargeBalenceDetails] = useState(null);
   const [changeingBedId, setChangeingBedId] = useState(null);
   const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(null);
+  const [takeConfirmDischarge, setTakeConfirmDischarge] = useState(false);
   const [insurenceDeatils, setInsurenceDeatils] = useState({
     providerName: bed.occupancy.admissionId?.insuranceInfo?.providerName || "",
     tpa: bed.occupancy.admissionId?.insuranceInfo?.tpa || "",
@@ -140,6 +145,7 @@ function AdmissionForm({ bed, setBed }) {
             },
           },
         }));
+        setChargeBalenceDetails(null);
       }
       setMessage(result.message);
     } catch (error) {
@@ -181,6 +187,7 @@ function AdmissionForm({ bed, setBed }) {
           },
         }));
         setTransaction({ amount: "", txno: "", bankName: "" });
+        setChargeBalenceDetails(null);
       }
       setMessage(result.message);
     } catch (error) {
@@ -189,6 +196,7 @@ function AdmissionForm({ bed, setBed }) {
       setSubmitting(false);
     }
   }
+
   async function onOthServiceSubmit() {
     if (othServices.amount && othServices.name) {
       try {
@@ -218,6 +226,7 @@ function AdmissionForm({ bed, setBed }) {
             },
           }));
           setOthServices({ amount: "", name: "" });
+          setChargeBalenceDetails(null);
         }
         setMessage(result.message);
       } catch (error) {
@@ -297,6 +306,7 @@ function AdmissionForm({ bed, setBed }) {
       [name]: value,
     }));
   }
+
   async function handlePaymentInfo(e) {
     const { name, value } = e.target;
     setTransaction((prevTransaction) => ({
@@ -311,6 +321,51 @@ function AdmissionForm({ bed, setBed }) {
       ...prevOthServices,
       [name]: value,
     }));
+  }
+
+  async function handleGetChargeBalenceDetails() {
+    async function fetchData() {
+      setMessage(null);
+      setSubmitting(true);
+      try {
+        let result = await fetch(
+          `/api/admissionWorks?id=${bed.occupancy.admissionId._id}&paymentSummery=1`
+        );
+        result = await result.json();
+        if (result.success) {
+          setChargeBalenceDetails(result.paymentDetails);
+        }
+        setMessage(result.message);
+      } catch (err) {
+        console.log("error: ", err);
+      } finally {
+        setSubmitting(false);
+      }
+    }
+    fetchData();
+  }
+  async function handlePatientDischarge() {
+    async function fetchData() {
+      setMessage(null);
+      setSubmitting(true);
+      try {
+        let result = await fetch(
+          `/api/admissionWorks?id=${bed.occupancy.admissionId._id}&discharge=1`
+        );
+        result = await result.json();
+        if (result.success) {
+          const currentUrl = window.location.href;
+          const basePath = currentUrl.split("/").slice(0, -1).join("/");
+          router.push(basePath);
+        }
+        setMessage(result.message);
+      } catch (err) {
+        console.log("error: ", err);
+      } finally {
+        setSubmitting(false);
+      }
+    }
+    fetchData();
   }
 
   return (
@@ -676,6 +731,7 @@ function AdmissionForm({ bed, setBed }) {
                 />
                 <input
                   type="number"
+                  min={0}
                   name="coverageAmount"
                   className="rounded-lg p-3 w-full md:w-48 mx-auto bg-slate-900 outline outline-gray-600"
                   placeholder="Coverage Amount"
@@ -684,6 +740,9 @@ function AdmissionForm({ bed, setBed }) {
                   required
                 />
               </div>
+            </div>
+            <div className="text-center text-slate-400">
+              *for insurence details Provide name must be required
             </div>
             <div className="bg-slate-800 p-4 w-3/4 mx-auto my-1 rounded-xl">
               <div className="text-center text-lg font-semibold my-1">
@@ -714,6 +773,7 @@ function AdmissionForm({ bed, setBed }) {
               <div className="p-2 w-full md:w-4/5 mx-auto flex flex-wrap justify-center items-center gap-2 bg-slate-700 my-2 rounded-lg">
                 <input
                   type="number"
+                  min={0}
                   placeholder="Payments"
                   name="amount"
                   value={transaction.amount}
@@ -742,6 +802,7 @@ function AdmissionForm({ bed, setBed }) {
                 <button
                   onClick={onInsurenceInfoSubmit}
                   className="bg-red-500 hover:bg-red-700 px-4 py-1 rounded-lg"
+                  disabled={!insurenceDeatils.providerName}
                 >
                   {submitting ? "Submiting..." : "Submit"}
                 </button>
@@ -855,6 +916,48 @@ function AdmissionForm({ bed, setBed }) {
       <div className="bg-gray-700 my-2 w-full mx-auto md:w-3/4 rounded-xl">
         <div
           onClick={() => {
+            setActiveSupplementary(!activeSupplementary);
+          }}
+          className="hover:bg-gray-800 cursor-pointer py-2 px-4 rounded-xl flex justify-between items-center"
+        >
+          <div className="text-center text-2xl font-semibold px-4">
+            Supplementary Expenses Summery
+          </div>
+          <div>{activeSupplementary ? "-" : "+"}</div>
+        </div>
+        {activeSupplementary && (
+          <>
+            <div className="bg-slate-800 p-4 w-3/4 mx-auto my-1 rounded-xl">
+              <div className="text-center text-lg font-semibold my-1">
+                Supplementary History
+              </div>
+
+              {bed.occupancy.admissionId.supplementaryService &&
+              bed.occupancy.admissionId.supplementaryService.length > 0 ? (
+                bed.occupancy.admissionId.supplementaryService.map(
+                  (suppService, index) => {
+                    return (
+                      <div
+                        className="w-full md:w-4/5 px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm"
+                        key={index}
+                      >
+                        <div>{suppService.name}</div>
+                        <div>{suppService.amount}</div>
+                        <div>{formatDateTimeToIST(suppService.date)}</div>
+                      </div>
+                    );
+                  }
+                )
+              ) : (
+                <div className="text-center text-gray-400">No Records</div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+      <div className="bg-gray-700 my-2 w-full mx-auto md:w-3/4 rounded-xl">
+        <div
+          onClick={() => {
             setActiveOtherServices(!activeOtherServices);
           }}
           className="hover:bg-gray-800 cursor-pointer py-2 px-4 rounded-xl flex justify-between items-center"
@@ -903,6 +1006,7 @@ function AdmissionForm({ bed, setBed }) {
                 />
                 <input
                   type="number"
+                  min={0}
                   placeholder="Amount"
                   name="amount"
                   value={othServices.amount}
@@ -929,67 +1033,39 @@ function AdmissionForm({ bed, setBed }) {
           className="hover:bg-gray-800 cursor-pointer py-2 px-4 rounded-xl flex justify-between items-center"
         >
           <div className="text-center text-2xl font-semibold px-4">
-            Payment Summery
+            IPD Invoice Summery
           </div>
           <div>{activePaymentSummery ? "-" : "+"}</div>
         </div>
         {activePaymentSummery && (
           <>
-            <div className="bg-slate-800 px-4 py-2 w-[90%] mx-auto my-1 rounded-xl">
+            <div className="bg-slate-800 p-4 w-3/4 mx-auto my-1 rounded-xl">
               <div className="text-center text-lg font-semibold my-1">
-                Bed History
+                Payments History
               </div>
-              <div className="w-full px-3 py-1 my-2 border-b-2 border-gray-600 mx-auto flex justify-around items-center text-sm">
-                <div className="w-[15%] text-center font-semibold text-base">
-                  Ward
+
+              {bed.occupancy.admissionId.ipdPayments &&
+              bed.occupancy.admissionId.ipdPayments.length > 0 ? (
+                bed.occupancy.admissionId.ipdPayments.map((payment, index) => {
+                  return (
+                    <div
+                      className="w-full md:w-4/5 px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm"
+                      key={index}
+                    >
+                      <div>{payment.name}</div>
+                      <div>{payment.amount}</div>
+                      <div>{formatDateTimeToIST(payment.date)}</div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center text-gray-400">
+                  No Payments Records
                 </div>
-                <div className="w-[15%] text-center font-semibold text-base">
-                  Bed
-                </div>
-                <div className="w-[30%] text-center font-semibold text-base">
-                  Admit Date
-                </div>
-                <div className="w-[30%] text-center font-semibold text-base">
-                  Discharge Date
-                </div>
-                <div className="w-[10%] text-center font-semibold text-base">
-                  Duration
-                </div>
-              </div>
-              <div className="w-full px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm">
-                <div className="w-[15%] text-center">1450</div>
-                <div className="w-[15%] text-center">1450</div>
-                <div className="w-[30%] text-center">
-                  10 sep 2024 12:50:12PM
-                </div>
-                <div className="w-[30%] text-center">
-                  12 sep 2024 12:50:12PM
-                </div>
-                <div className="w-[10%] text-center">2D 10H</div>
-              </div>
-              <div className="w-full px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm">
-                <div className="w-[15%] text-center">1450</div>
-                <div className="w-[15%] text-center">1450</div>
-                <div className="w-[35%] text-center">
-                  10 sep 2024 12:50:12PM
-                </div>
-                <div className="w-[35%] text-center">
-                  12 sep 2024 12:50:12PM
-                </div>
-              </div>
-              <div className="w-full px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm">
-                <div className="w-[15%] text-center">1450</div>
-                <div className="w-[15%] text-center">1450</div>
-                <div className="w-[35%] text-center">
-                  10 sep 2024 12:50:12PM
-                </div>
-                <div className="w-[35%] text-center">
-                  12 sep 2024 12:50:12PM
-                </div>
-              </div>
+              )}
             </div>
 
-            <div className="p-2 w-full md:w-4/5 mx-auto flex justify-center items-center gap-2 bg-slate-800 my-2 rounded-lg">
+            {/* <div className="p-2 w-full md:w-4/5 mx-auto flex justify-center items-center gap-2 bg-slate-800 my-2 rounded-lg">
               <button className="bg-red-500 hover:bg-red-700 px-4 py-1 rounded-lg">
                 Submit
               </button>
@@ -999,7 +1075,221 @@ function AdmissionForm({ bed, setBed }) {
               <button className="bg-red-500 hover:bg-red-700 px-4 py-1 rounded-lg">
                 Submit
               </button>
-            </div>
+            </div> */}
+          </>
+        )}
+      </div>
+      <div className="bg-gray-700 my-2 w-full mx-auto md:w-3/4 rounded-xl">
+        <div
+          onClick={() => {
+            setActiveChargeBalence(!activeChargeBalence);
+          }}
+          className="hover:bg-gray-800 cursor-pointer py-2 px-4 rounded-xl flex justify-between items-center"
+        >
+          <div className="text-center text-2xl font-semibold px-4">
+            Charges Payments Balance
+          </div>
+          <div>{activeChargeBalence ? "-" : "+"}</div>
+        </div>
+        {activeChargeBalence && (
+          <>
+            {chargeBalenceDetails ? (
+              <>
+                <div className="bg-slate-800 px-4 py-2 w-[90%] mx-auto my-1 rounded-xl">
+                  <div className="text-center text-lg font-semibold my-1">
+                    Charges Deatils
+                  </div>
+                  <div className="w-full px-3 py-1 my-2 border-b-2 border-gray-600 mx-auto flex justify-around items-center text-sm">
+                    <div className="text-center font-semibold text-base">
+                      Charges
+                    </div>
+                    <div className="text-center font-semibold text-base">
+                      SubTotal
+                    </div>
+                  </div>
+                  <div className="w-full px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm">
+                    <div className="text-center w-full">Beds Charge</div>
+                    <div className="text-center w-full">
+                      {chargeBalenceDetails.bedCharges}
+                    </div>
+                  </div>
+                  <div className="w-full px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm">
+                    <div className="text-center w-full">Surgery Charge</div>
+                    <div className="text-center w-full">
+                      {chargeBalenceDetails.surgeryCharges}
+                    </div>
+                  </div>
+                  <div className="w-full px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm">
+                    <div className="text-center w-full">Doctor Charge</div>
+                    <div className="text-center w-full">
+                      {chargeBalenceDetails.doctorCharges}
+                    </div>
+                  </div>
+                  <div className="w-full px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm">
+                    <div className="text-center w-full">Packags Charge</div>
+                    <div className="text-center w-full">
+                      {chargeBalenceDetails.packageCharges}
+                    </div>
+                  </div>
+                  <div className="w-full px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm">
+                    <div className="text-center w-full">
+                      Supplementary Charge
+                    </div>
+                    <div className="text-center w-full">
+                      {chargeBalenceDetails.supplementaryCharges}
+                    </div>
+                  </div>
+                  <div className="w-full px-3 py-1 border-b-2 border-gray-600 mx-auto flex justify-around items-center text-sm">
+                    <div className="text-center w-full">
+                      Other Service Charge
+                    </div>
+                    <div className="text-center w-full">
+                      {chargeBalenceDetails.otherServiceCharges}
+                    </div>
+                  </div>
+                  <div className="w-full px-3 py-2 mx-auto flex justify-around items-center font-semibold">
+                    <div className="text-center w-full">Total</div>
+                    <div className="text-center w-full">
+                      {chargeBalenceDetails.totalCharges}
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-slate-800 px-4 py-2 w-[90%] mx-auto my-1 rounded-xl">
+                  <div className="text-center text-lg font-semibold my-1">
+                    Payments Deatils
+                  </div>
+                  <div className="w-full px-3 py-1 my-2 border-b-2 border-gray-600 mx-auto flex justify-around items-center text-sm">
+                    <div className="text-center w-full font-semibold text-base">
+                      Payments
+                    </div>
+                    <div className="text-center w-full font-semibold text-base">
+                      SubTotal
+                    </div>
+                  </div>
+                  <div className="w-full px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm">
+                    <div className="text-center w-full">
+                      IPD Invoice Payments
+                    </div>
+                    <div className="text-center w-full">
+                      {chargeBalenceDetails.ipdPayments}
+                    </div>
+                  </div>
+                  <div className="w-full px-3 py-1 border-b-2 border-gray-600 mx-auto flex justify-around items-center text-sm">
+                    <div className="text-center w-full">Insurance Payments</div>
+                    <div className="text-center w-full">
+                      {chargeBalenceDetails.insurancePayments}
+                    </div>
+                  </div>
+                  <div className="w-full px-3 py-2 mx-auto flex justify-around items-center font-semibold">
+                    <div className="text-center w-full">Total</div>
+                    <div className="text-center w-full">
+                      {chargeBalenceDetails.totalPayments}
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-slate-800 px-4 py-2 w-[90%] mx-auto my-1 rounded-xl">
+                  <div className="text-center text-lg font-semibold my-1">
+                    Balance Deatils
+                  </div>
+                  <div className="w-full px-3 py-1 my-2 mx-auto flex justify-around items-center text-xl">
+                    <div className="text-center font-bold w-full">Balance</div>
+                    <div
+                      className={
+                        "text-center font-bold w-full " +
+                        (chargeBalenceDetails.balance <= 0
+                          ? "text-green-400"
+                          : "text-red-400")
+                      }
+                    >
+                      {chargeBalenceDetails.balance}
+                    </div>
+                  </div>
+                </div>
+                <div className="py-2 px-4 bg-slate-800 w-4/5 mx-auto my-2 rounded-xl">
+                  <div className="text-center text-lg font-semibold my-1">
+                    Discharge Patient
+                  </div>
+                  <div className="p-2 w-full md:w-4/5 mx-auto flex justify-center items-center gap-2 bg-slate-700 my-2 rounded-lg">
+                    {insurenceDeatils.providerName ||
+                    chargeBalenceDetails.balance <= 0 ? (
+                      <button
+                        className="bg-red-500 hover:bg-red-700 px-4 py-1 rounded-lg"
+                        onClick={() => {
+                          setTakeConfirmDischarge(true);
+                        }}
+                      >
+                        {submitting ? "Processing..." : "Confirm"}
+                      </button>
+                    ) : (
+                      <div className="text-center">
+                        This patient's dues are not cleared!
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {takeConfirmDischarge && (
+                  <div className="absolute top-0 left-0">
+                    <div className="fixed w-screen h-screen bg-gray-700/[.5] z-30 flex justify-center items-center">
+                      <div className="w-4/5 md:w-3/4 lg:w-3/5 py-4 text-center bg-slate-950 px-4 rounded-xl">
+                        <div className="h-10 w-10 mx-auto my-3 rounded-full bg-red-200 flex justify-center items-center">
+                          <PiSealWarningBold className="text-red-500 text-2xl" />
+                        </div>
+                        <h2 className="font-bold text-2xl text-center">
+                          Confirm Discharge
+                        </h2>
+                        {insurenceDeatils.providerName &&
+                          chargeBalenceDetails.balance > 0 && (
+                            <div className="text-center w-3/4 mx-auto text-lg font-semibold text-red-500">
+                              This patient is under insurance and the
+                              outstanding amount has not been paid yet,
+                            </div>
+                          )}
+                        <div className="text-center">
+                          Are you sure you want to Discharge this Patient?
+                        </div>
+                        {message && (
+                          <div className="my-1 px-4 text-center text-red-400">
+                            {message}
+                          </div>
+                        )}
+                        <hr className="border border-gray-200 w-full my-3" />
+                        <div className="flex justify-end gap-2">
+                          <button
+                            className="px-2 py-1 border-2 border-gray-500 rounded-lg font-semibold cursor-pointer"
+                            onClick={() => {
+                              setTakeConfirmDischarge(false);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="px-2 py-1 bg-green-500 rounded-lg text-white font-semibold cursor-pointer"
+                            onClick={handlePatientDischarge}
+                          >
+                            Confirm
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="bg-slate-800 px-4 py-2 w-[90%] mx-auto my-1 flex flex-col items-center rounded-xl">
+                  <div className="text-center text-lg font-semibold my-1">
+                    Get Balance Details
+                  </div>
+
+                  <button
+                    onClick={handleGetChargeBalenceDetails}
+                    className="bg-green-500 hover:bg-green-700 px-4 py-1 rounded-lg font-semibold"
+                  >
+                    {submitting ? "Processing..." : "Get"}
+                  </button>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
