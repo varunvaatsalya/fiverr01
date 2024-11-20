@@ -225,6 +225,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
                 <input
                   {...register(`ipdAmount.amount`)}
                   type="number"
+                  min={0}
                   placeholder="Amount"
                   onChange={(e)=>{setIpdPrice(e.target.value)}}
                   className="px-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"

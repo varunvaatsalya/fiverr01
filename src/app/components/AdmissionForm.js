@@ -1222,7 +1222,7 @@ function AdmissionForm({ bed, setBed }) {
                       </button>
                     ) : (
                       <div className="text-center">
-                        This patient's dues are not cleared!
+                        This patient&apos;s dues are not cleared!
                       </div>
                     )}
                   </div>

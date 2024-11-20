@@ -36,27 +36,25 @@ export async function GET(req) {
   try {
     const doctors = await Doctor.find({}, "_id name department").exec();
     const departments = await Department.find({}, "_id name").exec();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set the time to the start of the day (00:00:00)
 
-    const ISTOffset = 5.5 * 60 * 60 * 1000; 
-    const todayIST = new Date(today.getTime() + ISTOffset);
+    const todayStartIST = new Date(); // Current UTC time
+    todayStartIST.setUTCHours(0, 0, 0, 0); // Set the time to start of the day in UTC
 
-    const tomorrowIST = new Date(todayIST); 
-    tomorrowIST.setDate(todayIST.getDate() + 1);
+    const tomorrowStartIST = new Date(todayStartIST);
+    tomorrowStartIST.setUTCDate(todayStartIST.getUTCDate() + 1);
 
     const expenses = await Expense.find({
       createdAt: {
-        $gte: todayIST, // From the start of today
-        $lt: tomorrowIST, // Until the start of tomorrow
+        $gte: todayStartIST, // From the start of today
+        $lt: tomorrowStartIST, // Until the start of tomorrow
       },
-    }).select("name amount");;
+    }).select("name amount");
 
     // Query to find prescriptions created today
     const prescriptions = await Prescription.find({
       createdAt: {
-        $gte: todayIST, // From the start of today
-        $lt: tomorrowIST, // Until the start of tomorrow
+        $gte: todayStartIST, // From the start of today
+        $lt: tomorrowStartIST, // Until the start of tomorrow
       },
     })
       .select("-patient -tests") // Exclude the patient field entirely
@@ -116,7 +114,8 @@ export async function POST(req) {
   const { startDate, startTime, endDate, endTime } = await req.json();
 
   try {
-    let start = startDate && startTime ? new Date(`${startDate}T${startTime}`) : null;
+    let start =
+      startDate && startTime ? new Date(`${startDate}T${startTime}`) : null;
     let end = endDate && endTime ? new Date(`${endDate}T${endTime}`) : null;
 
     // Default today's date if date not provided but time is there
@@ -141,22 +140,24 @@ export async function POST(req) {
     // Fetch data with filters
 
     const prescriptions = await Prescription.find(dateQuery)
-    .select("-patient -tests") // Exclude the patient field entirely
-    .populate({
-      path: "doctor",
-      select: "name specialty",
-    })
-    .populate({
-      path: "department",
-      select: "name",
-    });
-    
-    // Fetch the expenses based on the date range
-    const expenses = await Expense.find(dateQuery).select("name amount");;
+      .select("-patient -tests") // Exclude the patient field entirely
+      .populate({
+        path: "doctor",
+        select: "name specialty",
+      })
+      .populate({
+        path: "department",
+        select: "name",
+      });
 
-    
+    // Fetch the expenses based on the date range
+    const expenses = await Expense.find(dateQuery).select("name amount");
+
     // Send response with UID
-    return NextResponse.json({ prescriptions, expenses, success: true }, { status: 201 });
+    return NextResponse.json(
+      { prescriptions, expenses, success: true },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(

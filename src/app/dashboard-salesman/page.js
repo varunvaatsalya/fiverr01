@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { FaFilePrescription, FaShippingFast } from "react-icons/fa";
-import { FaMoneyBillTrendUp, FaPersonCirclePlus } from "react-icons/fa6";
+import { FaKitMedical, FaMoneyBillTrendUp, FaPersonCirclePlus } from "react-icons/fa6";
 import { TbReportMedical } from "react-icons/tb";
 import { IoLogOut } from "react-icons/io5";
 

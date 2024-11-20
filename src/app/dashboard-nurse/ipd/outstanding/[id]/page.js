@@ -16,7 +16,7 @@ let details = {
   },
 };
 
-function page({ params }) {
+function Page({ params }) {
   const id = params.id;
   const [admission, setAdmission] = useState(null);
 
@@ -68,4 +68,4 @@ function page({ params }) {
   );
 }
 
-export default page;
+export default Page;

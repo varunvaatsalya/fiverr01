@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { FaShippingFast } from "react-icons/fa";
 import { TbReportMedical } from "react-icons/tb";
 import { IoLogOut } from "react-icons/io5";
+import { FaKitMedical } from "react-icons/fa6";
 
 function Page() {
   const router = useRouter();
