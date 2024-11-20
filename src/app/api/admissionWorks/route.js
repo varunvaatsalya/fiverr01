@@ -1,11 +1,120 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyToken } from "../../utils/jwt";
-import { Bed, Ward } from "../../models/WardsBeds";
-import { Surgery, Package } from "../../models/Surgerys";
-import Patient from "../../models/Patients";
+import { Bed } from "../../models/WardsBeds";
 import Admission from "../../models/Admissions";
-import Doctor from "../../models/Doctors";
+
+function getBalance(admission) {
+  let bedCharges = 0;
+  let surgeryCharges = 0;
+  let doctorCharges = 0;
+  let packageCharges = 0;
+  let supplementaryCharges = 0;
+  let otherServiceCharges = 0;
+  let totalCharges = 0;
+
+  // 1. Bed Charges from bedHistory
+  if (admission.bedHistory.length > 0) {
+    admission.bedHistory.forEach((bedEntry, index) => {
+      let startDate = new Date(bedEntry.startDate);
+      let endDate = bedEntry.endDate
+        ? new Date(bedEntry.endDate)
+        : index === admission.bedHistory.length - 1
+        ? new Date()
+        : null;
+
+      if (!endDate)
+        return NextResponse.json(
+          { message: "Beds' End Date not found.", success: false },
+          { status: 404 }
+        );
+
+      const hoursElapsed = Math.ceil((endDate - startDate) / (1000 * 60 * 60)); // Time elapsed in hours
+      bedCharges = Math.ceil(hoursElapsed / 12) * (bedEntry.bed?.price || 0); // Per 12 hours
+      totalCharges += bedCharges;
+    });
+  }
+
+  // 2. Surgery Charges
+  if (admission.surgery.length > 0) {
+    surgeryCharges = admission.surgery.reduce(
+      (sum, surgery) => sum + (surgery.surgery?.price || 0),
+      0
+    );
+    totalCharges += surgeryCharges;
+  }
+
+  // 3. Doctor Charges
+  if (admission.doctor.length > 0) {
+    doctorCharges = admission.doctor.reduce(
+      (sum, doctor) => sum + (doctor.doctor?.charge || 0),
+      0
+    );
+    totalCharges += doctorCharges;
+  }
+
+  // 4. Package Charges
+  if (admission.package.length > 0) {
+    packageCharges = admission.package.reduce(
+      (sum, pkg) => sum + (pkg.package?.price || 0),
+      0
+    );
+    totalCharges += packageCharges;
+  }
+
+  // 5. Supplementary and Other Services
+  if (admission.supplementaryService.length > 0) {
+    supplementaryCharges = admission.supplementaryService.reduce(
+      (sum, service) => sum + (service.amount || 0),
+      0
+    );
+    totalCharges += supplementaryCharges;
+  }
+
+  if (admission.otherServices.length > 0) {
+    otherServiceCharges = admission.otherServices.reduce(
+      (sum, service) => sum + (service.amount || 0),
+      0
+    );
+    totalCharges += otherServiceCharges;
+  }
+
+  // Total Payments
+  let totalPayments = 0;
+  let ipdPayments = 0;
+  let insurancePayments = 0;
+
+  // 1. IPD Payments
+  if (admission.ipdPayments.length > 0) {
+    ipdPayments = admission.ipdPayments.reduce(
+      (sum, payment) => sum + (payment.amount || 0),
+      0
+    );
+    totalPayments += ipdPayments;
+  }
+
+  // 2. Insurance Payments
+  if (admission.insuranceInfo?.payments.length > 0) {
+    insurancePayments = admission.insuranceInfo.payments.reduce(
+      (sum, payment) => sum + (payment.amount || 0),
+      0
+    );
+    totalPayments += insurancePayments;
+  }
+  return {
+    bedCharges,
+    surgeryCharges,
+    doctorCharges,
+    packageCharges,
+    supplementaryCharges,
+    otherServiceCharges,
+    ipdPayments,
+    insurancePayments,
+    totalCharges,
+    totalPayments,
+    balance: totalCharges - totalPayments,
+  };
+}
 
 export async function GET(req) {
   await dbConnect();
@@ -47,127 +156,89 @@ export async function GET(req) {
           { status: 404 }
         );
       }
-      let bedCharges = 0;
-      let surgeryCharges = 0;
-      let doctorCharges = 0;
-      let packageCharges = 0;
-      let supplementaryCharges = 0;
-      let otherServiceCharges = 0;
-      let totalCharges = 0;
+      let paymentDetails = getBalance(admission);
 
-      // 1. Bed Charges from bedHistory
-      if (admission.bedHistory.length > 0) {
-        admission.bedHistory.forEach((bedEntry, index) => {
-          let startDate = new Date(bedEntry.startDate);
-          let endDate = bedEntry.endDate
-            ? new Date(bedEntry.endDate)
-            : index === admission.bedHistory.length - 1
-            ? new Date()
-            : null;
-
-          if (!endDate)
-            return NextResponse.json(
-              { message: "Beds' End Date not found.", success: false },
-              { status: 404 }
-            );
-
-          const hoursElapsed = Math.ceil(
-            (endDate - startDate) / (1000 * 60 * 60)
-          ); // Time elapsed in hours
-          bedCharges =
-            Math.ceil(hoursElapsed / 12) * (bedEntry.bed?.price || 0); // Per 12 hours
-          totalCharges += bedCharges;
-        });
-      }
-
-      // 2. Surgery Charges
-      if (admission.surgery.length > 0) {
-        surgeryCharges = admission.surgery.reduce(
-          (sum, surgery) => sum + (surgery.surgery?.price || 0),
-          0
-        );
-        totalCharges += surgeryCharges;
-      }
-
-      // 3. Doctor Charges
-      if (admission.doctor.length > 0) {
-        doctorCharges = admission.doctor.reduce(
-          (sum, doctor) => sum + (doctor.doctor?.charge || 0),
-          0
-        );
-        totalCharges += doctorCharges;
-      }
-
-      // 4. Package Charges
-      if (admission.package.length > 0) {
-        packageCharges = admission.package.reduce(
-          (sum, pkg) => sum + (pkg.package?.price || 0),
-          0
-        );
-        totalCharges += packageCharges;
-      }
-
-      // 5. Supplementary and Other Services
-      if (admission.supplementaryService.length > 0) {
-        supplementaryCharges = admission.supplementaryService.reduce(
-          (sum, service) => sum + (service.amount || 0),
-          0
-        );
-        totalCharges += supplementaryCharges;
-      }
-
-      if (admission.otherServices.length > 0) {
-        otherServiceCharges = admission.otherServices.reduce(
-          (sum, service) => sum + (service.amount || 0),
-          0
-        );
-        totalCharges += otherServiceCharges;
-      }
-
-      // Total Payments
-      let totalPayments = 0;
-      let ipdPayments = 0;
-      let insurancePayments = 0;
-
-      // 1. IPD Payments
-      if (admission.ipdPayments.length > 0) {
-        ipdPayments = admission.ipdPayments.reduce(
-          (sum, payment) => sum + (payment.amount || 0),
-          0
-        );
-        totalPayments += ipdPayments;
-      }
-
-      // 2. Insurance Payments
-      if (admission.insuranceInfo?.payments.length > 0) {
-        insurancePayments = admission.insuranceInfo.payments.reduce(
-          (sum, payment) => sum + (payment.amount || 0),
-          0
-        );
-        totalPayments += insurancePayments;
-      }
       return NextResponse.json(
         {
-          paymentDetails: {
-            bedCharges,
-            surgeryCharges,
-            doctorCharges,
-            packageCharges,
-            supplementaryCharges,
-            otherServiceCharges,
-            ipdPayments,
-            insurancePayments,
-            totalCharges,
-            totalPayments,
-            balance: totalCharges - totalPayments, 
-          },
+          paymentDetails,
           success: true,
         },
         { status: 200 }
       );
     }
-    if (discharge == "1"){
+    if (discharge == "1") {
+      const admission = await Admission.findById(id)
+        .populate("bedHistory.bed", "price")
+        .populate("doctor.doctor", "charge")
+        .populate("surgery.surgery", "price")
+        .populate("package.package", "price");
+
+      if (!admission) {
+        return NextResponse.json(
+          { message: "Admission not found.", success: false },
+          { status: 404 }
+        );
+      }
+      if (admission.dischargeDate || admission.isCompleted) {
+        return NextResponse.json(
+          {
+            message: "This patient is already discharged.",
+            success: false,
+          },
+          { status: 401 }
+        );
+      }
+
+      let paymentDetails = getBalance(admission);
+      if (!admission.insuranceInfo?.providerName && paymentDetails.balance>0) {
+        return NextResponse.json(
+          {
+            message: "Dues not cleared.",
+            success: false,
+          },
+          { status: 401 }
+        );
+      }
+      console.log(admission)
+
+      const lastHistory = admission.bedHistory[admission.bedHistory.length - 1];
+      if (
+        lastHistory &&
+        lastHistory.bed.toString() === admission.currentBed.bed.toString()
+      ) {
+        // Update endDate for the last history entry
+        lastHistory.endDate = new Date();
+      } else {
+        // Push a new entry if not already present
+        admission.bedHistory.push({
+          bed: admission.currentBed.bed,
+          startDate: admission.currentBed.startDate,
+          endDate: new Date(),
+        });
+      }
+
+      await Bed.findByIdAndUpdate(admission.currentBed.bed, {
+        isOccupied: false,
+        occupancy: {
+          patientId: null,
+          admissionId: null,
+          startDate: null,
+        },
+      });
       
+      // Update currentBed in admission
+      admission.currentBed = null;
+      admission.dischargeDate = new Date();
+      if(paymentDetails.balance<=0){
+        admission.isCompleted=true
+      }
+      await admission.save();      
+
+      return NextResponse.json(
+        { message: "Bed updated for the patient.", success: true },
+        { status: 201 }
+      );
+
     }
     const admission = await Admission.findById(id)
       .populate({

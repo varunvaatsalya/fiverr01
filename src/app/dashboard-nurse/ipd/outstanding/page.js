@@ -8,7 +8,7 @@ function Page() {
   useEffect(() => {
     async function fetchData(page) {
       try {
-        let result = await fetch(`/api/ipdRecords?page=${page}`);
+        let result = await fetch(`/api/ipdRecords?page=${page}&isCompleted=1`);
         result = await result.json();
         if (result.success) {
           setAdmissions(result.allAdmission);
@@ -22,8 +22,8 @@ function Page() {
   return (
     <>
       <AdmissionsSearchList
-        tag={"IPD Admission Records"}
-        link={'records'}
+        tag={"IPD Outstanding Patient"}
+        link={'outstanding'}
         page={page}
         setPage={setPage}
         admissions={admissions}

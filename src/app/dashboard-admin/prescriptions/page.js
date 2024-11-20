@@ -19,7 +19,6 @@ function Page() {
             accessRole: result.userRole,
             accessEditPermission: result.userEditPermission,
           });
-          console.log(result.allPrescription)
         }
       } catch (err) {
         console.log("error: ", err);

@@ -24,6 +24,14 @@ function Page() {
       icon: <TbReportMedical size={50} />,
       link: "/dashboard-nurse/reports",
       color: "bg-pink-500",
+    },    
+    {
+      name: "IPD",
+      description:
+        "You can manage here your all IPD works",
+      icon: <FaKitMedical size={50} />,
+      link: "/dashboard-admin/ipd",
+      color: "bg-amber-800",
     },
   ];
   return (
