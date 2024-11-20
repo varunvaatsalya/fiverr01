@@ -17,7 +17,7 @@ let details = {
   },
 };
 
-function page({ params }) {
+function Page({ params }) {
   const id = params.id;
   const [bed, setBed] = useState(null);
   const [patientsList, setPatientsList] = useState([]);
@@ -76,4 +76,4 @@ function page({ params }) {
   );
 }
 
-export default page;
+export default Page;
