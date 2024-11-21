@@ -31,7 +31,7 @@ function Page() {
       description:
         "You can manage here your all IPD works",
       icon: <FaKitMedical size={50} />,
-      link: "/dashboard-admin/ipd",
+      link: "/dashboard-nurse/ipd",
       color: "bg-amber-800",
     },
   ];
