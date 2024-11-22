@@ -4,8 +4,17 @@ import { verifyToken } from "../../utils/jwt";
 import { Bed, Ward } from "../../models/WardsBeds";
 import { Surgery, Package } from "../../models/Surgerys";
 import Patient from "../../models/Patients";
+import { generateUniqueId } from "../../utils/counter";
 import Admission from "../../models/Admissions";
 import Doctor from "../../models/Doctors";
+
+async function generateUID() {
+  const prefix = "IPD";
+  // const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
+  const uniqueDigit = await generateUniqueId("ipd");
+  const uniqueID = `${prefix}${uniqueDigit}`;
+  return uniqueID;
+}
 
 export async function GET(req) {
   await dbConnect();
@@ -212,10 +221,11 @@ export async function POST(req) {
       );
     } else {
       // Case 2: Patient does not have an assigned bed - New Admission
+      let adid =  await generateUID();
       const newAdmission = await Admission.create({
         patientId,
         reason,
-        adid: "12345",
+        adid,
         currentBed: {
           bed: newBedId,
           startDate: new Date(),
