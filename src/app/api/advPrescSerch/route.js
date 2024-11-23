@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import Prescription from "../../models/Prescriptions";
 import { verifyToken } from "../../utils/jwt";
+import Patients from "../../models/Patients";
 
 export async function POST(req) {
   await dbConnect();
@@ -42,15 +43,32 @@ export async function POST(req) {
 
   try {
     const query = {};
+    const pateintQuery = {};
+    console.log({
+      department,
+      doctor,
+      endDate,
+      endTime,
+      patientName,
+      pid,
+      startDate,
+      startTime,
+      uhid,
+    })
+
 
     // Add filters dynamically
     if (uhid) {
-      query["patient.uhid"] = { $regex: `^${uhid}`, $options: "i" };
+      pateintQuery["uhid"] = { $regex: `^${uhid}`, $options: "i" };
     }
 
     if (patientName) {
-      query["patient.name"] = { $regex: patientName, $options: "i" }; // Case-insensitive search
+      pateintQuery["name"] = { $regex: patientName, $options: "i" }; // Case-insensitive search
     }
+
+    const matchingPatients = await Patients.find(pateintQuery).select("_id");
+    const patientIds = matchingPatients.map(patient => patient._id);
+    query["patient"] = { $in: patientIds };
 
     if (doctor) {
       query["doctor"] = doctor;

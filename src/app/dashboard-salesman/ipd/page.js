@@ -10,7 +10,7 @@ import Link from 'next/link';
 function Page() {
   const Works = [
     {
-      name: "Works",
+      name: "Registration",
       description: "You can show & manage the ipd patients here",
       icon: <FaNetworkWired size={50} />,
       link: "/dashboard-salesman/ipd/works",
@@ -24,7 +24,7 @@ function Page() {
       color: "bg-gray-700",
     },
     {
-      name: "Out Standing Patients",
+      name: "Outstanding Payment",
       description: "You can view all the payments pending patients here",
       icon: <FaOutdent size={50} />,
       link: "/dashboard-salesman/ipd/outstanding",
