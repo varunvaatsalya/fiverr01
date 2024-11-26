@@ -60,7 +60,7 @@ function NewIpdPatient({ patientsList, bed, setBed }) {
     <>
       {newUserSection && (
         <div className="absolute top-0 left-0">
-          <div className="fixed w-screen h-screen bg-gray-700/[.5] z-30 flex justify-center items-center">
+          <div className="fixed w-screen h-screen text-gray-100 bg-gray-700/[.5] z-30 flex justify-center items-center">
             <form
               onSubmit={handleSubmit(onConifrmSubmit)}
               className="w-[95%] md:w-3/4 lg:w-1/2 py-4 text-center bg-slate-950 px-4 rounded-xl"
@@ -141,7 +141,7 @@ function NewIpdPatient({ patientsList, bed, setBed }) {
           </div>
         </div>
       )}
-      <div className="bg-gray-900 rounded-xl p-4 w-full md:w-3/4 mx-auto my-2">
+      <div className="bg-gray-900 text-white rounded-xl p-4 w-full md:w-3/4 mx-auto my-2">
         <div className="text-xl font-semibold text-center">
           Select Patient for new{" "}
           <span className="text-blue-500">IPD Admission</span>
@@ -159,7 +159,7 @@ function NewIpdPatient({ patientsList, bed, setBed }) {
             onChange={(e) => {
               setSelectedPatient(e.target.value);
             }}
-            className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+            className="mt-1 mb-4 block px-4 py-3 w-full text-gray-100 bg-gray-700  rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
           >
             <option value="">-- Select Patient --</option>
             {patientsList.map((patient, index) => (

@@ -52,10 +52,10 @@ function Page({ params }) {
     <div>
       <Navbar route={["IPD", "Works"]} />
       <div className="flex justify-between items-center px-2 md:px-4">
-        <a href="./"><div className="bg-slate-800 hover:bg-slate-950 py-3 px-5 rounded-full">
+        <a href="./"><div className="bg-slate-800 text-gray-100 hover:bg-slate-950 py-3 px-5 rounded-full">
           <FaCircleLeft className="size-8" />
         </div></a>
-        <div className="bg-slate-800 my-2 flex justify-center gap-4 py-3 w-full font-bold text-2xl rounded-full mx-auto md:w-3/4 lg:w-1/2">
+        <div className="bg-slate-800 text-gray-100 my-2 flex justify-center gap-4 py-3 w-full font-bold text-2xl rounded-full mx-auto md:w-3/4 lg:w-1/2">
           <div className="">
             Ward: <span className="text-blue-500">{bed.ward.name}</span>
           </div>
