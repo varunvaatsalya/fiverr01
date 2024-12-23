@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { BsFillPersonBadgeFill,BsBuildingFillAdd, BsFillPersonVcardFill } from "react-icons/bs";
 import { FaFilePrescription, FaShippingFast, FaUserNurse } from "react-icons/fa";
 import { FaKitMedical, FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
+import { GiMedicines } from "react-icons/gi";
 import { IoMdAnalytics } from "react-icons/io";
 import { TbReportMedical } from "react-icons/tb";
 import { MdAdminPanelSettings } from "react-icons/md";
@@ -65,7 +66,15 @@ function Page() {
         "You can see all pathology reports and print",
       icon: <TbReportMedical size={50} />,
       link: "/dashboard-admin/reports",
-      color: "bg-orange-500",
+      color: "bg-cyan-900",
+    },
+    {
+      name: "Pharmacy",
+      description:
+        "You can see all Parmacy logs here",
+      icon: <GiMedicines size={50} />,
+      link: "/dashboard-admin/pharmacy",
+      color: "bg-red-900",
     },
     {
       name: "Expenses",
