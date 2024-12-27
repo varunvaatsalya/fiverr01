@@ -1,6 +1,7 @@
 import React from "react";
 import { MdOutlineLibraryAdd } from "react-icons/md";
-import { TbExchange, TbBrandDatabricks } from "react-icons/tb";
+import { TbExchange } from "react-icons/tb";
+import { VscGitPullRequestGoToChanges } from "react-icons/vsc";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Link from "next/link";
@@ -15,11 +16,18 @@ function Page() {
       color: "bg-blue-800",
     },
     {
-      name: "Stock Transfer",
-      description: "You can view & transfer godown stock here",
+      name: "Stock Info",
+      description: "You can view & manage godown stock here",
       icon: <TbExchange size={50} />,
-      link: "/dashboard-admin/pharmacy/godown/transfer",
+      link: "/dashboard-admin/pharmacy/godown/godownStock",
       color: "bg-teal-700",
+    },
+    {
+      name: "Stock Request",
+      description: "You can view & transfer retail stock request here",
+      icon: <VscGitPullRequestGoToChanges size={50} />,
+      link: "/dashboard-admin/pharmacy/godown/godownStockRequest",
+      color: "bg-yellow-700",
     },
   ];
 

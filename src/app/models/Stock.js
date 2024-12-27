@@ -19,6 +19,9 @@ const stockSchema = new mongoose.Schema({
       type: Number,
       required: true,
     },
+    extra: {
+      type: Number,
+    },
     totalStrips: {
       type: Number,
       required: true,

@@ -8,12 +8,7 @@ function NewStockForm({ medicines }) {
   const [medicineDetailsSection, setMedicineDetailsSection] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-  const [data, setData] = useState({
-    medicine: "45",
-    batchName: "wdcqv452",
-    expiryDate: "2023-09-25",
-    extra: 2,
-  });
+  const [data, setData] = useState();
 
   const { register, handleSubmit, reset } = useForm();
   function onSubmit(data) {
@@ -168,7 +163,7 @@ function NewStockForm({ medicines }) {
         </div>
       )}
       <div className="text-center py-2 rounded-t-xl bg-slate-800 text-xl font-medium">
-        Add Medicine
+        Add Stock
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="p-2">
         <label className="block font-semibold text-gray-900" htmlFor="medicine">
