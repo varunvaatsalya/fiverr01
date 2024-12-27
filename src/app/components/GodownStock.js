@@ -32,7 +32,7 @@ function GodownStock({ medicineStock, query }) {
         filteredMedicines.map((medicine, index) => (
           <>
             <div
-              key={medicine._id}
+              key={index}
               onClick={() =>
                 setSelectedIndex(selectedIndex === index ? null : index)
               }
@@ -87,8 +87,8 @@ function GodownStock({ medicineStock, query }) {
                     </span>
                   </div>
                 </div>
-                {medicine.stocks.map((stock) => (
-                  <div className="w-full rounded-full bg-gray-300 p-2 flex justify-around items-center">
+                {medicine.stocks.map((stock, it) => (
+                  <div key={it} className="w-full rounded-full bg-gray-300 p-2 flex justify-around items-center">
                     <div className="w-1/5">{stock.batchName}</div>
                     <div className="w-1/5">
                       {"Expiry: " + stock.expiryDate.split("T")[0]}
