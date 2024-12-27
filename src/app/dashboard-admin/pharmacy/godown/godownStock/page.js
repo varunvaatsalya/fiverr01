@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../../../../components/Navbar";
 import GodownStock from "../../../../components/GodownStock";
 
-function page() {
+function Page() {
   const [medicineStock, setMedicineStock] = useState({});
   const [selectedLetter, setSelectedLetter] = useState("A");
   const [query, setQuery] = useState("");
@@ -82,4 +82,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

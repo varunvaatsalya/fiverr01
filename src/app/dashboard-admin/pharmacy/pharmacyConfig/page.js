@@ -1,6 +1,4 @@
 import React from "react";
-import { LuBedSingle, LuPackagePlus } from "react-icons/lu";
-import { TiScissorsOutline } from "react-icons/ti";
 import { FaCircleInfo } from "react-icons/fa6";
 import { MdMedicalInformation } from "react-icons/md";
 import { BsFileEarmarkMedicalFill } from "react-icons/bs";

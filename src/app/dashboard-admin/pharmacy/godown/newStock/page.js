@@ -38,7 +38,7 @@ import NewStockForm from '../../../../components/NewStockForm';
 //   },
 // ];
 
-function page() {
+function Page() {
   const [medicines, setMedicines] = useState([]);
   
     useEffect(() => {
@@ -57,4 +57,4 @@ function page() {
   )
 }
 
-export default page
+export default Page
