@@ -6,11 +6,18 @@ import { useRouter } from "next/navigation";
 import { FaShippingFast } from "react-icons/fa";
 import { TbReportMedical } from "react-icons/tb";
 import { IoLogOut } from "react-icons/io5";
-import { FaKitMedical } from "react-icons/fa6";
+import { FaKitMedical, FaPersonCirclePlus } from "react-icons/fa6";
 
 function Page() {
   const router = useRouter();
   const Works = [
+    {
+      name: "Patients",
+      description: "You can show & add the patients",
+      icon: <FaPersonCirclePlus size={50} />,
+      link: "/dashboard-nurse/patients",
+      color: "bg-pink-700",
+    },
     {
       name: "Express Billing",
       description: "You can show & create invoice of data entry",
@@ -20,16 +27,14 @@ function Page() {
     },
     {
       name: "Reports",
-      description:
-        "You can see all pathology reports and print",
+      description: "You can see all pathology reports and print",
       icon: <TbReportMedical size={50} />,
       link: "/dashboard-nurse/reports",
       color: "bg-pink-500",
-    },    
+    },
     {
       name: "IPD",
-      description:
-        "You can manage here your all IPD works",
+      description: "You can manage here your all IPD works",
       icon: <FaKitMedical size={50} />,
       link: "/dashboard-nurse/ipd",
       color: "bg-amber-800",

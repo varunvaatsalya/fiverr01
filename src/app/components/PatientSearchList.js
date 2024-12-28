@@ -132,7 +132,8 @@ function PatientSearchList({
                 className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
               />
               {(accessInfo?.accessRole === "admin" ||
-                accessInfo?.accessRole === "salesman") && (
+                accessInfo?.accessRole === "salesman"||
+                accessInfo?.accessRole === "nurse") && (
                 <button
                   onClick={() => {
                     setNewUserSection((newUserSection) => !newUserSection);

@@ -15,8 +15,8 @@ function Page() {
       color: "bg-blue-800",
     },
     {
-      name: "Surgery",
-      description: "You can show & manage the ipd surgery here",
+      name: "Items",
+      description: "You can show & manage the ipd Items here",
       icon: <TiScissorsOutline size={40} />,
       link: "/dashboard-admin/ipd/ipdConfig/surgery",
       color: "bg-violet-700",

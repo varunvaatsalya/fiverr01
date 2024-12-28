@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { BsBuildingFillAdd, BsFillPersonBadgeFill } from "react-icons/bs";
 import { FaFilePrescription } from "react-icons/fa";
-import { FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
+import { FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
 import { IoMdAnalytics } from "react-icons/io";
 import { IoLogOut } from "react-icons/io5";
 
@@ -18,13 +18,20 @@ function Page() {
       icon: <FaFilePrescription size={50} />,
       link: "/dashboard-owner/prescriptions",
       color: "bg-blue-700",
-    },    
+    },
     {
       name: "Analytics",
       description: "You can show the analytics",
       icon: <IoMdAnalytics size={50} />,
       link: "/dashboard-owner/analytics",
       color: "bg-purple-700",
+    },
+    {
+      name: "Expenses",
+      description: "You can show & add the all the Expenses.",
+      icon: <FaMoneyBillTrendUp size={50} />,
+      link: "/dashboard-owner/expenses",
+      color: "bg-fuchsia-700",
     },
     {
       name: "Sales Men",

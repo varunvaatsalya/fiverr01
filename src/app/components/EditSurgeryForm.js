@@ -61,7 +61,7 @@ function EditDoctorForm({
   return (
     <div>
       <h2 className="font-bold text-2xl text-white">
-        Edit the <span className="text-blue-500">Surgery</span>
+        Edit the <span className="text-blue-500">Items</span>
       </h2>
       <hr className="border border-slate-800 w-full my-2" />
       {message && (
@@ -75,7 +75,7 @@ function EditDoctorForm({
         <input
           id="name"
           type="text"
-          placeholder={"Enter the Surgery's name"}
+          placeholder={"Enter the item's name"}
           {...register("name", { required: "Name is required" })}
           className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />
@@ -85,7 +85,7 @@ function EditDoctorForm({
         <input
           id="price"
           type="number"
-          placeholder={"Enter the Surgery's price"}
+          placeholder={"Enter the item's price"}
           {...register("price", { required: "Price is required" })}
           className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />

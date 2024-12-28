@@ -7,16 +7,15 @@ import { generateUniqueId } from "../../utils/counter";
 async function generateUID() {
   const prefix = "PT";
   // const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
-  const uniqueDigit = await generateUniqueId('patient')
+  const uniqueDigit = await generateUniqueId("patient");
   const uniqueID = `${prefix}${uniqueDigit}`;
   return uniqueID;
 }
 
-
 export async function GET(req) {
   let page = req.nextUrl.searchParams.get("page");
   await dbConnect();
-  
+
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -85,7 +84,7 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin" && userRole !== "salesman") {
+  if (userRole !== "admin" && userRole !== "salesman" && userRole !== "nurse") {
     return NextResponse.json(
       { message: "Access denied. Admins only.", success: false },
       { status: 403 }
@@ -102,7 +101,6 @@ export async function POST(req) {
   } = await req.json();
 
   try {
-
     const query = {
       $or: [
         {

@@ -418,7 +418,7 @@ function AdmissionForm({ bed, setBed }) {
             setActiveDropDown(null);
           }}
         >
-          <h3 className="font-semibold text-lg capitalize">Surgery</h3>
+          <h3 className="font-semibold text-lg capitalize">Items</h3>
           <span className="text-gray-300">
             {activeAddOns === 0 ? "-" : "+"}
           </span>
@@ -444,7 +444,7 @@ function AdmissionForm({ bed, setBed }) {
                 );
               })
             ) : (
-              <div className="text-center text-gray-400">No Surgery</div>
+              <div className="text-center text-gray-400">No Items</div>
             )}
             <div className="p-2 w-full md:w-4/5 mx-auto bg-slate-700 my-2 rounded-lg">
               <div
@@ -453,7 +453,7 @@ function AdmissionForm({ bed, setBed }) {
                   setActiveDropDown(activeDropDown === 1 ? null : 1);
                 }}
               >
-                <div className="">Add Surgery</div>
+                <div className="">Add Items</div>
                 <div className="">{activeDropDown == 1 ? "-" : "+"}</div>
               </div>
               {activeDropDown == 1 && (
@@ -1114,7 +1114,7 @@ function AdmissionForm({ bed, setBed }) {
                     </div>
                   </div>
                   <div className="w-full px-3 py-1 border-b border-gray-600 mx-auto flex justify-around items-center text-sm">
-                    <div className="text-center w-full">Surgery Charge</div>
+                    <div className="text-center w-full">Itemized Charge</div>
                     <div className="text-center w-full">
                       {chargeBalenceDetails.surgeryCharges}
                     </div>

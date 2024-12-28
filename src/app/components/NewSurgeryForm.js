@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
 
-function NewDoctorForm({ setNewUserSection, setSurgerys }) {
+function NewSurgeryForm({ setNewUserSection, setSurgerys }) {
   const {
     register,
     handleSubmit,
@@ -42,7 +42,7 @@ function NewDoctorForm({ setNewUserSection, setSurgerys }) {
   return (
     <div>
       <h2 className="font-bold text-2xl text-white">
-        Details of new <span className="text-blue-500">Surgery</span>
+        Details of new <span className="text-blue-500">Items</span>
       </h2>
       <hr className="border border-slate-800 w-full my-2" />
       {message && (
@@ -56,7 +56,7 @@ function NewDoctorForm({ setNewUserSection, setSurgerys }) {
         <input
           id="name"
           type="text"
-          placeholder={"Enter the Surgery's name"}
+          placeholder={"Enter the Items's name"}
           {...register("name", { required: "Name is required" })}
           className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />
@@ -66,7 +66,7 @@ function NewDoctorForm({ setNewUserSection, setSurgerys }) {
         <input
           id="price"
           type="number"
-          placeholder={"Enter the Surgery's price"}
+          placeholder={"Enter the Items's price"}
           {...register("price", { required: "Price is required" })}
           className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />
@@ -98,4 +98,4 @@ function NewDoctorForm({ setNewUserSection, setSurgerys }) {
   );
 }
 
-export default NewDoctorForm;
+export default NewSurgeryForm;
