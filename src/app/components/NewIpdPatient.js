@@ -114,6 +114,11 @@ function NewIpdPatient({ patientsList, bed, setBed }) {
                 let patient = patientsList.find(
                   (patient) => patient._id === selectedPatient
                 );
+                if (!patient) {
+                  patient = searchedPatientsList.find(
+                    (searchedPatient) => searchedPatient._id === selectedPatient
+                  );
+                }
                 return (
                   <div className="my-2">
                     <div className="text-center">The Patient</div>
