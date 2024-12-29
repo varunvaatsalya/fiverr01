@@ -21,6 +21,7 @@ const Analytics = ({
     endDate: "",
     endTime: "23:59", // default end time
   });
+  console.log(prescriptions, 1111);
 
   const onSubmit = async () => {
     setSubmitting(true);
@@ -50,12 +51,72 @@ const Analytics = ({
     }
   };
 
+  // const handleFilter = () => {
+  //   let filtered = prescriptions;
+
+  //   // Get today's date in YYYY-MM-DD format
+  //   const today = new Date().toISOString().slice(0, 10);
+
+  //   if (selectedDepartment.length) {
+  //     filtered = filtered.filter((p) =>
+  //       selectedDepartment.includes(p.department._id)
+  //     );
+  //   }
+  //   if (selectedDoctor.length) {
+  //     filtered = filtered.filter((p) => selectedDoctor.includes(p.doctor._id));
+  //   }
+  //   if (selectedPaymentMode) {
+  //     filtered = filtered.filter((p) => p.paymentMode === selectedPaymentMode);
+  //   }
+
+  //   // Filter by date and time
+  //   if (dateRange.startTime || dateRange.endTime) {
+  //     const startDateTime = new Date(
+  //       `${dateRange.startDate || today}T${dateRange.startTime || "00:00"}`
+  //     );
+  //     const endDateTime = new Date(
+  //       `${dateRange.endDate || today}T${dateRange.endTime || "23:59"}`
+  //     );
+
+  //     filtered = filtered.filter((p) => {
+  //       const prescriptionDate = new Date(p.createdAt);
+  //       return (
+  //         prescriptionDate >= startDateTime && prescriptionDate <= endDateTime
+  //       );
+  //     });
+  //   }
+
+  //   setFilteredPrescriptions(filtered);
+  // };
+
   const handleFilter = () => {
     let filtered = prescriptions;
 
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date().toISOString().slice(0, 10);
+    // Get today's date in YYYY-MM-DD format in IST
+    // const today = new Date();
+    // today.setHours(0, 0, 0, 0); // Set to start of today (midnight in IST)
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of today (midnight in IST)
+
+    // Format today as "YYYY-MM-DD" using IST date
+    const currentDate = `${today.getFullYear()}-${(today.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}`;
+    console.log("Today (IST):", today);
+    console.log("currentDate (start of filter):", currentDate);
+
+    let startDateTime = new Date(
+      `${currentDate}T${dateRange.startTime || "00:00"}`
+    );
+    let endDateTime = new Date(
+      `${currentDate}T${dateRange.endTime || "23:59"}`
+    );
+
+    console.log("Start DateTime (for filter):", startDateTime);
+    console.log("End DateTime (for filter):", endDateTime);
+
+    // Handle filtering by departments, doctors, and payment mode
     if (selectedDepartment.length) {
       filtered = filtered.filter((p) =>
         selectedDepartment.includes(p.department._id)
@@ -68,22 +129,26 @@ const Analytics = ({
       filtered = filtered.filter((p) => p.paymentMode === selectedPaymentMode);
     }
 
-    // Filter by date and time
-    if (dateRange.startTime || dateRange.endTime) {
-      const startDateTime = new Date(
-        `${dateRange.startDate || today}T${dateRange.startTime || "00:00"}`
-      );
-      const endDateTime = new Date(
-        `${dateRange.endDate || today}T${dateRange.endTime || "23:59"}`
-      );
+    // Date Range filter: If time is selected in the range (start and end times)
+    // const startDateTime = new Date(
+    //   `${currentDate}T${dateRange.startTime || "00:00"}`
+    // );
+    // const endDateTime = new Date(
+    //   `${dateRange.endDate || currentDate}T${dateRange.endTime || "23:59"}`
+    // );
 
-      filtered = filtered.filter((p) => {
-        const prescriptionDate = new Date(p.createdAt);
-        return (
-          prescriptionDate >= startDateTime && prescriptionDate <= endDateTime
-        );
-      });
-    }
+    console.log("Start DateTime:", startDateTime);
+    console.log("End DateTime:", endDateTime);
+
+    filtered = filtered.filter((p) => {
+      const prescriptionDate = new Date(p.createdAt); // Date the prescription was created
+      console.log("Prescription Date:", prescriptionDate);
+      return (
+        prescriptionDate >= startDateTime && prescriptionDate <= endDateTime
+      );
+    });
+
+    console.log("Filtered Prescriptions:", filtered);
 
     setFilteredPrescriptions(filtered);
   };
@@ -92,7 +157,6 @@ const Analytics = ({
     handleFilter();
   }, [
     prescriptions,
-    expenses,
     selectedDepartment,
     selectedDoctor,
     selectedPaymentMode,
@@ -101,6 +165,19 @@ const Analytics = ({
     dateRange.endDate,
     dateRange.endTime,
   ]);
+
+  // useEffect(() => {
+  //   handleFilter();
+  // }, [
+  //   prescriptions,
+  //   selectedDepartment,
+  //   selectedDoctor,
+  //   selectedPaymentMode,
+  //   dateRange.startDate,
+  //   dateRange.startTime,
+  //   dateRange.endDate,
+  //   dateRange.endTime,
+  // ]);
 
   const getTotalAmount = () => {
     return filteredPrescriptions.reduce(
