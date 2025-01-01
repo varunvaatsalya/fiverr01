@@ -1,5 +1,7 @@
 ## Multi-Specialty Hospital Management System
 
+**This project was developed for a Fiverr client as part of a professional freelancing assignment.**
+
 This is a comprehensive management website built for a multi-specialty hospital. It efficiently manages daily records, including billing, patient data, and other operations. 
 
 - **Role-Based Access Control**: Security with multi-role protection.
