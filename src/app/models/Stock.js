@@ -14,6 +14,10 @@ const stockSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  remainingStrips: {
+    type: Number,
+    required: true,
+  },
   quantity: {
     boxes: {
       type: Number,

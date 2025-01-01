@@ -1,3 +1,13 @@
+## Multi-Specialty Hospital Management System
+
+This is a comprehensive management website built for a multi-specialty hospital. It efficiently manages daily records, including billing, patient data, and other operations. 
+
+- **Role-Based Access Control**: Security with multi-role protection.
+- **Advanced Backend Integration**: Built with scalable technologies for smooth management.
+- **Performance**: Processes approximately 3,000 invoices monthly with ease.
+
+![Hospital Management System](./dashboardAdmin.jpeg)
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

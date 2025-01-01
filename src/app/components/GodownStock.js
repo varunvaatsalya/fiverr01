@@ -36,10 +36,10 @@ function GodownStock({ medicineStock, query }) {
               onClick={() =>
                 setSelectedIndex(selectedIndex === index ? null : index)
               }
-              className="w-full hover:cursor-pointer rounded-full font-medium bg-gray-300 hover:bg-gray-400 p-2 flex justify-around items-center"
+              className="w-full hover:cursor-pointer rounded-full font-medium bg-gray-300 hover:bg-gray-400 p-2 flex items-center"
             >
-              <div className="w-2/5">{medicine.name}</div>
-              <div className="w-2/5">
+              <div className="w-[45%] px-3">{medicine.name}</div>
+              <div className="w-[45%] text-center">
                 {"Boxes: " +
                   medicine.stocks.reduce(
                     (acc, stock) => acc + stock.quantity.boxes,

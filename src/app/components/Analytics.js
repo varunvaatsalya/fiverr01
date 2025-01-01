@@ -92,10 +92,6 @@ const Analytics = ({
   const handleFilter = () => {
     let filtered = prescriptions;
 
-    // Get today's date in YYYY-MM-DD format in IST
-    // const today = new Date();
-    // today.setHours(0, 0, 0, 0); // Set to start of today (midnight in IST)
-
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set to start of today (midnight in IST)
 
@@ -115,8 +111,7 @@ const Analytics = ({
 
     console.log("Start DateTime (for filter):", startDateTime);
     console.log("End DateTime (for filter):", endDateTime);
-
-    // Handle filtering by departments, doctors, and payment mode
+    
     if (selectedDepartment.length) {
       filtered = filtered.filter((p) =>
         selectedDepartment.includes(p.department._id)
@@ -128,14 +123,6 @@ const Analytics = ({
     if (selectedPaymentMode) {
       filtered = filtered.filter((p) => p.paymentMode === selectedPaymentMode);
     }
-
-    // Date Range filter: If time is selected in the range (start and end times)
-    // const startDateTime = new Date(
-    //   `${currentDate}T${dateRange.startTime || "00:00"}`
-    // );
-    // const endDateTime = new Date(
-    //   `${dateRange.endDate || currentDate}T${dateRange.endTime || "23:59"}`
-    // );
 
     console.log("Start DateTime:", startDateTime);
     console.log("End DateTime:", endDateTime);

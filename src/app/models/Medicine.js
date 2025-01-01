@@ -27,7 +27,7 @@ const medicineSchema = new mongoose.Schema({
   },
   packetSize: {
     strips: {
-      type: Number,
+      type: Number,   // Strips per Box
       required: true,
     },
     tabletsPerStrip: {

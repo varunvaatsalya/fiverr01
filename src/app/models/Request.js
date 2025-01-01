@@ -13,7 +13,7 @@ const requestSchema = new mongoose.Schema(
     //   required: true,
     // },
     requestedQuantity: {
-      type: Number,
+      type: Number,  // Number Of Boxes
       required: true,
     },
     status: {

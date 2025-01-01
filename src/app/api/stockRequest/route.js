@@ -28,10 +28,82 @@ export async function GET(req) {
   // }
 
   try {
-    let requests = await Request.find({}).sort({ _id: -1 }).populate({
-      path: "medicine",
-      select: "name _id",
-    });
+    if (id) {
+      // Step 1: Fetch the request details
+      const request = await Request.findById(id).populate("medicine");
+      if (!request) {
+        return NextResponse.json(
+          {
+            message: "Request not found",
+            success: false,
+          },
+          { status: 404 }
+        );
+      }
+
+      const { requestedQuantity, medicine } = request;
+
+      // Fetch the total quantity requested (converted into strips)
+      const packetSize = medicine.packetSize.strips;
+      const totalRequestedStrips = requestedQuantity * packetSize;
+
+      // Step 2: Fetch all stocks for the given medicine, sorted by oldest first (FIFO)
+      const stocks = await Stock.find({ medicine: medicine._id })
+        .sort({ createdAt: 1 })
+        .select("quantity remainingStrips batchNumber expiryDate createdAt");
+
+      if (!stocks || stocks.length === 0) {
+        return NextResponse.json(
+          {
+            message: "No stock available for this medicine",
+            success: false,
+          },
+          { status: 404 }
+        );
+      }
+
+      let remainingStrips = totalRequestedStrips;
+      const allocatedStocks = [];
+
+      // Step 3: Allocate the quantity from stocks using FIFO logic
+      for (const stock of stocks) {
+        if (remainingStrips <= 0) break;
+
+        const availableStrips = stock.quantity.totalStrips;
+        const allocatedStrips = Math.min(availableStrips, remainingStrips);
+
+        allocatedStocks.push({
+          stockId: stock._id,
+          batchNumber: stock.batchNumber,
+          expiryDate: stock.expiryDate,
+          allocatedQuantity: {
+            totalStrips: allocatedStrips,
+            boxes: Math.floor(allocatedStrips / packetSize),
+            extraStrips: allocatedStrips % packetSize,
+          },
+        });
+
+        remainingStrips -= allocatedStrips;
+      }
+
+      if (remainingStrips > 0) {
+        return res
+          .status(400)
+          .json({ message: "Insufficient stock to fulfill this request" });
+      }
+
+      // Step 4: Respond with the allocation details
+      return res.status(200).json({
+        message: "Allocation details fetched successfully",
+        allocatedStocks,
+      });
+    }
+    let requests = await Request.find({ status: "Pending" })
+      .sort({ _id: -1 })
+      .populate({
+        path: "medicine",
+        select: "name _id",
+      });
 
     return NextResponse.json(
       {
