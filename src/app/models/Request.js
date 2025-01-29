@@ -13,17 +13,24 @@ const requestSchema = new mongoose.Schema(
     //   required: true,
     // },
     requestedQuantity: {
-      type: Number,  // Number Of Boxes
+      type: Number, // Number Of Boxes
       required: true,
     },
     status: {
       type: String,
-      enum: ["Pending", "Approved", "Rejected", "Fulfilled"],
+      enum: ["Pending", "Approved", "Rejected", "Fulfilled", "Fulfilled (Partial)"],
       default: "Pending",
     },
     approvedQuantity: {
-      type: Number,
-      default: 0,
+      boxes: {
+        type: Number,
+      },
+      extra: {
+        type: Number,
+      },
+      totalStrips: {
+        type: Number,
+      },
     },
     notes: {
       type: String,

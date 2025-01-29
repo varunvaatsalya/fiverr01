@@ -1,20 +1,12 @@
 import React from "react";
 import { FaCircleInfo } from "react-icons/fa6";
 import { MdMedicalInformation } from "react-icons/md";
-import { BsFileEarmarkMedicalFill } from "react-icons/bs";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Link from "next/link";
 
 function Page() {
   const Works = [
-    {
-      name: "Medicine Details",
-      description: "You can view & edit all the medicine",
-      icon: <BsFileEarmarkMedicalFill size={48} />,
-      link: "/dashboard-admin/pharmacy/pharmacyConfig/medicine",
-      color: "bg-blue-800",
-    },
     {
       name: "Add Medicine",
       description: "You can edit & create pharmacy Medicine here",
@@ -41,7 +33,7 @@ function Page() {
               <Link
                 href={workCard.link}
                 key={workCard.name}
-                className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1`}
+                className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
               >
                 {workCard.icon}
                 <div className="font-bold text-xl">{workCard.name}</div>

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import Patient from "../../models/Patients";
 import { verifyToken } from "../../utils/jwt";
-import Patients from "../../models/Patients";
 
 export async function POST(req) {
   await dbConnect();

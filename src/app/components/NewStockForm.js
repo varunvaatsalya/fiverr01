@@ -32,6 +32,8 @@ function NewStockForm({ medicines }) {
         reset();
         setTimeout(() => {
           setMedicineDetailsSection(false);
+          setSelectedMedicine(null);
+          setMessage("");
         }, 2500);
       }
     } catch (error) {
@@ -97,7 +99,7 @@ function NewStockForm({ medicines }) {
                     <div className="">:</div>
                   </div>
                   <span className="text-blue-500">
-                    {data.sellingPrice+ "/-"}
+                    {data.sellingPrice + "/-"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -106,7 +108,7 @@ function NewStockForm({ medicines }) {
                     <div className="">:</div>
                   </div>
                   <span className="text-blue-500">
-                    {data.purchasePrice+ "/-"}
+                    {data.purchasePrice + "/-"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -115,6 +117,13 @@ function NewStockForm({ medicines }) {
                     <div className="">:</div>
                   </div>
                   <span className="text-blue-500">{data.batchName}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2/5 flex justify-between">
+                    <div className="">MFG Date</div>
+                    <div className="">:</div>
+                  </div>
+                  <span className="text-blue-500">{data.mfgDate}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2/5 flex justify-between">
@@ -226,7 +235,7 @@ function NewStockForm({ medicines }) {
                   " Strips"}
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <div className="w-2/5 flex justify-between">
                 <div className="">previos stock MRP</div>
                 <div className="">:</div>
@@ -243,7 +252,7 @@ function NewStockForm({ medicines }) {
               <span className="text-blue-500">
                 {selectedMedicine.purchasePrice?selectedMedicine.purchasePrice:"Not Available"}
               </span>
-            </div>
+            </div> */}
             <div className="text-center text-red-500">
               *If the details do not match then contact the admin.
             </div>
@@ -257,6 +266,15 @@ function NewStockForm({ medicines }) {
             {...register("batchName", { required: "Batch Name is required" })}
             className="p-2 rounded-xl w-full md:w-3/4 bg-gray-300 text-gray-900"
             placeholder="Enter Batch Name"
+          />
+        </div>
+        <div className="block font-semibold text-gray-900">MFG Date</div>
+        <div className="flex justify-center items-center text-gray-800 py-1">
+          <input
+            type="date"
+            name="mfgDate"
+            {...register("mfgDate")}
+            className="p-2 rounded-xl w-full md:w-3/4 bg-gray-300 text-gray-900"
           />
         </div>
         <div className="block font-semibold text-gray-900">Expiry Date</div>
@@ -283,7 +301,7 @@ function NewStockForm({ medicines }) {
           />
         </div>
         <div className="block font-semibold text-gray-900">
-          Select Extra Medicine Strips
+          Select Extra/offer Medicine Strips
         </div>
         <div className="flex justify-center items-center text-gray-800 py-1">
           <input
@@ -294,10 +312,14 @@ function NewStockForm({ medicines }) {
             min={0}
           />
         </div>
-
+        <div className="text-center text-red-500">
+          *Please carefully set the price of a single unit/pcs/strip/qty of medicines.
+        </div>
         <div className="flex justify-center items-center text-gray-800 py-1 gap-10">
           <div className="flex-flex-col justify-center items-center">
-            <div className="block font-semibold text-gray-900">MRP per Box</div>
+            <div className="block font-semibold text-gray-900">
+              MRP of Strip
+            </div>
             <input
               type="number"
               {...register("sellingPrice", {
@@ -310,7 +332,7 @@ function NewStockForm({ medicines }) {
           </div>
           <div className="flex-flex-col justify-center items-center">
             <div className="block font-semibold text-gray-900">
-              Purchase Price per Box
+              Purchase Price of Strip
             </div>
             <input
               type="number"

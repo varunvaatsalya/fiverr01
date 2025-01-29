@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyToken } from "../../utils/jwt";
-import {
-  Manufacturer,
-  Vendor,
-  MedicalRepresentator,
-  Salt,
-} from "../../models/MedicineMetaData";
+import { Manufacturer, Vendor, Salt } from "../../models/MedicineMetaData";
 
 export async function GET(req) {
   await dbConnect();
@@ -41,17 +36,13 @@ export async function GET(req) {
     if (vendor == "1") {
       response.vendors = await Vendor.find().sort({ _id: -1 });
     }
-    if (mr == "1") {
-      response.mrs = await MedicalRepresentator.find().sort({ _id: -1 });
-    }
     if (salts == "1") {
       response.salts = await Salt.find().sort({ _id: -1 });
     }
-    // If no query parameters are provided, return all data
+
     if (!manufacturer && !vendor && !mr && !salts) {
       response.manufacturers = await Manufacturer.find().sort({ _id: -1 });
       response.vendors = await Vendor.find().sort({ _id: -1 });
-      response.mrs = await MedicalRepresentator.find().sort({ _id: -1 });
       response.salts = await Salt.find().sort({ _id: -1 });
     }
 
@@ -75,7 +66,6 @@ export async function GET(req) {
 export async function POST(req) {
   let manufacturer = req.nextUrl.searchParams.get("manufacturer");
   let vendor = req.nextUrl.searchParams.get("vendor");
-  let mr = req.nextUrl.searchParams.get("mr");
   let salts = req.nextUrl.searchParams.get("salts");
   await dbConnect();
   const token = req.cookies.get("authToken");
@@ -101,27 +91,99 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { name, contact, useCase, comment } = await req.json();
+  const { name, medicalRepresentator, contact, address, bankDetails, useCase } =
+    await req.json();
 
   try {
     let response;
     if (manufacturer == "1") {
-      response = new Manufacturer({name});
-    }
-    else if (vendor == "1") {
-      response = new Vendor({name, contact});
-    }
-    else if (mr == "1") {
-      response = new MedicalRepresentator({name, contact});
-    }
-    else if (salts == "1") {
-      response = new Salt({name, useCase, comment});
+      response = new Manufacturer({ name, medicalRepresentator });
+    } else if (vendor == "1") {
+      response = new Vendor({ name, contact, address, bankDetails });
+    } else if (salts == "1") {
+      response = new Salt({ name, useCase });
     }
     if (response) await response.save();
+    return NextResponse.json({ response, success: true }, { status: 201 });
+  } catch (error) {
+    console.error("Error during registration:", error);
     return NextResponse.json(
-      { response, success: true },
-      { status: 201 }
+      { message: "Internal server error", success: false },
+      { status: 500 }
     );
+  }
+}
+
+export async function PUT(req) {
+  let manufacturer = req.nextUrl.searchParams.get("manufacturer");
+  let vendor = req.nextUrl.searchParams.get("vendor");
+  let salts = req.nextUrl.searchParams.get("salts");
+  await dbConnect();
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin") {
+    return NextResponse.json(
+      { message: "Access denied. admins only.", success: false },
+      { status: 403 }
+    );
+  }
+  const {
+    id,
+    name,
+    medicalRepresentator,
+    contact,
+    address,
+    bankDetails,
+    useCase,
+  } = await req.json();
+
+  console.log({
+    id,
+    name,
+    medicalRepresentator,
+    contact,
+    address,
+    bankDetails,
+    useCase,
+  });
+  try {
+    let response;
+    if (manufacturer == "1") {
+      response = await Manufacturer.findByIdAndUpdate(
+        id,
+        { name, medicalRepresentator },
+        { new: true }
+      );
+    } else if (vendor == "1") {
+      response = await Vendor.findByIdAndUpdate(
+        id,
+        { name, contact, address, bankDetails },
+        { new: true }
+      );
+    } else if (salts == "1") {
+      response = await Salt.findByIdAndUpdate(
+        id,
+        { name, useCase },
+        { new: true }
+      );
+    }
+
+    return NextResponse.json({ response, success: true }, { status: 201 });
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(

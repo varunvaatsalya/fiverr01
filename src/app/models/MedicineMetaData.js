@@ -1,10 +1,18 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 // Manufacturer Schema
 const ManufacturerSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+  },
+  medicalRepresentator: {
+    name: {
+      type: String,
+    },
+    contact: {
+      type: Number,
+    },
   },
   createdAt: { type: Date, default: Date.now, required: true },
 });
@@ -18,18 +26,22 @@ const VendorSchema = new mongoose.Schema({
   contact: {
     type: Number,
   },
-  createdAt: { type: Date, default: Date.now, required: true },
-});
-
-// Medicine Representator (MR) Schema
-const MedicalRepresentatorSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
+  bankDetails: {
+    bankName: {
+      type: String,
+    },
+    accountNo: {
+      type: String,
+    },
+    ifsc: {
+      type: String,
+    },
+    branch: {
+      type: String,
+    },
   },
-  contact: {
-    type: Number,
-    required: true,
+  address: {
+    type: String,
   },
   createdAt: { type: Date, default: Date.now, required: true },
 });
@@ -43,16 +55,13 @@ const SaltSchema = new mongoose.Schema({
   useCase: {
     type: String,
   },
-  comment: {
-    type: String,
-  },
   createdAt: { type: Date, default: Date.now, required: true },
 });
 
-
-const Manufacturer = mongoose.models.Manufacturer || mongoose.model("Manufacturer", ManufacturerSchema);
+const Manufacturer =
+  mongoose.models.Manufacturer ||
+  mongoose.model("Manufacturer", ManufacturerSchema);
 const Vendor = mongoose.models.Vendor || mongoose.model("Vendor", VendorSchema);
-const MedicalRepresentator = mongoose.models.MedicalRepresentator || mongoose.model("MedicalRepresentator", MedicalRepresentatorSchema);
 const Salt = mongoose.models.Salt || mongoose.model("Salt", SaltSchema);
 
-module.exports = { Manufacturer, Vendor, MedicalRepresentator, Salt };
+module.exports = { Manufacturer, Vendor, Salt };

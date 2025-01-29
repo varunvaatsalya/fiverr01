@@ -38,6 +38,15 @@ function PrescriptionsSearchList({
   }, [copyPrescriptions]);
 
   useEffect(() => {
+    if (
+      accessInfo?.accessRole === "admin" ||
+      accessInfo?.accessRole === "salesman"
+    ) {
+      setNewUserSection(true);
+    }
+  }, [prescriptions]);
+
+  useEffect(() => {
     if (searchedPrescription) {
       setCopyPrescriptions(searchedPrescription);
     } else {

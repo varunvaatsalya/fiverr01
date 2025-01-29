@@ -6,6 +6,8 @@ import Medicine from "../../models/Medicine";
 export async function GET(req) {
   await dbConnect();
   let basicInfo = req.nextUrl.searchParams.get("basicInfo");
+  let ids = req.nextUrl.searchParams.get("ids");
+  let id = req.nextUrl.searchParams.get("id");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -36,7 +38,39 @@ export async function GET(req) {
         .populate({
           path: "salts",
         })
-        .select("-vendor -medicalRepresentator");
+        .select("-vendor");
+
+      return NextResponse.json(
+        {
+          response,
+          success: true,
+        },
+        { status: 200 }
+      );
+    }
+
+    if (id) {
+      response = await Medicine.findById(id);
+
+      return NextResponse.json(
+        {
+          response,
+          success: true,
+        },
+        { status: 200 }
+      );
+    }
+
+    if (ids === "1") {
+      response = await Medicine.find({}, { name: 1, _id: 1 }).sort({ name: 1 });
+
+      return NextResponse.json(
+        {
+          response,
+          success: true,
+        },
+        { status: 200 }
+      );
     }
 
     response = await Medicine.find()
@@ -46,9 +80,6 @@ export async function GET(req) {
       })
       .populate({
         path: "vendor",
-      })
-      .populate({
-        path: "medicalRepresentator",
       })
       .populate({
         path: "salts",
@@ -98,27 +129,100 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const {
-    name,
-    manufacturer,
-    medicalRepresentator,
-    packetSize,
-    salts,
-    vendor,
-  } = await req.json();
+  const { _id, name, manufacturer,medicineType, packetSize, isTablets, salts, vendor } =
+    await req.json();
 
   try {
     let medicine = new Medicine({
       name,
       manufacturer,
-      medicalRepresentator,
       packetSize,
+      isTablets,
+      medicineType,
       salts,
       vendor,
     });
     await medicine.save();
     return NextResponse.json(
       { medicine, message: "Medicine Saved Successfully!", success: true },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error during registration:", error);
+    return NextResponse.json(
+      { message: "Internal server error", success: false },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req) {
+  let minqty = req.nextUrl.searchParams.get("minqty");
+
+  await dbConnect();
+
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  // if (userRole !== "admin") {
+  //   return NextResponse.json(
+  //     { message: "Access denied. admins only.", success: false },
+  //     { status: 403 }
+  //   );
+  // }
+
+  const {
+    id,
+    godownMinQty,
+    retailsMinQty,
+    name,
+    manufacturer,
+    medicineType,
+    packetSize,
+    isTablets,
+    salts,
+    vendor,
+  } = await req.json();
+
+  try {
+    let updateFields = {
+      "minimumStockCount.retails": retailsMinQty,
+      "minimumStockCount.godown": godownMinQty,
+    };
+    if (userRole === "admin") {
+      updateFields = {
+        ...updateFields,
+        name,
+        manufacturer,
+        packetSize,
+        medicineType,
+        isTablets,
+        salts,
+        vendor,
+      };
+    }
+    let medicine = await Medicine.findOneAndUpdate(
+      { _id: id },
+      { $set: updateFields },
+      { new: true, upsert: true }
+    );
+    await medicine.save();
+    return NextResponse.json(
+      { medicine, message: "Medicine updated successfully!", success: true },
       { status: 201 }
     );
   } catch (error) {

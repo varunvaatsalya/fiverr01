@@ -2,15 +2,21 @@
 import React, { useEffect, useState } from "react";
 import { ImBoxRemove } from "react-icons/im";
 import { BiInjection } from "react-icons/bi";
+import { TiWarning } from "react-icons/ti";
 
 function GodownStock({ medicineStock, query }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [minQty, setMinQty] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [filteredMedicines, setFilteredMedicines] = useState(
     medicineStock?.medicines
   );
+
   useEffect(() => {
     setFilteredMedicines(medicineStock?.medicines);
+    console.log(medicineStock?.medicines);
   }, [medicineStock]);
+
   useEffect(() => {
     if (query) {
       setFilteredMedicines(
@@ -22,6 +28,39 @@ function GodownStock({ medicineStock, query }) {
       setFilteredMedicines(medicineStock?.medicines);
     }
   }, [query]);
+
+  async function handleSetMinQty(id) {
+    setSubmitting(true);
+    try {
+      let result = await fetch("/api/newMedicine?minqty=1", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id, godownMinQty: minQty }),
+      });
+      result = await result.json();
+      if (result.success) {
+        const updatedMedicines = filteredMedicines.map((medicine) =>
+          medicine._id === id
+            ? {
+                ...medicine,
+                minimumStockCount: {
+                  ...medicine.minimumStockCount,
+                  godown: minQty,
+                },
+              }
+            : medicine
+        );
+        setFilteredMedicines(updatedMedicines);
+        setMinQty("");
+      }
+    } catch (error) {
+      console.error("Error submitting application:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  }
   return (
     <div className="p-2 w-full md:w-4/5 lg:w-3/4 mx-auto text-gray-900">
       <div className="w-full rounded-full bg-gray-900 p-2 flex font-semibold text-gray-100 justify-around items-center">
@@ -36,7 +75,7 @@ function GodownStock({ medicineStock, query }) {
               onClick={() =>
                 setSelectedIndex(selectedIndex === index ? null : index)
               }
-              className="w-full hover:cursor-pointer rounded-full font-medium bg-gray-300 hover:bg-gray-400 p-2 flex items-center"
+              className="w-full hover:cursor-pointer rounded-full font-medium bg-gray-300 hover:bg-gray-400 p-2 flex items-center my-1"
             >
               <div className="w-[45%] px-3">{medicine.name}</div>
               <div className="w-[45%] text-center">
@@ -51,12 +90,16 @@ function GodownStock({ medicineStock, query }) {
                     0
                   )}
               </div>
-              {medicine.requests.length ? (
-                <div className="text-red-900 text-lg">
-                  <ImBoxRemove />
-                </div>
-              ) : (
-                <></>
+              {medicine.minimumStockCount &&
+                medicine.stocks.reduce(
+                  (acc, stock) => acc + stock.quantity.boxes,
+                  0
+                ) < medicine.minimumStockCount.godown && (
+                  <TiWarning className="text-red-900 size-6 animate-pulse" />
+                )}
+
+              {medicine.requests.length > 0 && (
+                <ImBoxRemove className="text-red-900 text-lg" />
               )}
             </div>
             {selectedIndex === index && (
@@ -87,35 +130,107 @@ function GodownStock({ medicineStock, query }) {
                     </span>
                   </div>
                 </div>
-                {medicine.stocks.map((stock, it) => (
-                  <div key={it} className="w-full rounded-full bg-gray-300 p-2 flex justify-around items-center">
-                    <div className="w-1/5">{stock.batchName}</div>
-                    <div className="w-1/5">
-                      {"Expiry: " + stock.expiryDate.split("T")[0]}
+                <div className="flex justify-center items-center gap-2 mt-2">
+                  {medicine.minimumStockCount &&
+                  medicine.minimumStockCount.godown !== null ? (
+                    <>
+                      <div className="font-semibold text-gray-600 bg-slate-300 px-2 rounded">
+                        Min Stock Qty:{" "}
+                        <span className="text-black">
+                          {medicine.minimumStockCount.godown}
+                        </span>
+                      </div>
+                      <div
+                        className="text-red-500 bg-red-50 px-1 rounded-md hover:text-red-700 cursor-pointer"
+                        onClick={() => {
+                          setFilteredMedicines((prevMedicines) =>
+                            prevMedicines.map((med) =>
+                              med._id === medicine._id
+                                ? {
+                                    ...med,
+                                    minimumStockCount: {
+                                      ...med.minimumStockCount,
+                                      godown: null,
+                                    },
+                                  }
+                                : med
+                            )
+                          );
+                        }}
+                      >
+                        Reset
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        type="number"
+                        value={minQty}
+                        min={0}
+                        onChange={(e) => {
+                          setMinQty(e.target.value);
+                        }}
+                        placeholder="Set Min Stock Qty"
+                        className="rounded-lg py-1 px-2 bg-slate-300 text-black outline-none"
+                      />
+                      <button
+                        className="rounded-lg px-3 py-1 text-white font-semibold bg-slate-700 hover:bg-slate-600"
+                        onClick={() => {
+                          handleSetMinQty(medicine._id);
+                        }}
+                        disabled={submitting}
+                      >
+                        {submitting ? "Wait..." : "Set"}
+                      </button>
+                    </>
+                  )}
+                </div>
+                <div className="py-1 max-h-48 overflow-y-auto">
+                  {medicine.stocks.map((stock, it) => (
+                    <div
+                      key={it}
+                      className="w-full rounded-xl my-1 bg-gray-300 p-2 "
+                    >
+                      <div className="flex justify-around items-center">
+                        <div className="w-[10%]">{stock.batchName}</div>
+                        <div className="w-1/5">
+                          {"Expiry: " + stock.expiryDate.split("T")[0]}
+                        </div>
+                        <div className="w-[25%]">
+                          {stock.quantity.boxes +
+                            " Boxes " +
+                            (stock.quantity.extra
+                              ? stock.quantity.extra + " Extra "
+                              : "") +
+                            stock.quantity.totalStrips +
+                            " Strips"}
+                        </div>
+                        <div className="w-[10%]">
+                          {"P: " + stock.purchasePrice}
+                        </div>
+                        <div className="w-[10%]">
+                          {"S: " + stock.sellingPrice}
+                        </div>
+                        <div className="w-1/5">
+                          {"Mfg: " +
+                            (stock.mfgDate
+                              ? stock.mfgDate.split("T")[0]
+                              : "Not set")}
+                        </div>
+                      </div>
+                      <div className="text-sm text-center text-gray-500 font-semibold">
+                        {"Stock Added on: " + stock.createdAt.split("T")[0]}
+                      </div>
                     </div>
-                    <div className="w-1/5">
-                      {stock.quantity.boxes +
-                        " Boxes " +
-                        (stock.quantity.extra
-                          ? stock.quantity.extra + " Extra"
-                          : "") +
-                        stock.quantity.totalStrips +
-                        " Strips"}
-                    </div>
-                    <div className="w-[15%]">{"P: " + stock.purchasePrice}</div>
-                    <div className="w-[15%]">{"S: " + stock.sellingPrice}</div>
-                    <div className="w-1/5">
-                      {"Date: " + stock.createdAt.split("T")[0]}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </>
         ))
       ) : (
         <div className="w-full p-4 flex flex-col justify-center items-center text-2xl font-semibold text-gray-400">
-          <BiInjection size={60}/>
+          <BiInjection size={60} />
           <div>No Medicine</div>
         </div>
       )}

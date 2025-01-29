@@ -9,28 +9,31 @@ export async function GET(req) {
   await dbConnect();
   let id = req.nextUrl.searchParams.get("id");
 
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
 
   try {
     if (id) {
       // Step 1: Fetch the request details
-      const request = await Request.findById(id).populate("medicine");
+      const request = await Request.findById(id).populate({
+        path: "medicine",
+        populate: { path: "salts", select: "name" },
+      });
       if (!request) {
         return NextResponse.json(
           {
@@ -50,7 +53,7 @@ export async function GET(req) {
       // Step 2: Fetch all stocks for the given medicine, sorted by oldest first (FIFO)
       const stocks = await Stock.find({ medicine: medicine._id })
         .sort({ createdAt: 1 })
-        .select("quantity remainingStrips batchNumber expiryDate createdAt");
+        .select("quantity remainingStrips batchName expiryDate createdAt");
 
       if (!stocks || stocks.length === 0) {
         return NextResponse.json(
@@ -74,8 +77,9 @@ export async function GET(req) {
 
         allocatedStocks.push({
           stockId: stock._id,
-          batchNumber: stock.batchNumber,
+          batchName: stock.batchName,
           expiryDate: stock.expiryDate,
+          createdAt: stock.createdAt,
           allocatedQuantity: {
             totalStrips: allocatedStrips,
             boxes: Math.floor(allocatedStrips / packetSize),
@@ -87,23 +91,32 @@ export async function GET(req) {
       }
 
       if (remainingStrips > 0) {
-        return res
-          .status(400)
-          .json({ message: "Insufficient stock to fulfill this request" });
+        return NextResponse.json(
+          {
+            message: "Insufficient stock to fulfill this request",
+            success: false,
+          },
+          { status: 400 }
+        );
       }
+      console.log("before return");
 
       // Step 4: Respond with the allocation details
-      return res.status(200).json({
-        message: "Allocation details fetched successfully",
-        allocatedStocks,
-      });
+      return NextResponse.json(
+        {
+          allocatedStocks,
+          request,
+          message: "Allocation details fetched successfully",
+          success: true,
+        },
+        { status: 200 }
+      );
     }
-    let requests = await Request.find({ status: "Pending" })
-      .sort({ _id: -1 })
-      .populate({
-        path: "medicine",
-        select: "name _id",
-      });
+
+    let requests = await Request.find({ status: "Pending" }).populate({
+      path: "medicine",
+      select: "name _id",
+    });
 
     return NextResponse.json(
       {
@@ -126,23 +139,23 @@ export async function POST(req) {
 
   await dbConnect();
 
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
   // if (userRole !== "admin" && userRole !== "retailer") {
   //   return NextResponse.json(
   //     { message: "Access denied. admins only.", success: false },
@@ -190,14 +203,14 @@ export async function POST(req) {
       );
     }
 
-    let newMedicineStock = new Request({
+    let newMedicineStockRequest = new Request({
       medicine,
       requestedQuantity,
       notes,
     });
-    await newMedicineStock.save();
+    await newMedicineStockRequest.save();
     return NextResponse.json(
-      { newMedicineStock, message: "Stock Added Successfully!", success: true },
+      { newMedicineStockRequest, message: "Request Created Successfully!", success: true },
       { status: 201 }
     );
   } catch (error) {
@@ -207,4 +220,75 @@ export async function POST(req) {
       { status: 500 }
     );
   }
+}
+
+export async function DELETE(req) {
+  let id = req.nextUrl.searchParams.get("id");
+
+  await dbConnect();
+
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  
+  try {
+    if (id) {
+      let request = await Request.findByIdAndUpdate(
+        id,
+        { status: "Rejected" },
+        { new: true } // Return the updated document
+      );
+  
+      if (!request) {
+        return NextResponse.json(
+          {
+            message: "Request not found",
+            success: false,
+          },
+          { status: 404 }
+        );
+      } else {
+        return NextResponse.json(
+          {
+            message: "Request status updated to Rejected successfully",
+            success: true,
+            request,
+          },
+          { status: 200 }
+        );
+      }
+    } else {
+      return NextResponse.json(
+        {
+          message: "Request ID is missing",
+          success: false,
+        },
+        { status: 400 }
+      );
+    }
+  } catch (error) {
+    console.error("Error updating request status:", error);
+    return NextResponse.json(
+      {
+        message: "Internal server error.",
+        success: false,
+      },
+      { status: 500 }
+    );
+  }
+  
 }

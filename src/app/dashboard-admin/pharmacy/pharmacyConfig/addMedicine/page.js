@@ -1,12 +1,12 @@
 import React from 'react'
 import Navbar from '../../../../components/Navbar'
-import AddMedicineForm from '../../../../components/AddMedicineForm'
+import NewMedicineForm from '../../../../components/NewMedicineForm'
 
 function Page() {
   return (
     <div>
       <Navbar route={["Medicine", "Add"]} />
-      <AddMedicineForm />
+      <NewMedicineForm />
     </div>
   )
 }

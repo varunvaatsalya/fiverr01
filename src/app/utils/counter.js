@@ -22,6 +22,7 @@ export async function generateUniqueId(entityType) {
     record.patientCounter = 1;
     record.reportCounter = 1;
     record.ipdCounter = 1;
+    record.pharmacyInvoiceCounter = 1;
   }
 
   let uniqueId;
@@ -43,6 +44,12 @@ export async function generateUniqueId(entityType) {
   } else if (entityType === "ipd") {
     uniqueId = `${record.date}${String(record.ipdCounter).padStart(2, "0")}`;
     record.ipdCounter += 1;
+  } else if (entityType === "pharmacyInvoice") {
+    uniqueId = `${record.date}${String(record.pharmacyInvoiceCounter).padStart(
+      2,
+      "0"
+    )}`;
+    record.pharmacyInvoiceCounter += 1;
   } else {
     throw new Error(
       "Invalid entityType. Must be 'prescription', 'patient', or 'report'."

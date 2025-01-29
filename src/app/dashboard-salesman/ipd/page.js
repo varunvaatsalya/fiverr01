@@ -42,7 +42,7 @@ function Page() {
                 <Link
                   href={workCard.link}
                   key={workCard.name}
-                  className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1`}
+                  className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
                 >
                   {workCard.icon}
                   <div className="font-bold text-xl">{workCard.name}</div>

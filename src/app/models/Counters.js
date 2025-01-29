@@ -6,6 +6,7 @@ const counterSchema = new mongoose.Schema({
   patientCounter: { type: Number, default: 1 },
   reportCounter: { type: Number, default: 1 },
   ipdCounter: { type: Number, default: 1 },
+  pharmacyInvoiceCounter: { type: Number, default: 1 },
 });
 
 export default mongoose.models.Counter ||

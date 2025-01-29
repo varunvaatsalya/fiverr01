@@ -6,27 +6,39 @@ import Stock from "../../models/Stock";
 
 export async function GET(req) {
   await dbConnect();
-  // let basicInfo = req.nextUrl.searchParams.get("basicInfo");
+  let batchInfo = req.nextUrl.searchParams.get("batchInfo");
 
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
 
   try {
+    if (batchInfo) {
+      const stocks = await Stock.find({ medicine: batchInfo }).sort({
+        createdAt: -1,
+      });
+      return NextResponse.json(
+        {
+          stocks,
+          success: true,
+        },
+        { status: 200 }
+      );
+    }
 
     const medicineStock = await Medicine.aggregate([
       {
@@ -69,6 +81,13 @@ export async function GET(req) {
               sortBy: { createdAt: -1 },
             },
           },
+          requests: {
+            $filter: {
+              input: "$requests",
+              as: "request",
+              cond: { $eq: ["$$request.status", "Pending"] },
+            },
+          },
         },
       },
       {
@@ -77,6 +96,7 @@ export async function GET(req) {
           manufacturer: { $arrayElemAt: ["$manufacturer", 0] }, // Include only one manufacturer
           salts: 1,
           packetSize: 1,
+          minimumStockCount: 1,
           stocks: {
             _id: 1,
             batchName: 1,
@@ -100,7 +120,7 @@ export async function GET(req) {
         },
       },
     ]);
-    
+
     return NextResponse.json(
       {
         medicineStock,
@@ -139,15 +159,16 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin") {
-    return NextResponse.json(
-      { message: "Access denied. admins only.", success: false },
-      { status: 403 }
-    );
-  }
+  // if (userRole !== "admin") {
+  //   return NextResponse.json(
+  //     { message: "Access denied. admins only.", success: false },
+  //     { status: 403 }
+  //   );
+  // }
   const {
     medicine,
     batchName,
+    mfgDate,
     expiryDate,
     extra,
     purchasePrice,
@@ -169,6 +190,7 @@ export async function POST(req) {
     let newMedicineStock = new Stock({
       medicine,
       batchName,
+      mfgDate,
       expiryDate,
       purchasePrice,
       sellingPrice,
@@ -185,6 +207,105 @@ export async function POST(req) {
     );
   } catch (error) {
     console.error("Error during registration:", error);
+    return NextResponse.json(
+      { message: "Internal server error", success: false },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req) {
+  // let manufacturer = req.nextUrl.searchParams.get("manufacturer");
+
+  await dbConnect();
+
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin") {
+    return NextResponse.json(
+      { message: "Access denied. admins only.", success: false },
+      { status: 403 }
+    );
+  }
+  const {
+    stockId, // Added stockId for identifying the stock to update
+    medicine,
+    batchName,
+    mfgDate,
+    expiryDate,
+    extra,
+    purchasePrice,
+    quantity,
+    sellingPrice,
+  } = await req.json();
+  
+  try {
+    let medicineStock = await Stock.findById(stockId);
+    if (!medicineStock) {
+      return NextResponse.json(
+        { message: "Stock not found", success: false },
+        { status: 404 }
+      );
+    }
+
+    let medicineData = await Medicine.findById(medicine);
+    if (!medicineData) {
+      return NextResponse.json(
+        { message: "Medicine not found", success: false },
+        { status: 404 }
+      );
+    }
+
+    let stripsPerBox = medicineData.packetSize.strips;
+    let totalStrips = quantity * stripsPerBox + extra;
+  
+    // Update the necessary fields
+    if (medicine) {
+      medicineStock.medicine = medicine;
+    }
+    if (batchName) {
+      medicineStock.batchName = batchName;
+    }
+    if (mfgDate) {
+      medicineStock.mfgDate = mfgDate;
+    }
+    if (expiryDate) {
+      medicineStock.expiryDate = expiryDate;
+    }
+    if (purchasePrice) {
+      medicineStock.purchasePrice = purchasePrice;
+    }
+    if (sellingPrice) {
+      medicineStock.sellingPrice = sellingPrice;
+    }
+    if (quantity) {
+      medicineStock.quantity.boxes = quantity;
+      medicineStock.quantity.extra = extra;
+      medicineStock.quantity.totalStrips = totalStrips;
+    }
+  
+    await medicineStock.save();
+    return NextResponse.json(
+      { medicineStock, message: "Stock Updated Successfully!", success: true },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error during update:", error);
     return NextResponse.json(
       { message: "Internal server error", success: false },
       { status: 500 }

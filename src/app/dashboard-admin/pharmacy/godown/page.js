@@ -5,6 +5,7 @@ import { VscGitPullRequestGoToChanges } from "react-icons/vsc";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Link from "next/link";
+import { FaEdit, FaWhatsapp } from "react-icons/fa";
 
 function Page() {
   const Works = [
@@ -28,6 +29,20 @@ function Page() {
       icon: <VscGitPullRequestGoToChanges size={50} />,
       link: "/dashboard-admin/pharmacy/godown/godownStockRequest",
       color: "bg-yellow-700",
+    },    
+    {
+      name: "Stock Edit",
+      description: "You can View & Edit godown stock here",
+      icon: <FaEdit size={50} />,
+      link: "/dashboard-admin/pharmacy/godown/editGodownStock",
+      color: "bg-rose-700",
+    },
+    {
+      name: "Stock Order",
+      description: "You can order the godown stock here",
+      icon: <FaWhatsapp size={50} />,
+      link: "/dashboard-admin/pharmacy/godown/stockOrder",
+      color: "bg-green-700",
     },
   ];
 
@@ -41,7 +56,7 @@ function Page() {
               <Link
                 href={workCard.link}
                 key={workCard.name}
-                className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1`}
+                className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
               >
                 {workCard.icon}
                 <div className="font-bold text-xl">{workCard.name}</div>

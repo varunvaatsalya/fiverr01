@@ -13,26 +13,43 @@ const medicineSchema = new mongoose.Schema({
   vendor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Vendor",
-    required: true,
-  },
-  medicalRepresentator: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "MedicalRepresentator",
-    required: true,
   },
   salts: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Salt",
     required: true,
   },
+  isTablets: {
+    type: Boolean,
+    required: true,
+  },
+  medicineType: {
+    type: String,
+  },
   packetSize: {
     strips: {
-      type: Number,   // Strips per Box
+      type: Number,
       required: true,
     },
     tabletsPerStrip: {
       type: Number,
       required: true,
+    },
+  },
+  minimumStockCount: {
+    godown: {
+      type: Number,
+    },
+    retails: {
+      type: Number,
+    },
+  },
+  rackPlace: {
+    godown: {
+      type: String,
+    },
+    retails: {
+      type: String,
     },
   },
   currentPurchasePrice: {

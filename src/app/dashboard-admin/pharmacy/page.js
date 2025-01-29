@@ -1,26 +1,33 @@
 import React from 'react'
-import { FaOutdent } from "react-icons/fa6";
-import { FaNetworkWired } from "react-icons/fa";
+import { FaFileArrowUp, FaOutdent } from "react-icons/fa6";
 import { MdFormatListBulletedAdd } from "react-icons/md";
-import { BsClipboardDataFill } from "react-icons/bs";
+import { BsClipboardDataFill, BsReceipt } from "react-icons/bs";
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
+import { IoCreate } from 'react-icons/io5';
 
 function Page() {
   const Works = [
     {
-      name: "Registration",
-      description: "You can show & manage the pharmacy patients here",
-      icon: <FaNetworkWired size={50} />,
-      link: "/dashboard-admin/pharmacy/works",
+      name: "Create Invoices",
+      description: "You can Create pharmacy Invoices here",
+      icon: <IoCreate size={50} />,
+      link: "/dashboard-admin/pharmacy/newInvoices",
+      color: "bg-amber-800",
+    },
+    {
+      name: "Invoices",
+      description: "You can show all the pharmacy Invoices here",
+      icon: <BsReceipt size={50} />,
+      link: "/dashboard-admin/pharmacy/invoices",
       color: "bg-rose-900",
     },
     {
       name: "Retail Works",
       description: "You can see all the IPD Patient Records",
       icon: <BsClipboardDataFill size={50} />,
-      link: "/dashboard-admin/pharmacy/records",
+      link: "/dashboard-admin/pharmacy/retails",
       color: "bg-gray-700",
     },
     {
@@ -37,6 +44,13 @@ function Page() {
       link: "/dashboard-admin/pharmacy/pharmacyConfig",
       color: "bg-green-700",
     },
+    {
+      name: "Medicine Uploads",
+      description: "You can edit & create pharmacy items",
+      icon: <FaFileArrowUp size={50} />,
+      link: "/dashboard-admin/pharmacy/uploads",
+      color: "bg-fuchsia-700",
+    },
   ];
   
   return (
@@ -49,7 +63,7 @@ function Page() {
                 <Link
                   href={workCard.link}
                   key={workCard.name}
-                  className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1`}
+                  className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
                 >
                   {workCard.icon}
                   <div className="font-bold text-xl">{workCard.name}</div>

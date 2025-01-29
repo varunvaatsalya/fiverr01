@@ -10,12 +10,11 @@ const stockSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  mfgDate: {
+    type: Date,
+  },
   expiryDate: {
     type: Date,
-    required: true,
-  },
-  remainingStrips: {
-    type: Number,
     required: true,
   },
   quantity: {
@@ -38,6 +37,10 @@ const stockSchema = new mongoose.Schema({
   sellingPrice: {
     type: Number,
     required: true,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
   },
   createdAt: {
     type: Date,
