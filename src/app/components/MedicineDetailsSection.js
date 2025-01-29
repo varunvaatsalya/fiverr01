@@ -69,7 +69,7 @@ function MedicineDetailsSection({
             <div className="max-h-[60vh] overflow-y-auto flex flex-col gap-2">
               {medicineDetails.medicines.length > 0 ? (
                 medicineDetails.medicines.map((medicine) => (
-                  <div className="w-full rounded-lg border border-gray-700">
+                  <div key={medicine._id} className="w-full rounded-lg border border-gray-700">
                     <div className="p-1 border-b border-gray-700 text-white">
                       <div className="flex justify-around items-center">
                         <div className="px-3 flex items-center">
