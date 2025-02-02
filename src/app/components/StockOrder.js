@@ -128,7 +128,7 @@ Required Quantity: ${medicine.required} boxes
               <div className="w-[15%] text-center">Required</div>
             </div>
             {data.map((details, index) => (
-              <div className="border-b border-gray-900 font-semibold text-sm rounded-lg p-1 flex items-center">
+              <div key={index} className="border-b border-gray-900 font-semibold text-sm rounded-lg p-1 flex items-center">
                 <div className="w-[5%] text-center">{index + 1}</div>
                 <div className="w-[55%] text-center">{details.name}</div>
                 <div className="w-[15%] text-center">
