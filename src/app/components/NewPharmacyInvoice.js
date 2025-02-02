@@ -8,6 +8,13 @@
 // manufactreur wise sorting in godoon stock
 // mr mail field and godown mail option snd whatsapp option
 // mfg
+// many vendors for a medicine and handle their all request - vendor unlink 
+// vendor payment
+// rename bulk strock upload
+// order krne wale medicines lists reatils godwn
+// filter with salt and manfacturer
+// down kitna kitna purchase kis vendor se purchase history
+// whatsapp vendor change to all medicine select
 
 "use client";
 import React, { useEffect, useState } from "react";

@@ -7,7 +7,6 @@ export async function GET(req) {
   await dbConnect();
   let manufacturer = req.nextUrl.searchParams.get("manufacturer");
   let vendor = req.nextUrl.searchParams.get("vendor");
-  let mr = req.nextUrl.searchParams.get("mr");
   let salts = req.nextUrl.searchParams.get("salts");
 
   const token = req.cookies.get("authToken");
@@ -31,19 +30,19 @@ export async function GET(req) {
   try {
     const response = {};
     if (manufacturer == "1") {
-      response.manufacturers = await Manufacturer.find().sort({ _id: -1 });
+      response.manufacturers = await Manufacturer.find().sort({ name: 1 });
     }
     if (vendor == "1") {
-      response.vendors = await Vendor.find().sort({ _id: -1 });
+      response.vendors = await Vendor.find().sort({ name: 1 });
     }
     if (salts == "1") {
-      response.salts = await Salt.find().sort({ _id: -1 });
+      response.salts = await Salt.find().sort({ name: 1 });
     }
 
-    if (!manufacturer && !vendor && !mr && !salts) {
-      response.manufacturers = await Manufacturer.find().sort({ _id: -1 });
-      response.vendors = await Vendor.find().sort({ _id: -1 });
-      response.salts = await Salt.find().sort({ _id: -1 });
+    if (!manufacturer && !vendor && !salts) {
+      response.manufacturers = await Manufacturer.find().sort({ name: 1 });
+      response.vendors = await Vendor.find().sort({ name: 1 });
+      response.salts = await Salt.find().sort({ name: 1 });
     }
 
     return NextResponse.json(

@@ -10,10 +10,6 @@ const medicineSchema = new mongoose.Schema({
     ref: "Manufacturer",
     required: true,
   },
-  vendor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Vendor",
-  },
   salts: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Salt",

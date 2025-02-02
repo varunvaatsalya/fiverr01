@@ -213,11 +213,11 @@ function Manufacturer({
         </div>
       </form>
       <div className="overflow-y-auto max-h-[80vh] md:max-h-[70vh] lg:max-h-[60vh]">
-        {manufacturers.map((Manufacturer, index) => (
-          <>
+        {manufacturers.map((Manufacturer) => (
+          <div key={Manufacturer._id}>
             <hr className="border-t border-gray-600 w-3/4 mx-auto" />
             <div
-              key={index}
+              
               className="text-center text-black flex justify-center gap-2 items-center"
             >
               <div className="">
@@ -234,11 +234,11 @@ function Manufacturer({
                   setValue("name", Manufacturer.name);
                   setValue(
                     "medicalRepresentator.name",
-                    Manufacturer.medicalRepresentator.name
+                    Manufacturer.medicalRepresentator?.name
                   );
                   setValue(
                     "medicalRepresentator.contact",
-                    Manufacturer.medicalRepresentator.contact
+                    Manufacturer.medicalRepresentator?.contact
                   );
                   setUpdateMode(true);
                 }}
@@ -246,7 +246,7 @@ function Manufacturer({
                 Edit
               </button>
             </div>
-          </>
+          </div>
         ))}
       </div>
     </div>
@@ -340,11 +340,11 @@ function Vendor({ vendors, updateMode, setUpdateMode, handleFormSubmit }) {
         </div>
       </form>
       <div className="overflow-y-auto max-h-[60vh]">
-        {vendors.map((vendor, index) => (
+        {vendors.map((vendor) => (
           <>
             <hr className="border-t border-gray-600 w-3/4 mx-auto" />
             <div className="flex justify-center items-center gap-2">
-              <div key={index} className="text-center text-black">
+              <div key={vendor._id} className="text-center text-black">
                 {vendor.name + ", " + vendor?.contact + ", " + vendor?.address}
               </div>
               <button
@@ -354,25 +354,25 @@ function Vendor({ vendors, updateMode, setUpdateMode, handleFormSubmit }) {
                   setValue("name", vendor.name);
                   setValue("contact", vendor.contact);
                   setValue("address", vendor.address);
-                  setValue("bankDetails.bankName", vendor.bankDetails.bankName);
+                  setValue("bankDetails.bankName", vendor.bankDetails?.bankName);
                   setValue(
                     "bankDetails.accountNo",
-                    vendor.bankDetails.accountNo
+                    vendor.bankDetails?.accountNo
                   );
-                  setValue("bankDetails.ifsc", vendor.bankDetails.ifsc);
-                  setValue("bankDetails.branch", vendor.bankDetails.branch);
+                  setValue("bankDetails.ifsc", vendor.bankDetails?.ifsc);
+                  setValue("bankDetails.branch", vendor.bankDetails?.branch);
                   setUpdateMode(true);
                 }}
               >
                 Edit
               </button>
             </div>
-            <div key={index} className="text-center text-black">
+            <div className="text-center text-black">
               {vendor?.bankDetails?.bankName +
                 ", " +
                 vendor?.bankDetails?.accountNo}
             </div>
-            <div key={index} className="text-center text-black">
+            <div className="text-center text-black">
               {vendor?.bankDetails?.ifsc + ", " + vendor?.bankDetails?.branch}
             </div>
           </>
@@ -449,10 +449,10 @@ function Salts({ salts, updateMode, setUpdateMode, handleFormSubmit }) {
           <div className="">Update Mode</div>
           <RxCross2
             className="size-5 hover:bg-red-600 rounded-full cursor-pointer"
-            // onClick={() => {
-            //   reset();
-            //   setUpdateMode(false);
-            // }}
+            onClick={() => {
+              reset();
+              setUpdateMode(false);
+            }}
           />
         </div>
       )}
@@ -480,7 +480,7 @@ function Salts({ salts, updateMode, setUpdateMode, handleFormSubmit }) {
       </div>
       <div className="overflow-y-auto max-h-[50vh]">
         {salts.map((salt, index) => (
-          <>
+          <div key={salt._id}>
             <hr className="border-t border-gray-600 w-3/4 mx-auto" />
             <div key={index} className="flex items-center justify-center gap-4">
               <div className="text-center text-black">{salt.name}</div>
@@ -499,7 +499,7 @@ function Salts({ salts, updateMode, setUpdateMode, handleFormSubmit }) {
                 Edit
               </div>
             </div>
-          </>
+          </div>
         ))}
       </div>
     </form>

@@ -9,6 +9,8 @@ import Navbar from "../../../components/Navbar";
 export default function Page() {
   const [jsonData, setJsonData] = useState([]);
   const [name, setName] = useState("");
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [selectedType, setSelectedType] = useState("");
 
   const schemaType = ["Manufacturer", "Vendor", "Salts", "Medicine", "Stocks"];
@@ -19,7 +21,7 @@ export default function Page() {
     Medicine:
       "Company, Vendor, Salts, Medicine, isTablets, medicineType, packetSize, rackPlace Column should be in the sheet",
     Stocks:
-      "Medicine, batchName, mfgDate, expiryDate, purchasePrice, sellingPrice, stock should be in the sheet",
+      "Medicine, batchName, mfgDate (MM-DD-YYYY), expiryDate (MM-DD-YYYY), purchasePrice, sellingPrice, stock should be in the sheet",
   };
 
   // useEffect(()=>{
@@ -49,10 +51,88 @@ export default function Page() {
     }
   };
 
-  const uniqueCompanies = [
-    ...new Set(jsonData?.map((medicine) => medicine.Company.toUpperCase())),
+  const uniqueCompany = () => [
+    ...new Set(
+      jsonData
+        .map((data) => (data.Company ? data.Company.toUpperCase() : null))
+        .filter((company) => company !== null)
+    ),
   ];
-  console.log(uniqueCompanies);
+  // const uniqueVendor = () => [
+  //   ...new Set(
+  //     jsonData
+  //       .map((data) => (data.Vendor ? data.Vendor.toUpperCase() : null))
+  //       .filter((vendor) => vendor !== null)
+  //   ),
+  // ];
+  function uniqueVendor() {
+    const uniqueVendorsMap = new Map();
+
+    jsonData
+      .filter((vendor) => vendor.Vendor) // Skip entries missing the 'Vendor' field
+      .forEach((vendor) => {
+        uniqueVendorsMap.set(vendor.Vendor, vendor); // Store only unique Vendor names
+      });
+
+    return Array.from(uniqueVendorsMap.values()); // Convert Map to array
+  }
+
+  const uniqueSalts = () => [
+    ...new Set(
+      jsonData
+        .map((data) => (data.Salt ? data.Salt.toUpperCase() : null))
+        .filter((salt) => salt !== null)
+    ),
+  ];
+
+  const MedicinesData = () =>
+    jsonData
+      .filter((data) => data.Company && data.Name && data.Salt)
+      .map((data) => ({
+        Company: data.Company.toUpperCase(),
+        Name: data.Name.toUpperCase(),
+        medicineType: data.medicineType
+          ? data.medicineType.toUpperCase()
+          : "N/A",
+        Salt: data.Salt.toUpperCase(),
+      }));
+
+  const stockData = () =>
+    jsonData.map((data) => ({
+      Name: data.Name,
+      PRate: data["P.Rate"],
+      MRP: data["M.R.P."],
+      Stock: data.Stock,
+      Expiry: data.Expiry,
+      Batch: data.Batch,
+    }));
+
+  async function handleUpload() {
+    console.log(MedicinesData());
+    setSubmitting(true);
+
+    let data;
+    if (selectedType === "Manufacturer") data = uniqueCompany();
+    else if (selectedType === "Vendor") data = uniqueVendor();
+    else if (selectedType === "Salts") data = uniqueSalts();
+    else if (selectedType === "Medicine") data = MedicinesData();
+    else if (selectedType === "Stocks") data = stockData();
+    try {
+      let result = await fetch(`/api/uploads?type=${selectedType}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ data }),
+      });
+      result = await result.json();
+      setMessage(result.message);
+    } catch (error) {
+      setMessage("Error in submitting application");
+      console.error("Error submitting application:", error);
+    }
+    setSubmitting(false);
+  }
 
   return (
     <>
@@ -103,9 +183,35 @@ export default function Page() {
           ))}
         </div>
         {selectedType && (
-          <div className="my-2 text-red-600 font-semibold">
-            {"*" + warnings[selectedType]}
-          </div>
+          <>
+            <div className="my-2 text-red-600 font-semibold">
+              {"*" + warnings[selectedType]}
+            </div>
+            <button
+              disabled={jsonData.length <= 0 || submitting}
+              onClick={handleUpload}
+              className="rounded-lg font-semibold px-3 py-2 bg-green-500 disabled:bg-gray-600"
+            >
+              {submitting ? "Uploading..." : "Upload"}
+            </button>
+          </>
+        )}
+        {message.length > 0 && (
+          <>
+            <button
+              disabled={message.length <= 0}
+              onClick={() => setMessage([])}
+              className="rounded-lg my-2 font-semibold px-3 py-2 bg-red-500 disabled:bg-gray-600"
+            >
+              Clear
+            </button>
+            <h1 className="text-xl font-bold">Logs</h1>
+            <ol>
+              {message.map((mess, index) => (
+                <li key={index} className={mess?.success?"":"text-red-600"}>{index + 1 + ". " + mess.info}</li>
+              ))}
+            </ol>
+          </>
         )}
       </div>
     </>

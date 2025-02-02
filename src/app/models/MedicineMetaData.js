@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const ManufacturerSchema = new mongoose.Schema({
   name: {
     type: String,
+    unique: true,
     required: true,
   },
   medicalRepresentator: {
@@ -21,6 +22,7 @@ const ManufacturerSchema = new mongoose.Schema({
 const VendorSchema = new mongoose.Schema({
   name: {
     type: String,
+    unique: true,
     required: true,
   },
   contact: {
@@ -50,6 +52,7 @@ const VendorSchema = new mongoose.Schema({
 const SaltSchema = new mongoose.Schema({
   name: {
     type: String,
+    unique: true,
     required: true,
   },
   useCase: {

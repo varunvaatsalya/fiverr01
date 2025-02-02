@@ -28,7 +28,7 @@ function Page() {
       description: "You can see all the IPD Patient Records",
       icon: <BsClipboardDataFill size={50} />,
       link: "/dashboard-admin/pharmacy/retails",
-      color: "bg-gray-700",
+      color: "bg-gray-600",
     },
     {
       name: "GoDown",
@@ -42,14 +42,14 @@ function Page() {
       description: "You can edit & create pharmacy items",
       icon: <MdFormatListBulletedAdd size={50} />,
       link: "/dashboard-admin/pharmacy/pharmacyConfig",
-      color: "bg-green-700",
+      color: "bg-green-800",
     },
     {
-      name: "Medicine Uploads",
-      description: "You can edit & create pharmacy items",
+      name: "Bulk Uploads",
+      description: "You can upload pharmacy items in bulk here",
       icon: <FaFileArrowUp size={50} />,
       link: "/dashboard-admin/pharmacy/uploads",
-      color: "bg-fuchsia-700",
+      color: "bg-fuchsia-900",
     },
   ];
   
