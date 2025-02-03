@@ -1,20 +1,28 @@
-// vendor adrees contact bank
-// minimum recommended stocjk count godown reatiler ---imp
 // daily sale details
 // auto efresh
 // new page medcine
 // desk entery name
 // rack details
 // manufactreur wise sorting in godoon stock
-// mr mail field and godown mail option snd whatsapp option
-// mfg
 // many vendors for a medicine and handle their all request - vendor unlink 
-// vendor payment
-// rename bulk strock upload
 // order krne wale medicines lists reatils godwn
 // filter with salt and manfacturer
 // down kitna kitna purchase kis vendor se purchase history
+// medicine doses
+// expiry alert
+// user role
+// purchase stock ka payment track 
+
+// --- DONE ---
+
+// mfg
+// mr mail field and godown mail option snd whatsapp option
+// new medicine form sevendor ko hata routes se bhi
+// vendor payment
+// vendor adrees contact bank
 // whatsapp vendor change to all medicine select
+// minimum recommended stocjk count godown reatiler ---imp
+// rename bulk strock upload
 
 "use client";
 import React, { useEffect, useState } from "react";

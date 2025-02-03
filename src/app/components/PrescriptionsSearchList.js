@@ -37,14 +37,14 @@ function PrescriptionsSearchList({
     setResData(copyPrescriptions);
   }, [copyPrescriptions]);
 
-  useEffect(() => {
-    if (
-      accessInfo?.accessRole === "admin" ||
-      accessInfo?.accessRole === "salesman"
-    ) {
-      setNewUserSection(true);
-    }
-  }, [prescriptions]);
+  // useEffect(() => {
+  //   if (
+  //     accessInfo?.accessRole === "admin" ||
+  //     accessInfo?.accessRole === "salesman"
+  //   ) {
+  //     setNewUserSection(true);
+  //   }
+  // }, [prescriptions]);
 
   useEffect(() => {
     if (searchedPrescription) {

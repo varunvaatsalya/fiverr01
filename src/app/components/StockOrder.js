@@ -1,34 +1,49 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaRegDotCircle, FaWhatsapp } from "react-icons/fa";
+import { CiCircleRemove } from "react-icons/ci";
 
 function StockOrder({ info, selectedType }) {
   const [selectedManfacturer, setSelectedManfacturer] = useState(null);
   const [contact, setContact] = useState("");
   const [message, setMessage] = useState("");
   const [data, setData] = useState([]);
+  const [allData, setAllData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [selectedMedicines, setSelectedMedicines] = useState([]);
 
-  async function handleGetDetails() {
-    fetch(`/api/orderStock?id=${selectedManfacturer._id}`)
+  useEffect(() => {
+    let query = "";
+    // if (selectedType === "manufacturer")
+    //   query = `?id=${selectedManfacturer._id}`;
+    fetch(`/api/orderStock${query}`)
       .then((res) => res.json())
       .then((data) => {
-        const filtered = data.medicinesWithStock
-          .filter(
-            (element) =>
-              element.totalBoxes - element.minimumStockCount.godown < 0
-          )
-          .map((element) => ({
-            ...element,
-            required: element.minimumStockCount.godown - element.totalBoxes,
-          }));
-        setData(filtered);
-        setMessage(data.message);
-        console.log(filtered);
+        setAllData(data.medicinesWithStock);
+        console.log(data.medicinesWithStock);
+        // setMessage(data.message);
       });
+  }, []);
+
+  useEffect(() => {
+    setFilteredData(data);
+  }, [data]);
+
+  function handleSearchMedicine(query) {
+    const updatedFilteredData = data.filter((medicine) =>
+      medicine.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredData(updatedFilteredData);
   }
 
   useEffect(() => {
-    setData([]);
+    if (selectedType !== "manufacturer") {
+      setData(allData);
+      setFilteredData(allData);
+    } else {
+      setData([]);
+      setFilteredData([]);
+    }
   }, [selectedType]);
 
   useEffect(() => {
@@ -42,8 +57,79 @@ function StockOrder({ info, selectedType }) {
           ? selectedManfacturer.contact
           : "";
       setContact(phoneNumber);
+      if (selectedType === "manufacturer") {
+        let data = allData.filter(
+          (medicine) => medicine.manufacturer === selectedManfacturer._id
+        );
+        setData(data);
+        console.log(data, selectedManfacturer);
+      }
     }
   }, [selectedManfacturer]);
+
+  const handleCheckboxChange = (medicine) => {
+    if (selectedMedicines.some((m) => m._id === medicine._id)) {
+      setSelectedMedicines(
+        selectedMedicines.filter((m) => m._id !== medicine._id)
+      );
+    } else {
+      setSelectedMedicines([
+        ...selectedMedicines,
+        {
+          ...medicine,
+          quantity:
+            medicine.minimumStockCount &&
+            medicine.minimumStockCount?.godown - medicine.totalBoxes >= 0
+              ? medicine.minimumStockCount?.godown - medicine.totalBoxes
+              : "",
+        },
+      ]);
+    }
+  };
+  const removeMedicine = (id) => {
+    setSelectedMedicines(selectedMedicines.filter((m) => m._id !== id));
+  };
+
+  const handleQuantityChange = (index, newQuantity) => {
+    const updatedMedicines = selectedMedicines.map((details, i) => {
+      if (i === index) {
+        return { ...details, quantity: newQuantity };
+      }
+      return details;
+    });
+    setSelectedMedicines(updatedMedicines);
+  };
+
+  async function handleSaveHistory() {
+    const medicinesWithNameAndQuantity = selectedMedicines.map((medicine) => ({
+      name: medicine.name,
+      quantity: medicine.quantity,
+    }));
+    let data = {
+      to: selectedManfacturer.name,
+      mrName:
+        selectedType === "manufacturer"
+          ? selectedManfacturer.medicalRepresentator.name
+          : "",
+      contact,
+      medicines: medicinesWithNameAndQuantity,
+    };
+    try {
+      let result = await fetch("/api/orderStock", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      result = await result.json();
+      alert(result.message);
+    } catch (error) {
+      setMessage("Error in submitting application");
+      alert("Error in Saving Order History!");
+      console.error("Error submitting application:", error);
+    }
+  }
 
   const sendWhatsAppMessage = async () => {
     let message = `Hello,
@@ -52,9 +138,9 @@ Here is the list of medicines and the required quantities:
 
 `;
 
-    data.forEach((medicine) => {
+    selectedMedicines.forEach((medicine) => {
       message += `Medicine Name: ${medicine.name}
-Required Quantity: ${medicine.required} boxes
+Required Quantity: ${medicine.quantity} boxes
 
 `;
     });
@@ -72,7 +158,7 @@ Required Quantity: ${medicine.required} boxes
       //   "Did the WhatsApp message send successfully?"
       // );
       // if (isConfirmed) {
-      //   alert("Order recorded successfully! ✅");
+      //   alert("Order recorded successfully!");
       // }
       window.addEventListener(
         "focus",
@@ -81,7 +167,7 @@ Required Quantity: ${medicine.required} boxes
             "Did the WhatsApp message send successfully?"
           );
           if (isConfirmed) {
-            alert("Order recorded successfully! ✅");
+            handleSaveHistory();
           }
         },
         { once: true }
@@ -106,7 +192,6 @@ Required Quantity: ${medicine.required} boxes
             (manufacturer) => manufacturer._id === e.target.value
           );
           setSelectedManfacturer(Manufacturer);
-          setData([]);
         }}
         className="mt-1 block px-4 py-3 text-white w-full md:w-3/4 mx-auto bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
       >
@@ -117,60 +202,120 @@ Required Quantity: ${medicine.required} boxes
           </option>
         ))}
       </select>
-      {data.length > 0 ? (
+      {data.length > 0 && (
         <>
           <div className="w-full md:w-4/5 p-2">
             <div className="bg-gray-950 font-semibold text-sm rounded-lg py-1 flex items-center p-1">
               <div className="w-[5%] text-center">Sr No.</div>
-              <div className="w-[55%] text-center">Medicine</div>
+              <div className="w-[50%] text-center">Medicine</div>
               <div className="w-[15%] text-center">Min Stock Count</div>
               <div className="w-[15%] text-center">Current Stock</div>
               <div className="w-[15%] text-center">Required</div>
             </div>
-            {data.map((details, index) => (
-              <div key={index} className="border-b border-gray-900 font-semibold text-sm rounded-lg p-1 flex items-center">
-                <div className="w-[5%] text-center">{index + 1}</div>
-                <div className="w-[55%] text-center">{details.name}</div>
-                <div className="w-[15%] text-center">
-                  {details.minimumStockCount.godown}
+            <input
+              type="text"
+              placeholder="Serch Medicine"
+              onChange={(e) => {
+                handleSearchMedicine(e.target.value);
+              }}
+              className="rounded-full bg-gray-700 outline-none focus:ring-2 focus:ring-gray-600 px-3 py-1"
+            />
+            <div className="px-2 max-h-[50vh] overflow-y-auto ">
+              {filteredData.map((details, index) => (
+                <div
+                  key={index}
+                  className="border-b border-gray-900 font-semibold text-sm rounded-lg p-1 flex items-center"
+                >
+                  <div className="w-[5%] text-center">{index + 1}</div>
+                  <div className="w-[50%] text-center">{details.name}</div>
+                  <div className="w-[15%] text-center">
+                    {details.minimumStockCount?.godown
+                      ? details.minimumStockCount.godown
+                      : "N/A"}
+                  </div>
+                  <div className="w-[15%] text-center">
+                    {details.totalBoxes}
+                  </div>
+                  <div className="w-[15%] flex justify-center gap-2 items-center">
+                    <input
+                      type="checkbox"
+                      className="size-5 cursor-pointer"
+                      checked={selectedMedicines.some(
+                        (m) => m._id === details._id
+                      )}
+                      onChange={() => handleCheckboxChange(details)}
+                      id={index}
+                    />
+                    {(!details.minimumStockCount?.godown ||
+                      details.minimumStockCount?.godown - details.totalBoxes >=
+                        0) && (
+                      <FaRegDotCircle className="size-4 animate-pulse text-red-600" />
+                    )}
+                  </div>
                 </div>
-                <div className="w-[15%] text-center">{details.totalBoxes}</div>
-                <div className="w-[15%] text-center">
-                  <input
-                    type="number"
-                    value={details.required}
-                    className="w-20 text-sm text-gray-100 bg-gray-900 outline-none focus:ring-1 ring-gray-700 rounded-lg py-1 px-2"
-                    onChange={(e) => {
-                      const updatedData = [...data];
-                      updatedData[index].required = Number(e.target.value);
-                      setData(updatedData);
-                    }}
-                  />
-                </div>
+              ))}
+            </div>
+            <div className="rounded-xl p-2 bg-gray-600 my-2">
+              <div className="text-center font-semibold text-gray-400 text-lg">
+                Selected Medicines
               </div>
-            ))}
+              <div className="px-2 my-2 max-h-[50vh] overflow-y-auto">
+                {selectedMedicines.map((details, index) => (
+                  <div
+                    key={index}
+                    className="border-b border-gray-900 bg-gray-800 font-semibold text-sm rounded-lg p-1 flex items-center"
+                  >
+                    <div className="w-[5%] text-center">{index + 1}</div>
+                    <div className="w-[50%] text-center">{details.name}</div>
+                    <div className="w-[15%] text-center">
+                      {details.minimumStockCount?.godown
+                        ? details.minimumStockCount.godown
+                        : "N/A"}
+                    </div>
+                    <div className="w-[15%] text-center">
+                      {details.totalBoxes}
+                    </div>
+                    <div className="w-[15%] flex justify-center gap-2 items-center">
+                      <input
+                        type="number"
+                        value={details.quantity}
+                        placeholder="Qty"
+                        onChange={(e) =>
+                          handleQuantityChange(index, e.target.value)
+                        }
+                        className="w-20 text-sm text-gray-100 bg-gray-600 outline-none focus:ring-1 ring-gray-700 rounded-lg py-1 px-2"
+                      />
+                      <CiCircleRemove
+                        onClick={() => removeMedicine(details._id)}
+                        className="text-red-400 hover:text-red-500 size-5"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
+
           <div className="font-semibold">
             {"Send Message to " +
               (selectedType === "manufacturer" ? "MR" : "Vendor")}
           </div>
+          {!contact && (
+            <div className="text-red-600 text-sm">No Contact Available</div>
+          )}
           <button
             onClick={sendWhatsAppMessage}
-            disabled={!contact}
-            className="px-3 py-2 font-semibold rounded-lg bg-green-600 text-white my-2 mx-auto flex gap-2"
+            disabled={
+              !contact ||
+              !selectedMedicines.length ||
+              selectedMedicines.some((medicine) => medicine.quantity === "")
+            }
+            className="px-3 py-2 font-semibold rounded-lg bg-green-600 disabled:bg-gray-700 text-white my-2 mx-auto flex gap-2"
           >
             <FaWhatsapp className="size-6" />
             <div>Whatsapp</div>
           </button>
         </>
-      ) : (
-        <button
-          onClick={handleGetDetails}
-          disabled={!selectedManfacturer}
-          className="px-3 py-2 font-semibold rounded-lg bg-sky-600 my-2 mx-auto"
-        >
-          Get Details
-        </button>
       )}
     </div>
   );

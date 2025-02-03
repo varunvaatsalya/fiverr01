@@ -1,10 +1,9 @@
 // models/User.js
 import mongoose from 'mongoose';
 
-const UserSchema = new mongoose.Schema({
+const pharmacyUserSchema = new mongoose.Schema({
   uid: {
     type: String,
-    required: [true, 'Please provide a UID'],
   },
   name: {
     type: String,
@@ -26,7 +25,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['owner', 'salesman', 'dispenser', 'stockist'],
+    enum: ['dispenser', 'stockist'],
     required: true,
   },
   editPermission: {
@@ -39,4 +38,4 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.models.User || mongoose.model('User', UserSchema);
+export default mongoose.models.PharmacyUser || mongoose.model('PharmacyUser', pharmacyUserSchema);

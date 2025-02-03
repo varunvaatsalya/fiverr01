@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyToken } from "../../utils/jwt";
-import Medicine from "../../models/Medicine";
+import OrderHistory from "../../models/OrderHistory";
 import mongoose from "mongoose";
 
 export async function GET(req) {
@@ -27,17 +27,16 @@ export async function GET(req) {
   //   }
 
   try {
+    let params = {};
+
+    if (id) {
+      params = { _id: new mongoose.Types.ObjectId(id) };
+    }
+    console.log(params);
     const medicinesWithStock = await Medicine.aggregate([
-      // Step 1: Filter medicines by manufacturer
-      {
-        $match: {
-          $or: [
-            { manufacturer: new mongoose.Types.ObjectId(id) },
-            { vendor: new mongoose.Types.ObjectId(id) },
-          ],
-        },
-      },
-      // Step 2: Lookup stock details
+      // {
+      //   $match: { _id: new mongoose.Types.ObjectId(id) },
+      // },
       {
         $lookup: {
           from: "stocks",
@@ -46,7 +45,6 @@ export async function GET(req) {
           as: "stocks",
         },
       },
-      // Step 3: Add total boxes count
       {
         $addFields: {
           totalBoxes: {
@@ -54,17 +52,16 @@ export async function GET(req) {
           },
         },
       },
-      // Step 4: Project the required fields
       {
         $project: {
           _id: 1,
           name: 1,
+          manufacturer: 1,
           medicineType: 1,
           "minimumStockCount.godown": 1,
           totalBoxes: 1,
         },
       },
-      // Step 5: Sort by medicine name alphabetically (A-Z)
       {
         $sort: { name: 1 },
       },
@@ -80,6 +77,84 @@ export async function GET(req) {
         success: true,
       },
       { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error during registration:", error);
+    return NextResponse.json(
+      { message: "Internal server error", success: false },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req) {
+  await dbConnect();
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  // if (userRole !== "admin") {
+  //   return NextResponse.json(
+  //     { message: "Access denied. Admins only.", success: false },
+  //     { status: 403 }
+  //   );
+  // }
+  const { to, mrName, contact, medicines } = await req.json();
+
+  try {
+    console.log(to, mrName, contact, medicines)
+    if (!to || !contact) {
+      return NextResponse.json(
+        {
+          message: "Name or contact is blank",
+          success: false,
+        },
+        { status: 400 }
+      );
+    }
+
+    const invalidMedicines = medicines.filter(
+      (medicine) => !medicine.name || !medicine.quantity
+    );
+
+    if (invalidMedicines.length > 0) {
+      return NextResponse.json(
+        {
+          message: "Some medicines have blank name or quantity",
+          success: false,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Create new user
+    const newHistory = new OrderHistory({
+      to,
+      mrName,
+      contact,
+      medicines,
+    });
+
+    // Save History to the database
+    await newHistory.save();
+
+    // Send response with UID
+    return NextResponse.json(
+      { message: "Order recorded successfully!", success: true },
+      { status: 201 }
     );
   } catch (error) {
     console.error("Error during registration:", error);

@@ -9,6 +9,7 @@ function NewStockForm({ medicines }) {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [data, setData] = useState();
+  const [quantity, setQunatity] = useState("");
 
   const { register, handleSubmit, reset } = useForm();
   function onSubmit(data) {
@@ -295,11 +296,19 @@ function NewStockForm({ medicines }) {
             {...register("quantity", {
               required: true,
             })}
+            onChange={(e) => {
+              setQunatity(e.target.value);
+            }}
             placeholder="Nos of Boxes"
             className="p-2 rounded-xl w-1/2 bg-gray-300"
             min={0}
           />
         </div>
+        {quantity && selectedMedicine && selectedMedicine.packetSize.strips && (
+          <div className="text-center text-red-600 font-semibold">
+            {quantity*selectedMedicine.packetSize.strips+" Total Strips/Bottels"}
+          </div>
+        )}
         <div className="block font-semibold text-gray-900">
           Select Extra/offer Medicine Strips
         </div>
@@ -313,7 +322,8 @@ function NewStockForm({ medicines }) {
           />
         </div>
         <div className="text-center text-red-500">
-          *Please carefully set the price of a single unit/pcs/strip/qty of medicines.
+          *Please carefully set the price of a single unit/pcs/strip/qty of
+          medicines.
         </div>
         <div className="flex justify-center items-center text-gray-800 py-1 gap-10">
           <div className="flex-flex-col justify-center items-center">

@@ -75,7 +75,7 @@ function NewUserForm({ setNewUserSection, role, updateUsers }) {
           id="password"
           type="password"
           minLength={6}
-          placeholder={"Set the " + role + "'s password"}
+          placeholder={"Set the " + role + "'s password (min 6 char)"}
           {...register("password", { required: "Password is required" })}
           className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />

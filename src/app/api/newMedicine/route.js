@@ -37,8 +37,7 @@ export async function GET(req) {
         })
         .populate({
           path: "salts",
-        })
-        .select("-vendor");
+        });
 
       return NextResponse.json(
         {
@@ -77,9 +76,6 @@ export async function GET(req) {
       .sort({ name: 1 })
       .populate({
         path: "manufacturer",
-      })
-      .populate({
-        path: "vendor",
       })
       .populate({
         path: "salts",
@@ -129,7 +125,7 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { _id, name, manufacturer,medicineType, packetSize, isTablets, salts, vendor } =
+  const { name, manufacturer,medicineType, packetSize, isTablets, salts } =
     await req.json();
 
   try {
@@ -140,7 +136,6 @@ export async function POST(req) {
       isTablets,
       medicineType,
       salts,
-      vendor,
     });
     await medicine.save();
     return NextResponse.json(
@@ -157,7 +152,7 @@ export async function POST(req) {
 }
 
 export async function PUT(req) {
-  let minqty = req.nextUrl.searchParams.get("minqty");
+  // let minqty = req.nextUrl.searchParams.get("minqty");
 
   await dbConnect();
 
@@ -195,7 +190,6 @@ export async function PUT(req) {
     packetSize,
     isTablets,
     salts,
-    vendor,
   } = await req.json();
 
   try {
@@ -212,7 +206,6 @@ export async function PUT(req) {
         medicineType,
         isTablets,
         salts,
-        vendor,
       };
     }
     let medicine = await Medicine.findOneAndUpdate(

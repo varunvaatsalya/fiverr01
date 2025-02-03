@@ -11,7 +11,7 @@ function NewMedicineForm() {
   const [data, setData] = useState({});
   const [isTablets, setIsTablets] = useState(false);
   const [manufacturers, setManufacturers] = useState([]);
-  const [vendors, setVendors] = useState([]);
+  // const [vendors, setVendors] = useState([]);
   const [salts, setSalts] = useState([]);
   const [editMedicineSection, setEditMedicineSection] = useState(false);
   const [medicines, setMedicines] = useState([]);
@@ -24,7 +24,7 @@ function NewMedicineForm() {
       .then((res) => res.json())
       .then((data) => {
         setManufacturers(data.response.manufacturers);
-        setVendors(data.response.vendors);
+        // setVendors(data.response.vendors);
         setSalts(data.response.salts);
       });
   }, []);
@@ -55,7 +55,7 @@ function NewMedicineForm() {
         .then((res) => res.json())
         .then((data) => {
           setValue("manufacturer", data.response.manufacturer);
-          setValue("vendor", data.response.vendor);
+          // setValue("vendor", data.response.vendor);
           setValue("name", data.response.name);
           setValue("medicineType", data.response.medicineType);
           setValue("salts", data.response.salts);
@@ -101,10 +101,10 @@ function NewMedicineForm() {
     const manufacturer = manufacturers.find((m) => m._id === id);
     return manufacturer ? manufacturer.name : "Unknown Manufacturer";
   };
-  const getVendorNameById = (id) => {
-    const vendor = vendors.find((m) => m._id === id);
-    return vendor ? vendor.name : "Unknown Vendor";
-  };
+  // const getVendorNameById = (id) => {
+  //   const vendor = vendors.find((m) => m._id === id);
+  //   return vendor ? vendor.name : "Unknown Vendor";
+  // };
   const getSaltNameById = (id) => {
     const salt = salts.find((m) => m._id === id);
     return salt ? salt.name : "Unknown Salt";
@@ -273,21 +273,6 @@ function NewMedicineForm() {
             </option>
           ))}
         </select>
-        <label className="block font-semibold text-gray-900" htmlFor="Vendor">
-          Select Vendor
-        </label>
-        <select
-          id="Vendor"
-          {...register("vendor", { required: "Vendor is required" })}
-          className="mt-1 block px-4 py-3 text-white w-full md:w-3/4 mx-auto bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        >
-          <option value="">-- Select a Vendor --</option>
-          {vendors.map((Vendor, index) => (
-            <option key={index} value={Vendor._id}>
-              {Vendor.name}
-            </option>
-          ))}
-        </select>
         <div className="block font-semibold text-gray-900">Medicine Name</div>
         <div className="flex justify-center items-center text-gray-800 py-1">
           <input
@@ -310,7 +295,7 @@ function NewMedicineForm() {
             className="size-4"
           />
           <div className="font-semibold">
-            IsTablet<span className="text-red-500">*</span>
+            IsTablet<span className="text-red-500">{"* (Check this Box if Medicine is of Tablet or Capsules type.)"}</span>
           </div>
         </div>
         <div className="block font-semibold text-gray-900">Medicine Type</div>

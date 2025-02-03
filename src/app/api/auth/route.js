@@ -39,6 +39,8 @@ export async function POST(req) {
     salesman: "/dashboard-salesman",
     pathologist: "/dashboard-pathologist",
     nurse: "/dashboard-nurse",
+    dispenser: "/dashboard-dispenser",
+    stockist: "/dashboard-stockist",
   };
 
   // Replace with a strong secret
