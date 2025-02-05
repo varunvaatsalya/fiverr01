@@ -91,6 +91,7 @@ export default function Page() {
       .map((data) => ({
         Company: data.Company.toUpperCase(),
         Name: data.Name.toUpperCase(),
+        isTablets:data.isTablets,
         medicineType: data.medicineType
           ? data.medicineType.toUpperCase()
           : "N/A",
