@@ -87,8 +87,10 @@ function NewMedicineForm() {
       setMessage(result.message);
       if (result.success) {
         reset();
+        setEditMedicineSection(false);
         setTimeout(() => {
           setMedicineDetailsSection(false);
+          setMessage("");
         }, 2500);
       }
     } catch (error) {
@@ -132,7 +134,7 @@ function NewMedicineForm() {
                     {getManufacturerNameById(data.manufacturer)}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                   <div className="w-2/5 flex justify-between">
                     <div className="">Vendor</div>
                     <div className="">:</div>
@@ -140,7 +142,7 @@ function NewMedicineForm() {
                   <span className="text-blue-500">
                     {getVendorNameById(data.vendor)}
                   </span>
-                </div>
+                </div> */}
                 <div className="flex items-center gap-2">
                   <div className="w-2/5 flex justify-between">
                     <div className="">Name</div>
@@ -155,7 +157,7 @@ function NewMedicineForm() {
                   </div>
                   <span className="text-blue-500">{data.medicineType}</span>
                 </div>
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                   <div className="w-2/5 flex justify-between items-center">
                     <div className="">Medical Representator</div>
                     <div className="">:</div>
@@ -165,7 +167,7 @@ function NewMedicineForm() {
                       " - " +
                       data.manufacturer.medicalRepresentator?.contact}
                   </span>
-                </div>
+                </div> */}
                 <div className="flex items-center gap-2">
                   <div className="w-2/5 flex justify-between">
                     <div className="">Salts</div>

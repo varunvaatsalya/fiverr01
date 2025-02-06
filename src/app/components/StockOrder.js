@@ -11,6 +11,7 @@ function StockOrder({ info, selectedType }) {
   const [allData, setAllData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
+  const [lowStockManufacturers, setLowStockManufacturers] = useState(new Set());
 
   useEffect(() => {
     let query = "";
@@ -20,8 +21,15 @@ function StockOrder({ info, selectedType }) {
       .then((res) => res.json())
       .then((data) => {
         setAllData(data.medicinesWithStock);
-        console.log(data.medicinesWithStock);
-        // setMessage(data.message);
+        // minimumStockCount?.godown - medicine.totalBoxes
+        const lowStockSet = new Set();
+        data.medicinesWithStock.forEach((med) => {
+          if (!med.minimumStockCount || med.totalBoxes < med.minimumStockCount.godown) {
+            lowStockSet.add(med.manufacturer);
+          }
+        });
+
+        setLowStockManufacturers(lowStockSet);
       });
   }, []);
 
@@ -198,6 +206,7 @@ Required Quantity: ${medicine.quantity} boxes
         <option value="">{"-- Select a " + selectedType + " --"}</option>
         {info.map((manufacturer, index) => (
           <option key={index} value={manufacturer._id}>
+            {lowStockManufacturers.has(manufacturer._id) ? "--*--" : ""}{" "}
             {manufacturer.name}
           </option>
         ))}

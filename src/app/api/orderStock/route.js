@@ -2,36 +2,32 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyToken } from "../../utils/jwt";
 import OrderHistory from "../../models/OrderHistory";
-import mongoose from "mongoose";
+import Medicine from "../../models/Medicine";
 
 export async function GET(req) {
   await dbConnect();
-  let id = req.nextUrl.searchParams.get("id");
 
-  //   const token = req.cookies.get("authToken");
-  //   if (!token) {
-  //     console.log("Token not found. Redirecting to login.");
-  //     return NextResponse.json(
-  //       { message: "Access denied. No token provided.", success: false },
-  //       { status: 401 }
-  //     );
-  //   }
+    const token = req.cookies.get("authToken");
+    if (!token) {
+      console.log("Token not found. Redirecting to login.");
+      return NextResponse.json(
+        { message: "Access denied. No token provided.", success: false },
+        { status: 401 }
+      );
+    }
 
-  //   const decoded = await verifyToken(token.value);
-  //   const userRole = decoded.role;
-  //   if (!decoded || !userRole) {
-  //     return NextResponse.json(
-  //       { message: "Invalid token.", success: false },
-  //       { status: 403 }
-  //     );
-  //   }
+    const decoded = await verifyToken(token.value);
+    const userRole = decoded.role;
+    if (!decoded || !userRole) {
+      return NextResponse.json(
+        { message: "Invalid token.", success: false },
+        { status: 403 }
+      );
+    }
 
   try {
     let params = {};
 
-    if (id) {
-      params = { _id: new mongoose.Types.ObjectId(id) };
-    }
     console.log(params);
     const medicinesWithStock = await Medicine.aggregate([
       // {

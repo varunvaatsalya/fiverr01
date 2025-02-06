@@ -38,6 +38,9 @@ const stockSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  invoiceId: {
+    type: String,
+  },
   updatedAt: {
     type: Date,
     default: Date.now,
