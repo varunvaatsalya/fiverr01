@@ -5,6 +5,9 @@ function PharmacySectionComponent({
   FormComponent,
   editInvoice,
   setEditInvoice,
+  setExpressBills,
+  expressData,
+  setExpressData
 }) {
   return (
     <div className="absolute top-0 left-0">
@@ -14,7 +17,10 @@ function PharmacySectionComponent({
             setNewInvoiceSection={setNewInvoiceSection}
             setInvoices={setInvoices}
             editInvoice={editInvoice}
+            setExpressBills={setExpressBills}
             setEditInvoice={setEditInvoice}
+            expressData={expressData}
+            setExpressData={setExpressData}
           />
         </div>
       </div>

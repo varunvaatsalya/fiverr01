@@ -17,6 +17,7 @@ function NewMedicineForm() {
   const [medicines, setMedicines] = useState([]);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isEditPermission, setIsEditPermission] = useState(false);
 
   useEffect(() => {}, [isTablets]);
   useEffect(() => {
@@ -26,6 +27,7 @@ function NewMedicineForm() {
         setManufacturers(data.response.manufacturers);
         // setVendors(data.response.vendors);
         setSalts(data.response.salts);
+        setIsEditPermission(data.editPermission);
       });
   }, []);
 
@@ -60,7 +62,10 @@ function NewMedicineForm() {
           setValue("medicineType", data.response.medicineType);
           setValue("salts", data.response.salts);
           setValue("packetSize.strips", data.response.packetSize.strips);
-          setValue("packetSize.tabletsPerStrip", data.response.packetSize.tabletsPerStrip);
+          setValue(
+            "packetSize.tabletsPerStrip",
+            data.response.packetSize.tabletsPerStrip
+          );
           setValue("isTablets", data.response.isTablets);
           setIsTablets(data.response.isTablets);
         });
@@ -77,7 +82,7 @@ function NewMedicineForm() {
     setSubmitting(true);
     try {
       let result = await fetch("/api/newMedicine", {
-        method: selectedMedicine?"PUT":"POST",
+        method: selectedMedicine ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -111,6 +116,14 @@ function NewMedicineForm() {
     const salt = salts.find((m) => m._id === id);
     return salt ? salt.name : "Unknown Salt";
   };
+
+  if (!isEditPermission) {
+    return (
+      <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center bg-slate-800 text-white py-2 text-lg rounded-xl mx-auto my-2">
+        You do not have permission to add or edit medicines.
+      </div>
+    );
+  }
   return (
     <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center border border-slate-800 rounded-xl mx-auto my-2">
       {medicineDetailsSection && (
@@ -297,7 +310,10 @@ function NewMedicineForm() {
             className="size-4"
           />
           <div className="font-semibold">
-            IsTablet<span className="text-red-500">{"* (Check this Box if Medicine is of Tablet or Capsules type.)"}</span>
+            IsTablet
+            <span className="text-red-500">
+              {"* (Check this Box if Medicine is of Tablet or Capsules type.)"}
+            </span>
           </div>
         </div>
         <div className="block font-semibold text-gray-900">Medicine Type</div>
@@ -315,7 +331,6 @@ function NewMedicineForm() {
         </label>
         <select
           id="Salts"
-          
           {...register("salts", { required: "Salts is required" })}
           className="mt-1 block px-4 py-3 text-white w-full md:w-3/4 mx-auto bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         >
@@ -364,7 +379,7 @@ function NewMedicineForm() {
             type="submit"
             className="bg-blue-600 hover:bg-blue-800 py-2 px-4 rounded-xl font-semibold"
           >
-            {selectedMedicine?"Update":"Add"}
+            {selectedMedicine ? "Update" : "Add"}
           </button>
         </div>
       </form>

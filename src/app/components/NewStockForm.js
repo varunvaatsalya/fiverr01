@@ -10,6 +10,9 @@ function NewStockForm({ medicines }) {
   const [message, setMessage] = useState("");
   const [data, setData] = useState();
   const [quantity, setQunatity] = useState("");
+  const [extras, setExtras] = useState("");
+  const [sprice, setSPrice] = useState("");
+  const [mrp, setMrp] = useState("");
 
   const { register, handleSubmit, reset } = useForm();
   function onSubmit(data) {
@@ -306,7 +309,8 @@ function NewStockForm({ medicines }) {
         </div>
         {quantity && selectedMedicine && selectedMedicine.packetSize.strips && (
           <div className="text-center text-red-600 font-semibold">
-            {quantity*selectedMedicine.packetSize.strips+" Total Strips/Bottels"}
+            {quantity * selectedMedicine.packetSize.strips +
+              " Total Strips/Bottels"}
           </div>
         )}
         <div className="block font-semibold text-gray-900">
@@ -316,6 +320,9 @@ function NewStockForm({ medicines }) {
           <input
             type="number"
             {...register("extra")}
+            onChange={(e) => {
+              setExtras(e.target.value);
+            }}
             placeholder="Nos of Extra Strips"
             className="p-2 rounded-xl w-1/2 bg-gray-300"
             min={0}
@@ -335,6 +342,9 @@ function NewStockForm({ medicines }) {
               {...register("sellingPrice", {
                 required: "MRP is required",
               })}
+              onChange={(e) => {
+                setMrp(e.target.value);
+              }}
               placeholder="MRP"
               className="p-2 rounded-xl w-40 bg-gray-300"
               min={1}
@@ -349,12 +359,25 @@ function NewStockForm({ medicines }) {
               {...register("purchasePrice", {
                 required: "Purchase Price is required",
               })}
+              onChange={(e) => {
+                setSPrice(e.target.value);
+              }}
               placeholder="Purchase Price"
               className="p-2 rounded-xl w-40 bg-gray-300"
               min={1}
             />
           </div>
         </div>
+        {sprice &&
+          quantity &&
+          selectedMedicine &&
+          selectedMedicine.packetSize.strips && (
+            <div className="text-center text-red-600 font-semibold">
+              {(sprice *
+                quantity * selectedMedicine.packetSize.strips + sprice *extras) +
+                " Rs COST PRICE"}
+            </div>
+          )}
         <hr className="border-t border-slate-500 w-full my-2" />
         <div className="w-full md:w-3/4 mx-auto flex justify-center itmes-center my-2">
           <button

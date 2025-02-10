@@ -1,8 +1,8 @@
 import React from "react";
 import { FaCircleInfo } from "react-icons/fa6";
 import { MdMedicalInformation } from "react-icons/md";
-import Navbar from "../../../components/Navbar";
-import Footer from "../../../components/Footer";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 import Link from "next/link";
 
 function Page() {
@@ -11,14 +11,14 @@ function Page() {
       name: "Add/Edit Medicine",
       description: "You can edit & create pharmacy Medicine here",
       icon: <MdMedicalInformation size={50} />,
-      link: "/dashboard-admin/pharmacy/pharmacyConfig/addMedicine",
+      link: "/dashboard-stockist/pharmacyConfig/addMedicine",
       color: "bg-teal-700",
     },
     {
       name: "Medicine Info",
       description: "You can show & manage the medicine's meta data",
       icon: <FaCircleInfo size={40} />,
-      link: "/dashboard-admin/pharmacy/pharmacyConfig/metaData",
+      link: "/dashboard-stockist/pharmacyConfig/metaData",
       color: "bg-violet-700",
     },
   ];

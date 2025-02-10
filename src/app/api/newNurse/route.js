@@ -106,28 +106,29 @@ export async function POST(req) {
   }
 }
 
-// export async function DELETE(req) {
-//   await dbConnect();
-//   const { id } = await req.json();
+export async function DELETE(req) {
+  await dbConnect();
+  const { id } = await req.json();
 
-//   try {
-//     const deletedAdmin = await Admin.findByIdAndDelete(id);
-//     if (!deletedAdmin) {
-//       return NextResponse.json(
-//         { message: "Admin not found", success: false },
-//         { status: 404 }
-//       );
-//     }
+  try {
+    const deletedUser = await Nurse.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return NextResponse.json(
+        { message: "User not found", success: false },
+        { status: 404 }
+      );
+    }
 
-//     return NextResponse.json(
-//       { message: "Admin deleted successfully", success: true },
-//       { status: 200 }
-//     );
-//   } catch (error) {
-//     console.error("Error deleting admin:", error);
-//     return NextResponse.json(
-//       { message: "Internal server error", success: false },
-//       { status: 500 }
-//     );
-//   }
-// }
+    return NextResponse.json(
+      { message: "User deleted successfully", success: true },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting admin:", error);
+    return NextResponse.json(
+      { message: "Internal server error", success: false },
+      { status: 500 }
+    );
+  }
+}
+

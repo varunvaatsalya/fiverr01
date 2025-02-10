@@ -11,6 +11,7 @@ function MedicineMetaDataForm() {
   const [medicineRepresentators, setMedicineRepresentators] = useState([]);
   const [salts, setSalts] = useState([]);
   const [updateMode, setUpdateMode] = useState(false);
+  const [isEditPermission, setIsEditPermission] = useState(false);
 
   useEffect(() => {
     fetch("/api/medicineMetaData")
@@ -20,6 +21,7 @@ function MedicineMetaDataForm() {
         setVendors(data.response.vendors);
         setMedicineRepresentators(data.response.mrs);
         setSalts(data.response.salts);
+        setIsEditPermission(data.editPermission);
       });
   }, []);
 
@@ -78,6 +80,15 @@ function MedicineMetaDataForm() {
       console.error("Error:", error);
     }
   };
+
+  if (!isEditPermission) {
+    return (
+      <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center bg-slate-800 text-white py-2 text-lg rounded-xl mx-auto my-2">
+        You do not have permission to add or edit medicines.
+      </div>
+    );
+  }
+  
   return (
     <div className="py-2 md:max-w-2xl mx-auto">
       <div className="p-2 flex flex-wrap justify-center items-center gap-3">
@@ -216,10 +227,7 @@ function Manufacturer({
         {manufacturers.map((Manufacturer) => (
           <div key={Manufacturer._id}>
             <hr className="border-t border-gray-600 w-3/4 mx-auto" />
-            <div
-              
-              className="text-center text-black flex justify-center gap-2 items-center"
-            >
+            <div className="text-center text-black flex justify-center gap-2 items-center">
               <div className="">
                 {Manufacturer.name +
                   ", " +
@@ -354,7 +362,10 @@ function Vendor({ vendors, updateMode, setUpdateMode, handleFormSubmit }) {
                   setValue("name", vendor.name);
                   setValue("contact", vendor.contact);
                   setValue("address", vendor.address);
-                  setValue("bankDetails.bankName", vendor.bankDetails?.bankName);
+                  setValue(
+                    "bankDetails.bankName",
+                    vendor.bankDetails?.bankName
+                  );
                   setValue(
                     "bankDetails.accountNo",
                     vendor.bankDetails?.accountNo
@@ -484,9 +495,7 @@ function Salts({ salts, updateMode, setUpdateMode, handleFormSubmit }) {
             <hr className="border-t border-gray-600 w-3/4 mx-auto" />
             <div key={index} className="flex items-center justify-center gap-4">
               <div className="text-center text-black">{salt.name}</div>
-              <div className="text-center text-black">
-                {salt.useCase}
-              </div>
+              <div className="text-center text-black">{salt.useCase}</div>
               <div
                 className="text-gray-600 hover:bg-gray-400 bg-gray-300 cursor-pointer rounded text-xs font-semibold px-2"
                 onClick={() => {

@@ -116,7 +116,7 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
                       {user.email}
                     </div>
                     <div className="w-1/5 flex items-center justify-center">
-                      {user.role == "salesman" && user.editPermission
+                      {user.editPermission
                         ? "Edit Access"
                         : ""}
                     </div>

@@ -21,7 +21,6 @@ const Analytics = ({
     endDate: "",
     endTime: "23:59", // default end time
   });
-  console.log(prescriptions, 1111);
 
   const onSubmit = async () => {
     setSubmitting(true);
@@ -99,8 +98,8 @@ const Analytics = ({
     const currentDate = `${today.getFullYear()}-${(today.getMonth() + 1)
       .toString()
       .padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}`;
-    console.log("Today (IST):", today);
-    console.log("currentDate (start of filter):", currentDate);
+    // console.log("Today (IST):", today);
+    // console.log("currentDate (start of filter):", currentDate);
 
     let startDateTime = new Date(
       `${currentDate}T${dateRange.startTime || "00:00"}`
@@ -109,8 +108,8 @@ const Analytics = ({
       `${currentDate}T${dateRange.endTime || "23:59"}`
     );
 
-    console.log("Start DateTime (for filter):", startDateTime);
-    console.log("End DateTime (for filter):", endDateTime);
+    // console.log("Start DateTime (for filter):", startDateTime);
+    // console.log("End DateTime (for filter):", endDateTime);
     
     if (selectedDepartment.length) {
       filtered = filtered.filter((p) =>
@@ -124,8 +123,8 @@ const Analytics = ({
       filtered = filtered.filter((p) => p.paymentMode === selectedPaymentMode);
     }
 
-    console.log("Start DateTime:", startDateTime);
-    console.log("End DateTime:", endDateTime);
+    // console.log("Start DateTime:", startDateTime);
+    // console.log("End DateTime:", endDateTime);
 
     filtered = filtered.filter((p) => {
       const prescriptionDate = new Date(p.createdAt); // Date the prescription was created
@@ -136,7 +135,6 @@ const Analytics = ({
     });
 
     console.log("Filtered Prescriptions:", filtered);
-
     setFilteredPrescriptions(filtered);
   };
 
@@ -152,19 +150,6 @@ const Analytics = ({
     dateRange.endDate,
     dateRange.endTime,
   ]);
-
-  // useEffect(() => {
-  //   handleFilter();
-  // }, [
-  //   prescriptions,
-  //   selectedDepartment,
-  //   selectedDoctor,
-  //   selectedPaymentMode,
-  //   dateRange.startDate,
-  //   dateRange.startTime,
-  //   dateRange.endDate,
-  //   dateRange.endTime,
-  // ]);
 
   const getTotalAmount = () => {
     return filteredPrescriptions.reduce(

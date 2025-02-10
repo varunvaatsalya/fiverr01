@@ -1,12 +1,12 @@
-import React from 'react'
+import React from "react";
 import { FaFileArrowUp, FaHouseMedicalFlag, FaOutdent } from "react-icons/fa6";
-import { MdFormatListBulletedAdd } from "react-icons/md";
+import { MdFormatListBulletedAdd, MdSpeakerNotes } from "react-icons/md";
 import { BsClipboardDataFill, BsReceipt } from "react-icons/bs";
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
-import Link from 'next/link';
-import { IoCreate } from 'react-icons/io5';
-import { FaNotesMedical } from 'react-icons/fa';
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
+import Link from "next/link";
+import { IoCreate } from "react-icons/io5";
+import { FaNotesMedical } from "react-icons/fa";
 
 function Page() {
   const Works = [
@@ -23,6 +23,13 @@ function Page() {
       icon: <BsReceipt size={50} />,
       link: "/dashboard-admin/pharmacy/invoices",
       color: "bg-rose-900",
+    },
+    {
+      name: "Express Billing",
+      description: "You can show all the pharmacy Express Invoices here",
+      icon: <MdSpeakerNotes size={50} />,
+      link: "/dashboard-admin/pharmacy/pharmacyExpressBilling",
+      color: "bg-sky-600",
     },
     {
       name: "Retail Works",
@@ -53,49 +60,47 @@ function Page() {
       color: "bg-fuchsia-900",
     },
   ];
-  
+
   return (
     <div className="flex flex-col min-h-screen">
-        <Navbar route={["Pharmacy"]} />
-        <div className="flex-grow flex flex-wrap justify-center items-center gap-8 p-6">
-          {Works.map((workCard) => {
-            return (
-              <>
-                <Link
-                  href={workCard.link}
-                  key={workCard.name}
-                  className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
-                >
-                  {workCard.icon}
-                  <div className="font-bold text-xl">{workCard.name}</div>
-                  <div className="text-center">{workCard.description}</div>
-                </Link>
-              </>
-            );
-          })}
-          <div className="bg-pink-600 w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105">
-            <div className="h-1/5 w-full border-b-2 border-pink-500 text-center py-1 text-lg font-semibold">
-              Pharmacy Users
-            </div>
+      <Navbar route={["Pharmacy"]} />
+      <div className="flex-grow flex flex-wrap justify-center items-center gap-8 p-6">
+        {Works.map((workCard) => {
+          return (
             <Link
-              href={"/dashboard-admin/pharmacy/dispenser"}
-              className="h-2/5 flex justify-center items-center gap-2 border-b-2 border-pink-500 hover:bg-pink-700 w-full rounded-xl"
+              href={workCard.link}
+              key={workCard.link}
+              className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
             >
-              <FaNotesMedical size={30} />
-              <div className="text-xl font-bold text-white">Dispenser</div>
+              {workCard.icon}
+              <div className="font-bold text-xl">{workCard.name}</div>
+              <div className="text-center">{workCard.description}</div>
             </Link>
-            <Link
-              href={"/dashboard-admin/pharmacy/stockist"}
-              className="h-2/5 flex justify-center items-center gap-2 border-b-2 border-pink-500 hover:bg-pink-700 w-full rounded-xl"
-            >
-              <FaHouseMedicalFlag size={30} />
-              <div className="text-xl font-bold text-white">Stockist</div>
-            </Link>
+          );
+        })}
+        <div className="bg-pink-600 w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105">
+          <div className="h-1/5 w-full border-b-2 border-pink-500 text-center py-1 text-lg font-semibold">
+            Pharmacy Users
           </div>
+          <Link
+            href={"/dashboard-admin/pharmacy/dispenser"}
+            className="h-2/5 flex justify-center items-center gap-2 border-b-2 border-pink-500 hover:bg-pink-700 w-full rounded-xl"
+          >
+            <FaNotesMedical size={30} />
+            <div className="text-xl font-bold text-white">Dispenser</div>
+          </Link>
+          <Link
+            href={"/dashboard-admin/pharmacy/stockist"}
+            className="h-2/5 flex justify-center items-center gap-2 border-b-2 border-pink-500 hover:bg-pink-700 w-full rounded-xl"
+          >
+            <FaHouseMedicalFlag size={30} />
+            <div className="text-xl font-bold text-white">Stockist</div>
+          </Link>
         </div>
-        <Footer />
       </div>
-  )
+      <Footer />
+    </div>
+  );
 }
 
-export default Page
+export default Page;

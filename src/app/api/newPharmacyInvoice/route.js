@@ -160,15 +160,15 @@ export async function POST(req) {
     const retailStock = await RetailStock.find({
       medicine: { $in: requestedMedicineIds },
     });
-    console.log(111, retailStock[0].stocks);
+    // console.log(111, retailStock[0].stocks);
 
     for (const request of requestedMedicine) {
       const { medicineId, isTablets, quantity } = request;
 
       const stock = retailStock.find((rs) => rs.medicine.equals(medicineId));
-      console.log("medicineId", 121, retailStock[0].stocks, medicineId);
+      // console.log("medicineId", 121,stock, !stock, retailStock, retailStock[0]?.stocks, medicineId);
 
-      if (!stock || stock.stocks.length === 0) {
+      if (!stock || !stock.stocks || stock.stocks.length === 0) {
         result.push({ medicineId, status: "Out of Stock" });
         continue;
       }
@@ -181,7 +181,7 @@ export async function POST(req) {
         (a, b) => new Date(a.expiryDate) - new Date(b.expiryDate)
       );
 
-      const allocatedQuantities = []; // Track allocation per batch
+      const allocatedQuantities = [];
 
       for (const batch of updatedStocks) {
         const {
@@ -292,14 +292,12 @@ export async function POST(req) {
       // console.log(`Medicine ID: ${medicineId}`);
       // console.log("Allocated Quantities:", allocatedQuantities);
     }
-    console.log(131, retailStock[0].stocks);
     retailStock.forEach((medicine) => {
       medicine.stocks = medicine.stocks.filter((batch) => {
         const { totalStrips, tablets } = batch.quantity;
         return totalStrips !== 0 || tablets !== 0;
       });
     });
-    console.log(141, retailStock[0].stocks, JSON.stringify(result), 125);
 
     if (info === "1") {
       return NextResponse.json(

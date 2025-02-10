@@ -72,7 +72,7 @@ function AddNurseSection({ setNewUserSection, setNurses }) {
                 <input
                   id="email"
                   type="email"
-                  placeholder={"Enter the Admin's email"}
+                  placeholder={"Enter the nurse's email"}
                   {...register("email", { required: "Email is required" })}
                   className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
                 />
@@ -84,7 +84,7 @@ function AddNurseSection({ setNewUserSection, setNurses }) {
                   id="password"
                   type="password"
                   minLength={6}
-                  placeholder={"Set the Admin's password"}
+                  placeholder={"Set the nurse's password"}
                   {...register("password", {
                     required: "Password is required",
                   })}

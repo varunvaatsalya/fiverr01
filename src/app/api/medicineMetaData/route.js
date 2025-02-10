@@ -20,6 +20,8 @@ export async function GET(req) {
 
   const decoded = await verifyToken(token.value);
   const userRole = decoded.role;
+  let editPermission = decoded.editPermission;
+  console.log(editPermission);
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -49,6 +51,7 @@ export async function GET(req) {
       {
         response,
         userRole,
+        editPermission,
         success: true,
       },
       { status: 200 }

@@ -7,6 +7,7 @@ import { FaShippingFast } from "react-icons/fa";
 import { TbReportMedical } from "react-icons/tb";
 import { IoLogOut } from "react-icons/io5";
 import { FaKitMedical, FaPersonCirclePlus } from "react-icons/fa6";
+import { MdSpeakerNotes } from "react-icons/md";
 
 function Page() {
   const router = useRouter();
@@ -24,6 +25,13 @@ function Page() {
       icon: <FaShippingFast size={50} />,
       link: "/dashboard-nurse/expressBilling",
       color: "bg-amber-500",
+    },
+    {
+      name: "Express Billing",
+      description: "You can show all the pharmacy Express Invoices here",
+      icon: <MdSpeakerNotes size={50} />,
+      link: "/dashboard-nurse/pharmacyExpressBilling",
+      color: "bg-sky-600",
     },
     {
       name: "Reports",

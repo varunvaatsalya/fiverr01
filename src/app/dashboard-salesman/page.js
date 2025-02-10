@@ -4,9 +4,14 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { FaFilePrescription, FaShippingFast } from "react-icons/fa";
-import { FaKitMedical, FaMoneyBillTrendUp, FaPersonCirclePlus } from "react-icons/fa6";
+import {
+  FaKitMedical,
+  FaMoneyBillTrendUp,
+  FaPersonCirclePlus,
+} from "react-icons/fa6";
 import { TbReportMedical } from "react-icons/tb";
 import { IoLogOut } from "react-icons/io5";
+import { MdSpeakerNotes } from "react-icons/md";
 
 function Page() {
   const router = useRouter();
@@ -33,25 +38,29 @@ function Page() {
       color: "bg-amber-500",
     },
     {
+      name: "Express Billing",
+      description: "You can show all the pharmacy Express Invoices here",
+      icon: <MdSpeakerNotes size={50} />,
+      link: "/dashboard-salesman/pharmacyExpressBilling",
+      color: "bg-sky-600",
+    },
+    {
       name: "Reports",
-      description:
-        "You can see all pathology reports and print",
+      description: "You can see all pathology reports and print",
       icon: <TbReportMedical size={50} />,
       link: "/dashboard-salesman/reports",
       color: "bg-orange-500",
-    },    
+    },
     {
       name: "IPD",
-      description:
-        "You can manage here your all IPD works",
+      description: "You can manage here your all IPD works",
       icon: <FaKitMedical size={50} />,
       link: "/dashboard-salesman/ipd",
       color: "bg-amber-800",
     },
     {
       name: "Expenses",
-      description:
-        "You can show & add the all the Expenses.",
+      description: "You can show & add the all the Expenses.",
       icon: <FaMoneyBillTrendUp size={50} />,
       link: "/dashboard-salesman/expenses",
       color: "bg-fuchsia-700",
