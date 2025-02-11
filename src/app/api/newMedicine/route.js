@@ -167,6 +167,7 @@ export async function PUT(req) {
 
   const decoded = await verifyToken(token.value);
   const userRole = decoded.role;
+  const userEditPermission = decoded.editPermission;
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -197,7 +198,7 @@ export async function PUT(req) {
       "minimumStockCount.retails": retailsMinQty,
       "minimumStockCount.godown": godownMinQty,
     };
-    if (userRole === "admin") {
+    if (userRole === "admin" || (userRole === "stockist" && userEditPermission)) {
       updateFields = {
         ...updateFields,
         name,
