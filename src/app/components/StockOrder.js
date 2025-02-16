@@ -52,6 +52,7 @@ function StockOrder({ info, selectedType }) {
       setData([]);
       setFilteredData([]);
     }
+    setSelectedMedicines([]);
   }, [selectedType]);
 
   useEffect(() => {
