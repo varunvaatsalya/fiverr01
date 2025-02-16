@@ -348,8 +348,8 @@ function RetailStockRequest({ medicineStock, setMedicineStock, query }) {
                           {response.message}
                         </p>
                       ))
-                    : selectedMedicine.map((requestedMedicine) => (
-                        <div className="w-full lg:w-3/4 bg-gray-800 rounded-xl font-semibold p-1">
+                    : selectedMedicine.map((requestedMedicine, index) => (
+                        <div key={index+requestedMedicine.name} className="w-full lg:w-3/4 bg-gray-800 rounded-xl font-semibold p-1">
                           <div className="px-4 text-gray-50 text-start">
                             Medicine Name:{" "}
                             <span className="text-blue-500 font-semibold">
