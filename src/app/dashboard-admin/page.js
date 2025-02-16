@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { BsFillPersonBadgeFill,BsBuildingFillAdd, BsFillPersonVcardFill } from "react-icons/bs";
 import { FaFilePrescription, FaShippingFast, FaUserNurse } from "react-icons/fa";
-import { FaKitMedical, FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
+import { FaKitMedical, FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor, FaUsersGear } from "react-icons/fa6";
 import { GiMedicines } from "react-icons/gi";
 import { IoMdAnalytics } from "react-icons/io";
 import { TbReportMedical } from "react-icons/tb";
@@ -94,49 +94,23 @@ function Page() {
     },
     {
       name: "Doctors",
-      description: "You can show & add the doctors of diffrent hospitals",
+      description: "You can show & add the doctors of diffrent diffrent departments",
       icon: <FaUserDoctor size={50} />,
       link: "/dashboard-admin/doctors",
       color: "bg-green-700",
     },
+
     {
-      name: "Sales Men",
+      name: "User Role",
       description:
-        "Show, add the new salesman & give the access to edit the invoice",
-      icon: <BsFillPersonBadgeFill size={40} />,
-      link: "/dashboard-admin/salesman",
-      color: "bg-yellow-700",
+        "You can show & add the all role users here",
+      icon: <FaUsersGear size={40} />,
+      link: "/dashboard-admin/roles",
+      color: "bg-rose-700",
     },
-    {
-      name: "Nurse",
-      description: "You can show & add the Nurses",
-      icon: <FaUserNurse size={50} />,
-      link: "/dashboard-admin/nurse",
-      color: "bg-sky-800",
-    },
-    {
-      name: "Pathologist",
-      description: "You can show & add the doctors of diffrent hospitals",
-      icon: <FaUserDoctor size={50} />,
-      link: "/dashboard-admin/pathologist",
-      color: "bg-black",
-    },
-    {
-      name: "Owners",
-      description:
-        "You can Show all the owners of diffrent hospitals, also create the new owner",
-      icon: <BsFillPersonVcardFill size={50} />,
-      link: "/dashboard-admin/owners",
-      color: "bg-cyan-700",
-    },
-    {
-      name: "Admins",
-      description:
-        "You can Show all the admins also create & delete",
-      icon: <MdAdminPanelSettings size={50} />,
-      link: "/dashboard-admin/admins",
-      color: "bg-gray-700",
-    },
+    
+    
+    
   ];
   return (
     <>

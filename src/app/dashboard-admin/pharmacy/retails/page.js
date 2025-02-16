@@ -1,9 +1,10 @@
 import React from "react";
 import { FaHandHoldingMedical } from "react-icons/fa";
-import { TbChartInfographic } from "react-icons/tb";
+import { TbChartInfographic, TbClockExclamation } from "react-icons/tb";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Link from "next/link";
+import { IoBagAddSharp } from "react-icons/io5";
 
 function Page() {
   const Works = [
@@ -20,6 +21,20 @@ function Page() {
       icon: <TbChartInfographic size={50} />,
       link: "/dashboard-admin/pharmacy/retails/retailStock",
       color: "bg-lime-700",
+    },
+    {
+      name: "Stock Request",
+      description: "You can order the medicine form godown.",
+      icon: <IoBagAddSharp size={50} />,
+      link: "/dashboard-admin/pharmacy/retails/stockRequest",
+      color: "bg-rose-700",
+    },
+    {
+      name: "Stock Expiring Soon",
+      description: "From here you can see the list of medicines that are going to expire soon.",
+      icon: <TbClockExclamation size={50} />,
+      link: "/dashboard-admin/pharmacy/retails/stockExpiring",
+      color: "bg-amber-700",
     },
   ];
 

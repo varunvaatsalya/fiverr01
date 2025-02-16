@@ -1,12 +1,12 @@
 "use client";
 import React from "react";
 import { MdFormatListBulletedAdd, MdOutlineLibraryAdd } from "react-icons/md";
-import { TbExchange } from "react-icons/tb";
+import { TbClockExclamation, TbExchange, TbReportMoney } from "react-icons/tb";
 import { VscGitPullRequestGoToChanges } from "react-icons/vsc";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Link from "next/link";
-import { FaEdit, FaWhatsapp } from "react-icons/fa";
+import { FaEdit, FaFileInvoiceDollar, FaWhatsapp } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { IoLogOut } from "react-icons/io5";
 
@@ -14,8 +14,15 @@ function Page() {
   const router = useRouter();
   const Works = [
     {
+      name: "Purchase Invoice",
+      description: "You can create & view purchase stocks invoice",
+      icon: <FaFileInvoiceDollar size={50} />,
+      link: "/dashboard-stockist/purchaseInvoices",
+      color: "bg-gray-800",
+    },
+    {
       name: "New Stocks",
-      description: "You can create & edit wards and their beds",
+      description: "You can add new stock of any invoice",
       icon: <MdOutlineLibraryAdd size={50} />,
       link: "/dashboard-stockist/newStock",
       color: "bg-blue-800",
@@ -28,7 +35,7 @@ function Page() {
       color: "bg-teal-700",
     },
     {
-      name: "Stock Request",
+      name: "Request From Retail",
       description: "You can view & transfer retail stock request here",
       icon: <VscGitPullRequestGoToChanges size={50} />,
       link: "/dashboard-stockist/godownStockRequest",
@@ -42,6 +49,21 @@ function Page() {
       color: "bg-rose-700",
     },
     {
+      name: "Payments Due",
+      description: "You can create and view all the due invoices here",
+      icon: <TbReportMoney size={50} />,
+      link: "/dashboard-stockist/purchaseDueInvoices",
+      color: "bg-violet-700",
+    },
+    {
+      name: "Stock Expiring Soon",
+      description:
+        "From here you can see the list of medicines that are going to expire soon.",
+      icon: <TbClockExclamation size={50} />,
+      link: "/dashboard-stockist/stockExpiring",
+      color: "bg-amber-700",
+    },
+    {
       name: "Stock Order",
       description: "You can order the godown stock here",
       icon: <FaWhatsapp size={50} />,
@@ -53,13 +75,13 @@ function Page() {
       description: "You can edit & create pharmacy items",
       icon: <MdFormatListBulletedAdd size={50} />,
       link: "/dashboard-stockist/pharmacyConfig",
-      color: "bg-violet-800",
+      color: "bg-green-800",
     },
   ];
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar route={["GoDown"]} />
+      <Navbar route={["Pharmacy", "GoDown"]} />
       <div className="flex-grow flex flex-wrap justify-center items-center gap-8 p-6">
         {Works.map((workCard) => {
           return (

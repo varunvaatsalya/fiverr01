@@ -30,6 +30,19 @@ const stockSchema = new mongoose.Schema({
       required: true,
     },
   },
+  initialQuantity: {
+    boxes: {
+      type: Number,
+      required: true,
+    },
+    extra: {
+      type: Number,
+    },
+    totalStrips: {
+      type: Number,
+      required: true,
+    },
+  },
   purchasePrice: {
     type: Number,
     required: true,
@@ -38,8 +51,10 @@ const stockSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  totalAmount: { type: Number, required: true },
   invoiceId: {
     type: String,
+    required: true,
   },
   updatedAt: {
     type: Date,

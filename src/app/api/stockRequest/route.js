@@ -4,10 +4,14 @@ import { verifyToken } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
 import Stock from "../../models/Stock";
 import Request from "../../models/Request";
+import { Manufacturer } from "../../models/MedicineMetaData";
+import RetailStock from "../../models/RetailStock";
 
 export async function GET(req) {
   await dbConnect();
   let id = req.nextUrl.searchParams.get("id");
+  let pending = req.nextUrl.searchParams.get("pending");
+  let page = req.nextUrl.searchParams.get("page");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -19,7 +23,7 @@ export async function GET(req) {
   }
 
   const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -99,7 +103,6 @@ export async function GET(req) {
           { status: 400 }
         );
       }
-      console.log("before return");
 
       // Step 4: Respond with the allocation details
       return NextResponse.json(
@@ -113,14 +116,50 @@ export async function GET(req) {
       );
     }
 
-    let requests = await Request.find({ status: "Pending" }).populate({
-      path: "medicine",
-      select: "name _id",
-    });
+    if (pending === "1") {
+      let query = { status: { $in: ["Pending", "Approved"] } };
+
+      let requests = await Request.find(query).populate({
+        path: "medicine",
+        select: "name _id",
+        populate: {
+          path: "manufacturer",
+          model: Manufacturer,
+        },
+      });
+
+      return NextResponse.json(
+        {
+          requests,
+          success: true,
+        },
+        { status: 200 }
+      );
+    }
+
+    page = parseInt(page) || 1;
+    const limit = 50; // Number of prescriptions per page
+    const skip = (page - 1) * limit;
+
+    let requests = await Request.find()
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "medicine",
+        select: "name _id",
+        populate: {
+          path: "manufacturer",
+          model: Manufacturer,
+        },
+      });
+
+    const totalRequests = await Request.countDocuments();
 
     return NextResponse.json(
       {
         requests,
+        totalPages: Math.ceil(totalRequests / limit),
         success: true,
       },
       { status: 200 }
@@ -163,58 +202,114 @@ export async function POST(req) {
   //   );
   // }
 
-  const { medicine, requestedQuantity, notes } = await req.json();
+  const { requests } = await req.json();
 
   try {
-    if (!medicine || !requestedQuantity) {
+    if (!Array.isArray(requests) || requests.length === 0) {
       return NextResponse.json(
-        { message: "Medicine ID and quantity are required", success: false },
+        { message: "Requests array is required", success: false },
         { status: 400 }
       );
     }
 
-    let medicineData = await Medicine.findById(medicine);
-    if (!medicineData) {
-      return NextResponse.json(
-        { message: "Medicine not found", success: false },
-        { status: 404 }
-      );
+    let responses = [];
+
+    for (const request of requests) {
+      const {
+        medicine,
+        medicineName,
+        enteredRemainingQuantity,
+        requestedQuantity,
+        notes,
+      } = request;
+
+      if (!medicine || !requestedQuantity || !enteredRemainingQuantity) {
+        responses.push({
+          medicine,
+          medicineName,
+          message: "Details are required",
+          success: false,
+        });
+        continue;
+      }
+
+      let medicineData = await Medicine.findById(medicine);
+      if (!medicineData) {
+        responses.push({
+          medicine,
+          medicineName,
+          message: "Medicine not found",
+          success: false,
+        });
+        continue;
+      }
+
+      const stocks = await Stock.find({ medicine });
+
+      if (!stocks || stocks.length === 0) {
+        responses.push({
+          medicine,
+          medicineName,
+          message: "No stock found for this medicine",
+          success: false,
+        });
+        continue;
+      }
+
+      const totalAvailableStrips = stocks.reduce((total, stock) => {
+        return total + stock.quantity.totalStrips;
+      }, 0);
+
+      if (totalAvailableStrips === 0) {
+        responses.push({
+          medicine,
+          medicineName,
+          message: "No stock available for this medicine",
+          success: false,
+        });
+        continue;
+      }
+
+      const retailStocks = await RetailStock.find({ medicine });
+      const totalRetailBoxes = retailStocks.reduce((total, retailStock) => {
+        return (
+          total +
+          retailStock.stocks.reduce(
+            (boxSum, stock) => boxSum + stock.quantity.boxes,
+            0
+          )
+        );
+      }, 0);
+      console.log(enteredRemainingQuantity, totalRetailBoxes);
+
+      let isDisputed = Number(enteredRemainingQuantity) != totalRetailBoxes;
+      let status = isDisputed ? "Disputed" : "Pending";
+
+      let newMedicineStockRequest = new Request({
+        medicine,
+        enteredRemainingQuantity,
+        actualRemainingQuantity: totalRetailBoxes,
+        requestedQuantity,
+        notes,
+        status,
+      });
+
+      await newMedicineStockRequest.save();
+
+      responses.push({
+        medicine,
+        medicineName,
+        newMedicineStockRequest,
+        message: isDisputed
+          ? "Error in request please contact to admin or owner."
+          : "Request Created Successfully!",
+        success: isDisputed ? false : true,
+      });
     }
 
-    // Step 1: Fetch all stocks associated with the given medicine
-    const stocks = await Stock.find({ medicine });
-
-    if (!stocks || stocks.length === 0) {
-      return NextResponse.json(
-        { message: "No stock found for this medicine", success: false },
-        { status: 404 }
-      );
-    }
-
-    // Step 2: Calculate total stock available for the medicine
-    const totalAvailableStrips = stocks.reduce((total, stock) => {
-      return total + stock.quantity.totalStrips;
-    }, 0);
-
-    if (totalAvailableStrips === 0) {
-      return NextResponse.json(
-        { message: "No stock available for this medicine", success: false },
-        { status: 404 }
-      );
-    }
-
-    let newMedicineStockRequest = new Request({
-      medicine,
-      requestedQuantity,
-      notes,
-    });
-    await newMedicineStockRequest.save();
-    return NextResponse.json(
-      { newMedicineStockRequest, message: "Request Created Successfully!", success: true },
-      { status: 201 }
-    );
+    return NextResponse.json({ responses, success: true }, { status: 201 });
   } catch (error) {
-    console.error("Error during registration:", error);
+    console.error("Error during processing requests:", error);
     return NextResponse.json(
       { message: "Internal server error", success: false },
       { status: 500 }
@@ -244,7 +339,7 @@ export async function DELETE(req) {
       { status: 403 }
     );
   }
-  
+
   try {
     if (id) {
       let request = await Request.findByIdAndUpdate(
@@ -252,7 +347,7 @@ export async function DELETE(req) {
         { status: "Rejected" },
         { new: true } // Return the updated document
       );
-  
+
       if (!request) {
         return NextResponse.json(
           {
@@ -290,5 +385,4 @@ export async function DELETE(req) {
       { status: 500 }
     );
   }
-  
 }

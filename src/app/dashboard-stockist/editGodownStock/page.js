@@ -16,7 +16,7 @@ function Page() {
   }, []);
   return (
     <div>
-      <Navbar route={["GoDown", "Edit Stock"]} />
+      <Navbar route={["Pharmacy", "GoDown", "Edit Stock"]} />
       <EditStockForm medicines={medicines} />
     </div>
   );

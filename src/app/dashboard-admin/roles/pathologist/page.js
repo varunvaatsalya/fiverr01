@@ -1,16 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
-import NurseList from "../../components/NurseList";
+import PathologistList from "../../../components/PathologistList";
 
 function Page() {
-  const [nurses, setNurses] = useState([]);
+  const [pathologists, setPathologists] = useState([]);
   useEffect(() => {
     async function fetchData() {
       try {
-        let result = await fetch("/api/newNurse");
+        let result = await fetch("/api/newPathologist");
         result = await result.json();
         if (result.success) {
-            setNurses(result.nurse);
+            setPathologists(result.pathologist);
         }
       } catch (err) {
         console.log("error: ", err);
@@ -20,7 +20,7 @@ function Page() {
   }, []);
   return (
     <>
-      <NurseList nurses={nurses} setNurses={setNurses} />
+      <PathologistList pathologists={pathologists} setPathologists={setPathologists} />
     </>
   );
 }

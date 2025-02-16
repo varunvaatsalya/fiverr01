@@ -40,19 +40,20 @@ import NewStockForm from '../../components/NewStockForm';
 
 function Page() {
   const [medicines, setMedicines] = useState([]);
+  const [ids, setIds] = useState([]);
   
     useEffect(() => {
       fetch("/api/newMedicine?basicInfo=1")
         .then((res) => res.json())
         .then((data) => {
           setMedicines(data.response);
-          console.log(data.response);
+          setIds(data.ids);
         });
     }, []);
   return (
     <div>
-      <Navbar route={["GoDown", "New Stock"]} />
-      <NewStockForm medicines={medicines} />
+      <Navbar route={["Pharmacy", "GoDown", "New Stock"]} />
+      <NewStockForm medicines={medicines} ids={ids} />
     </div>
   )
 }

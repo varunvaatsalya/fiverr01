@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyToken } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
+import PurchaseInvoice from "../../models/PurchaseInvoice";
 
 export async function GET(req) {
   await dbConnect();
@@ -39,9 +40,26 @@ export async function GET(req) {
           path: "salts",
         });
 
+      let ids = await PurchaseInvoice.find(
+        { isPaid: false },
+        "_id invoiceNumber manufacturer vendor"
+      )
+        .sort({ _id: -1 })
+        .populate({
+          path: "manufacturer",
+          select: "name",
+        })
+        .populate({
+          path: "vendor",
+          select: "name",
+        })
+        .exec();
+        console.log(ids)
+
       return NextResponse.json(
         {
           response,
+          ids,
           success: true,
         },
         { status: 200 }
@@ -125,7 +143,7 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { name, manufacturer,medicineType, packetSize, isTablets, salts } =
+  const { name, manufacturer, medicineType, packetSize, isTablets, salts } =
     await req.json();
 
   try {
@@ -198,7 +216,10 @@ export async function PUT(req) {
       "minimumStockCount.retails": retailsMinQty,
       "minimumStockCount.godown": godownMinQty,
     };
-    if (userRole === "admin" || (userRole === "stockist" && userEditPermission)) {
+    if (
+      userRole === "admin" ||
+      (userRole === "stockist" && userEditPermission)
+    ) {
       updateFields = {
         ...updateFields,
         name,

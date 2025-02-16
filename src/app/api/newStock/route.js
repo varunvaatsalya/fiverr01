@@ -3,6 +3,7 @@ import dbConnect from "../../lib/Mongodb";
 import { verifyToken } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
 import Stock from "../../models/Stock";
+import PurchaseInvoice from "../../models/PurchaseInvoice";
 
 export async function GET(req) {
   await dbConnect();
@@ -174,6 +175,7 @@ export async function POST(req) {
     purchasePrice,
     quantity,
     sellingPrice,
+    invoiceNumber,
   } = await req.json();
 
   try {
@@ -194,12 +196,33 @@ export async function POST(req) {
       expiryDate,
       purchasePrice,
       sellingPrice,
+      medicine,
+      invoiceId:invoiceNumber,
+      totalAmount: totalStrips * purchasePrice,
       quantity: {
         boxes: quantity,
         extra,
         totalStrips,
       },
+      initialQuantity: {
+        boxes: quantity,
+        extra,
+        totalStrips,
+      },
     });
+    const invoice = await PurchaseInvoice.findOne({ invoiceNumber });
+    if (!invoice) {
+      return NextResponse.json(
+        { newMedicineStock, message: "Invoice ID not found!", success: false },
+        { status: 404 }
+      );
+    }
+    invoice.stocks.push({
+      stockId: newMedicineStock._id,
+      insertedAt: new Date(),
+    });
+
+    await invoice.save();
     await newMedicineStock.save();
     return NextResponse.json(
       { newMedicineStock, message: "Stock Added Successfully!", success: true },
@@ -253,7 +276,7 @@ export async function PUT(req) {
     quantity,
     sellingPrice,
   } = await req.json();
-  
+
   try {
     let medicineStock = await Stock.findById(stockId);
     if (!medicineStock) {
@@ -273,7 +296,7 @@ export async function PUT(req) {
 
     let stripsPerBox = medicineData.packetSize.strips;
     let totalStrips = quantity * stripsPerBox + extra;
-  
+
     // Update the necessary fields
     if (medicine) {
       medicineStock.medicine = medicine;
@@ -298,7 +321,7 @@ export async function PUT(req) {
       medicineStock.quantity.extra = extra;
       medicineStock.quantity.totalStrips = totalStrips;
     }
-  
+
     await medicineStock.save();
     return NextResponse.json(
       { medicineStock, message: "Stock Updated Successfully!", success: true },

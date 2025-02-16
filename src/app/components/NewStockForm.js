@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
 
-function NewStockForm({ medicines }) {
+function NewStockForm({ medicines, ids }) {
   const [selectedMedicine, setSelectedMedicine] = useState(null);
   const [medicineDetailsSection, setMedicineDetailsSection] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -46,6 +46,8 @@ function NewStockForm({ medicines }) {
       setSubmitting(false);
     }
   }
+
+  let invoiceID = ids.find((id)=>id.invoiceNumber === data?.invoiceNumber)
   return (
     <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center border border-slate-800 rounded-xl mx-auto my-2">
       {medicineDetailsSection && (
@@ -149,6 +151,20 @@ function NewStockForm({ medicines }) {
                     <div className="">:</div>
                   </div>
                   <span className="text-blue-500">{data.extra}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2/5 flex justify-between">
+                    <div className="">Invoice ID</div>
+                    <div className="">:</div>
+                  </div>
+                  <span className="text-blue-500">{invoiceID.invoiceNumber}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2/5 flex justify-between">
+                    <div className="">From</div>
+                    <div className="">:</div>
+                  </div>
+                  <span className="text-blue-500">{invoiceID.manufacturer? invoiceID.manufacturer.name:invoiceID.vendor.name}</span>
                 </div>
               </div>
 
@@ -373,11 +389,28 @@ function NewStockForm({ medicines }) {
           selectedMedicine &&
           selectedMedicine.packetSize.strips && (
             <div className="text-center text-red-600 font-semibold">
-              {(sprice *
-                quantity * selectedMedicine.packetSize.strips + sprice *extras) +
+              {sprice * quantity * selectedMedicine.packetSize.strips +
+                sprice * extras +
                 " Rs COST PRICE"}
             </div>
           )}
+
+        <div className="flex flex-col p-2 my-2 mx-auto w-full lg:w-3/4 justify-center items-center gap-2 bg-gray-400 rounded-lg">
+          <div className="text-lg font-semibold">Select Invoice ID</div>
+          <select
+            {...register("invoiceNumber", { required: true })}
+            className="w-full rounded-lg bg-gray-800 text-white text-lg p-2"
+          >
+            <option value="">-- Select Invoice ID --</option>
+            {ids.map((id, index) => (
+              <option value={id.invoiceNumber} key={index}>
+                {id.invoiceNumber +
+                  " - " +
+                  (id.manufacturer ? id.manufacturer.name : id.vendor.name)}
+              </option>
+            ))}
+          </select>
+        </div>
         <hr className="border-t border-slate-500 w-full my-2" />
         <div className="w-full md:w-3/4 mx-auto flex justify-center itmes-center my-2">
           <button

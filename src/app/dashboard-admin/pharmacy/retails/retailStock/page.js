@@ -40,7 +40,7 @@ function Page() {
   return (
     <div>
       <Navbar route={["Pharmacy", "Retails", "Stock Info"]} />
-      <div className="flex flex-col-reverse lg:flex-row items-center justify-center gap-2">
+      <div className="flex flex-col-reverse lg:flex-row items-center justify-center gap-2 my-2">
         <div className="flex flex-wrap justify-center items-center w-full gap-2 px-2">
           {Object.keys(medicineStock).map((letter) => {
             return (
@@ -74,11 +74,16 @@ function Page() {
             value={query}
             placeholder="Search"
             onChange={(e) => setQuery(e.target.value)}
-            className="rounded-full p-2 italic font-semibold bg-gray-300 text-gray-900 w-3/4 my-2"
+            className="rounded-full p-2 italic font-semibold bg-gray-300 text-gray-900 w-3/4"
           />
         </div>
       </div>
-      <RetailStock medicineStock={medicineStock[selectedLetter]} query={query} />
+      <RetailStock
+        medicineStock={medicineStock[selectedLetter]}
+        setMedicineStock={setMedicineStock}
+        selectedLetter={selectedLetter}
+        query={query}
+      />
     </div>
   );
 }

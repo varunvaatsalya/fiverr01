@@ -76,14 +76,14 @@ export async function POST(req) {
     let stocks = await Stock.find({ medicine }).sort({ expiryDate: 1 });
     let medicineData = await Medicine.findById(medicine);
 
-    let approvedBoxes = 0;
-    let approvedExtra = 0;
-    let approvedTotalStrips = 0;
+    // let approvedBoxes = 0;
+    // let approvedExtra = 0;
+    // let approvedTotalStrips = 0;
 
     let transferredStocks = [];
     let remainingQuantity = requestedQuantity;
 
-    // Fulfill the request by transferring stocks
+    // Fulfill the request by transferring stocks`
     for (let stock of stocks) {
       if (remainingQuantity <= 0) break;
 
@@ -105,6 +105,7 @@ export async function POST(req) {
           transferBoxes * packetSize.strips + Math.floor(extraStrips);
 
         transferredStocks.push({
+          stockId: stock._id,
           batchName: stock.batchName,
           expiryDate: stock.expiryDate,
           packetSize: medicineData.packetSize,
@@ -117,9 +118,9 @@ export async function POST(req) {
           sellingPrice: stock.sellingPrice,
         });
 
-        approvedBoxes += transferBoxes;
-        approvedExtra += extraStrips;
-        approvedTotalStrips += totalStrips;
+        // approvedBoxes += transferBoxes;
+        // approvedExtra += extraStrips;
+        // approvedTotalStrips += totalStrips;
 
         remainingQuantity -= transferBoxes;
 
@@ -133,26 +134,24 @@ export async function POST(req) {
     }
 
     // Create or update RetailStock for the medicine
-    let retailStock = await RetailStock.findOne({ medicine });
+    // let retailStock = await RetailStock.findOne({ medicine });
 
-    if (!retailStock) {
-      retailStock = new RetailStock({
-        medicine,
-        stocks: transferredStocks,
-      });
-    } else {
-      retailStock.stocks.push(...transferredStocks);
-    }
+    // if (!retailStock) {
+    //   retailStock = new RetailStock({
+    //     medicine,
+    //     stocks: transferredStocks,
+    //   });
+    // } else {
+    //   retailStock.stocks.push(...transferredStocks);
+    // }
 
-    await retailStock.save();
+    // await retailStock.save();
 
     // Update the request status and approved quantity
-    request.status = "Fulfilled";
-    request.approvedQuantity = {
-      boxes: approvedBoxes,
-      extra: approvedExtra,
-      totalStrips: approvedTotalStrips,
-    };
+    request.status = "Approved";
+    request.approvedAt = new Date();
+
+    request.approvedQuantity = transferredStocks;
     await request.save();
 
     return NextResponse.json(
@@ -160,7 +159,7 @@ export async function POST(req) {
         message: "Stock transfer successful",
         success: true,
         transferredStocks,
-        approvedQuantity: request.approvedQuantity,
+        request,
       },
       { status: 200 }
     );

@@ -8,6 +8,7 @@ import { FaFilePrescription } from "react-icons/fa";
 import { FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
 import { IoMdAnalytics } from "react-icons/io";
 import { IoLogOut } from "react-icons/io5";
+import { GiMedicines } from "react-icons/gi";
 
 function Page() {
   const router = useRouter();
@@ -33,6 +34,14 @@ function Page() {
       link: "/dashboard-owner/expenses",
       color: "bg-fuchsia-700",
     },
+    {
+          name: "Pharmacy",
+          description:
+            "You can see all Parmacy logs here",
+          icon: <GiMedicines size={50} />,
+          link: "/dashboard-owner/pharmacy",
+          color: "bg-red-900",
+        },
     {
       name: "Sales Men",
       description:

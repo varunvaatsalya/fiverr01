@@ -18,9 +18,21 @@
 // stock add krte time total purchqase price show
 // styock order page
 // medicine page show all medicne and stock me type ikhana hai
+// pagination in expense module
+// stock edit section
+// red cirle me out of stock meidicine
+// invoice id change yyyymm001
+// invoice id time method
+// stock order me outofstock medicines filter krna
+// stock order me selected medicines ko clear krna jab type chnage ho rha ho to
+// last three purchase price dikhna new stock add krte time
+// phhrmcy inlytiics
+
 
 // --- DONE ---
 
+// bulk request
+// dispute section 
 // retails in production
 // full screen invoice in large screen
 // search wit salts in invoice creayion
@@ -218,7 +230,7 @@ function NewPharmacyInvoice({
         });
         result = await result.json();
         if (result.success) {
-          console.log(result.requestResults, result.updatedRetailStock);
+          console.log(result.requestResults, result.updatedRetailStock, 11);
           setRequestedMedicineDetails(result.requestResults);
         } else {
           setMessage(result.message);
@@ -620,15 +632,15 @@ function NewPharmacyInvoice({
                     (m) => m._id === medicine.medicineId
                   );
                   const totalStripsAllocated =
-                    medicine.allocatedQuantities?.reduce(
+                    medicine.allocatedQuantities? medicine.allocatedQuantities.reduce(
                       (total, batch) => total + batch.stripsAllocated,
                       0
-                    );
+                    ):"-";
                   const totalTabletsAllocated =
-                    medicine.allocatedQuantities?.reduce(
+                    medicine.allocatedQuantities? medicine.allocatedQuantities.reduce(
                       (total, batch) => total + batch.tabletsAllocated,
                       0
-                    );
+                    ):"-";
                   const totalPrice = medicine.allocatedQuantities
                     ? medicine.allocatedQuantities.reduce(
                         (total, batch) => total + batch.price,

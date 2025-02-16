@@ -16,21 +16,79 @@ const requestSchema = new mongoose.Schema(
       type: Number, // Number Of Boxes
       required: true,
     },
+    enteredRemainingQuantity: {
+      type: Number,
+    },
+    actualRemainingQuantity: {
+      type: Number,
+    },
     status: {
       type: String,
-      enum: ["Pending", "Approved", "Rejected", "Fulfilled", "Fulfilled (Partial)"],
+      enum: [
+        "Pending",
+        "Approved",
+        "Rejected",
+        "Disputed",
+        "Returned",
+        "Fulfilled",
+        "Fulfilled (Partial)",
+      ],
       default: "Pending",
     },
-    approvedQuantity: {
-      boxes: {
-        type: Number,
+    approvedAt: {
+      type: Date,
+      default: null,
+    },
+    approvedQuantity: [
+      {
+        stockId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Stock",
+        },
+        batchName: {
+          type: String,
+        },
+        mfgDate: {
+          type: Date,
+        },
+        expiryDate: {
+          type: Date,
+        },
+        packetSize: {
+          strips: {
+            type: Number,
+          },
+          tabletsPerStrip: {
+            type: Number,
+          },
+        },
+        quantity: {
+          boxes: {
+            type: Number,
+          },
+          extra: {
+            type: Number,
+          },
+          totalStrips: {
+            type: Number,
+          },
+        },
+        purchasePrice: {
+          type: Number,
+        },
+        sellingPrice: {
+          type: Number,
+        },
       },
-      extra: {
-        type: Number,
-      },
-      totalStrips: {
-        type: Number,
-      },
+    ],
+    receivedStatus: {
+      type: String,
+      enum: ["Not Received", "Fully Received", "Rejected"],
+      default: "Not Received",
+    },
+    receivedAt: {
+      type: Date,
+      default: null,
     },
     notes: {
       type: String,

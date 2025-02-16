@@ -1,17 +1,17 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
-import SearchList from "../../components/SearchList";
+import SearchList from "../../../components/SearchList";
 
 function Page() {
-  const [owners, setOwners] = useState([]);
+  const [salesMen, setSalesMen] = useState([]);
   const [accessInfo, setAccessInfo] = useState(null);
   useEffect(() => {
     async function fetchData() {
       try {
-        let result = await fetch("/api/newUsers?role=owner");
+        let result = await fetch("/api/newUsers?role=salesman");
         result = await result.json();
         if (result.success) {
-          setOwners(result.users);
+          setSalesMen(result.users);
           setAccessInfo({
             accessRole: result.userRole,
             accessEditPermission: result.userEditPermission,
@@ -25,7 +25,7 @@ function Page() {
   }, []);
   return (
     <>
-      <SearchList users={owners} updateUsers={setOwners} role={'owner'} accessInfo={accessInfo} />
+      <SearchList users={salesMen} updateUsers={setSalesMen} role={'salesman'} accessInfo={accessInfo} />
     </>
   );
 }

@@ -1,17 +1,24 @@
 import React from "react";
 import { MdOutlineLibraryAdd } from "react-icons/md";
-import { TbExchange } from "react-icons/tb";
+import { TbClockExclamation, TbExchange, TbReportMoney } from "react-icons/tb";
 import { VscGitPullRequestGoToChanges } from "react-icons/vsc";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Link from "next/link";
-import { FaEdit, FaWhatsapp } from "react-icons/fa";
+import { FaEdit, FaFileInvoiceDollar, FaWhatsapp } from "react-icons/fa";
 
 function Page() {
   const Works = [
     {
+      name: "Purchase Invoice",
+      description: "You can create & view purchase stocks invoice",
+      icon: <FaFileInvoiceDollar size={50} />,
+      link: "/dashboard-admin/pharmacy/godown/purchaseInvoices",
+      color: "bg-gray-800",
+    },
+    {
       name: "New Stocks",
-      description: "You can create & edit wards and their beds",
+      description: "You can add new stock of any invoice",
       icon: <MdOutlineLibraryAdd size={50} />,
       link: "/dashboard-admin/pharmacy/godown/newStock",
       color: "bg-blue-800",
@@ -24,18 +31,33 @@ function Page() {
       color: "bg-teal-700",
     },
     {
-      name: "Stock Request",
+      name: "Request From Retail",
       description: "You can view & transfer retail stock request here",
       icon: <VscGitPullRequestGoToChanges size={50} />,
       link: "/dashboard-admin/pharmacy/godown/godownStockRequest",
       color: "bg-yellow-700",
-    },    
+    },
     {
       name: "Stock Edit",
       description: "You can View & Edit godown stock here",
       icon: <FaEdit size={50} />,
       link: "/dashboard-admin/pharmacy/godown/editGodownStock",
       color: "bg-rose-700",
+    },
+    {
+      name: "Payments Due",
+      description: "You can create and view all the due invoices here",
+      icon: <TbReportMoney size={50} />,
+      link: "/dashboard-admin/pharmacy/godown/purchaseDueInvoices",
+      color: "bg-violet-700",
+    },
+    {
+      name: "Stock Expiring Soon",
+      description:
+        "From here you can see the list of medicines that are going to expire soon.",
+      icon: <TbClockExclamation size={50} />,
+      link: "/dashboard-admin/pharmacy/godown/stockExpiring",
+      color: "bg-amber-700",
     },
     {
       name: "Stock Order",

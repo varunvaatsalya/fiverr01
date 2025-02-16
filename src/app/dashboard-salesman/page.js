@@ -10,8 +10,9 @@ import {
   FaPersonCirclePlus,
 } from "react-icons/fa6";
 import { TbReportMedical } from "react-icons/tb";
-import { IoLogOut } from "react-icons/io5";
+import { IoCreate, IoLogOut } from "react-icons/io5";
 import { MdSpeakerNotes } from "react-icons/md";
+import { BsReceipt } from "react-icons/bs";
 
 function Page() {
   const router = useRouter();
@@ -57,6 +58,27 @@ function Page() {
       icon: <FaKitMedical size={50} />,
       link: "/dashboard-salesman/ipd",
       color: "bg-amber-800",
+    },
+    {
+      name: "Create Invoices",
+      description: "You can Create pharmacy Invoices here",
+      icon: <IoCreate size={50} />,
+      link: "/dashboard-salesman/newInvoices",
+      color: "bg-gray-800",
+    },
+    {
+      name: "Invoices",
+      description: "You can show all the pharmacy Invoices here",
+      icon: <BsReceipt size={50} />,
+      link: "/dashboard-salesman/invoices",
+      color: "bg-rose-900",
+    },
+    {
+      name: "Express Billing",
+      description: "You can show all the pharmacy Express Invoices here",
+      icon: <MdSpeakerNotes size={50} />,
+      link: "/dashboard-salesman/pharmacyExpressBilling",
+      color: "bg-sky-600",
     },
     {
       name: "Expenses",

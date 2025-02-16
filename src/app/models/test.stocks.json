@@ -1,0 +1,108 @@
+[{
+  "_id": {
+    "$oid": "67acc4914de48e817879435f"
+  },
+  "medicine": {
+    "$oid": "67a8b05236dc7b2a3106c184"
+  },
+  "batchName": "BATCH1",
+  "mfgDate": {
+    "$date": "2025-02-21T00:00:00.000Z"
+  },
+  "expiryDate": {
+    "$date": "2025-02-18T00:00:00.000Z"
+  },
+  "quantity": {
+    "boxes": 0,
+    "extra": 0,
+    "totalStrips": 0
+  },
+  "initialQuantity": {
+    "boxes": 11,
+    "extra": null,
+    "totalStrips": 132
+  },
+  "purchasePrice": 25,
+  "sellingPrice": 12,
+  "totalAmount": 3300,
+  "invoiceId": "PI250212020748",
+  "updatedAt": {
+    "$date": "2025-02-12T15:56:01.996Z"
+  },
+  "createdAt": {
+    "$date": "2025-02-12T15:56:01.996Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67acc4d54de48e8178794372"
+  },
+  "medicine": {
+    "$oid": "67a8b09936dc7b2a3106c186"
+  },
+  "batchName": "BATCH2",
+  "mfgDate": {
+    "$date": "2025-02-27T00:00:00.000Z"
+  },
+  "expiryDate": {
+    "$date": "2025-06-11T00:00:00.000Z"
+  },
+  "quantity": {
+    "boxes": 11,
+    "extra": 0,
+    "totalStrips": 264
+  },
+  "initialQuantity": {
+    "boxes": 16,
+    "extra": null,
+    "totalStrips": 384
+  },
+  "purchasePrice": 35,
+  "sellingPrice": 20,
+  "totalAmount": 13440,
+  "invoiceId": "PI250212020748",
+  "updatedAt": {
+    "$date": "2025-02-12T15:57:09.401Z"
+  },
+  "createdAt": {
+    "$date": "2025-02-12T15:57:09.401Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67add67038640f16940a5192"
+  },
+  "medicine": {
+    "$oid": "67a8b05236dc7b2a3106c184"
+  },
+  "batchName": "BATCH3",
+  "mfgDate": {
+    "$date": "2025-02-14T00:00:00.000Z"
+  },
+  "expiryDate": {
+    "$date": "2025-10-24T00:00:00.000Z"
+  },
+  "quantity": {
+    "boxes": 24,
+    "extra": 0,
+    "totalStrips": 288
+  },
+  "initialQuantity": {
+    "boxes": 25,
+    "extra": null,
+    "totalStrips": 300
+  },
+  "purchasePrice": 40,
+  "sellingPrice": 15,
+  "totalAmount": 12000,
+  "invoiceId": "PI250213165327",
+  "updatedAt": {
+    "$date": "2025-02-13T11:24:32.625Z"
+  },
+  "createdAt": {
+    "$date": "2025-02-13T11:24:32.625Z"
+  },
+  "__v": 0
+}]

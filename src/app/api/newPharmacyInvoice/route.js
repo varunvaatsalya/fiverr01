@@ -160,13 +160,11 @@ export async function POST(req) {
     const retailStock = await RetailStock.find({
       medicine: { $in: requestedMedicineIds },
     });
-    // console.log(111, retailStock[0].stocks);
 
     for (const request of requestedMedicine) {
       const { medicineId, isTablets, quantity } = request;
 
       const stock = retailStock.find((rs) => rs.medicine.equals(medicineId));
-      // console.log("medicineId", 121,stock, !stock, retailStock, retailStock[0]?.stocks, medicineId);
 
       if (!stock || !stock.stocks || stock.stocks.length === 0) {
         result.push({ medicineId, status: "Out of Stock" });
@@ -256,6 +254,14 @@ export async function POST(req) {
         let totalprice =
           (stripsAllocated + tabletsAllocated / packetSize.tabletsPerStrip) *
           sellingPrice;
+        console.log(
+          totalprice,
+          stripsAllocated,
+          tabletsAllocated,
+          packetSize.tabletsPerStrip,
+          packetSize,
+          sellingPrice, "gtcu6"
+        );
         // Record allocation
         allocatedQuantities.push({
           batchName: batch.batchName,
@@ -436,22 +442,26 @@ export async function PUT(req) {
       await invoice.save();
 
       const populatedInvoice = await PharmacyInvoice.findById(invoice._id)
-      .populate({
-        path: "patientId",
-        select: "name uhid address age gender mobileNumber",
-      })
-      .populate({
-        path: "medicines.medicineId",
-        select: "name salts isTablets medicineType packetSize rackPlace",
-        populate: {
-          path: "salts",
-          select: "name",
-        },
-      })
-      .exec();
+        .populate({
+          path: "patientId",
+          select: "name uhid address age gender mobileNumber",
+        })
+        .populate({
+          path: "medicines.medicineId",
+          select: "name salts isTablets medicineType packetSize rackPlace",
+          populate: {
+            path: "salts",
+            select: "name",
+          },
+        })
+        .exec();
 
       return NextResponse.json(
-        { success: true, message: "Delivery status updated", invoice:populatedInvoice },
+        {
+          success: true,
+          message: "Delivery status updated",
+          invoice: populatedInvoice,
+        },
         { status: 200 }
       );
     }

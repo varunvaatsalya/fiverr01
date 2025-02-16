@@ -6,7 +6,7 @@ import StockRequest from "../../../../components/StockRequest";
 function Page() {
   const [stockRequest, setStockRequests] = useState([]);
   useEffect(() => {
-    fetch("/api/stockRequest")
+    fetch("/api/stockRequest?pending=1")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {

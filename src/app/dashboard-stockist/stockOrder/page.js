@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Navbar from "../../components/Navbar";
-import StockOrder from "../../components/StockOrder";
+import Navbar from "../../../../components/Navbar";
+import StockOrder from "../../../../components/StockOrder";
 
 function Page() {
   const [info, setInfo] = useState([]);
@@ -17,7 +17,7 @@ function Page() {
   }, [selectedType]);
   return (
     <div className="bg-slate-800 min-h-screen w-full">
-      <Navbar route={["Godown", "Stock Order"]} />
+      <Navbar route={["Pharmacy", "Stock Order"]} />
       <div className="flex justify-center items-center gap-3 p-2">
         <button
           onClick={() => {

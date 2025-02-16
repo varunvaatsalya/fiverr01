@@ -38,7 +38,7 @@ function Page() {
   }, []);
   return (
     <div>
-      <Navbar route={["GoDown", "Stock Info"]} />
+      <Navbar route={["Pharmacy", "GoDown", "Stock Info"]} />
       <div className="flex flex-col-reverse lg:flex-row items-center justify-center gap-2">
         <div className="flex flex-wrap justify-center items-center w-full gap-2 p-2">
           {Object.keys(medicineStock).map((letter) => {

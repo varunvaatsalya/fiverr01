@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import PharmacySectionComponent from "./PharmacySectionComponent";
+import InvoicePharmacy from "./InvoicePharmacy";
 import { AiFillMedicineBox } from "react-icons/ai";
 import { IoCreate } from "react-icons/io5";
 import NewPharmacyInvoice from "./NewPharmacyInvoice";
@@ -24,6 +25,7 @@ function PharmacyInvoiceSearchList({
   const [activeIndex, setActiveIndex] = useState(null);
   const [medicineDetails, setMedicineDetails] = useState(null);
   const [medicineDetailsSection, setMedicineDetailsSection] = useState(false);
+  const [printInvoice, setPrintInvoice] = useState(null);
 
   useEffect(() => {
     setResData(invoices);
@@ -40,6 +42,19 @@ function PharmacyInvoiceSearchList({
       setPage(page - 1);
     }
   };
+  if (printInvoice) {
+    return (
+      <>
+        <div className="bg-white h-full">
+          <InvoicePharmacy
+            printInvoice={printInvoice}
+            setPrintInvoice={setPrintInvoice}
+            // prescriptionPrinted={prescriptionPrinted}
+          />
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -65,7 +80,8 @@ function PharmacyInvoiceSearchList({
             // }}
             className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
           />
-          {
+          {(accessInfo?.accessRole === "admin" ||
+            accessInfo?.accessRole === "salesman") && (
             <button
               onClick={() => {
                 setNewInvoiceSection((newInvoiceSection) => !newInvoiceSection);
@@ -75,7 +91,7 @@ function PharmacyInvoiceSearchList({
               <IoCreate className="size-6" />
               <div>Add</div>
             </button>
-          }
+          )}
         </div>
         <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 md:w-4/5 lg:w-3/4 mx-auto bg-black text-white">
           List of all the Pharmacy Invoices
@@ -198,7 +214,7 @@ function PharmacyInvoiceSearchList({
                       })}
                     </div>
                     <div className="flex justify-around items-center gap-2 mt-3">
-                      {!invoice.isPrint && accessInfo?.accessEditPermission && (
+                      {accessInfo?.accessEditPermission && (
                         <button
                           className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
                           onClick={() => {
@@ -235,9 +251,10 @@ function PharmacyInvoiceSearchList({
                         accessInfo?.accessRole === "salesman") && (
                         <button
                           className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
-                          // onClick={() => {
-                          //   setPrintPrescription(invoice);
-                          // }}
+                          onClick={() => {
+                            console.log(invoice);
+                            setPrintInvoice(invoice);
+                          }}
                         >
                           Print
                         </button>

@@ -1,16 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
-import AdminsList from "../../components/AdminsList";
+import NurseList from "../../../components/NurseList";
 
 function Page() {
-  const [admins, setAdmins] = useState([]);
+  const [nurses, setNurses] = useState([]);
   useEffect(() => {
     async function fetchData() {
       try {
-        let result = await fetch("/api/admin");
+        let result = await fetch("/api/newNurse");
         result = await result.json();
         if (result.success) {
-          setAdmins(result.admins);
+            setNurses(result.nurse);
         }
       } catch (err) {
         console.log("error: ", err);
@@ -20,10 +20,7 @@ function Page() {
   }, []);
   return (
     <>
-      <AdminsList
-        admins={admins}
-        setAdmins={setAdmins}
-      />
+      <NurseList nurses={nurses} setNurses={setNurses} />
     </>
   );
 }

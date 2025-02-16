@@ -5,13 +5,20 @@ import { BiInjection } from "react-icons/bi";
 import { TiWarning } from "react-icons/ti";
 import Loading from "./Loading";
 
-function RetailStock({ medicineStock, query }) {
+function RetailStock({
+  medicineStock,
+  setMedicineStock,
+  selectedLetter,
+  query,
+}) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [requestedMedicine, setRequestedMedicine] = useState(null);
   const [requestedQuantity, setRequestedQuantity] = useState("");
+
+  const [enteredRemainingQuantity, setEnteredRemainingQuantity] = useState("");
   const [minQty, setMinQty] = useState("");
-  const [notes, setNotes] = useState("");
   const [message, setMessage] = useState("");
+  const [responseMessage, setResponseMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [filteredMedicines, setFilteredMedicines] = useState(
     medicineStock?.medicines
@@ -39,26 +46,42 @@ function RetailStock({ medicineStock, query }) {
           "Content-Type": "application/json", // Set the header for JSON
         },
         body: JSON.stringify({
-          medicine: requestedMedicine._id,
-          requestedQuantity,
-          notes,
+          requests: [
+            {
+              medicine: requestedMedicine._id,
+              medicineName: requestedMedicine.name,
+              requestedQuantity,
+              enteredRemainingQuantity,
+            },
+          ],
         }),
       });
 
       result = await result.json();
       setMessage(result.message);
       if (result.success) {
-        const medicineId = result.newMedicineStockRequest.medicine;
-        const medicineObject = medicineStock.medicines.find(
-          (medicine) => medicine._id === medicineId
-        );
-        if (medicineObject) {
-          medicineObject.requests.push(result.newMedicineStockRequest);
-        } else {
-          console.log(`Medicine with ID ${medicineId} not found.`);
+        setResponseMessage(result.responses[0]?.message);
+        if (result.responses[0].success) {
+          
+          setMedicineStock((prevStock) => ({
+            ...prevStock,
+            [selectedLetter]: {
+              ...prevStock[selectedLetter], // Existing data preserve
+              medicines: prevStock[selectedLetter].medicines.map((medicine) =>
+                medicine._id === result.responses[0].newMedicineStockRequest.medicine
+                  ? {
+                      ...medicine,
+                      requests: [...medicine.requests, result.responses[0].newMedicineStockRequest],
+                    }
+                  : medicine
+              ),
+            },
+          }));
+          
         }
         setRequestedQuantity("");
-        setNotes("");
+        setEnteredRemainingQuantity("");
+        setMessage("");
         setTimeout(() => {
           setRequestedMedicine(null);
           setMessage("");
@@ -108,7 +131,7 @@ function RetailStock({ medicineStock, query }) {
     <div className="p-2 w-full md:w-4/5 lg:w-3/4 mx-auto text-gray-900">
       <div className="w-full rounded-full bg-gray-900 p-2 flex font-semibold text-gray-100 justify-around items-center">
         <div className="w-2/5">Name</div>
-        <div className="w-2/5">Stock</div>
+        <div className="w-2/5 text-center">Stock</div>
       </div>
       {filteredMedicines ? (
         filteredMedicines.map((medicine, index) => (
@@ -120,8 +143,9 @@ function RetailStock({ medicineStock, query }) {
               }
               className="w-full hover:cursor-pointer rounded-full font-medium bg-gray-300 hover:bg-gray-400 p-2 my-1 flex items-center"
             >
+              <div className="w-[10%] px-1">{index + 1 + "."}</div>
               <div className="w-[45%] px-3">{medicine.name}</div>
-              <div className="w-[45%] text-center">
+              <div className="w-[40%] text-center">
                 {medicine.retailStocks.length > 0 &&
                   "Boxes: " +
                     medicine.retailStocks[0]?.stocks.reduce(
@@ -277,7 +301,9 @@ function RetailStock({ medicineStock, query }) {
                           " Boxes " +
                           stock.quantity.totalStrips +
                           " Strips"}
-                          {stock.quantity.tablets ? " " + stock.quantity.tablets + " Tablets" : ""}
+                        {stock.quantity.tablets
+                          ? " " + stock.quantity.tablets + " Tablets"
+                          : ""}
                       </div>
                       {/* <div className="w-[10%]">
                         {"P: " + stock.purchasePrice}
@@ -309,6 +335,11 @@ function RetailStock({ medicineStock, query }) {
                 <hr className="border border-slate-800 w-full my-2" />
                 {message && (
                   <div className="my-1 text-center text-red-500">{message}</div>
+                )}
+                {responseMessage && (
+                  <div className="my-1 text-center text-red-500">
+                    {responseMessage}
+                  </div>
                 )}
                 <div className="flex flex-wrap justify-around text-gray-50">
                   <div className="py-1 px-4 text-gray-50 ">
@@ -347,17 +378,18 @@ function RetailStock({ medicineStock, query }) {
                   />
                 </div>
                 <div className="block font-semibold text-gray-50">
-                  Notes {"(Optional)"}
+                  Current Quantity
                 </div>
                 <div className="flex justify-center items-center text-gray-800 py-1">
                   <input
-                    type="text"
-                    value={notes}
+                    type="number"
+                    min={0}
+                    value={enteredRemainingQuantity}
                     onChange={(e) => {
-                      setNotes(e.target.value);
+                      setEnteredRemainingQuantity(e.target.value);
                     }}
                     className="p-2 rounded-xl w-full md:w-3/4 bg-gray-700 text-gray-300"
-                    placeholder="Any Notes (Optional)"
+                    placeholder="Current Box Quantity"
                   />
                 </div>
                 <hr className="border border-slate-800 w-full my-2" />
@@ -373,7 +405,11 @@ function RetailStock({ medicineStock, query }) {
                   <button
                     onClick={handleCreateRequest}
                     className="w-20 h-8 py-1 flex items-center justify-center gap-2 bg-green-500 rounded-lg font-semibold cursor-pointer text-white"
-                    disabled={!requestedQuantity || submitting}
+                    disabled={
+                      !requestedQuantity ||
+                      !enteredRemainingQuantity ||
+                      submitting
+                    }
                   >
                     {submitting ? <Loading size={15} /> : <></>}
                     {submitting ? "Wait..." : "Confirm"}

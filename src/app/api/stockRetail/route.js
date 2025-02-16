@@ -6,23 +6,23 @@ import Medicine from "../../models/Medicine";
 export async function GET(req) {
   await dbConnect();
 
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyToken(token.value);
-  // const userRole = decoded.role;
-  // if (!decoded || !userRole) {
-  //   return NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
 
   try {
     const retailStockData = await Medicine.aggregate([
@@ -64,7 +64,7 @@ export async function GET(req) {
             $filter: {
               input: "$requests",
               as: "request",
-              cond: { $eq: ["$$request.status", "Pending"] }, // Filter requests with status "Pending"
+              cond: { $or: [{ $eq: ["$$request.status", "Pending"] }, { $eq: ["$$request.status", "Approved"] }] },
             },
           },
         },

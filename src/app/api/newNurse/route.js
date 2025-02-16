@@ -108,6 +108,30 @@ export async function POST(req) {
 
 export async function DELETE(req) {
   await dbConnect();
+  
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin") {
+    return NextResponse.json(
+      { message: "Access denied. Admins only.", success: false },
+      { status: 403 }
+    );
+  }
   const { id } = await req.json();
 
   try {
@@ -131,4 +155,3 @@ export async function DELETE(req) {
     );
   }
 }
-

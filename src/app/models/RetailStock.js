@@ -59,6 +59,5 @@ const retailStockSchema = new mongoose.Schema(
   }
 );
 
-// module.exports = mongoose.model("RetailStock", retailStockSchema);
 export default mongoose.models.RetailStock ||
   mongoose.model("RetailStock", retailStockSchema);

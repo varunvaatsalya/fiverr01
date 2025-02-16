@@ -2,6 +2,7 @@ import React from "react";
 import { FaFileArrowUp, FaHouseMedicalFlag, FaOutdent } from "react-icons/fa6";
 import { MdFormatListBulletedAdd, MdSpeakerNotes } from "react-icons/md";
 import { BsClipboardDataFill, BsReceipt } from "react-icons/bs";
+import { BiTransferAlt } from "react-icons/bi";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Link from "next/link";
@@ -15,7 +16,7 @@ function Page() {
       description: "You can Create pharmacy Invoices here",
       icon: <IoCreate size={50} />,
       link: "/dashboard-admin/pharmacy/newInvoices",
-      color: "bg-amber-800",
+      color: "bg-gray-800",
     },
     {
       name: "Invoices",
@@ -36,7 +37,7 @@ function Page() {
       description: "You can see all the IPD Patient Records",
       icon: <BsClipboardDataFill size={50} />,
       link: "/dashboard-admin/pharmacy/retails",
-      color: "bg-gray-600",
+      color: "bg-amber-800",
     },
     {
       name: "GoDown",
@@ -44,6 +45,13 @@ function Page() {
       icon: <FaOutdent size={50} />,
       link: "/dashboard-admin/pharmacy/godown",
       color: "bg-blue-900",
+    },
+    {
+      name: "Requests",
+      description: "You can view all the retails godown Stock Requests here",
+      icon: <BiTransferAlt size={50} />,
+      link: "/dashboard-admin/pharmacy/retailGodownRequests",
+      color: "bg-yellow-700",
     },
     {
       name: "Pharmacy Config",

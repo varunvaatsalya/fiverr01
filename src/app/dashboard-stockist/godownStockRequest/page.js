@@ -6,7 +6,7 @@ import StockRequest from "../../components/StockRequest";
 function Page() {
   const [stockRequest, setStockRequests] = useState([]);
   useEffect(() => {
-    fetch("/api/stockRequest")
+    fetch("/api/stockRequest?pending=1")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -16,7 +16,7 @@ function Page() {
   }, []);
   return (
     <div>
-      <Navbar route={["GoDown", "Stock Request"]} />
+      <Navbar route={["Pharmacy", "GoDown", "Stock Request"]} />
       <StockRequest stockRequest={stockRequest} setStockRequests={setStockRequests} />
     </div>
   );
