@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Navbar from "../../../../components/Navbar";
-import RetailStockRequest from "../../../../components/RetailStockRequest";
+import Navbar from "../../components/Navbar";
+import RetailStockRequest from "../../components/RetailStockRequest";
 
 function Page() {
   const [medicineStock, setMedicineStock] = useState([]);

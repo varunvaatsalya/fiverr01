@@ -1,8 +1,9 @@
+"use client";
 import React from "react";
 import { FaHandHoldingMedical } from "react-icons/fa";
 import { TbClockExclamation } from "react-icons/tb";
-import Navbar from "../../../components/Navbar";
-import Footer from "../../../components/Footer";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import Link from "next/link";
 import { IoBagAddSharp, IoLogOut } from "react-icons/io5";
 import { useRouter } from "next/navigation";
@@ -26,7 +27,8 @@ function Page() {
     },
     {
       name: "Stock Expiring Soon",
-      description: "From here you can see the list of medicines that are going to expire soon.",
+      description:
+        "From here you can see the list of medicines that are going to expire soon.",
       icon: <TbClockExclamation size={50} />,
       link: "/dashboard-dispenser/stockExpiring",
       color: "bg-amber-700",
@@ -53,16 +55,16 @@ function Page() {
           );
         })}
         <button
-                    onClick={() => {
-                      document.cookie =
-                        "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                      router.push("/login");
-                    }}
-                    className="w-full p-3 h-60 md:w-2/5 lg:w-1/5 bg-red-700 text-white rounded-xl flex flex-col justify-center items-center space-y-1"
-                  >
-                    <IoLogOut size={60} />
-                    <div className="font-bold text-xl">Logout</div>
-                  </button>
+          onClick={() => {
+            document.cookie =
+              "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            router.push("/login");
+          }}
+          className="w-full p-3 h-60 md:w-2/5 lg:w-1/5 bg-red-700 text-white rounded-xl flex flex-col justify-center items-center space-y-1"
+        >
+          <IoLogOut size={60} />
+          <div className="font-bold text-xl">Logout</div>
+        </button>
       </div>
       <Footer />
     </div>

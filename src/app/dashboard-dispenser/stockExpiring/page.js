@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Navbar from "../../../../components/Navbar";
-import StockExpiry from "../../../../components/StockExpiry";
+import Navbar from "../../components/Navbar";
+import StockExpiry from "../../components/StockExpiry";
 
 function Page() {
   const [stocks, setStocks] = useState([]);

@@ -4,6 +4,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+// pm2 restart fiverr01-app -- for start server
+
 
 export default function Home() {
   const router = useRouter();
