@@ -6,7 +6,7 @@ const secret = new TextEncoder().encode(JWT_SECRET);
 
 export const generateToken = async (user) => {
   
-  const token = await new SignJWT({ role: user.role, editPermission:user.editPermission })
+  const token = await new SignJWT({ email: user.email, role: user.role, editPermission:user.editPermission })
     .setProtectedHeader({ alg: "HS256" }) // Algorithm to use
     .setIssuedAt()
     .setExpirationTime("2d") // Token expiration time

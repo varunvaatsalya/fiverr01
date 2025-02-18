@@ -1,13 +1,50 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import dbConnect from "../../lib/Mongodb";
 import { generateToken, verifyToken } from "../../utils/jwt";
+
 import User from "../../models/Users";
 import Admin from "../../models/Admins";
 import { credentials } from "../../credentials";
 import Pathologist from "../../models/Pathologist";
 import Nurse from "../../models/Nurse";
+import LoginInfo from "../../models/LoginInfo";
+
+const storeRoleLatestLogin = async (userEmail, role, req) => {
+  try {
+    const ip = req.headers.get("x-forwarded-for") || "Unknown IP";
+    const userAgent = req.headers.get("user-agent") || "Unknown User-Agent"; // Get browser details
+
+    const loginData = {
+      lastUserEmail: userEmail || "unknown@example.com",
+      deviceType:
+        userAgent !== "Unknown User-Agent" && userAgent.includes("Mobile")
+          ? "Mobile"
+          : "Unknown",
+      ipAddress: ip,
+      userAgent,
+      lastLogin: new Date(),
+    };
+
+    // Check if role already exists
+    console.log(role);
+    const existingRole = await LoginInfo.findOne({ role });
+
+    if (existingRole) {
+      // Update existing role's latest login
+      await LoginInfo.updateOne({ role }, loginData);
+      console.log(`Updated latest login for role '${role}'`);
+    } else {
+      await LoginInfo.create({ role, ...loginData });
+      console.log(`Created latest login for role '${role}'`);
+    }
+  } catch (error) {
+    console.error("Error storing login details:", error);
+  }
+};
 
 export async function GET(req) {
+  await dbConnect();
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -25,6 +62,7 @@ export async function GET(req) {
       { status: 403 }
     );
   }
+  await storeRoleLatestLogin(decoded.email, decoded.role, req);
 
   return NextResponse.json(
     { route: `/dashboard-${userRole}`, success: true },
@@ -33,6 +71,7 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
+  await dbConnect();
   const userRole = {
     admin: "/dashboard-admin",
     owner: "/dashboard-owner",
@@ -77,6 +116,8 @@ export async function POST(req) {
         editPermission: true,
       });
 
+      await storeRoleLatestLogin(email, role, req);
+
       cookies().set({
         name: "authToken",
         value: token,
@@ -117,6 +158,8 @@ export async function POST(req) {
       }
 
       const token = await generateToken(pathologist);
+
+      await storeRoleLatestLogin(pathologist.email, pathologist.role, req);
 
       cookies().set({
         name: "authToken",
@@ -160,6 +203,7 @@ export async function POST(req) {
       }
 
       const token = await generateToken(nurse);
+      await storeRoleLatestLogin(nurse.email, nurse.role, req);
 
       cookies().set({
         name: "authToken",
@@ -204,6 +248,7 @@ export async function POST(req) {
     }
 
     const token = await generateToken(user);
+    await storeRoleLatestLogin(user.email, user.role, req);
 
     cookies().set({
       name: "authToken",

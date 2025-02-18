@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import Admin from "../../models/Admins";
 import { verifyToken } from "../../utils/jwt";
+import LoginInfo from "../../models/LoginInfo";
 
 export async function GET(req) {
   await dbConnect();
+
+  let loginInfo = req.nextUrl.searchParams.get("loginInfo");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -31,6 +34,10 @@ export async function GET(req) {
   }
 
   try {
+    if (loginInfo === "1") {
+      const loginInfos = await LoginInfo.find().sort({ _id: -1 });
+      return NextResponse.json({ loginInfos, success: true }, { status: 200 });
+    }
     const admins = await Admin.find().sort({ _id: -1 });
     return NextResponse.json({ admins, success: true }, { status: 200 });
   } catch (error) {
