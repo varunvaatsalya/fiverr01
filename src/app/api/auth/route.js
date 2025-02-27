@@ -26,8 +26,6 @@ const storeRoleLatestLogin = async (userEmail, role, req) => {
       lastLogin: new Date(),
     };
 
-    // Check if role already exists
-    console.log(role);
     const existingRole = await LoginInfo.findOne({ role });
 
     if (existingRole) {

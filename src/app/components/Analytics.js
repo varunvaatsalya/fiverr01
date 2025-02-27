@@ -15,6 +15,9 @@ const Analytics = ({
   const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
+  const [startDateTime, setStartDateTime] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
+
   const [dateRange, setDateRange] = useState({
     startDate: "",
     startTime: "00:00", // default start time
@@ -28,9 +31,10 @@ const Analytics = ({
       let result = await fetch("/api/analytics", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", // Set the header for JSON
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(dateRange), // Properly stringify the data
+        // body: JSON.stringify(dateRange),
+        body: JSON.stringify({ startDateTime, endDateTime }),
       });
 
       result = await result.json();
@@ -91,26 +95,6 @@ const Analytics = ({
   const handleFilter = () => {
     let filtered = prescriptions;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of today (midnight in IST)
-
-    // Format today as "YYYY-MM-DD" using IST date
-    const currentDate = `${today.getFullYear()}-${(today.getMonth() + 1)
-      .toString()
-      .padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}`;
-    // console.log("Today (IST):", today);
-    // console.log("currentDate (start of filter):", currentDate);
-
-    let startDateTime = new Date(
-      `${currentDate}T${dateRange.startTime || "00:00"}`
-    );
-    let endDateTime = new Date(
-      `${currentDate}T${dateRange.endTime || "23:59"}`
-    );
-
-    // console.log("Start DateTime (for filter):", startDateTime);
-    // console.log("End DateTime (for filter):", endDateTime);
-    
     if (selectedDepartment.length) {
       filtered = filtered.filter((p) =>
         selectedDepartment.includes(p.department._id)
@@ -123,33 +107,13 @@ const Analytics = ({
       filtered = filtered.filter((p) => p.paymentMode === selectedPaymentMode);
     }
 
-    // console.log("Start DateTime:", startDateTime);
-    // console.log("End DateTime:", endDateTime);
-
-    filtered = filtered.filter((p) => {
-      const prescriptionDate = new Date(p.createdAt); // Date the prescription was created
-      console.log("Prescription Date:", prescriptionDate);
-      return (
-        prescriptionDate >= startDateTime && prescriptionDate <= endDateTime
-      );
-    });
-
     console.log("Filtered Prescriptions:", filtered);
     setFilteredPrescriptions(filtered);
   };
 
   useEffect(() => {
     handleFilter();
-  }, [
-    prescriptions,
-    selectedDepartment,
-    selectedDoctor,
-    selectedPaymentMode,
-    dateRange.startDate,
-    dateRange.startTime,
-    dateRange.endDate,
-    dateRange.endTime,
-  ]);
+  }, [prescriptions, selectedDepartment, selectedDoctor, selectedPaymentMode]);
 
   const getTotalAmount = () => {
     return filteredPrescriptions.reduce(
@@ -203,10 +167,51 @@ const Analytics = ({
       {message && (
         <div className="my-1 w-full text-center text-red-500">{message}</div>
       )}
-      <div className="w-full flex flex-wrap justify-center gap-2 bg-slate-800 p-4 text-gray-100">
+
+      <div className="w-full flex flex-wrap justify-center gap-3 my-2">
+        <div className="flex justify-center items-center px-3 py-2 gap-2 bg-gray-700 rounded-xl shadow-sm focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+          <label
+            htmlFor="sdate"
+            className=" text-sm lg:text-base font-semibold text-blue-200"
+          >
+            Start Date :
+          </label>
+          <input
+            id="sdate"
+            type="datetime-local"
+            onChange={(e) => {
+              setStartDateTime(e.target.value);
+            }}
+            className="block text-white focus:outline-none bg-transparent"
+          />
+        </div>
+        <div className="flex justify-center items-center px-3 py-2 gap-2 bg-gray-700 rounded-xl shadow-sm focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+          <label
+            htmlFor="edate"
+            className=" text-sm lg:text-base font-semibold text-blue-200"
+          >
+            End Date :
+          </label>
+          <input
+            id="edate"
+            type="datetime-local"
+            onChange={(e) => {
+              setEndDateTime(e.target.value);
+            }}
+            className="block text-white bg-transparent focus:outline-none"
+          />
+        </div>
+        <button
+          onClick={onSubmit}
+          className="px-3 py-2 my-2 flex items-center justify-center gap-2 bg-blue-500 rounded-lg font-semibold cursor-pointer text-white"
+        >
+          {submitting ? "Searching..." : "Search"}
+        </button>
+      </div>
+      <div className="w-full flex flex-wrap items-center justify-center gap-2 bg-slate-800 p-3 text-gray-100">
         <select
           onChange={(e) => setSelectedDepartment(e.target.value)}
-          className="mt-1 block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         >
           <option value="">Select Department</option>
           {departments.map((dept) => (
@@ -217,7 +222,7 @@ const Analytics = ({
         </select>
         <select
           onChange={(e) => setSelectedDoctor(e.target.value)}
-          className="mt-1 block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         >
           <option value="">Select Doctor</option>
           {doctors.map((doc) => (
@@ -228,7 +233,7 @@ const Analytics = ({
         </select>
         {/* <select
           onChange={(e) => setSelectedSalesman(e.target.value)}
-          className="mt-1 block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         >
           <option value="">Select Salesman</option>
           {salesmen.map((sales) => (
@@ -239,87 +244,13 @@ const Analytics = ({
         </select> */}
         <select
           onChange={(e) => setSelectedPaymentMode(e.target.value)}
-          className="mt-1 block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         >
           <option value="">Select Payment Mode</option>
           <option value="Card">Card</option>
           <option value="Cash">Cash</option>
           <option value="UPI">UPI</option>
         </select>
-        <div className="w-full flex justify-center gap-x-3">
-          <div className="flex flex-col lg:flex-row justify-center items-center gap-x-2">
-            <label
-              htmlFor="sdate"
-              className=" text-sm lg:text-base font-medium text-gray-100"
-            >
-              Start Date
-            </label>
-            <input
-              id="sdate"
-              type="date"
-              onChange={(e) =>
-                setDateRange({ ...dateRange, startDate: e.target.value })
-              }
-              className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-            />
-          </div>
-          <div className="flex flex-col lg:flex-row justify-center items-center gap-x-2">
-            <label
-              htmlFor="edate"
-              className=" text-sm lg:text-base font-medium text-gray-100"
-            >
-              End Date
-            </label>
-            <input
-              id="edate"
-              type="date"
-              onChange={(e) =>
-                setDateRange({ ...dateRange, endDate: e.target.value })
-              }
-              className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-            />
-          </div>
-        </div>
-        <div className="w-full flex justify-center gap-x-3">
-          <div className="flex flex-col lg:flex-row justify-center items-center gap-x-2">
-            <label
-              htmlFor="sdate"
-              className=" text-sm lg:text-base font-medium text-gray-100"
-            >
-              Start Time
-            </label>
-            <input
-              id="stime"
-              type="time"
-              onChange={(e) =>
-                setDateRange({ ...dateRange, startTime: e.target.value })
-              }
-              className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-            />
-          </div>
-          <div className="flex flex-col lg:flex-row justify-center items-center gap-x-2">
-            <label
-              htmlFor="edate"
-              className=" text-sm lg:text-base font-medium text-gray-100"
-            >
-              End Time
-            </label>
-            <input
-              id="etime"
-              type="time"
-              onChange={(e) =>
-                setDateRange({ ...dateRange, endTime: e.target.value })
-              }
-              className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-            />
-          </div>
-          <button
-            onClick={onSubmit}
-            className="px-3 py-1 flex items-center justify-center gap-2 bg-blue-500 rounded-lg font-semibold cursor-pointer text-white"
-          >
-            {submitting ? "Searching..." : "Search"}
-          </button>
-        </div>
       </div>
       <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl p-2 gap-x-5">
         <span>
