@@ -96,7 +96,6 @@ export async function GET(req) {
         expenses,
         departments,
         doctors,
-        time: { start: startUTC, end: endUTC },
         success: true,
       },
       { status: 200 }
@@ -182,7 +181,7 @@ export async function POST(req) {
 
     // Send response with UID
     return NextResponse.json(
-      { prescriptions, expenses, time: { start, end }, success: true },
+      { prescriptions, expenses, success: true },
       { status: 201 }
     );
   } catch (error) {

@@ -37,8 +37,6 @@ const Analytics = ({
           prescriptions: result.prescriptions,
           expenses: result.expenses,
         }));
-        console.log("docs start"+result.time.start)
-        console.log("docs end"+result.time.end)
       } else {
         setMessage(result.message);
       }
@@ -48,44 +46,6 @@ const Analytics = ({
       setSubmitting(false);
     }
   };
-
-  // const handleFilter = () => {
-  //   let filtered = prescriptions;
-
-  //   // Get today's date in YYYY-MM-DD format
-  //   const today = new Date().toISOString().slice(0, 10);
-
-  //   if (selectedDepartment.length) {
-  //     filtered = filtered.filter((p) =>
-  //       selectedDepartment.includes(p.department._id)
-  //     );
-  //   }
-  //   if (selectedDoctor.length) {
-  //     filtered = filtered.filter((p) => selectedDoctor.includes(p.doctor._id));
-  //   }
-  //   if (selectedPaymentMode) {
-  //     filtered = filtered.filter((p) => p.paymentMode === selectedPaymentMode);
-  //   }
-
-  //   // Filter by date and time
-  //   if (dateRange.startTime || dateRange.endTime) {
-  //     const startDateTime = new Date(
-  //       `${dateRange.startDate || today}T${dateRange.startTime || "00:00"}`
-  //     );
-  //     const endDateTime = new Date(
-  //       `${dateRange.endDate || today}T${dateRange.endTime || "23:59"}`
-  //     );
-
-  //     filtered = filtered.filter((p) => {
-  //       const prescriptionDate = new Date(p.createdAt);
-  //       return (
-  //         prescriptionDate >= startDateTime && prescriptionDate <= endDateTime
-  //       );
-  //     });
-  //   }
-
-  //   setFilteredPrescriptions(filtered);
-  // };
 
   const handleFilter = () => {
     let filtered = prescriptions;

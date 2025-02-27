@@ -1,6 +1,6 @@
 import React from "react";
 import { FaFileArrowUp, FaHouseMedicalFlag, FaOutdent } from "react-icons/fa6";
-import { MdFormatListBulletedAdd, MdSpeakerNotes } from "react-icons/md";
+import { MdAccountBalanceWallet, MdFormatListBulletedAdd, MdSpeakerNotes } from "react-icons/md";
 import { BsClipboardDataFill, BsReceipt } from "react-icons/bs";
 import { BiTransferAlt } from "react-icons/bi";
 import Navbar from "../../components/Navbar";
@@ -11,6 +11,13 @@ import { FaNotesMedical } from "react-icons/fa";
 
 function Page() {
   const Works = [
+    {
+      name: "Analytics",
+      description: "You can view pharmacy accounts here",
+      icon: <MdAccountBalanceWallet size={50} />,
+      link: "/dashboard-admin/pharmacy/pharmacyAnalytics",
+      color: "bg-teal-800",
+    },
     {
       name: "Create Invoices",
       description: "You can Create pharmacy Invoices here",

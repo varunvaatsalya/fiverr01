@@ -5,7 +5,12 @@ import { VscGitPullRequestGoToChanges } from "react-icons/vsc";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Link from "next/link";
-import { FaEdit, FaFileInvoiceDollar, FaWhatsapp } from "react-icons/fa";
+import {
+  FaEdit,
+  FaFileInvoiceDollar,
+  FaHistory,
+  FaWhatsapp,
+} from "react-icons/fa";
 
 function Page() {
   const Works = [
@@ -66,6 +71,13 @@ function Page() {
       link: "/dashboard-admin/pharmacy/godown/stockOrder",
       color: "bg-green-700",
     },
+    {
+      name: "Whatsapp Order History",
+      description: "You can see history of the godown orders here",
+      icon: <FaHistory size={50} />,
+      link: "/dashboard-admin/pharmacy/godown/stockOrderHistory",
+      color: "bg-rose-700",
+    },
   ];
 
   return (
@@ -74,17 +86,15 @@ function Page() {
       <div className="flex-grow flex flex-wrap justify-center items-center gap-8 p-6">
         {Works.map((workCard) => {
           return (
-            <>
-              <Link
-                href={workCard.link}
-                key={workCard.name}
-                className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
-              >
-                {workCard.icon}
-                <div className="font-bold text-xl">{workCard.name}</div>
-                <div className="text-center">{workCard.description}</div>
-              </Link>
-            </>
+            <Link
+              href={workCard.link}
+              key={workCard.name}
+              className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
+            >
+              {workCard.icon}
+              <div className="font-bold text-xl">{workCard.name}</div>
+              <div className="text-center">{workCard.description}</div>
+            </Link>
           );
         })}
       </div>
