@@ -96,6 +96,7 @@ export async function GET(req) {
         expenses,
         departments,
         doctors,
+        time: { start: startUTC, end: endUTC },
         success: true,
       },
       { status: 200 }
@@ -157,8 +158,8 @@ export async function POST(req) {
 
     let end = endDateTime ? getUTCDateTime(endDateTime) : endUTC;
 
-    console.log("Start:",startDateTime, start);
-    console.log("End:",endDateTime, end);
+    console.log("Start:", startDateTime, start);
+    console.log("End:", endDateTime, end);
     let dateQuery = {
       createdAt: {
         $gte: start,
@@ -181,7 +182,7 @@ export async function POST(req) {
 
     // Send response with UID
     return NextResponse.json(
-      { prescriptions, expenses, success: true },
+      { prescriptions, expenses, time: { start, end }, success: true },
       { status: 201 }
     );
   } catch (error) {

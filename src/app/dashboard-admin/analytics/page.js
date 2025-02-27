@@ -17,6 +17,8 @@ function Page() {
             prescriptions: result.prescriptions,
             expenses: result.expenses,
           });
+          console.log("docs start" + result.time.start);
+          console.log("docs end" + result.time.end);
         }
       } catch (err) {
         console.log("error: ", err);

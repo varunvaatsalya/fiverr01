@@ -18,13 +18,6 @@ const Analytics = ({
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
 
-  const [dateRange, setDateRange] = useState({
-    startDate: "",
-    startTime: "00:00", // default start time
-    endDate: "",
-    endTime: "23:59", // default end time
-  });
-
   const onSubmit = async () => {
     setSubmitting(true);
     try {
@@ -44,6 +37,8 @@ const Analytics = ({
           prescriptions: result.prescriptions,
           expenses: result.expenses,
         }));
+        console.log("docs start"+result.time.start)
+        console.log("docs end"+result.time.end)
       } else {
         setMessage(result.message);
       }
