@@ -11,28 +11,30 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
   } = useForm();
 
   const [submitting, setSubmitting] = useState(false);
+  const [prefix, setPrefix] = useState("");
   const [message, setMessage] = useState(null);
 
   const onSubmit = async (data) => {
+    data.fathersName = prefix + data.fathersName;
     setSubmitting(true);
     try {
-        let result = await fetch("/api/newPatient", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json", // Set the header for JSON
-          },
-          body: JSON.stringify(data), // Properly stringify the data
-        });
+      let result = await fetch("/api/newPatient", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // Set the header for JSON
+        },
+        body: JSON.stringify(data), // Properly stringify the data
+      });
 
-        // Parsing the response as JSON
-        result = await result.json();
-        // Check if login was successful
-        if (result.success) {
-          setEntity((prevPatient) => [result.patient, ...prevPatient]);
-          setNewUserSection((prev) => !prev);
-        } else {
-          setMessage(result.message);
-        }
+      // Parsing the response as JSON
+      result = await result.json();
+      // Check if login was successful
+      if (result.success) {
+        setEntity((prevPatient) => [result.patient, ...prevPatient]);
+        setNewUserSection((prev) => !prev);
+      } else {
+        setMessage(result.message);
+      }
     } catch (error) {
       console.error("Error submitting application:", error);
     } finally {
@@ -49,8 +51,11 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="w-[95%] px-2 md:w-4/5 lg:w-3/4 mx-auto my-2">
-      <input
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-[95%] px-2 md:w-4/5 lg:w-3/4 mx-auto my-2"
+      >
+        <input
           id="name"
           type="text"
           placeholder={"Enter the Patient's name"}
@@ -61,14 +66,29 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
         <div className=" py-1 text-sm text-red-500 text-start px-2">
           {errors.name ? "* " + errors.name.message : ""}
         </div>
-      <input
-          id="fathersName"
-          type="text"
-          placeholder={"Enter the Patient fathers Name"}
-          onInput={(e) => (e.target.value = e.target.value.toUpperCase())}
-          {...register("fathersName")}
-          className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        />
+        <div className="mt-1 flex gap-2 items-center">
+          <select
+            name="prefix"
+            onChange={(e) => {setPrefix(e.target.value)}}
+            className="text-white w-20 px-1 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          >
+            <option value="">prefix</option>
+            <option value="S/o " title="Son of">S/o</option>
+            <option value="W/o " title="Wife of">W/o</option>
+            <option value="D/o " title="Daughter of">D/o</option>
+            <option value="H/o " title="Husband of">H/o</option>
+            <option value="F/o " title="Father of">M/o</option>
+            <option value="M/o " title="Mother of">M/o</option>
+          </select>
+          <input
+            id="fathersName"
+            type="text"
+            placeholder={"Enter the Patient's guardian Name"}
+            onInput={(e) => (e.target.value = e.target.value.toUpperCase())}
+            {...register("fathersName")}
+            className=" text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          />
+        </div>
         <div className=" py-1 text-sm text-red-500 text-start px-2">
           {errors.fathersName ? "* " + errors.fathersName.message : ""}
         </div>

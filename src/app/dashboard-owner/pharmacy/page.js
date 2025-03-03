@@ -6,9 +6,17 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Link from "next/link";
 import { FaNotesMedical } from "react-icons/fa";
+import { MdAccountBalanceWallet } from "react-icons/md";
 
 function Page() {
   const Works = [
+    {
+      name: "Analytics",
+      description: "You can view pharmacy accounts here",
+      icon: <MdAccountBalanceWallet size={50} />,
+      link: "/dashboard-owner/pharmacy/pharmacyAnalytics",
+      color: "bg-teal-800",
+    },
     {
       name: "Invoices",
       description: "You can show all the pharmacy Invoices here",
