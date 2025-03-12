@@ -85,20 +85,11 @@ export async function GET(req) {
         $lt: end,
       },
     };
-    console.log("Date query:", dateQuery);
     const prescriptions = await Prescription.find(dateQuery)
-      .select("-tests")
+      .select("patient price")
       .populate({
         path: "patient",
         select: "name pid",
-      })
-      .populate({
-        path: "doctor",
-        select: "name specialty",
-      })
-      .populate({
-        path: "department",
-        select: "name",
       });
 
     // Send response with UID
