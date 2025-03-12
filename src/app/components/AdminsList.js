@@ -1,13 +1,50 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AddAdminSection from "./AddAdminSection";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { IoPersonAdd } from "react-icons/io5";
 import { credentials } from "../credentials";
+import Link from "next/link";
 
 function AdminsList({ admins, setAdmins }) {
   const [newUserSection, setNewUserSection] = useState(false);
+  const [isActiveSection, setIsActiveSection] = useState(false);
+  const pressedKeys = useRef(new Set());
+
+  const handleKeyDown = (event) => {
+    pressedKeys.current.add(event.key.toLowerCase());
+
+    // Check if Q + W + E + R are pressed
+    if (
+      event.altKey &&
+      event.shiftKey &&
+      event.ctrlKey
+    ) {
+      setIsActiveSection(true);
+    }
+  };
+
+  // Track keyup events to reset keys
+  const handleKeyUp = (event) => {
+    pressedKeys.current.delete(event.key.toLowerCase());
+
+    // Reset to default when Enter is pressed
+    if (event.key === "Enter") {
+      setIsActiveSection(false);
+    }
+  };
+
+  // Attach event listeners
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
   async function deleteAdmin(id) {
     try {
@@ -41,7 +78,7 @@ function AdminsList({ admins, setAdmins }) {
         <></>
       )}
       <div className="flex flex-col min-h-screen bg-gray-100">
-        <Navbar route={['Admins']} />
+        <Navbar route={["Admins"]} />
         <main className="flex-grow">
           <div className="px-2 lg:px-4 max-w-screen-xl mx-auto">
             <div className="h-16 py-2 flex justify-center gap-2 items-center">
@@ -55,18 +92,21 @@ function AdminsList({ admins, setAdmins }) {
                 <div>Add</div>
               </button>
             </div>
+            {isActiveSection ? "dfv" : "hsd"}
             <div className="h-12 px-2 text-sm md:text-base flex rounded-full bg-black text-white">
               <div className="md:w-[8%] justify-center px-2 flex items-center pl-2">
                 No.
               </div>
               <div className="w-2/5 flex items-center">Email</div>
-              <div className="w-2/5 flex items-center justify-center">Password</div>
+              <div className="w-2/5 flex items-center justify-center">
+                Password
+              </div>
               <div className="flex items-center">Delete</div>
             </div>
             {admins.map((admin, index) => {
               return (
                 <div
-                  className="h-12 px-4 text-sm md:text-base flex hover:rounded-full text-black border-b-2 border-gray-300 w-full cursor-pointer"
+                  className="h-12 px-4 text-sm md:text-base flex hover:rounded-full text-black border-b-2 border-gray-300 w-full"
                   key={index + 1}
                 >
                   <div className="w-[8%] px-2 flex items-center justify-center">
@@ -88,19 +128,28 @@ function AdminsList({ admins, setAdmins }) {
               );
             })}
             <div
-              className="h-12 px-4 text-sm md:text-base flex hover:rounded-full text-black border-b-2 border-gray-300 w-full cursor-pointer" key={"default"}
+              className="h-12 px-4 text-sm md:text-base flex hover:rounded-full text-black border-b-2 border-gray-300 w-full"
+              key={"default"}
             >
               <div className="w-[8%] px-2 flex items-center justify-center">
                 {admins.length + 1}
               </div>
               <div className="w-2/5 flex items-center">{credentials.email}</div>
-              <div className="w-2/5 flex items-center justify-center">{credentials.password}</div>
-              <div
-                className="flex items-center"
-              >
-                Default
+              <div className="w-2/5 flex items-center justify-center">
+                {credentials.password}
               </div>
+              <div className="flex items-center">Default</div>
             </div>
+            {isActiveSection && (
+              <div className="bg-gray-300 rounded-lg p-2 flex justify-center">
+                <Link
+                  href="/dashboard-admin/roles/admins/dinvoices"
+                  className="px-3 py-1 bg-amber-700 rounded-lg"
+                >
+                  Go to Dashboard
+                </Link>
+              </div>
+            )}
           </div>
         </main>
         <Footer />

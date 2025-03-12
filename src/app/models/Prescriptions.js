@@ -17,6 +17,24 @@ const prescriptionSchema = new mongoose.Schema({
     required: true,
   },
   items: [{ name: String, price: Number }],
+  price: {
+    subtotal: {
+      type: Number,
+      default: function () {
+        return this.items?.reduce((sum, item) => sum + (item.price || 0), 0);
+      },
+    },
+    discount: {
+      type: Number,
+      default: 0,
+    },
+    total: {
+      type: Number,
+      default: function () {
+        return this.price.subtotal - this.price.discount;
+      },
+    },
+  },
   paymentMode: {
     type: String,
     required: [true, "Please provide a Payment Mode"],

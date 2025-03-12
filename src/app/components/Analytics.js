@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Navbar from "./Navbar";
 
 const Analytics = ({
@@ -17,6 +17,43 @@ const Analytics = ({
   const [message, setMessage] = useState(null);
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
+  const [showSubtotal, setShowSubtotal] = useState(false);
+  const pressedKeys = useRef(new Set());
+
+  const handleKeyDown = (event) => {
+    pressedKeys.current.add(event.key.toLowerCase());
+
+    // Check if Q + W + E + R are pressed
+    if (
+      pressedKeys.current.has("q") &&
+      pressedKeys.current.has("w") &&
+      pressedKeys.current.has("e") &&
+      pressedKeys.current.has("r")
+    ) {
+      setShowSubtotal(true);
+    }
+  };
+
+  // Track keyup events to reset keys
+  const handleKeyUp = (event) => {
+    pressedKeys.current.delete(event.key.toLowerCase());
+
+    // Reset to default when Enter is pressed
+    if (event.key === "Enter") {
+      setShowSubtotal(false);
+    }
+  };
+
+  // Attach event listeners
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
   const onSubmit = async () => {
     setSubmitting(true);
@@ -70,11 +107,18 @@ const Analytics = ({
     handleFilter();
   }, [prescriptions, selectedDepartment, selectedDoctor, selectedPaymentMode]);
 
+  // const getTotalAmount = () => {
+  //   return filteredPrescriptions.reduce(
+  //     (sum, p) => sum + p.items.reduce((sum, item) => sum + item.price, 0),
+  //     0
+  //   );
+  // };
+
   const getTotalAmount = () => {
-    return filteredPrescriptions.reduce(
-      (sum, p) => sum + p.items.reduce((sum, item) => sum + item.price, 0),
-      0
-    );
+    return filteredPrescriptions.reduce((sum, p) => sum + p.price.total, 0);
+  };
+  const getSubTotalAmount = () => {
+    return filteredPrescriptions.reduce((sum, p) => sum + p.price.subtotal, 0);
   };
 
   const paymentSummary = () => {
@@ -84,7 +128,7 @@ const Analytics = ({
       upi: { count: 0, total: 0 },
     };
     filteredPrescriptions.forEach((p) => {
-      const amount = p.items.reduce((sum, item) => sum + item.price, 0);
+      const amount = showSubtotal ? p.price.subtotal : p.price.total;
       if (p.paymentMode === "Cash") {
         summary.cash.count += 1;
         summary.cash.total += amount;
@@ -102,7 +146,7 @@ const Analytics = ({
   const departmentSummary = () => {
     const summary = {};
     filteredPrescriptions.forEach((p) => {
-      const amount = p.items.reduce((sum, item) => sum + item.price, 0);
+      const amount = showSubtotal ? p.price.subtotal : p.price.total;
       if (!summary[p.department.name]) {
         summary[p.department.name] = { count: 0, total: 0 };
       }
@@ -213,7 +257,11 @@ const Analytics = ({
           <span className="font-bold">{filteredPrescriptions.length}</span>
         </span>
         <span>
-          Total Amount: <span className="font-bold">{getTotalAmount()}</span>/-
+          Total Amount:{" "}
+          <span className="font-bold">
+            {showSubtotal ? getSubTotalAmount() : getTotalAmount()}
+          </span>
+          /-
         </span>
         {/* Render filtered prescriptions if needed */}
       </div>

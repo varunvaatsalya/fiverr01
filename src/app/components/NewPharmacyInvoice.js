@@ -27,6 +27,9 @@
 // stock order me selected medicines ko clear krna jab type chnage ho rha ho to
 // last three purchase price dikhna new stock add krte time
 // phhrmcy inlytiics
+// xepense module pagination advanced serch 
+// expense type 
+// pathology adv search
 
 
 // --- DONE ---
