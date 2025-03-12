@@ -166,7 +166,7 @@ function Page() {
                   (p) => p._id === prescription._id
                 );
                 return (
-                  <div className="p-1 bg-gray-300 text-gray-900 font-semibold rounded-lg flex items-center">
+                  <div key={index} className="p-1 bg-gray-300 text-gray-900 font-semibold rounded-lg flex items-center">
                     <div className="w-[5%]">{index + 1 + "."}</div>
                     <div className="w-[50%] line-clamp-1 px-1">
                       {prescription.patient.name}
