@@ -22,18 +22,7 @@ import { useEffect, useState } from "react";
 function Page() {
   const router = useRouter();
   const [roleDetails, setRoleDetails] = useState([]);
-  const [message, setMessage] = useState("");
   useEffect(() => {
-    async function updatePrescription() {
-      try {
-        let result = await fetch("/api/updatePrescriptions");
-        result = await result.json();
-        setMessage(result.message);
-      } catch (err) {
-        setMessage(err);
-        console.log("error: ", err);
-      }
-    }
     async function fetchData() {
       try {
         let result = await fetch("/api/admin?loginInfo=1");
@@ -46,7 +35,6 @@ function Page() {
       }
     }
     fetchData();
-    updatePrescription();
   }, []);
   const Works = [
     {
@@ -141,11 +129,6 @@ function Page() {
     <>
       <div className="flex flex-col min-h-screen">
         <Navbar />
-        {message && (
-          <div className="text-center text-red-500 font-semibold">
-            {message}
-          </div>
-        )}
         <div className="flex-grow flex flex-wrap justify-center items-center gap-8 p-6">
           {Works.map((workCard) => {
             return (
