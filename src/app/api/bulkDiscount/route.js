@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyToken } from "../../utils/jwt";
 import Prescription from "../../models/Prescriptions";
+import Doctor from "../../models/Doctors";
+import Department from "../../models/Departments";
 
 function getDates() {
   const now = new Date();
@@ -86,14 +88,22 @@ export async function GET(req) {
       },
     };
     const prescriptions = await Prescription.find(dateQuery)
-      .select("patient price")
+      .select("patient price department items paymentMode")
       .populate({
         path: "patient",
         select: "name pid",
+      })
+      .populate({
+        path: "department",
       });
 
+    const doctors = await Doctor.find({}, "_id name department").exec();
+    const departments = await Department.find({}, "_id name items").exec();
     // Send response with UID
-    return NextResponse.json({ prescriptions, success: true }, { status: 201 });
+    return NextResponse.json(
+      { prescriptions, doctors, departments, success: true },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(
@@ -154,7 +164,8 @@ export async function POST(req) {
     for (let prescription of prescriptions) {
       prescription.price.discount =
         (prescription.price.subtotal * discountPercentage) / 100;
-      prescription.price.total = prescription.price.subtotal - prescription.price.discount;
+      prescription.price.total =
+        prescription.price.subtotal - prescription.price.discount;
       await prescription.save();
     }
 

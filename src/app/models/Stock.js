@@ -16,6 +16,11 @@ const stockSchema = new mongoose.Schema({
   expiryDate: {
     type: Date,
     required: true,
+    default: () => {
+      let date = new Date();
+      date.setMonth(date.getMonth() - 6);
+      return date;
+    },
   },
   quantity: {
     boxes: {

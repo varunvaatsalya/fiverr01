@@ -225,6 +225,12 @@ function PrescriptionsSearchList({
                             {prescription.department.name}
                           </span>
                         </div>
+                        <div className="py-1 px-4 ">
+                          Payment Mode:{" "}
+                          <span className="text-blue-500 font-semibold capitalize">
+                            {prescription.paymentMode}
+                          </span>
+                        </div>
 
                         <div className="py-1 px-4 ">
                           Create At:{" "}

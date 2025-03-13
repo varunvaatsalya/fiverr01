@@ -62,22 +62,24 @@ function RetailStock({
       if (result.success) {
         setResponseMessage(result.responses[0]?.message);
         if (result.responses[0].success) {
-          
           setMedicineStock((prevStock) => ({
             ...prevStock,
             [selectedLetter]: {
               ...prevStock[selectedLetter], // Existing data preserve
               medicines: prevStock[selectedLetter].medicines.map((medicine) =>
-                medicine._id === result.responses[0].newMedicineStockRequest.medicine
+                medicine._id ===
+                result.responses[0].newMedicineStockRequest.medicine
                   ? {
                       ...medicine,
-                      requests: [...medicine.requests, result.responses[0].newMedicineStockRequest],
+                      requests: [
+                        ...medicine.requests,
+                        result.responses[0].newMedicineStockRequest,
+                      ],
                     }
                   : medicine
               ),
             },
           }));
-          
         }
         setRequestedQuantity("");
         setEnteredRemainingQuantity("");
@@ -290,17 +292,22 @@ function RetailStock({
                   <>
                     <div
                       key={index1}
-                      className="w-full rounded-xl my-1 bg-gray-300 p-2 flex justify-around items-center"
+                      className="w-full rounded-xl my-1 bg-gray-300 p-2 flex flex-wrap gap-3 justify-around items-center"
                     >
-                      <div className="w-1/5">{stock.batchName}</div>
-                      <div className="w-1/5">
+                      <div className="">{stock.batchName}</div>
+                      <div className="">
                         {"Expiry: " + stock.expiryDate.split("T")[0]}
+                      </div><div className="">
+                        {"MRP: " + stock.sellingPrice}
                       </div>
-                      <div className="w-1/5">
+                      <div className="">
                         {stock.quantity.boxes +
                           " Boxes " +
                           stock.quantity.totalStrips +
                           " Strips"}
+                        {stock.quantity.extra
+                          ? " " + stock.quantity.extra + " Extra"
+                          : ""}
                         {stock.quantity.tablets
                           ? " " + stock.quantity.tablets + " Tablets"
                           : ""}
@@ -308,9 +315,7 @@ function RetailStock({
                       {/* <div className="w-[10%]">
                         {"P: " + stock.purchasePrice}
                       </div> */}
-                      <div className="w-[10%]">
-                        {"MRP: " + stock.sellingPrice}
-                      </div>
+                      
                     </div>
                   </>
                 ))}

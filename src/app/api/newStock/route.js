@@ -197,7 +197,7 @@ export async function POST(req) {
       purchasePrice,
       sellingPrice,
       medicine,
-      invoiceId:invoiceNumber,
+      invoiceId: invoiceNumber,
       totalAmount: totalStrips * purchasePrice,
       quantity: {
         boxes: quantity,
@@ -320,6 +320,9 @@ export async function PUT(req) {
       medicineStock.quantity.boxes = quantity;
       medicineStock.quantity.extra = extra;
       medicineStock.quantity.totalStrips = totalStrips;
+      medicineStock.initialQuantity.boxes = initialQuantity;
+      medicineStock.initialQuantity.extra = extra;
+      medicineStock.initialQuantity.totalStrips = totalStrips;
     }
 
     await medicineStock.save();

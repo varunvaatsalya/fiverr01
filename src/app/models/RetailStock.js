@@ -11,6 +11,7 @@ const retailStockSchema = new mongoose.Schema(
       {
         batchName: {
           type: String,
+          default: "N/A",
           required: true,
         },
         expiryDate: {

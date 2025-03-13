@@ -4,6 +4,7 @@ import { verifyToken } from "../../utils/jwt";
 import { Manufacturer, Salt, Vendor } from "../../models/MedicineMetaData";
 import Medicine from "../../models/Medicine";
 import Stock from "../../models/Stock";
+import RetailStock from "../../models/RetailStock";
 
 export async function POST(req) {
   let type = req.nextUrl.searchParams.get("type");
@@ -48,15 +49,16 @@ export async function POST(req) {
   const { data } = await req.json();
 
   try {
-    let message = [];
+    let resultMessage = [];
     if (type === "Manufacturer") {
       const result = await Manufacturer.insertMany(
         data.map((name) => ({ name })),
         { ordered: false }
       );
-      message.push(
-        {info:`Manufacturer data updated successfully. Inserted Count: ${result.insertedCount}`, success:true}
-      );
+      resultMessage.push({
+        info: `Manufacturer data updated successfully. Inserted Count: ${result.insertedCount}`,
+        success: true,
+      });
     } else if (type === "Vendor") {
       for (let vendor of data) {
         if (!vendor.Vendor) continue;
@@ -75,9 +77,15 @@ export async function POST(req) {
             },
             { upsert: true }
           );
-          message.push({info:`Vendor ${vendor.Vendor} processed successfully.`, success:true});
+          resultMessage.push({
+            info: `Vendor ${vendor.Vendor} processed successfully.`,
+            success: true,
+          });
         } catch (error) {
-          message.push({info:`Error processing vendor ${vendor.Vendor}`, success:false});
+          resultMessage.push({
+            info: `Error processing vendor ${vendor.Vendor}`,
+            success: false,
+          });
         }
       }
     } else if (type === "Salts") {
@@ -85,9 +93,10 @@ export async function POST(req) {
         data.map((name) => ({ name })),
         { ordered: false }
       );
-      message.push(
-        {info:`Salts data updated successfully. Inserted Count: ${result.insertedCount}`, success:true}
-      );
+      resultMessage.push({
+        info: `Salts data updated successfully. Inserted Count: ${result.insertedCount}`,
+        success: true,
+      });
     } else if (type === "Medicine") {
       for (let medicine of data) {
         if (!medicine.Company || !medicine.Salt || !medicine.Name) continue;
@@ -105,9 +114,10 @@ export async function POST(req) {
           });
 
           if (existingMedicine) {
-            message.push(
-              {info:`Medicine ${medicine.Name} already exists. Skipped...`, success:false}
-            );
+            resultMessage.push({
+              info: `Medicine ${medicine.Name} already exists. Skipped...`,
+              success: false,
+            });
             continue;
           }
 
@@ -126,10 +136,16 @@ export async function POST(req) {
           });
 
           await medicineDocs.save();
-          message.push({info:`Medicine ${medicine.Name} processed successfully.`, success:true});
+          resultMessage.push({
+            info: `Medicine ${medicine.Name} processed successfully.`,
+            success: true,
+          });
         } catch (error) {
-          message.push({info:`Error inserting ${medicine.Name}`, success:false});
-          console.log(error)
+          resultMessage.push({
+            info: `Error inserting ${medicine.Name}`,
+            success: false,
+          });
+          console.log(error);
         }
       }
     } else if (type === "Stocks") {
@@ -137,11 +153,17 @@ export async function POST(req) {
         if (!stock.Name) continue;
         try {
           const medicine = await Medicine.findOne({ name: stock.Name });
-
-          if (!stock.Expiry || isNaN(new Date(stock.Expiry).getTime())) {
-            message.push({info:`Skipped for wrong Expiry Date for ${stock.Name}`, success:false});
+          if (!medicine) {
+            resultMessage.push({
+              info: `${stock.Name} Not found`,
+              success: false,
+            });
             continue;
           }
+          // if (!stock.Expiry || isNaN(new Date(stock.Expiry).getTime())) {
+          //   resultMessage.push({info:`Skipped for wrong Expiry Date for ${stock.Name}`, success:false});
+          //   continue;
+          // }
 
           let stripsPerBox = medicine.packetSize.strips;
           let totalStrips = stock.Stock ? stock.Stock * stripsPerBox : 0;
@@ -151,6 +173,12 @@ export async function POST(req) {
             batchName: stock.Batch || "N/A",
           });
 
+          let defaultExpiry = () => {
+            let date = new Date();
+            date.setMonth(date.getMonth() - 6);
+            return date;
+          };
+
           if (existingStock) {
             // Update existing stock
             existingStock.quantity.boxes = stock.Stock ? stock.Stock : 0;
@@ -158,23 +186,111 @@ export async function POST(req) {
             existingStock.purchasePrice = stock.PRate ? stock.PRate : 0;
             existingStock.sellingPrice = stock.MRP ? stock.MRP : 0;
             await existingStock.save();
-            message.push({info:`Updated stock for ${stock.Name}`, success:true});
+            resultMessage.push({
+              info: `Updated stock for ${stock.Name}`,
+              success: true,
+            });
           } else {
             // Create new stock entry
             const stocks = new Stock({
               medicine: medicine._id,
               batchName: stock.Batch || "N/A",
-              expiryDate: stock.Expiry ? stock.Expiry : false,
+              expiryDate: stock.Expiry || defaultExpiry(),
               quantity: { boxes: stock.Stock ? stock.Stock : 0, totalStrips },
+              initialQuantity: {
+                boxes: stock.Stock ? stock.Stock : 0,
+                totalStrips,
+              },
               purchasePrice: stock.PRate ? stock.PRate : 0,
               sellingPrice: stock.MRP ? stock.MRP : 0,
             });
 
             await stocks.save();
-            message.push({info:`Inserted new stock for ${stock.Name}`, success:true});
+            resultMessage.push({
+              info: `Inserted new stock for ${stock.Name}`,
+              success: true,
+            });
           }
         } catch (error) {
-          message.push({info:`Error processing ${stock.Name}`, success:false});
+          resultMessage.push({
+            info: `Error processing ${stock.Name}`,
+            success: false,
+          });
+          console.error(`Error processing ${stock.Name}: ${error}`);
+        }
+      }
+    } else if (type === "RetailStocks") {
+      for (let stock of data) {
+        if (!stock.Name) continue;
+        try {
+          const medicine = await Medicine.findOne({ name: stock.Name });
+
+          if (!medicine) {
+            resultMessage.push({
+              info: `${stock.Name} Not found`,
+              success: false,
+            });
+            continue;
+          }
+          // if (!stock.Expiry || isNaN(new Date(stock.Expiry).getTime())) {
+          //   resultMessage.push({info:`Skipped for wrong Expiry Date for ${stock.Name}`, success:false});
+          //   continue;
+          // }
+
+          let stripsPerBox = medicine.packetSize.strips;
+          let totalStrips = stock.Unit ? stock.Unit : 0;
+          let boxes = Math.floor(totalStrips / stripsPerBox);
+          let extra = totalStrips % stripsPerBox;
+
+          const existingStock = await RetailStock.findOne({
+            medicine: medicine._id,
+          });
+
+          let defaultExpiry = () => {
+            let date = new Date();
+            date.setMonth(date.getMonth() - 6);
+            return date;
+          };
+
+          let data = {
+            batchName: stock.Batch || "N/A",
+            expiryDate: stock.Expiry || defaultExpiry(),
+            packetSize: medicine.packetSize,
+            quantity: {
+              boxes,
+              extra,
+              tablets: stock.Tablets || 0,
+              totalStrips,
+            },
+            purchasePrice: stock.PRate,
+            sellingPrice: stock.MRP,
+          };
+
+          if (existingStock && existingStock.stocks) {
+            existingStock.stocks.push(data);
+            await existingStock.save();
+            resultMessage.push({
+              info: `Updated stock for ${stock.Name}`,
+              success: true,
+            });
+          } else {
+            // Create new stock entry
+            const stocks = new RetailStock({
+              medicine: medicine._id,
+              stocks:[data],
+            });
+
+            await stocks.save();
+            resultMessage.push({
+              info: `Inserted new stock for ${stock.Name}`,
+              success: true,
+            });
+          }
+        } catch (error) {
+          resultMessage.push({
+            info: `Error processing ${stock.Name}`,
+            success: false,
+          });
           console.error(`Error processing ${stock.Name}: ${error}`);
         }
       }
@@ -182,7 +298,8 @@ export async function POST(req) {
 
     return NextResponse.json(
       {
-        message: message ? message : "Documents inserted successfully.",
+        message: "Documents inserted successfully.",
+        result:resultMessage,
         success: true,
       },
       { status: 200 }

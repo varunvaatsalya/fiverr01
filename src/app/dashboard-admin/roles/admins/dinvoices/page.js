@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../../../../components/Navbar";
 import { RxCrossCircled } from "react-icons/rx";
 import { FaCircleCheck } from "react-icons/fa6";
@@ -10,9 +10,14 @@ function Page() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [finaling, setFinaling] = useState(false);
-  const [prescriptions, setPrescriptions] = useState(false);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
   const [discountPercentage, setDiscountPercentage] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedPaymentMode, setSelectedPaymentMode] = useState(null);
 
   const onSubmit = async () => {
     setSubmitting(true);
@@ -23,6 +28,7 @@ function Page() {
       result = await result.json();
       if (result.success) {
         setPrescriptions(result.prescriptions);
+        setDepartments(result.departments);
       } else {
         setMessage(result.message);
       }
@@ -32,6 +38,32 @@ function Page() {
       setSubmitting(false);
     }
   };
+  const handleFilter = () => {
+    let filtered = prescriptions;
+
+    if (selectedDepartment) {
+      filtered = filtered.filter((p) =>
+        selectedDepartment.includes(p.department._id)
+      );
+    }
+    if (selectedItem) {
+      filtered = filtered
+        .map((p) => ({
+          ...p,
+          items: p.items.filter((item) => item.name === selectedItem),
+        }))
+        .filter((p) => p.items.length > 0);
+    }
+    if (selectedPaymentMode) {
+      filtered = filtered.filter((p) => p.paymentMode === selectedPaymentMode);
+    }
+
+    setFilteredPrescriptions(filtered);
+  };
+
+  useEffect(() => {
+    handleFilter();
+  }, [prescriptions, selectedDepartment, selectedItem, selectedPaymentMode]);
 
   async function handleSubmit() {
     setFinaling(true);
@@ -76,6 +108,11 @@ function Page() {
   const getTotalDiscountAmount = () => {
     let total = getTotalAmount(selectedIds);
     return parseFloat((total - (total * discountPercentage) / 100).toFixed(2));
+  };
+
+  const getItems = () => {
+    let dept = departments.find((depts) => depts._id === selectedDepartment);
+    return dept.items || [];
   };
 
   return (
@@ -123,26 +160,61 @@ function Page() {
           {submitting ? "Searching..." : "Search"}
         </button>
       </div>
+      <div className="w-full flex flex-wrap items-center justify-center gap-2 bg-slate-800 p-3 text-gray-100">
+        <select
+          onChange={(e) => setSelectedDepartment(e.target.value)}
+          className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+        >
+          <option value="">Select Department</option>
+          {departments.map((dept) => (
+            <option key={dept._id} value={dept._id}>
+              {dept.name}
+            </option>
+          ))}
+        </select>
+        {selectedDepartment && (
+          <select
+            onChange={(e) => setSelectedItem(e.target.value)}
+            className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          >
+            <option value="">Select Item</option>
+            {getItems().map((item) => (
+              <option key={item.name} value={item.name}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        )}
+        <select
+          onChange={(e) => setSelectedPaymentMode(e.target.value)}
+          className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+        >
+          <option value="">Select Payment Mode</option>
+          <option value="Card">Card</option>
+          <option value="Cash">Cash</option>
+          <option value="UPI">UPI</option>
+        </select>
+      </div>
       {message && (
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
-      {prescriptions.length > 0 && (
+      {filteredPrescriptions.length > 0 && (
         <>
           <div className="w-4/5 md:w-3/5 flex flex-col min-h-80 max-h-[60vh] rounded-lg border border-gray-700">
             <div className="flex justify-end items-center gap-2 border-b border-gray-700 p-1">
               <button
                 className="px-2 py-1 border border-gray-800 hover:bg-gray-200 rounded-full flex justify-center items-center gap-1"
                 disabled={
-                  prescriptions.length === 0 ||
-                  selectedIds.length === prescriptions.length
+                  filteredPrescriptions.length === 0 ||
+                  selectedIds.length === filteredPrescriptions.length
                 }
                 onClick={() => {
-                  setSelectedIds(prescriptions);
+                  setSelectedIds(filteredPrescriptions);
                 }}
               >
                 <div className="flex justify-center items-center outline outline-1 outline-offset-1 outline-gray-800 w-3 h-3 rounded-full">
-                  {prescriptions.length > 0 &&
-                    prescriptions.length === selectedIds.length && (
+                  {filteredPrescriptions.length > 0 &&
+                    filteredPrescriptions.length === selectedIds.length && (
                       <FaCircleCheck className="text-gray-800" />
                     )}
                 </div>
@@ -161,12 +233,15 @@ function Page() {
               )}
             </div>
             <div className="flex-1 min-h-0 w-full overflow-y-auto scrollbar-hide p-1 space-y-1">
-              {prescriptions.map((prescription, index) => {
+              {filteredPrescriptions.map((prescription, index) => {
                 let isSelected = selectedIds.some(
                   (p) => p._id === prescription._id
                 );
                 return (
-                  <div key={index} className="p-1 bg-gray-300 text-gray-900 font-semibold rounded-lg flex items-center">
+                  <div
+                    key={index}
+                    className="p-1 bg-gray-300 text-gray-900 font-semibold rounded-lg flex items-center"
+                  >
                     <div className="w-[5%]">{index + 1 + "."}</div>
                     <div className="w-[50%] line-clamp-1 px-1">
                       {prescription.patient.name}
@@ -201,12 +276,14 @@ function Page() {
           <div className="flex justify-center items-center gap-2 font-semibold text-gray-800 mt-1">
             <div>
               Total Prescriptions:{" "}
-              <span className="text-blue-700">{prescriptions.length}</span>
+              <span className="text-blue-700">
+                {filteredPrescriptions.length}
+              </span>
             </div>
             <div>
               Total Amount:{" "}
               <span className="text-blue-700">
-                {getTotalAmount(prescriptions) + "/-"}
+                {getTotalAmount(filteredPrescriptions) + "/-"}
               </span>
             </div>
           </div>
@@ -246,7 +323,7 @@ function Page() {
                     disabled={finaling}
                     className="bg-blue-700 rounded-lg py-1 px-2 text-white font-semibold"
                   >
-                    {finaling?"Submitting...":"Submit"}
+                    {finaling ? "Submitting..." : "Submit"}
                   </button>
                 </>
               )}

@@ -10,10 +10,18 @@ export default function Page() {
   const [jsonData, setJsonData] = useState([]);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
+  const [result, setResult] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [selectedType, setSelectedType] = useState("");
 
-  const schemaType = ["Manufacturer", "Vendor", "Salts", "Medicine", "Stocks"];
+  const schemaType = [
+    "Manufacturer",
+    "Vendor",
+    "Salts",
+    "Medicine",
+    "Stocks",
+    "RetailStocks",
+  ];
   const warnings = {
     Manufacturer: "Company Column should be in the sheet",
     Vendor: "Vendor Column should be in the sheet",
@@ -22,6 +30,8 @@ export default function Page() {
       "Company, Vendor, Salts, Medicine, isTablets, medicineType, packetSize, rackPlace Column should be in the sheet",
     Stocks:
       "Medicine, batchName, mfgDate (MM-DD-YYYY), expiryDate (MM-DD-YYYY), purchasePrice, sellingPrice, stock should be in the sheet",
+    RetailStocks:
+      "Medicine, batchName, Unit, expiryDate (MM-DD-YYYY), purchasePrice(), sellingPrice, stock should be in the sheet",
   };
 
   // useEffect(()=>{
@@ -91,7 +101,7 @@ export default function Page() {
       .map((data) => ({
         Company: data.Company.toUpperCase(),
         Name: data.Name.toUpperCase(),
-        isTablets:data.isTablets,
+        isTablets: data.isTablets,
         medicineType: data.medicineType
           ? data.medicineType.toUpperCase()
           : "N/A",
@@ -108,6 +118,18 @@ export default function Page() {
       Batch: data.Batch,
     }));
 
+  const retailStocksData = () => 
+    jsonData.map((data) => ({
+      Name: data.Name,
+      PRate: data["P.Rate"],
+      MRP: data["M.R.P."],
+      Unit: data.Unit,
+      Tablets: data.Tablets,
+      Expiry: data.Expiry,
+      Batch: data.Batch,
+    }));
+  ;
+
   async function handleUpload() {
     console.log(MedicinesData());
     setSubmitting(true);
@@ -118,6 +140,7 @@ export default function Page() {
     else if (selectedType === "Salts") data = uniqueSalts();
     else if (selectedType === "Medicine") data = MedicinesData();
     else if (selectedType === "Stocks") data = stockData();
+    else if (selectedType === "RetailStocks") data = retailStocksData();
     try {
       let result = await fetch(`/api/uploads?type=${selectedType}`, {
         method: "POST",
@@ -127,6 +150,9 @@ export default function Page() {
         body: JSON.stringify({ data }),
       });
       result = await result.json();
+      if (result.success) {
+        setResult(result.result);
+      }
       setMessage(result.message);
     } catch (error) {
       setMessage("Error in submitting application");
@@ -140,7 +166,12 @@ export default function Page() {
       <Navbar route={["Pharmacy", "Uploads"]} />
       <div className="p-2 min-h-screen w-full bg-slate-800 text-white flex flex-col items-center">
         <h1 className="text-3xl font-bold">Upload Medicine Details</h1>
-        <label class="flex flex-col items-center w-1/2 md:w-1/4 mt-2 px-4 py-6 rounded-lg border border-gray-400">
+        {message && (
+          <div className="text-center text-red-600 font-semibold">
+            {message}
+          </div>
+        )}
+        <label className="flex flex-col items-center w-1/2 md:w-1/4 mt-2 px-4 py-6 rounded-lg border border-gray-400">
           {name ? (
             <BsFiletypeXlsx className="size-12" />
           ) : (
@@ -150,15 +181,15 @@ export default function Page() {
             <div className="text-gray-200 text-lg font-semibold">{name}</div>
           ) : (
             <>
-              <span class="mt-2 text-lg leading-normal ">
+              <span className="mt-2 text-lg leading-normal ">
                 Tap to Select a File
               </span>
-              <span class="text-red-500 text-sm">XLSX / XLS format</span>
+              <span className="text-red-500 text-sm">XLSX / XLS format</span>
             </>
           )}
           <input
             type="file"
-            class="hidden"
+            className="hidden"
             accept=".xlsx, .xls"
             onChange={handleFileUpload}
           />
@@ -197,10 +228,10 @@ export default function Page() {
             </button>
           </>
         )}
-        {message.length > 0 && (
+        {result.length > 0 && (
           <>
             <button
-              disabled={message.length <= 0}
+              disabled={result.length <= 0}
               onClick={() => setMessage([])}
               className="rounded-lg my-2 font-semibold px-3 py-2 bg-red-500 disabled:bg-gray-600"
             >
@@ -208,8 +239,10 @@ export default function Page() {
             </button>
             <h1 className="text-xl font-bold">Logs</h1>
             <ol>
-              {message.map((mess, index) => (
-                <li key={index} className={mess?.success?"":"text-red-600"}>{index + 1 + ". " + mess.info}</li>
+              {result.map((mess, index) => (
+                <li key={index} className={mess?.success ? "" : "text-red-600"}>
+                  {index + 1 + ". " + mess.info}
+                </li>
               ))}
             </ol>
           </>

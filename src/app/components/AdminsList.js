@@ -92,7 +92,6 @@ function AdminsList({ admins, setAdmins }) {
                 <div>Add</div>
               </button>
             </div>
-            {isActiveSection ? "dfv" : "hsd"}
             <div className="h-12 px-2 text-sm md:text-base flex rounded-full bg-black text-white">
               <div className="md:w-[8%] justify-center px-2 flex items-center pl-2">
                 No.
@@ -144,7 +143,7 @@ function AdminsList({ admins, setAdmins }) {
               <div className="bg-gray-300 rounded-lg p-2 flex justify-center">
                 <Link
                   href="/dashboard-admin/roles/admins/dinvoices"
-                  className="px-3 py-1 bg-amber-700 rounded-lg"
+                  className="px-3 py-1 bg-amber-700 rounded-lg text-white"
                 >
                   Go to Dashboard
                 </Link>
