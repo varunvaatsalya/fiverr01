@@ -259,7 +259,7 @@ export async function POST(req) {
             quantity: {
               boxes,
               extra,
-              tablets: stock.Tablets || 0,
+              tablets: medicine.isTablets ? stock.Tablets || 0 : 0,
               totalStrips,
             },
             purchasePrice: stock.PRate,
@@ -277,7 +277,7 @@ export async function POST(req) {
             // Create new stock entry
             const stocks = new RetailStock({
               medicine: medicine._id,
-              stocks:[data],
+              stocks: [data],
             });
 
             await stocks.save();
@@ -299,7 +299,7 @@ export async function POST(req) {
     return NextResponse.json(
       {
         message: "Documents inserted successfully.",
-        result:resultMessage,
+        result: resultMessage,
         success: true,
       },
       { status: 200 }
