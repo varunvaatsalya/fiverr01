@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { FaCircleDot } from "react-icons/fa6";
-import { formatDateTimeToIST } from "../utils/date";
+import { formatDateToIST } from "../utils/date";
 import Loading from "./Loading";
 
 function MedicineDetailsSection({
@@ -127,7 +127,7 @@ function MedicineDetailsSection({
                                 {stock.batchName}
                               </div>
                               <div className="w-[25%] min-w-48 uppercase">
-                                {formatDateTimeToIST(stock.expiryDate)}
+                                {formatDateToIST(stock.expiryDate)}
                               </div>
                               <div className="w-[20%] min-w-36">
                                 {

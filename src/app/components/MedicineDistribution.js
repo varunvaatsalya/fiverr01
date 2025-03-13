@@ -98,14 +98,6 @@ function MedicineDistribution({ invoices, setInvoices }) {
                           {formatDateTimeToIST(invoice.createdAt)}
                         </span>
                       </div>
-                      {invoice.isDelivered && (
-                        <div className="py-1 px-4 ">
-                          Delivered At:{" "}
-                          <span className="text-blue-500 font-semibold uppercase">
-                            {formatDateTimeToIST(invoice.isDelivered)}
-                          </span>
-                        </div>
-                      )}
                     </div>
                     <div className="max-h-[40vh] overflow-y-auto">
                       {invoice.medicines.map((medicine, it) => (

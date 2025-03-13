@@ -218,11 +218,11 @@ function PharmacyInvoiceSearchList({
                         <button
                           className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
                           onClick={() => {
-                            setEditInvoice(invoice);
+                            // setEditInvoice(invoice);
                             // setNewInvoiceSection((prev) => !prev);
                           }}
                         >
-                          Edit
+                          Return
                         </button>
                       )}
                       {invoice.isPrint && (
@@ -238,7 +238,7 @@ function PharmacyInvoiceSearchList({
                         />
                       )}
                       <button
-                        className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
+                        className="py-2 px-4 text-white bg-pink-900 rounded-lg font-semibold flex gap-1 items-center"
                         onClick={() => {
                           console.log(invoice);
                           setMedicineDetails(invoice);
@@ -284,7 +284,7 @@ function PharmacyInvoiceSearchList({
           {advSearch ? "Close" : "Advanced Search"}
         </div> */}
         {/* {!advSearch && ( */}
-        <div className="bg-gray-900 rounded-lg">
+        <div className="bg-gray-900 text-white rounded-lg">
           <button
             onClick={handlePreviousPage}
             disabled={page === 1}

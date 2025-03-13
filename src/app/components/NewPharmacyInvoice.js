@@ -390,7 +390,7 @@ function NewPharmacyInvoice({
             </div>
           ) : (
             <div className="relative">
-              <div className="flex justify-center gap-2 items-center my-1">
+              <form className="flex justify-center gap-2 items-center my-1">
                 <div
                   onClick={() => {
                     setDropDown(!dropDown);
@@ -404,6 +404,7 @@ function NewPharmacyInvoice({
                   onChange={(e) => {
                     setQuery(e.target.value);
                   }}
+                  onFocus={()=>setDropDown(true)}
                   placeholder="Select or Search the Patient"
                   className=" block px-4 py-3 w-full text-gray-100 bg-gray-700  rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
                 />
@@ -414,7 +415,7 @@ function NewPharmacyInvoice({
                 >
                   {finding ? <Loading size={20} /> : <IoSearchOutline />}
                 </button>
-              </div>
+              </form>
               {dropDown && (
                 <div className="absolute top-12 left-12 my-1 rounded-lg p-2 bg-gray-700 border-2 border-gray-500">
                   <div className="p-2 flex items-center gap-2">
@@ -629,7 +630,7 @@ function NewPharmacyInvoice({
                   </div>
                 </div>
               </div>
-              <div className="py-2">
+              <div className="py-2 text-white">
                 {requestedMedicineDetails.map((medicine, index) => {
                   let medicineDetails = medicines.find(
                     (m) => m._id === medicine.medicineId
@@ -689,7 +690,7 @@ function NewPharmacyInvoice({
                   );
                 })}
               </div>
-              <div className="border-t border-gray-700 py-1 ">
+              <div className="border-t border-gray-700 py-1 text-white">
                 <div className="flex justify-end gap-3 items-center px-2 text-md">
                   <div className="font-semibold text-center text-blue-500">
                     Total:
