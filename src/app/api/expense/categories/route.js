@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import Admin from "../../models/Admins";
-import { verifyToken } from "../../utils/jwt";
-import { Expense } from "../../models/Expenses";
+import dbConnect from "../../../lib/Mongodb";
+import { verifyToken } from "../../../utils/jwt";
+import { ExpenseCategory } from "../../../models/Expenses";
+
 
 export async function GET(req) {
   await dbConnect();
-
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -24,12 +23,18 @@ export async function GET(req) {
       { status: 403 }
     );
   }
+  //   if (userRole !== "admin" && userRole !== "owner" && userRole !== "salesman") {
+  //     return NextResponse.json(
+  //       { message: "Access denied. admins only.", success: false },
+  //       { status: 403 }
+  //     );
+  //   }
 
   try {
-    const expenses = await Expense.find().sort({ _id: -1 }).limit(150);
-    return NextResponse.json({ expenses, success: true }, { status: 200 });
+    let categories = await ExpenseCategory.find().sort({ _id: -1 });
+    return NextResponse.json({ categories, success: true }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error fetching departments:", error);
     return NextResponse.json(
       { message: "Internal server error", success: false },
       { status: 500 }
@@ -56,35 +61,44 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin" && userRole !== "salesman" && userRole !== "owner") {
+  if (userRole !== "admin") {
     return NextResponse.json(
-      { message: "Access denied. Admins only.", success: false },
+      { message: "Access denied. admins only.", success: false },
       { status: 403 }
     );
   }
-  const { name, amount, quantity, validity, expenseMessage } = await req.json();
+
+  const { name, subCategory } = await req.json();
 
   try {
-    const newExpense = new Expense({
+    // Create new user
+    const newCategory = new ExpenseCategory({
       name,
-      amount,
-      quantity,
-      validity,
-      expenseMessage,
+      subCategory,
     });
 
     // Save user to the database
-    await newExpense.save();
+    await newCategory.save();
 
     // Send response with UID
     return NextResponse.json(
-      { expense: newExpense, success: true },
+      { category: newCategory, success: true },
       { status: 201 }
     );
-  } catch (error) {
-    console.error("Error during registration:", error);
+  } catch (err) {
+    if (err.code === 11000) {
+      // MongoDB duplicate key error code
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Category name must be unique. Please use a different name.",
+        },
+        { status: 400 }
+      );
+    }
+    console.log(err);
     return NextResponse.json(
-      { message: "Internal server error", success: false },
+      { success: false, message: "Internal server error." },
       { status: 500 }
     );
   }

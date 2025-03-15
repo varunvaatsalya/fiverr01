@@ -4,7 +4,7 @@ import { verifyToken } from "../../utils/jwt";
 import Doctor from "../../models/Doctors";
 import Department from "../../models/Departments";
 import Prescription from "../../models/Prescriptions";
-import Expense from "../../models/Expenses";
+import {Expense} from "../../models/Expenses";
 
 function getDates() {
   const now = new Date();

@@ -10,8 +10,25 @@ function NewExpenseForm({ setNewUserSection, setExpenses }) {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const [categories, setCategories] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
+
+  async function fetchData() {
+      try {
+        let result = await fetch("/api/expense/categories");
+        result = await result.json();
+        if (result.success) {
+          setCategories(result.categories);
+        }
+      } catch (err) {
+        console.log("error: ", err);
+      }
+    }
+    useEffect(() => {
+      fetchData();
+    }, []);
+    
 
   const onSubmit = async (data) => {
     setSubmitting(true);
