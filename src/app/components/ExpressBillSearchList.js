@@ -23,6 +23,7 @@ function ExpressBillSearchList({
   //   const [editInvoice, setEditInvoice] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
   //   const [medicineDetails, setMedicineDetails] = useState(null);
+  const [isDeleteing, setIsDeleting] = useState(false);
   const [createInvoiceSection, setCreateInvoiceSection] = useState(false);
   const [expressData, setExpressData] = useState(null);
 
@@ -41,6 +42,33 @@ function ExpressBillSearchList({
       setPage(page - 1);
     }
   };
+
+  async function handleDeleteInvoice(id) {
+    setIsDeleting(true);
+    try {
+      let result1 = await fetch("/api/newExpressBill", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id,
+        }),
+      });
+      result1 = await result1.json();
+      if (result1.success) {
+        setExpressBills((prevBills) =>
+          prevBills.filter((bill) => bill._id !== id)
+        );
+        setActiveIndex(null);
+      } else {
+        setMessage(result1.message);
+      }
+    } catch (err) {
+      console.log("error: ", err);
+    }
+    setIsDeleting(false);
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -182,17 +210,19 @@ function ExpressBillSearchList({
                         );
                       })}
                     </div>
-                    {(role === "admin" || role === "salesman") && (
-                      <div className="flex justify-around items-center gap-2 mt-3">
+                    <div className="flex justify-around items-center gap-2 mt-3">
+                      {(role === "admin" || role === "nurse") && (
                         <button
-                          className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
-                          //   onClick={() => {
-                          //     setEditInvoice(invoice);
-                          //     // setNewInvoiceSection((prev) => !prev);
-                          //   }}
+                          className="py-2 px-4 text-white bg-red-700 hover:bg-red-800 rounded-lg font-semibold flex gap-1 items-center"
+                          disabled={isDeleteing}
+                          onClick={() => {
+                            handleDeleteInvoice(invoice._id);
+                          }}
                         >
-                          Edit
+                          {isDeleteing ? "Deleting..." : "Delete"}
                         </button>
+                      )}
+                      {(role === "admin" || role === "salesman") && (
                         <button
                           className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
                           onClick={() => {
@@ -203,8 +233,8 @@ function ExpressBillSearchList({
                         >
                           Create Invoice
                         </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

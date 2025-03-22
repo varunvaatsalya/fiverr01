@@ -88,8 +88,10 @@ export async function POST(req) {
           medicine,
           stocks: approvedQuantity,
         });
+        console.log("new");
       } else {
         retailStock.stocks.push(...approvedQuantity);
+        console.log("push");
       }
 
       await retailStock.save();

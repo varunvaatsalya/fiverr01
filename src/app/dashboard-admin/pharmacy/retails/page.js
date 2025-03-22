@@ -1,6 +1,6 @@
 import React from "react";
 import { FaHandHoldingMedical } from "react-icons/fa";
-import { TbChartInfographic, TbClockExclamation } from "react-icons/tb";
+import { TbChartInfographic, TbClockExclamation, TbEditCircle } from "react-icons/tb";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Link from "next/link";
@@ -36,6 +36,14 @@ function Page() {
       icon: <TbClockExclamation size={50} />,
       link: "/dashboard-admin/pharmacy/retails/stockExpiring",
       color: "bg-amber-700",
+    },
+    {
+      name: "Stock Edit",
+      description:
+        "From here you can see & edit retail inventory.",
+      icon: <TbEditCircle size={50} />,
+      link: "/dashboard-admin/pharmacy/retails/stockEdit",
+      color: "bg-fuchsia-700",
     },
   ];
 

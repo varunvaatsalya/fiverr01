@@ -195,12 +195,12 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  // if (userRole !== "admin" && userRole !== "retailer") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. admins only.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  if (userRole !== "admin" && userRole !== "retailer") {
+    return NextResponse.json(
+      { message: "Access denied. admins only.", success: false },
+      { status: 403 }
+    );
+  }
 
   const { requests } = await req.json();
 
@@ -250,7 +250,7 @@ export async function POST(req) {
         responses.push({
           medicine,
           medicineName,
-          message: "No stock found for this medicine",
+          message: "No stock available in godown for this medicine",
           success: false,
         });
         continue;
@@ -264,7 +264,7 @@ export async function POST(req) {
         responses.push({
           medicine,
           medicineName,
-          message: "No stock available for this medicine",
+          message: "No stock available in godown for this medicine",
           success: false,
         });
         continue;

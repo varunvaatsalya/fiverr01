@@ -101,6 +101,7 @@ export async function GET(req) {
           stocks: {
             _id: 1,
             batchName: 1,
+            mfgDate: 1,
             expiryDate: 1,
             quantity: 1,
             purchasePrice: 1,

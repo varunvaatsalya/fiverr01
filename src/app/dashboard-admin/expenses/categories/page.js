@@ -39,7 +39,7 @@ function Page() {
   useEffect(() => {
     fetchData();
   }, []);
-  
+
   useEffect(() => {
     setResData(categories);
   }, [categories]);

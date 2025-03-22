@@ -17,7 +17,6 @@ function Page() {
         let result = await fetch(`/api/newPharmacyInvoice?pending=1`);
         result = await result.json();
         if (result.success) {
-          console.log(1212, result);
           setInvoices(result.allPharmacyInvoices);
           setTotalPages(result.totalPages);
           setAccessInfo({
