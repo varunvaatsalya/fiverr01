@@ -3,11 +3,13 @@ import React, { useEffect, useState } from "react";
 import { ImBoxRemove } from "react-icons/im";
 import { BiInjection } from "react-icons/bi";
 import { TiWarning } from "react-icons/ti";
+import { FaSquarePen } from "react-icons/fa6";
 
 function GodownStock({ medicineStock, query }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [minQty, setMinQty] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [onlyInStock, setOnlyInStock] = useState(false);
   const [filteredMedicines, setFilteredMedicines] = useState(
     medicineStock?.medicines
   );
@@ -18,16 +20,28 @@ function GodownStock({ medicineStock, query }) {
   }, [medicineStock]);
 
   useEffect(() => {
-    if (query) {
-      setFilteredMedicines(
-        medicineStock?.medicines.filter((medicine) =>
+    if (medicineStock?.medicines) {
+      let filtered = medicineStock.medicines;
+
+      if (query) {
+        filtered = filtered.filter((medicine) =>
           medicine.name.toLowerCase().includes(query.toLowerCase())
-        )
-      );
-    } else {
-      setFilteredMedicines(medicineStock?.medicines);
+        );
+      }
+
+      if (onlyInStock) {
+        filtered = filtered.filter(
+          (medicine) =>
+            medicine.stocks.reduce(
+              (acc, stock) => acc + stock.quantity.totalStrips,
+              0
+            ) > 0
+        );
+      }
+
+      setFilteredMedicines(filtered);
     }
-  }, [query]);
+  }, [query, onlyInStock, medicineStock]);
 
   async function handleSetMinQty(id) {
     setSubmitting(true);
@@ -63,9 +77,20 @@ function GodownStock({ medicineStock, query }) {
   }
   return (
     <div className="p-2 w-full md:w-4/5 lg:w-3/4 mx-auto text-gray-900">
-      <div className="w-full rounded-full bg-gray-900 p-2 flex font-semibold text-gray-100 justify-around items-center">
-        <div className="w-2/5">Name</div>
-        <div className="w-2/5">Stock</div>
+      <div className="flex items-center gap-1 w-full">
+        <div className="flex-1 rounded-full bg-gray-900 p-2 flex font-semibold text-gray-100 justify-around items-center">
+          <div className="w-2/5">Name</div>
+          <div className="w-2/5">Stock</div>
+        </div>
+        <button
+          onClick={() => setOnlyInStock(!onlyInStock)}
+          className={
+            "rounded-full  py-2 px-4 font-semibold text-gray-100 " +
+            (onlyInStock ? "bg-blue-700" : "bg-gray-900")
+          }
+        >
+          {">1"}
+        </button>
       </div>
       {filteredMedicines ? (
         filteredMedicines.map((medicine, index) => (
@@ -91,12 +116,16 @@ function GodownStock({ medicineStock, query }) {
                   )}
               </div>
               {medicine.minimumStockCount &&
+              medicine.minimumStockCount?.godown !== null ? (
                 medicine.stocks.reduce(
                   (acc, stock) => acc + stock.quantity.boxes,
                   0
                 ) < medicine.minimumStockCount.godown && (
                   <TiWarning className="text-red-900 size-6 animate-pulse" />
-                )}
+                )
+              ) : (
+                <FaSquarePen className="text-red-900 size-6 animate-pulse" />
+              )}
 
               {medicine.requests.length > 0 && (
                 <ImBoxRemove className="text-red-900 text-lg" />

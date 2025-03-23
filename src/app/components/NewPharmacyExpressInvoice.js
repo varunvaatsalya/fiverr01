@@ -30,12 +30,15 @@ import { IoIosArrowDropdown, IoIosArrowDropright } from "react-icons/io";
 import { IoAddCircle, IoSearchOutline } from "react-icons/io5";
 import { RxCross2 } from "react-icons/rx";
 import Loading from "./Loading";
+import { FaCircleDot } from "react-icons/fa6";
 
 function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
   const [message, setMessage] = useState("");
   const [patients, setPatients] = useState([]);
   const [medicines, setMedicines] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [requestedMedicineDetails, setRequestedMedicineDetails] =
+    useState(null);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
   const [finding, setFinding] = useState(false);
   const [query, setQuery] = useState("");
@@ -130,6 +133,7 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
   };
 
   const handleCheckboxChange = (medicine) => {
+    setRequestedMedicineDetails(null);
     if (selectedMedicines.some((m) => m._id === medicine._id)) {
       setSelectedMedicines(
         selectedMedicines.filter((m) => m._id !== medicine._id)
@@ -146,6 +150,7 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
   };
 
   const handleInputChange = (medicineId, field, value) => {
+    setRequestedMedicineDetails(null);
     setSelectedMedicines((prevSelectedMedicines) =>
       prevSelectedMedicines.map((m) =>
         m._id === medicineId
@@ -156,13 +161,33 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
   };
 
   const removeMedicine = (id) => {
+    setRequestedMedicineDetails(null);
     setSelectedMedicines(selectedMedicines.filter((m) => m._id !== id));
   };
 
+  function getGrandTotal() {
+    const grandTotal = requestedMedicineDetails.reduce(
+      (grandTotal, medicine) => {
+        if (
+          medicine.allocatedQuantities &&
+          medicine.allocatedQuantities.length > 0
+        ) {
+          const totalPrice = medicine.allocatedQuantities.reduce(
+            (total, batch) => total + batch.price,
+            0
+          );
+          return grandTotal + totalPrice;
+        }
+        return grandTotal;
+      },
+      0
+    );
+    return grandTotal;
+  }
+
   const onSubmit = async () => {
     try {
-      let data = { patientId: selectedPatient._id };
-      data.medicines = selectedMedicines.map((medicine) => {
+      let requestedMedicine = selectedMedicines.map((medicine) => {
         const newQuantity = {
           strips: Number(medicine.quantity.strips) || 0,
           tablets: Number(medicine.quantity.tablets) || 0,
@@ -185,7 +210,13 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
 
       setSubmitting(true);
       try {
-        let result = await fetch("/api/newExpressBill", {
+        let url = requestedMedicineDetails
+          ? "/api/newExpressBill"
+          : "/api/newPharmacyInvoice?info=1";
+        let data = requestedMedicineDetails
+          ? { patientId: selectedPatient._id, medicines: requestedMedicine }
+          : { requestedMedicine };
+        let result = await fetch(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -194,11 +225,13 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
         });
         result = await result.json();
         if (result.success) {
-          setExpressBills((expressBills) => [
-            ...expressBills,
-            result.newExpressInvoice,
-          ]);
-          setNewInvoiceSection(false);
+          if (requestedMedicineDetails) {
+            setExpressBills((expressBills) => [
+              ...expressBills,
+              result.newExpressInvoice,
+            ]);
+            setNewInvoiceSection(false);
+          } else setRequestedMedicineDetails(result.requestResults);
         } else {
           setMessage(result.message);
         }
@@ -216,7 +249,7 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
   };
 
   return (
-    <div>
+    <>
       <div className="w-[95%] md:w-4/5 text-center border border-slate-900 rounded-xl mx-auto my-2 pb-2">
         <div className="text-center py-2 rounded-t-lg bg-slate-900 text-xl text-white font-semibold">
           New Invoice
@@ -460,6 +493,105 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
             </div>
           </div>
         </div>
+        {requestedMedicineDetails && (
+          <div className="px-2">
+            <div className="md:w-3/4 mx-auto my-2 border rounded-lg border-gray-700">
+              <div className="py-2 border-b border-gray-700">
+                <div className="text-center text-blue-500 text-lg">
+                  Requested Medicine Details
+                </div>
+                <div className="flex items-center justify-around flex-wrap px-2 text-sm mt-2">
+                  <div className="flex items-center gap-2">
+                    <FaCircleDot className="text-green-500" />
+                    <div className="text-gray-400 font-semibold">Fulfilled</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaCircleDot className="text-yellow-500" />
+                    <div className="text-gray-400 font-semibold">
+                      Insufficient Stock
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaCircleDot className="text-red-500" />
+                    <div className="text-gray-400 font-semibold">
+                      Out of Stock
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="py-2 text-white">
+                {requestedMedicineDetails.map((medicine, index) => {
+                  let medicineDetails = medicines.find(
+                    (m) => m._id === medicine.medicineId
+                  );
+                  const totalStripsAllocated = medicine.allocatedQuantities
+                    ? medicine.allocatedQuantities.reduce(
+                        (total, batch) => total + batch.stripsAllocated,
+                        0
+                      )
+                    : "-";
+                  const totalTabletsAllocated = medicine.allocatedQuantities
+                    ? medicine.allocatedQuantities.reduce(
+                        (total, batch) => total + batch.tabletsAllocated,
+                        0
+                      )
+                    : "-";
+                  const totalPrice = medicine.allocatedQuantities
+                    ? medicine.allocatedQuantities.reduce(
+                        (total, batch) => total + batch.price,
+                        0
+                      )
+                    : "--";
+                  return (
+                    <div key={index} className="flex items-center px-2">
+                      {/* <FaCircleDot className="w-[5%] text-green-500" /> */}
+                      <FaCircleDot
+                        className={`w-[5%] ${
+                          medicine.status === "Fulfilled"
+                            ? "text-green-500"
+                            : medicine.status === "Insufficient Stock"
+                            ? "text-yellow-500"
+                            : "text-red-500"
+                        }`}
+                      />
+
+                      <div className="w-[50%] text-start px-1">
+                        {medicineDetails.name}
+                      </div>
+                      <div className="w-[25%] text-sm text-start text-gray-300">
+                        {medicineDetails.isTablets ? (
+                          <>
+                            {totalStripsAllocated > 0 &&
+                              totalStripsAllocated + " Strips"}
+                            {totalStripsAllocated > 0 &&
+                              totalTabletsAllocated > 0 &&
+                              ", "}
+                            {totalTabletsAllocated > 0
+                              ? totalTabletsAllocated + " Tablets"
+                              : ""}
+                          </>
+                        ) : (
+                          <>{totalStripsAllocated + " Pcs"}</>
+                        )}
+                      </div>
+                      <div className="text-end w-[25%]">
+                        {totalPrice + "/-"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="border-t border-gray-700 py-1 text-white">
+                <div className="flex justify-end gap-3 items-center px-2 text-md">
+                  <div className="font-semibold text-center text-blue-500">
+                    Total:
+                  </div>
+                  <div className="">{getGrandTotal() + "/-"}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <hr className="border-t border-slate-900 w-full my-2" />
         {message && (
           <div className="my-1 text-center text-red-500">{message}</div>
@@ -479,6 +611,8 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
               "w-20 h-8 py-1 flex items-center justify-center gap-2 rounded-lg font-semibold text-white " +
               (submitting || selectedMedicines.length === 0 || !selectedPatient
                 ? "bg-gray-500  "
+                : requestedMedicineDetails
+                ? "bg-green-500"
                 : "bg-red-500")
             }
             disabled={
@@ -486,11 +620,15 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
             }
           >
             {submitting ? <Loading size={15} /> : <></>}
-            {submitting ? "Wait..." : "Confirm"}
+            {submitting
+              ? "Wait..."
+              : requestedMedicineDetails
+              ? "Confirm"
+              : "Proceed"}
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

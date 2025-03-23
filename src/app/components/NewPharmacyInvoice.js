@@ -356,7 +356,7 @@ function NewPharmacyInvoice({
   }
 
   return (
-    <div>
+    <>
       <div className="w-[95%] md:w-4/5 text-center border border-slate-900 rounded-xl mx-auto my-2 pb-2">
         <div className="text-center py-2 rounded-t-lg bg-slate-900 text-xl text-white font-semibold">
           New Invoice
@@ -789,7 +789,7 @@ function NewPharmacyInvoice({
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

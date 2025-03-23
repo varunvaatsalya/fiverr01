@@ -2,6 +2,9 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../../../components/Navbar";
 import GodownStock from "../../../../components/GodownStock";
+import { ImBoxRemove } from "react-icons/im";
+import { FaSquarePen } from "react-icons/fa6";
+import { TiWarning } from "react-icons/ti";
 
 function Page() {
   const [medicineStock, setMedicineStock] = useState({});
@@ -67,7 +70,7 @@ function Page() {
             );
           })}
         </div>
-        <div className="w-full flex justify-center items-center">
+        <div className="w-full flex flex-col justify-center items-center">
           <input
             type="text"
             value={query}
@@ -75,9 +78,26 @@ function Page() {
             onChange={(e) => setQuery(e.target.value)}
             className="rounded-full p-2 italic font-semibold bg-gray-300 text-gray-900 w-3/4 my-2"
           />
+          <div className="flex flex-wrap gap-2 text-xs font-semibold text-black">
+            <div className="flex items-center gap-1">
+              <ImBoxRemove className="text-red-900 text-lg" />
+              <div>: Retail Stock Request</div>
+            </div>
+            <div className="flex items-center gap-1">
+              <FaSquarePen className="text-red-900 text-lg" />
+              <div>: Min Qty Not Set</div>
+            </div>
+            <div className="flex items-center gap-1">
+              <TiWarning className="text-red-900 text-lg" />
+              <div>: Below Stock Limit</div>
+            </div>
+          </div>
         </div>
       </div>
-      <GodownStock medicineStock={medicineStock[selectedLetter]} query={query} />
+      <GodownStock
+        medicineStock={medicineStock[selectedLetter]}
+        query={query}
+      />
     </div>
   );
 }

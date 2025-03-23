@@ -46,7 +46,11 @@ export default function Page() {
       // File reading completed
       reader.onload = (e) => {
         const data = new Uint8Array(e.target.result); // Read as binary
-        const workbook = XLSX.read(data, { type: "array" });
+        const workbook = XLSX.read(data, {
+          type: "array",
+          cellText: true,
+          cellDates: false,
+        });
 
         // Convert first sheet data to JSON
         const sheetName = workbook.SheetNames[0];
@@ -118,7 +122,7 @@ export default function Page() {
       Batch: data.Batch,
     }));
 
-  const retailStocksData = () => 
+  const retailStocksData = () =>
     jsonData.map((data) => ({
       Name: data.Name,
       PRate: data["P.Rate"],
@@ -128,8 +132,6 @@ export default function Page() {
       Expiry: data.Expiry,
       Batch: data.Batch,
     }));
-  ;
-
   async function handleUpload() {
     console.log(MedicinesData());
     setSubmitting(true);

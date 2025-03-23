@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { formatDateTimeToIST } from "../utils/date";
+import { formatDateToIST } from "../utils/date";
 
 function StockExpiry({ stocks,loading }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -42,7 +42,7 @@ function StockExpiry({ stocks,loading }) {
                         >
                           <div className="lg:w-[15%]">{Stock.batchName}</div>
                           <div className="lg:w-[30%]">
-                            {formatDateTimeToIST(Stock.expiryDate)}
+                            {formatDateToIST(Stock.expiryDate)}
                           </div>
                           {Stock.quantity && (
                             <div className="lg:w-[45%]">
