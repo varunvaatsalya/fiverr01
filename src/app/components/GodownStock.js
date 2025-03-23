@@ -115,8 +115,7 @@ function GodownStock({ medicineStock, query }) {
                     0
                   )}
               </div>
-              {medicine.minimumStockCount &&
-              medicine.minimumStockCount?.godown !== null ? (
+              {medicine.minimumStockCount?.godown ? (
                 medicine.stocks.reduce(
                   (acc, stock) => acc + stock.quantity.boxes,
                   0
