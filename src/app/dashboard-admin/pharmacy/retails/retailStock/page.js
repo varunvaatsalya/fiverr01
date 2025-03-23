@@ -37,6 +37,7 @@ function Page() {
         } else console.log(data.message);
       });
   }, []);
+  
   return (
     <div>
       <Navbar route={["Pharmacy", "Retails", "Stock Info"]} />

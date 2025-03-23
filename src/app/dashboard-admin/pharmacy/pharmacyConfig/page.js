@@ -1,5 +1,5 @@
 import React from "react";
-import { FaCircleInfo } from "react-icons/fa6";
+import { FaCircleInfo, FaListCheck } from "react-icons/fa6";
 import { MdMedicalInformation } from "react-icons/md";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
@@ -15,10 +15,17 @@ function Page() {
       color: "bg-teal-700",
     },
     {
-      name: "Medicine Info",
-      description: "You can show & manage the medicine's meta data",
+      name: "Medicine Meta Data",
+      description: "You can show & manage the manufacturers vendors & salts details here",
       icon: <FaCircleInfo size={40} />,
       link: "/dashboard-admin/pharmacy/pharmacyConfig/metaData",
+      color: "bg-amber-700",
+    },
+    {
+      name: "Medicine Info",
+      description: "You can show the medicine's stocks data here",
+      icon: <FaListCheck size={40} />,
+      link: "/dashboard-admin/pharmacy/pharmacyConfig/medicineInfo",
       color: "bg-violet-700",
     },
   ];

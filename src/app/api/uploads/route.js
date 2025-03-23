@@ -166,11 +166,14 @@ export async function POST(req) {
           // }
 
           let stripsPerBox = medicine.packetSize.strips;
-          let totalStrips = stock.Stock ? stock.Stock * stripsPerBox : 0;
+          let totalStrips = stock.Stock || 0;
+          let boxes = Math.floor(totalStrips / stripsPerBox) || 0;
+          let extra = totalStrips % stripsPerBox || 0;
+          // let stripsPerBox = medicine.packetSize.strips;
+          // let totalStrips = stock.Stock ? stock.Stock * stripsPerBox : 0;
 
           const existingStock = await Stock.findOne({
             medicine: medicine._id,
-            batchName: stock.Batch || "N/A",
           });
 
           let defaultExpiry = () => {
@@ -181,10 +184,18 @@ export async function POST(req) {
 
           if (existingStock) {
             // Update existing stock
-            existingStock.quantity.boxes = stock.Stock ? stock.Stock : 0;
-            existingStock.quantity.totalStrips = totalStrips;
+            existingStock.quantity.boxes = boxes || 0;
+            existingStock.quantity.totalStrips = totalStrips || 0;
+            existingStock.quantity.extra = extra || 0;
+            existingStock.expiryDate = stock.Expiry || defaultExpiry();
+            existingStock.initialQuantity.boxes = boxes || 0;
+            existingStock.initialQuantity.totalStrips = totalStrips || 0;
+            existingStock.initialQuantity.extra = extra || 0;
             existingStock.purchasePrice = stock.PRate ? stock.PRate : 0;
             existingStock.sellingPrice = stock.MRP ? stock.MRP : 0;
+            existingStock.totalAmount = stock.PRate * totalStrips;
+            existingStock.invoiceId = stock.Invoice || "N/A";
+
             await existingStock.save();
             resultMessage.push({
               info: `Updated stock for ${stock.Name}`,
@@ -196,13 +207,12 @@ export async function POST(req) {
               medicine: medicine._id,
               batchName: stock.Batch || "N/A",
               expiryDate: stock.Expiry || defaultExpiry(),
-              quantity: { boxes: stock.Stock ? stock.Stock : 0, totalStrips },
-              initialQuantity: {
-                boxes: stock.Stock ? stock.Stock : 0,
-                totalStrips,
-              },
+              quantity: { boxes, extra, totalStrips },
+              initialQuantity: { boxes, extra, totalStrips },
               purchasePrice: stock.PRate ? stock.PRate : 0,
               sellingPrice: stock.MRP ? stock.MRP : 0,
+              totalAmount : stock.PRate * totalStrips,
+              invoiceId : stock.Invoice || "N/A",
             });
 
             await stocks.save();

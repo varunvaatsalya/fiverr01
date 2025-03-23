@@ -5,12 +5,7 @@ import RetailStock from "../../models/RetailStock";
 
 export async function GET(req) {
   await dbConnect();
-  const id = req.nextUrl.searchParams.get("id");
-  if (!id)
-    return NextResponse.json(
-      { message: "Invalid Params", success: false },
-      { status: 401 }
-    );
+
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -36,12 +31,12 @@ export async function GET(req) {
   }
 
   try {
-    let retailStocks = await RetailStock.findOne({ medicine: id }).populate({
+    let retailStocks = await RetailStock.find().populate({
       path: "medicine",
       select: "name",
     });
     return NextResponse.json(
-      { stocks: retailStocks || {}, success: true },
+      { stocks: retailStocks, success: true },
       { status: 200 }
     );
   } catch (error) {
@@ -79,24 +74,26 @@ export async function POST(req) {
     );
   }
 
-  const { details } = await req.json();
+  const { data } = await req.json();
 
   try {
-    let retailStocks = await RetailStock.findById(details._id);
-    if (!retailStocks) {
-      return NextResponse.json(
-        { message: "Stock is not available for uodate", success: false },
-        { status: 200 }
+    for (const medicineStock of data) {
+      medicineStock.stocks.forEach((stock) => {
+        stock.quantity.totalStrips =
+          stock.quantity.boxes * stock.packetSize.strips + stock.quantity.extra;
+      });
+
+      await RetailStock.findOneAndUpdate(
+        { medicine: medicineStock.medicine },
+        { stocks: medicineStock.stocks },
+        { upsert: true, new: true }
       );
     }
 
-    details.stocks.forEach((stock) => {
-      stock.quantity.totalStrips =
-        stock.quantity.boxes * stock.packetSize.strips + stock.quantity.extra;
-    });
-    retailStocks.stocks = details.stocks;
-    await retailStocks.save();
-    return NextResponse.json({ message:"Updated Successfully!",success: true }, { status: 200 });
+    return NextResponse.json(
+      { message: "Updated Successfully!", success: true },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(
