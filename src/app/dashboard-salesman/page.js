@@ -25,7 +25,7 @@ function Page() {
       color: "bg-blue-700",
     },
     {
-      name: "Prescription",
+      name: "Hospital Invoice",
       description: "You can see all the prescription",
       icon: <FaFilePrescription size={50} />,
       link: "/dashboard-salesman/prescriptions",
@@ -39,7 +39,7 @@ function Page() {
       color: "bg-amber-500",
     },
     {
-      name: "Express Billing",
+      name: "Pharmacy Billing",
       description: "You can show all the pharmacy Express Invoices here",
       icon: <MdSpeakerNotes size={50} />,
       link: "/dashboard-salesman/pharmacyExpressBilling",
@@ -72,13 +72,6 @@ function Page() {
       icon: <BsReceipt size={50} />,
       link: "/dashboard-salesman/invoices",
       color: "bg-rose-900",
-    },
-    {
-      name: "Express Billing",
-      description: "You can show all the pharmacy Express Invoices here",
-      icon: <MdSpeakerNotes size={50} />,
-      link: "/dashboard-salesman/pharmacyExpressBilling",
-      color: "bg-sky-600",
     },
     {
       name: "Expenses",

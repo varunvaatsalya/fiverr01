@@ -1,7 +1,12 @@
 "use client";
 import React from "react";
 import { MdFormatListBulletedAdd, MdOutlineLibraryAdd } from "react-icons/md";
-import { TbClockExclamation, TbExchange, TbReportMoney } from "react-icons/tb";
+import {
+  TbClockExclamation,
+  TbEditCircle,
+  TbExchange,
+  TbReportMoney,
+} from "react-icons/tb";
 import { VscGitPullRequestGoToChanges } from "react-icons/vsc";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -76,6 +81,13 @@ function Page() {
       icon: <MdFormatListBulletedAdd size={50} />,
       link: "/dashboard-stockist/pharmacyConfig",
       color: "bg-green-800",
+    },
+    {
+      name: "Retail Stock Edit",
+      description: "From here you can see & edit retail inventory.",
+      icon: <TbEditCircle size={50} />,
+      link: "/dashboard-stockist/stockEdit",
+      color: "bg-fuchsia-700",
     },
   ];
 

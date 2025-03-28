@@ -2,12 +2,10 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import PharmacySectionComponent from "./PharmacySectionComponent";
-import { AiFillMedicineBox } from "react-icons/ai";
 import { IoCreate } from "react-icons/io5";
 import NewPharmacyExpressInvoice from "./NewPharmacyExpressInvoice";
 import { formatDateTimeToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
-import MedicineDetailsSection from "./MedicineDetailsSection";
 import NewPharmacyInvoice from "./NewPharmacyInvoice";
 
 function ExpressBillSearchList({
@@ -94,7 +92,7 @@ function ExpressBillSearchList({
       )}
 
       <Navbar route={["Pharmacy Express Invoice"]} />
-      <div className="px-2 lg:px-4 w-full md:w-4/5 lg:w-3/4 mx-auto flex-1">
+      <div className="px-2 lg:px-4 w-full md:w-4/5 mx-auto flex-1">
         <div className="h-16 py-2 flex justify-center gap-2 items-center">
           <input
             type="text"
@@ -116,7 +114,7 @@ function ExpressBillSearchList({
             </button>
           )}
         </div>
-        <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 md:w-4/5 lg:w-3/4 mx-auto bg-black text-white">
+        <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 mx-auto bg-black text-white">
           List of all the Pharmacy Express Invoices
         </div>
         <div className="flex flex-wrap justify-center items-center mx-auto">
@@ -124,7 +122,7 @@ function ExpressBillSearchList({
             resData.map((invoice, index) => (
               <div
                 key={index}
-                className="text-black w-full px-2 md:w-4/5 lg:w-3/4 mx-auto"
+                className="text-black w-full px-2 mx-auto"
               >
                 <div
                   className="px-4 py-2 cursor-pointer border-b-2 border-gray-300 hover:rounded-full hover:bg-gray-300 flex justify-between items-center"
@@ -186,13 +184,16 @@ function ExpressBillSearchList({
 
                         return (
                           <div
-                            className="border-b-2 w-full mx-auto border-gray-300 flex flex-wrap"
+                            className="border-b-2 w-full mx-auto border-gray-300 flex flex-wrap text-sm"
                             key={it}
                           >
+                            <div className="w-10 p-2 text-center">
+                              {it+1+"."}
+                            </div>
                             <div className="w-1/3 p-2 text-center">
                               {medicine.medicineId.name}
                             </div>
-                            <div className="w-1/3 p-2 text-center">
+                            <div className="flex-1 p-2 text-center text-wrap">
                               {medicine.medicineId.salts.name}
                             </div>
                             <div className="w-1/3 p-2 text-center">

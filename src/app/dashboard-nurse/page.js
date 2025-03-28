@@ -27,7 +27,7 @@ function Page() {
       color: "bg-amber-500",
     },
     {
-      name: "Express Billing",
+      name: "Pharmacy Billing",
       description: "You can show all the pharmacy Express Invoices here",
       icon: <MdSpeakerNotes size={50} />,
       link: "/dashboard-nurse/pharmacyExpressBilling",

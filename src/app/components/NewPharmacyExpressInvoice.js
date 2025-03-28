@@ -31,12 +31,14 @@ import { IoAddCircle, IoSearchOutline } from "react-icons/io5";
 import { RxCross2 } from "react-icons/rx";
 import Loading from "./Loading";
 import { FaCircleDot } from "react-icons/fa6";
+import { formatDateToIST } from "../utils/date";
 
 function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
   const [message, setMessage] = useState("");
   const [patients, setPatients] = useState([]);
   const [medicines, setMedicines] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(null);
   const [requestedMedicineDetails, setRequestedMedicineDetails] =
     useState(null);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
@@ -182,7 +184,7 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
       },
       0
     );
-    return grandTotal;
+    return parseFloat(grandTotal.toFixed(2));
   }
 
   const onSubmit = async () => {
@@ -231,7 +233,10 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
               result.newExpressInvoice,
             ]);
             setNewInvoiceSection(false);
-          } else setRequestedMedicineDetails(result.requestResults);
+          } else {
+            setRequestedMedicineDetails(result.requestResults);
+            console.log(result.requestResults);
+          }
         } else {
           setMessage(result.message);
         }
@@ -495,7 +500,7 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
         </div>
         {requestedMedicineDetails && (
           <div className="px-2">
-            <div className="md:w-3/4 mx-auto my-2 border rounded-lg border-gray-700">
+            <div className=" mx-auto my-2 border rounded-lg border-gray-700">
               <div className="py-2 border-b border-gray-700">
                 <div className="text-center text-blue-500 text-lg">
                   Requested Medicine Details
@@ -503,7 +508,7 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
                 <div className="flex items-center justify-around flex-wrap px-2 text-sm mt-2">
                   <div className="flex items-center gap-2">
                     <FaCircleDot className="text-green-500" />
-                    <div className="text-gray-400 font-semibold">Fulfilled</div>
+                    <div className="text-gray-400 font-semibold">InStock</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <FaCircleDot className="text-yellow-500" />
@@ -518,8 +523,15 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
                     </div>
                   </div>
                 </div>
+                <div className="flex items-center flex-wrap font-semibold text-gray-200 text-sm px-2">
+                  <div className="w-[5%]"></div>
+                  <div className="w-[45%] text-start">Name</div>
+                  <div className="w-[25%] text-start">Qty</div>
+                  <div className="w-[10%]">MRP</div>
+                  <div className="w-[15%] text-end">Total</div>
+                </div>
               </div>
-              <div className="py-2 text-white">
+              <div className="py-1 text-white">
                 {requestedMedicineDetails.map((medicine, index) => {
                   let medicineDetails = medicines.find(
                     (m) => m._id === medicine.medicineId
@@ -542,41 +554,121 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
                         0
                       )
                     : "--";
+                  const MRP =
+                    medicine.allocatedQuantities?.length > 0
+                      ? parseFloat(
+                          medicine.allocatedQuantities[0].sellingPrice?.toFixed(
+                            2
+                          )
+                        )
+                      : "--";
                   return (
-                    <div key={index} className="flex items-center px-2">
-                      {/* <FaCircleDot className="w-[5%] text-green-500" /> */}
-                      <FaCircleDot
-                        className={`w-[5%] ${
-                          medicine.status === "Fulfilled"
-                            ? "text-green-500"
-                            : medicine.status === "Insufficient Stock"
-                            ? "text-yellow-500"
-                            : "text-red-500"
-                        }`}
-                      />
+                    <div key={index}>
+                      <div
+                        onClick={() => {
+                          setActiveIndex(activeIndex === index ? null : index);
+                        }}
+                        className="w-full flex items-center px-2 cursor-pointer hover:bg-gray-800"
+                      >
+                        <FaCircleDot
+                          className={`w-[5%] ${
+                            medicine.status === "Fulfilled"
+                              ? "text-green-500"
+                              : medicine.status === "Insufficient Stock"
+                              ? "text-yellow-500"
+                              : "text-red-500"
+                          }`}
+                        />
 
-                      <div className="w-[50%] text-start px-1">
-                        {medicineDetails.name}
+                        <div
+                          title={medicineDetails.name}
+                          className="w-[45%] text-start px-1 line-clamp-1"
+                        >
+                          {medicineDetails.name}
+                        </div>
+                        <div className="w-[25%] text-sm text-start text-gray-300">
+                          {medicineDetails.isTablets ? (
+                            <>
+                              {totalStripsAllocated > 0 &&
+                                totalStripsAllocated + " Strips"}
+                              {totalStripsAllocated > 0 &&
+                                totalTabletsAllocated > 0 &&
+                                ", "}
+                              {totalTabletsAllocated > 0
+                                ? totalTabletsAllocated + " Tablets"
+                                : ""}
+                            </>
+                          ) : (
+                            <>{totalStripsAllocated + " Pcs"}</>
+                          )}
+                        </div>
+                        <div className="text-center w-[10%]">{MRP + "/-"}</div>
+                        <div className="text-end w-[15%]">
+                          {totalPrice + "/-"}
+                        </div>
                       </div>
-                      <div className="w-[25%] text-sm text-start text-gray-300">
-                        {medicineDetails.isTablets ? (
-                          <>
-                            {totalStripsAllocated > 0 &&
-                              totalStripsAllocated + " Strips"}
-                            {totalStripsAllocated > 0 &&
-                              totalTabletsAllocated > 0 &&
-                              ", "}
-                            {totalTabletsAllocated > 0
-                              ? totalTabletsAllocated + " Tablets"
-                              : ""}
-                          </>
-                        ) : (
-                          <>{totalStripsAllocated + " Pcs"}</>
-                        )}
-                      </div>
-                      <div className="text-end w-[25%]">
-                        {totalPrice + "/-"}
-                      </div>
+                      {activeIndex === index && (
+                        <div className="bg-gray-800 w-full p-1 text-sm">
+                          {medicine.allocatedQuantities?.length > 0 ? (
+                            <>
+                              <div className="flex items-center justify-between text-sm font-semibold text-gray-200 border-b border-gray-700">
+                                <div className="w-[5%]"></div>
+                                <div className="w-[25%] text-start">Batch</div>
+                                <div className="w-[20%] text-start">Expiry</div>
+                                <div className="w-[25%] text-start">Qty</div>
+                                <div className="w-[10%]">MRP</div>
+                                <div className="w-[15%] text-end">Total</div>
+                              </div>
+                              {medicine.allocatedQuantities.map(
+                                (batch, batchIndex) => (
+                                  <div
+                                    key={batchIndex}
+                                    className="flex items-center justify-between text-sm text-gray-300"
+                                  >
+                                    <div className="w-[5%]">{batchIndex+1+"."}</div>
+                                    <div className="w-[25%] text-start px-1 line-clamp-1">
+                                      {batch.batchName}
+                                    </div>
+                                    <div className="w-[20%] text-start px-1">
+                                      {formatDateToIST(batch.expiryDate)}
+                                    </div>
+                                    <div className="w-[25%] text-start text-gray-300">
+                                      {medicineDetails.isTablets ? (
+                                        <>
+                                          {batch.stripsAllocated > 0 &&
+                                            batch.stripsAllocated + " Strips"}
+                                          {batch.stripsAllocated > 0 &&
+                                            batch.tabletsAllocated > 0 &&
+                                            ", "}
+                                          {batch.tabletsAllocated > 0
+                                            ? batch.tabletsAllocated +
+                                              " Tablets"
+                                            : ""}
+                                        </>
+                                      ) : (
+                                        <>{batch.quantity + " Pcs"}</>
+                                      )}
+                                    </div>
+                                    <div className="text-center w-[10%]">
+                                      {parseFloat(
+                                        batch.sellingPrice?.toFixed(2)
+                                      ) + "/-"}
+                                    </div>
+                                    <div className="text-end w-[15%]">
+                                      {parseFloat(batch.price?.toFixed(2)) +
+                                        "/-"}
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </>
+                          ) : (
+                            <div className="text-center text-gray-300">
+                              No any qunatity available
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}

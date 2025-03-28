@@ -17,13 +17,18 @@ export async function GET(req) {
 
   const decoded = await verifyToken(token.value);
   const userRole = decoded.role;
+  const userEditPermission = decoded.editPermission;
+  console.log(userRole, userEditPermission);
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
   }
-  if (userRole !== "admin") {
+  if (
+    (userRole !== "admin" && userRole !== "stockist") ||
+    !userEditPermission
+  ) {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }
