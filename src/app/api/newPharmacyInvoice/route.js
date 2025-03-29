@@ -318,11 +318,13 @@ export async function POST(req) {
     }
 
     // Otherwise, save changes to the database and create an invoice
-    await Promise.all(
-      retailStock.map((stock) =>
-        RetailStock.findByIdAndUpdate(stock._id, { stocks: stock.stocks })
-      )
-    );
+    if (selectedPaymentMode !== "Credit-Others") {
+      await Promise.all(
+        retailStock.map((stock) =>
+          RetailStock.findByIdAndUpdate(stock._id, { stocks: stock.stocks })
+        )
+      );
+    }
     let subtotal = getGrandTotal(result);
     console.log(JSON.stringify(result), 123456);
 
@@ -358,6 +360,9 @@ export async function POST(req) {
         ).toString(),
       },
     });
+    if (selectedPaymentMode === "Credit-Others") {
+      invoice.isDelivered = new Date();
+    }
 
     console.log("Invoice:", JSON.stringify(invoice));
     await invoice.save();
@@ -415,12 +420,12 @@ export async function PUT(req) {
       { status: 403 }
     );
   }
-  // if (userRole !== "admin" && userRole !== "pathologist") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. Admins only.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  if (userRole !== "admin" && userRole !== "salesman") {
+    return NextResponse.json(
+      { message: "Access denied. Admins only.", success: false },
+      { status: 403 }
+    );
+  }
 
   const { id, paymentMode } = await req.json();
 

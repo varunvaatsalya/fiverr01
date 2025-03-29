@@ -13,7 +13,7 @@ function EditPharmacyInvoice({
   const [selectedPaymentMode, setSelectedPaymentMode] = useState(
     editInvoice.paymentMode || ""
   );
-  
+
   async function handleConfirm() {
     setSubmitting(true);
     setMessage(null);
@@ -37,7 +37,9 @@ function EditPharmacyInvoice({
       if (data.success) {
         setInvoices((prevInvoices) =>
           prevInvoices.map((invoice) =>
-            invoice._id === editInvoice._id ? { ...invoice, ...data.invoice } : invoice
+            invoice._id === editInvoice._id
+              ? { ...invoice, ...data.invoice }
+              : invoice
           )
         );
         setMessage("Invoice updated successfully.");
@@ -83,7 +85,17 @@ function EditPharmacyInvoice({
           id="paymentMode"
           value={selectedPaymentMode}
           onChange={(e) => {
-            setSelectedPaymentMode(e.target.value);
+            let value = e.target.value;
+            if (value === "Credit-Others") {
+              const result = window.confirm(
+                "Do you want to select Credit-Others payment mode?"
+              );
+              if (result) {
+                setSelectedPaymentMode(value);
+              } else {
+                setSelectedPaymentMode("");
+              }
+            } else setSelectedPaymentMode(value);
           }}
           className="mt-1 mb-4 block px-4 py-3 text-white md:w-3/4 mx-auto bg-gray-800 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-600 transition duration-150 ease-in-out"
         >
@@ -93,6 +105,7 @@ function EditPharmacyInvoice({
           <option value="Card">Card</option>
           <option value="Credit-Insurance">{"Credit (Insurance)"}</option>
           <option value="Credit-Doctor">{"Credit (Doctor)"}</option>
+          <option value="Credit-Others">{"Credit (Others)"}</option>
           {/*!ipdPrice && <option value="Insurence">Insurence Patient</option>*/}
         </select>
       </div>

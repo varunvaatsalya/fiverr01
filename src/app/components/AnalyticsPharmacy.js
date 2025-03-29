@@ -50,6 +50,7 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
   }, [pharmacyInvoices, selectedPaymentMode]);
 
   const totalDetails = () => {
+    let totalCount = 0;
     let totalAmount = 0;
     let subtotalAmount = 0;
     let discountAmount = 0;
@@ -59,7 +60,9 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
 
     // Process the invoices
     filteredPrescriptions.forEach((invoice) => {
+      if (invoice.paymentMode === "Credit-Others") return;
       // Summing total, subtotal, and discount
+      totalCount++;
       totalAmount += invoice.price.total || 0;
       subtotalAmount += invoice.price.subtotal || 0;
       discountAmount += invoice.price.subtotal - invoice.price.total || 0;
@@ -77,6 +80,7 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
     });
 
     return {
+      totalCount,
       totalAmount,
       subtotalAmount,
       discountAmount,
@@ -87,24 +91,20 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
   };
 
   const paymentSummary = () => {
-    const summary = {
-      cash: { count: 0, total: 0 },
-      card: { count: 0, total: 0 },
-      upi: { count: 0, total: 0 },
-    };
+    const summary = {}; // Dynamic summary object
+
     filteredPrescriptions.forEach((p) => {
+      const mode = p.paymentMode.toLowerCase(); // Ensure case consistency
       const amount = p.price.total;
-      if (p.paymentMode === "Cash") {
-        summary.cash.count += 1;
-        summary.cash.total += amount;
-      } else if (p.paymentMode === "Card") {
-        summary.card.count += 1;
-        summary.card.total += amount;
-      } else if (p.paymentMode === "UPI") {
-        summary.upi.count += 1;
-        summary.upi.total += amount;
+
+      if (!summary[mode]) {
+        summary[mode] = { count: 0, total: 0 }; // Create if mode not exists
       }
+
+      summary[mode].count += 1;
+      summary[mode].total += amount;
     });
+
     return summary;
   };
 
@@ -115,7 +115,8 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
   return (
     <div className="bg-black min-h-screen flex flex-col items-center">
       <div className="w-full">
-      <Navbar route={["Pharmacy", "Analytics"]} /></div>
+        <Navbar route={["Pharmacy", "Analytics"]} />
+      </div>
       {message && (
         <div className="my-1 w-full text-center text-red-500">{message}</div>
       )}
@@ -189,7 +190,7 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
         <div className="flex justify-center gap-5 text-2xl">
           <span>
             No of Invoices:{" "}
-            <span className="font-bold">{filteredPrescriptions.length}</span>
+            <span className="font-bold">{totalsData.totalCount}</span>
           </span>
           <span>
             Total Amount:{" "}
@@ -238,18 +239,16 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
           <h3 className="text-blue-100 text-lg font-semibold pb-1">
             Payment Mode Summary
           </h3>
-          <p>
-            Cash Payments: {paymentData.cash.count} ({" "}
-            {parseFloat(paymentData.cash.total.toFixed(2))}/- )
-          </p>
-          <p>
-            UPI Payments: {paymentData.upi.count} ({" "}
-            {parseFloat(paymentData.upi.total.toFixed(2))}/- )
-          </p>
-          <p>
-            Card Payments: {paymentData.card.count} ({" "}
-            {parseFloat(paymentData.card.total.toFixed(2))}/- )
-          </p>
+          <div className="capitalize">
+            {Object.keys(paymentData).map((mode) => (
+              <p key={mode}>
+                {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                {" - "}
+                {paymentData[mode].count} ({" "}
+                {parseFloat(paymentData[mode].total.toFixed(2))}/- )
+              </p>
+            ))}
+          </div>
         </div>
 
         {/* Section 4: Salesman Summary */}
