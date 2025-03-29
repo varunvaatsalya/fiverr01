@@ -826,6 +826,7 @@ function NewPharmacyInvoice({
           <div className="p-2">
             <select
               id="paymentMode"
+              value={selectedPaymentMode}
               onChange={(e) => {
                 let value = e.target.value;
                 if (value === "Credit-Others") {

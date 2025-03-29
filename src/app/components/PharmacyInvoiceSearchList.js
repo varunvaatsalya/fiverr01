@@ -238,17 +238,18 @@ function PharmacyInvoiceSearchList({
                         />
                       )}
                       {(accessInfo?.accessRole === "admin" ||
-                        accessInfo?.accessRole === "salesman") && (
-                        <button
-                          className="py-2 px-4 text-white bg-fuchsia-900 rounded-lg font-semibold flex gap-1 items-center"
-                          onClick={() => {
-                            setEditInvoice(invoice);
-                            setNewInvoiceSection(true);
-                          }}
-                        >
-                          Edit
-                        </button>
-                      )}
+                        accessInfo?.accessRole === "salesman") &&
+                        invoice.paymentMode !== "Credit-Others" && (
+                          <button
+                            className="py-2 px-4 text-white bg-fuchsia-900 rounded-lg font-semibold flex gap-1 items-center"
+                            onClick={() => {
+                              setEditInvoice(invoice);
+                              setNewInvoiceSection(true);
+                            }}
+                          >
+                            Edit
+                          </button>
+                        )}
                       <button
                         className="py-2 px-4 text-white bg-pink-900 rounded-lg font-semibold flex gap-1 items-center"
                         onClick={() => {
