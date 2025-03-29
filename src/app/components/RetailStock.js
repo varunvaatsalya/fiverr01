@@ -136,193 +136,207 @@ function RetailStock({
         <div className="w-2/5 text-center">Stock</div>
       </div>
       {filteredMedicines ? (
-        filteredMedicines.map((medicine, index) => (
-          <>
-            <div
-              key={index}
-              onClick={() =>
-                setSelectedIndex(selectedIndex === index ? null : index)
-              }
-              className="w-full hover:cursor-pointer rounded-full font-medium bg-gray-300 hover:bg-gray-400 p-2 my-1 flex items-center"
-            >
-              <div className="w-[10%] px-1">{index + 1 + "."}</div>
-              <div className="w-[45%] px-3">{medicine.name}</div>
-              <div className="w-[40%] text-center">
-                {medicine.retailStocks.length > 0 &&
-                  "Boxes: " +
-                    medicine.retailStocks[0]?.stocks.reduce(
-                      (acc, stock) => acc + stock.quantity.boxes,
-                      0
-                    ) +
-                    ", Total Strips: " +
-                    medicine.retailStocks[0]?.stocks.reduce(
-                      (acc, stock) => acc + stock.quantity.totalStrips,
-                      0
-                    )}
-              </div>
-              {medicine.minimumStockCount &&
-                medicine.retailStocks.length > 0 &&
-                medicine.retailStocks[0].stocks.reduce(
-                  (acc, stock) => acc + stock.quantity.boxes,
-                  0
-                ) < medicine.minimumStockCount.retails && (
-                  <TiWarning className="text-red-900 size-6 animate-pulse" />
+        filteredMedicines.map((medicine, index) => {
+          let totalBoxes = medicine.retailStocks[0]?.stocks.reduce(
+            (acc, stock) => acc + stock.quantity.boxes,
+            0
+          );
+          let totalStrips = medicine.retailStocks[0]?.stocks.reduce(
+            (acc, stock) => acc + stock.quantity.totalStrips,
+            0
+          );
+          let totalExtra = medicine.retailStocks[0]?.stocks.reduce(
+            (acc, stock) => acc + stock.quantity.extra,
+            0
+          );
+          let totalTablets = medicine.retailStocks[0]?.stocks.reduce(
+            (acc, stock) => acc + stock.quantity.tablets,
+            0
+          );
+          return (
+            <div key={index} className="w-full">
+              <div
+                onClick={() =>
+                  setSelectedIndex(selectedIndex === index ? null : index)
+                }
+                className="w-full hover:cursor-pointer rounded-full font-medium bg-gray-300 hover:bg-gray-400 p-2 my-1 flex items-center"
+              >
+                <div className="w-[10%] px-1">{index + 1 + "."}</div>
+                <div className="w-[45%] px-3">{medicine.name}</div>
+                <div className="w-[40%] text-center">
+                  {medicine.retailStocks.length > 0
+                    ? "Total Strips: " +
+                      totalStrips +
+                      " = Boxes: " +
+                      totalBoxes +
+                      ", Extra: " +
+                      totalExtra +
+                      ", Tablets: " +
+                      totalTablets
+                    : "--"}
+                </div>
+                {medicine.minimumStockCount &&
+                  medicine.retailStocks.length > 0 &&
+                  medicine.retailStocks[0].stocks.reduce(
+                    (acc, stock) => acc + stock.quantity.boxes,
+                    0
+                  ) < medicine.minimumStockCount.retails && (
+                    <TiWarning className="text-red-900 size-6 animate-pulse" />
+                  )}
+                {medicine.requests.length ? (
+                  <div className="text-red-900 text-lg">
+                    <ImBoxRemove />
+                  </div>
+                ) : (
+                  <></>
                 )}
-              {medicine.requests.length ? (
-                <div className="text-red-900 text-lg">
-                  <ImBoxRemove />
-                </div>
-              ) : (
-                <></>
-              )}
-            </div>
-            {selectedIndex === index && (
-              <div className="w-full bg-slate-200 p-2 rounded-xl flex flex-col justify-center items-center">
-                <div className="flex flex-wrap w-full gap-x-4 justify-around border-b-2 border-gray-400 py-2">
-                  <div className="py-1 px-4 ">
-                    Manufacturer:{" "}
-                    <span className="text-blue-500 font-semibold">
-                      {medicine.manufacturer?.name}
-                    </span>
-                  </div>
-                  <div className="py-1 px-4 ">
-                    Salts:{" "}
-                    <span className="text-blue-500 font-semibold">
-                      {medicine.salts[0]?.name}
-                    </span>
-                  </div>
-                  <div className="py-1 px-4 ">
-                    Strips:{" "}
-                    <span className="text-blue-500 font-semibold">
-                      {medicine.packetSize?.strips}
-                    </span>
-                  </div>
-                  <div className="py-1 px-4 ">
-                    Tablets per strip:{" "}
-                    <span className="text-blue-500 font-semibold">
-                      {medicine.packetSize?.tabletsPerStrip}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex justify-around items-center mt-2 w-full">
-                  {medicine.minimumStockCount &&
-                  medicine.minimumStockCount.retails != null ? (
-                    <div className="flex justify-center items-center gap-2 ">
-                      <div className="font-semibold text-gray-600 bg-slate-300 px-2 rounded">
-                        Min Stock Qty:{" "}
-                        <span className="text-black">
-                          {medicine.minimumStockCount.retails}
-                        </span>
-                      </div>
-                      <div
-                        className="text-red-500 bg-red-50 px-1 rounded-md hover:text-red-700 cursor-pointer"
-                        onClick={() => {
-                          setFilteredMedicines((prevMedicines) =>
-                            prevMedicines.map((med) =>
-                              med._id === medicine._id
-                                ? {
-                                    ...med,
-                                    minimumStockCount: {
-                                      ...med.minimumStockCount,
-                                      retails: null,
-                                    },
-                                  }
-                                : med
-                            )
-                          );
-                        }}
-                      >
-                        Reset
-                      </div>
+              </div>
+              {selectedIndex === index && (
+                <div className="w-full bg-slate-200 p-2 rounded-xl flex flex-col justify-center items-center">
+                  <div className="flex flex-wrap w-full gap-x-4 justify-around border-b-2 border-gray-400 py-2">
+                    <div className="py-1 px-4 ">
+                      Manufacturer:{" "}
+                      <span className="text-blue-500 font-semibold">
+                        {medicine.manufacturer?.name}
+                      </span>
                     </div>
-                  ) : (
-                    <div className="flex justify-center items-center gap-2">
-                      <input
-                        type="number"
-                        value={minQty}
-                        min={0}
-                        onChange={(e) => {
-                          setMinQty(e.target.value);
-                        }}
-                        placeholder="Set Min Stock Qty"
-                        className="rounded-lg py-1 px-2 bg-slate-300 text-black outline-none"
-                      />
+                    <div className="py-1 px-4 ">
+                      Salts:{" "}
+                      <span className="text-blue-500 font-semibold">
+                        {medicine.salts[0]?.name}
+                      </span>
+                    </div>
+                    <div className="py-1 px-4 ">
+                      Strips:{" "}
+                      <span className="text-blue-500 font-semibold">
+                        {medicine.packetSize?.strips}
+                      </span>
+                    </div>
+                    <div className="py-1 px-4 ">
+                      Tablets per strip:{" "}
+                      <span className="text-blue-500 font-semibold">
+                        {medicine.packetSize?.tabletsPerStrip}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex justify-around items-center mt-2 w-full">
+                    {medicine.minimumStockCount &&
+                    medicine.minimumStockCount.retails != null ? (
+                      <div className="flex justify-center items-center gap-2 ">
+                        <div className="font-semibold text-gray-600 bg-slate-300 px-2 rounded">
+                          Min Stock Qty:{" "}
+                          <span className="text-black">
+                            {medicine.minimumStockCount.retails}
+                          </span>
+                        </div>
+                        <div
+                          className="text-red-500 bg-red-50 px-1 rounded-md hover:text-red-700 cursor-pointer"
+                          onClick={() => {
+                            setFilteredMedicines((prevMedicines) =>
+                              prevMedicines.map((med) =>
+                                med._id === medicine._id
+                                  ? {
+                                      ...med,
+                                      minimumStockCount: {
+                                        ...med.minimumStockCount,
+                                        retails: null,
+                                      },
+                                    }
+                                  : med
+                              )
+                            );
+                          }}
+                        >
+                          Reset
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center items-center gap-2">
+                        <input
+                          type="number"
+                          value={minQty}
+                          min={0}
+                          onChange={(e) => {
+                            setMinQty(e.target.value);
+                          }}
+                          placeholder="Set Min Stock Qty"
+                          className="rounded-lg py-1 px-2 bg-slate-300 text-black outline-none"
+                        />
+                        <button
+                          className="rounded-lg px-3 py-1 text-white font-semibold bg-slate-700 hover:bg-slate-600"
+                          onClick={() => {
+                            handleSetMinQty(medicine._id);
+                          }}
+                          disabled={submitting}
+                        >
+                          {submitting ? "Wait..." : "Set"}
+                        </button>
+                      </div>
+                    )}
+                    {medicine.requests.length == 0 && (
                       <button
-                        className="rounded-lg px-3 py-1 text-white font-semibold bg-slate-700 hover:bg-slate-600"
+                        className="px-3 py-2 font-semibold text-white my-2 bg-blue-500 hover:bg-blue-600 rounded-lg"
                         onClick={() => {
-                          handleSetMinQty(medicine._id);
+                          setRequestedMedicine(medicine);
                         }}
-                        disabled={submitting}
                       >
-                        {submitting ? "Wait..." : "Set"}
+                        Request
                       </button>
-                    </div>
-                  )}
-                  {medicine.requests.length == 0 && (
-                    <button
-                      className="px-3 py-2 font-semibold text-white my-2 bg-blue-500 hover:bg-blue-600 rounded-lg"
-                      onClick={() => {
-                        setRequestedMedicine(medicine);
-                      }}
-                    >
-                      Request
-                    </button>
-                  )}
-                </div>
-
-                {medicine.requests.map((request, it) => (
-                  <div
-                    key={it}
-                    className="w-full rounded-full border-b-2 border-gray-300 p-2 flex justify-around items-center"
-                  >
-                    <div className="">
-                      {"Requested Quantity: " +
-                        request.requestedQuantity +
-                        " Boxes"}
-                    </div>
-                    <div className="">
-                      {"Requested Date: " + request.createdAt.split("T")[0]}
-                    </div>
-                    <div className="px-2 py-1 rounded-lg bg-yellow-400 text-yellow-800 text-sm font-semibold">
-                      {request.status}
-                    </div>
+                    )}
                   </div>
-                ))}
-                {medicine.retailStocks[0]?.stocks?.map((stock, index1) => (
-                  <>
+
+                  {medicine.requests.map((request, it) => (
                     <div
-                      key={index1}
-                      className="w-full rounded-xl my-1 bg-gray-300 p-2 flex flex-wrap gap-3 justify-around items-center"
+                      key={it}
+                      className="w-full rounded-full border-b-2 border-gray-300 p-2 flex justify-around items-center"
                     >
-                      <div className="">{stock.batchName}</div>
                       <div className="">
-                        {"Expiry: " + stock.expiryDate.split("T")[0]}
-                      </div><div className="">
-                        {"MRP: " + stock.sellingPrice}
+                        {"Requested Quantity: " +
+                          request.requestedQuantity +
+                          " Boxes"}
                       </div>
                       <div className="">
-                        {stock.quantity.boxes +
-                          " Boxes " +
-                          stock.quantity.totalStrips +
-                          " Strips"}
-                        {stock.quantity.extra
-                          ? " " + stock.quantity.extra + " Extra"
-                          : ""}
-                        {stock.quantity.tablets
-                          ? " " + stock.quantity.tablets + " Tablets"
-                          : ""}
+                        {"Requested Date: " + request.createdAt.split("T")[0]}
                       </div>
-                      {/* <div className="w-[10%]">
+                      <div className="px-2 py-1 rounded-lg bg-yellow-400 text-yellow-800 text-sm font-semibold">
+                        {request.status}
+                      </div>
+                    </div>
+                  ))}
+                  {medicine.retailStocks[0]?.stocks?.map((stock, index1) => (
+                    <>
+                      <div
+                        key={index1}
+                        className="w-full rounded-xl my-1 bg-gray-300 p-2 flex flex-wrap gap-3 justify-around items-center"
+                      >
+                        <div className="">{stock.batchName}</div>
+                        <div className="">
+                          {"Expiry: " + stock.expiryDate.split("T")[0]}
+                        </div>
+                        <div className="">{"MRP: " + stock.sellingPrice}</div>
+                        <div className="">
+                          {stock.quantity.boxes +
+                            " Boxes " +
+                            stock.quantity.totalStrips +
+                            " Strips"}
+                          {stock.quantity.extra
+                            ? " " + stock.quantity.extra + " Extra"
+                            : ""}
+                          {stock.quantity.tablets
+                            ? " " + stock.quantity.tablets + " Tablets"
+                            : ""}
+                        </div>
+                        {/* <div className="w-[10%]">
                         {"P: " + stock.purchasePrice}
                       </div> */}
-                      
-                    </div>
-                  </>
-                ))}
-              </div>
-            )}
-          </>
-        ))
+                      </div>
+                    </>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })
       ) : (
         <div className="w-full p-4 flex flex-col justify-center items-center text-2xl font-semibold text-gray-400">
           <BiInjection size={60} />
