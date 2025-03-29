@@ -10,6 +10,8 @@ function PharmacySectionComponent({
   setExpressData,
   setNewPurchaseInvoiceSection,
   setPurchaseInvoices,
+  editExpressInvoice,
+  setEditExpressInvoice,
 }) {
   return (
     <div className="absolute top-0 left-0">
@@ -19,10 +21,12 @@ function PharmacySectionComponent({
             setNewInvoiceSection={setNewInvoiceSection}
             setInvoices={setInvoices}
             editInvoice={editInvoice}
-            setExpressBills={setExpressBills}
             setEditInvoice={setEditInvoice}
+            setExpressBills={setExpressBills}
             expressData={expressData}
             setExpressData={setExpressData}
+            editExpressInvoice={editExpressInvoice}
+            setEditExpressInvoice={setEditExpressInvoice}
             setNewPurchaseInvoiceSection={setNewPurchaseInvoiceSection}
             setPurchaseInvoices={setPurchaseInvoices}
           />

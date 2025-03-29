@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+// NODE_OPTIONS="--max-old-space-size=4096" npm run build -- for build
 // pm2 restart fiverr01-app -- for start server
 
 

@@ -260,7 +260,8 @@ export async function POST(req) {
           tabletsAllocated,
           packetSize.tabletsPerStrip,
           packetSize,
-          sellingPrice, "gtcu6"
+          sellingPrice,
+          "gtcu6"
         );
         // Record allocation
         allocatedQuantities.push({
@@ -395,6 +396,7 @@ export async function POST(req) {
 
 export async function PUT(req) {
   await dbConnect();
+  let delivered = req.nextUrl.searchParams.get("delivered");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -420,51 +422,51 @@ export async function PUT(req) {
   //   );
   // }
 
-  const { id } = await req.json();
+  const { id, paymentMode } = await req.json();
 
   try {
     const invoice = await PharmacyInvoice.findById(id);
     if (!invoice) {
-      // Handle the case where the invoice is not found
       return NextResponse.json(
         { success: false, message: "Invoice not found" },
         { status: 404 }
       );
     }
-
-    if (invoice.isDelivered) {
-      return NextResponse.json(
-        { success: false, message: "Already delivered" },
-        { status: 200 }
-      );
-    } else {
-      invoice.isDelivered = new Date(); // Setting the current date
-      await invoice.save();
-
-      const populatedInvoice = await PharmacyInvoice.findById(invoice._id)
-        .populate({
-          path: "patientId",
-          select: "name uhid address age gender mobileNumber",
-        })
-        .populate({
-          path: "medicines.medicineId",
-          select: "name salts isTablets medicineType packetSize rackPlace",
-          populate: {
-            path: "salts",
-            select: "name",
-          },
-        })
-        .exec();
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Delivery status updated",
-          invoice: populatedInvoice,
-        },
-        { status: 200 }
-      );
+    if (delivered === "1") {
+      if (invoice.isDelivered) {
+        return NextResponse.json(
+          { success: false, message: "Already delivered" },
+          { status: 200 }
+        );
+      }
+      invoice.isDelivered = new Date();
     }
+    if (paymentMode) invoice.paymentMode = paymentMode;
+    await invoice.save();
+
+    const populatedInvoice = await PharmacyInvoice.findById(invoice._id)
+      .populate({
+        path: "patientId",
+        select: "name uhid address age gender mobileNumber",
+      })
+      .populate({
+        path: "medicines.medicineId",
+        select: "name salts isTablets medicineType packetSize rackPlace",
+        populate: {
+          path: "salts",
+          select: "name",
+        },
+      })
+      .exec();
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Delivery status updated",
+        invoice: populatedInvoice,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error during update:", error);
     return NextResponse.json(

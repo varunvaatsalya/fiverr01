@@ -33,7 +33,12 @@ import Loading from "./Loading";
 import { FaCircleDot } from "react-icons/fa6";
 import { formatDateToIST } from "../utils/date";
 
-function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
+function NewPharmacyExpressInvoice({
+  setNewInvoiceSection,
+  setExpressBills,
+  editExpressInvoice,
+  setEditExpressInvoice,
+}) {
   const [message, setMessage] = useState("");
   const [patients, setPatients] = useState([]);
   const [medicines, setMedicines] = useState([]);
@@ -83,6 +88,21 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
           setPatients(result.patientsList);
           setMedicines(result.medicinesList);
           setSearchedMedicines(result.medicinesList);
+          if (editExpressInvoice && result.medicinesList.length > 0) {
+            setSelectedPatient(editExpressInvoice.patientId);
+            const outputArray = editExpressInvoice.medicines.map((item) => {
+              const medicineDetails = result.medicinesList.find(
+                (med) => med._id === item.medicineId._id
+              );
+
+              console.log(item.medicineId._id, medicines, medicineDetails);
+              return {
+                ...medicineDetails,
+                quantity: item.quantity,
+              };
+            });
+            setSelectedMedicines(outputArray);
+          }
         } else {
           setMessage(result.message);
         }
@@ -216,10 +236,15 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
           ? "/api/newExpressBill"
           : "/api/newPharmacyInvoice?info=1";
         let data = requestedMedicineDetails
-          ? { patientId: selectedPatient._id, medicines: requestedMedicine }
+          ? {
+              patientId: selectedPatient._id,
+              medicines: requestedMedicine,
+              ...(editExpressInvoice && { invoiceId: editExpressInvoice._id }),
+            }
           : { requestedMedicine };
         let result = await fetch(url, {
-          method: "POST",
+          method:
+            requestedMedicineDetails && editExpressInvoice ? "PUT" : "POST",
           headers: {
             "Content-Type": "application/json",
           },
@@ -228,14 +253,21 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
         result = await result.json();
         if (result.success) {
           if (requestedMedicineDetails) {
-            setExpressBills((expressBills) => [
-              ...expressBills,
-              result.newExpressInvoice,
-            ]);
+            setExpressBills((expressBills) => {
+              if (editExpressInvoice) {
+                return expressBills.map((bill) =>
+                  bill._id === result.newExpressInvoice._id
+                    ? result.newExpressInvoice
+                    : bill
+                );
+              } else {
+                return [...expressBills, result.newExpressInvoice];
+              }
+            });
+            setEditExpressInvoice(null);
             setNewInvoiceSection(false);
           } else {
             setRequestedMedicineDetails(result.requestResults);
-            console.log(result.requestResults);
           }
         } else {
           setMessage(result.message);
@@ -257,7 +289,7 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
     <>
       <div className="w-[95%] md:w-4/5 text-center border border-slate-900 rounded-xl mx-auto my-2 pb-2">
         <div className="text-center py-2 rounded-t-lg bg-slate-900 text-xl text-white font-semibold">
-          New Invoice
+          {editExpressInvoice ? "Edit Invoice" : "New Invoice"}
         </div>
         <div className="p-2">
           {selectedPatient ? (
@@ -348,19 +380,17 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
                   </div>
                   <div className="max-h-52 overflow-y-auto">
                     {selectedPatientList.data.length > 0 ? (
-                      selectedPatientList.data.map((patient, index) => (
-                        <>
-                          <div
-                            key={index}
-                            onClick={() => {
-                              setSelectedPatient(patient);
-                              setDropDown(!dropDown);
-                            }}
-                            className="p-1 cursor-pointer border-b border-gray-600 hover:rounded-lg hover:bg-gray-600 px-6 text-white"
-                          >
-                            {patient.name + ", UHID: " + patient.uhid}
-                          </div>
-                        </>
+                      selectedPatientList.data.map((patient) => (
+                        <div
+                          key={patient._id}
+                          onClick={() => {
+                            setSelectedPatient(patient);
+                            setDropDown(!dropDown);
+                          }}
+                          className="p-1 cursor-pointer border-b border-gray-600 hover:rounded-lg hover:bg-gray-600 px-6 text-white"
+                        >
+                          {patient.name + ", UHID: " + patient.uhid}
+                        </div>
                       ))
                     ) : (
                       <div className="text-gray-400 font-semibold">
@@ -428,7 +458,7 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
                     className="lg:flex items-center gap-1 text-white"
                   >
                     <div className="bg-gray-800 my-1 w-full text-sm font-semibold px-2 py-1 rounded-lg">
-                      {medicine.name + " - " + medicine.salts.name}
+                      {medicine.name + " - " + medicine.salts?.name}
                     </div>
                     <div className="flex items-center justify-center gap-1">
                       {medicine.isTablets ? (
@@ -625,7 +655,9 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
                                     key={batchIndex}
                                     className="flex items-center justify-between text-sm text-gray-300"
                                   >
-                                    <div className="w-[5%]">{batchIndex+1+"."}</div>
+                                    <div className="w-[5%]">
+                                      {batchIndex + 1 + "."}
+                                    </div>
                                     <div className="w-[25%] text-start px-1 line-clamp-1">
                                       {batch.batchName}
                                     </div>
@@ -692,6 +724,8 @@ function NewPharmacyExpressInvoice({ setNewInvoiceSection, setExpressBills }) {
           <div
             className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
             onClick={() => {
+              setEditExpressInvoice(null);
+              setRequestedMedicineDetails(null);
               setNewInvoiceSection((newInvoiceSection) => !newInvoiceSection);
             }}
           >

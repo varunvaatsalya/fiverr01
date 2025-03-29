@@ -18,7 +18,7 @@ function ExpressBillSearchList({
 }) {
   const [resData, setResData] = useState([]);
   const [newInvoiceSection, setNewInvoiceSection] = useState(false);
-  //   const [editInvoice, setEditInvoice] = useState(null);
+  const [editExpressInvoice, setEditExpressInvoice] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
   //   const [medicineDetails, setMedicineDetails] = useState(null);
   const [isDeleteing, setIsDeleting] = useState(false);
@@ -75,8 +75,8 @@ function ExpressBillSearchList({
           setNewInvoiceSection={setNewInvoiceSection}
           setExpressBills={setExpressBills}
           FormComponent={NewPharmacyExpressInvoice}
-          //   editInvoice={editInvoice}
-          //   setEditInvoice={setEditInvoice}
+          editExpressInvoice={editExpressInvoice}
+          setEditExpressInvoice={setEditExpressInvoice}
         />
       )}
       {createInvoiceSection && expressData && (
@@ -86,8 +86,6 @@ function ExpressBillSearchList({
           FormComponent={NewPharmacyInvoice}
           expressData={expressData}
           setExpressData={setExpressData}
-          //   editInvoice={editInvoice}
-          //   setEditInvoice={setEditInvoice}
         />
       )}
 
@@ -120,10 +118,7 @@ function ExpressBillSearchList({
         <div className="flex flex-wrap justify-center items-center mx-auto">
           {resData.length > 0 ? (
             resData.map((invoice, index) => (
-              <div
-                key={index}
-                className="text-black w-full px-2 mx-auto"
-              >
+              <div key={index} className="text-black w-full px-2 mx-auto">
                 <div
                   className="px-4 py-2 cursor-pointer border-b-2 border-gray-300 hover:rounded-full hover:bg-gray-300 flex justify-between items-center"
                   onClick={() =>
@@ -188,7 +183,7 @@ function ExpressBillSearchList({
                             key={it}
                           >
                             <div className="w-10 p-2 text-center">
-                              {it+1+"."}
+                              {it + 1 + "."}
                             </div>
                             <div className="w-1/3 p-2 text-center">
                               {medicine.medicineId.name}
@@ -213,15 +208,26 @@ function ExpressBillSearchList({
                     </div>
                     <div className="flex justify-around items-center gap-2 mt-3">
                       {(role === "admin" || role === "nurse") && (
-                        <button
-                          className="py-2 px-4 text-white bg-red-700 hover:bg-red-800 rounded-lg font-semibold flex gap-1 items-center"
-                          disabled={isDeleteing}
-                          onClick={() => {
-                            handleDeleteInvoice(invoice._id);
-                          }}
-                        >
-                          {isDeleteing ? "Deleting..." : "Delete"}
-                        </button>
+                        <>
+                          <button
+                            className="py-2 px-4 text-white bg-red-700 hover:bg-red-800 rounded-lg font-semibold flex gap-1 items-center"
+                            disabled={isDeleteing}
+                            onClick={() => {
+                              handleDeleteInvoice(invoice._id);
+                            }}
+                          >
+                            {isDeleteing ? "Deleting..." : "Delete"}
+                          </button>
+                          <button
+                            className="py-2 px-4 text-white bg-blue-700 hover:bg-blue-800 rounded-lg font-semibold flex gap-1 items-center"
+                            onClick={() => {
+                              setEditExpressInvoice(invoice);
+                              setNewInvoiceSection(true);
+                            }}
+                          >
+                            Edit
+                          </button>
+                        </>
                       )}
                       {(role === "admin" || role === "salesman") && (
                         <button

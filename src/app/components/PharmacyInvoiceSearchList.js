@@ -99,10 +99,7 @@ function PharmacyInvoiceSearchList({
         <div className="flex flex-wrap justify-center items-center mx-auto">
           {resData.length > 0 ? (
             resData.map((invoice, index) => (
-              <div
-                key={index}
-                className="text-black w-full px-2 mx-auto"
-              >
+              <div key={index} className="text-black w-full px-2 mx-auto">
                 <div
                   className="px-4 py-2 cursor-pointer border-b-2 border-gray-300 hover:rounded-full hover:bg-gray-300 flex justify-between items-center"
                   onClick={() =>
@@ -195,7 +192,7 @@ function PharmacyInvoiceSearchList({
                             key={it}
                           >
                             <div className="w-10 p-2 text-center">
-                              {it+1+"."}
+                              {it + 1 + "."}
                             </div>
                             <div className="w-1/3 p-2 text-center">
                               {medicine.medicineId.name}
@@ -240,10 +237,21 @@ function PharmacyInvoiceSearchList({
                           setMedicineDetailsSection={setMedicineDetailsSection}
                         />
                       )}
+                      {(accessInfo?.accessRole === "admin" ||
+                        accessInfo?.accessRole === "salesman") && (
+                        <button
+                          className="py-2 px-4 text-white bg-fuchsia-900 rounded-lg font-semibold flex gap-1 items-center"
+                          onClick={() => {
+                            setEditInvoice(invoice);
+                            setNewInvoiceSection(true);
+                          }}
+                        >
+                          Edit
+                        </button>
+                      )}
                       <button
                         className="py-2 px-4 text-white bg-pink-900 rounded-lg font-semibold flex gap-1 items-center"
                         onClick={() => {
-                          console.log(invoice);
                           setMedicineDetails(invoice);
                           setMedicineDetailsSection(true);
                         }}

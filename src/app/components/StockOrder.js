@@ -215,7 +215,7 @@ Required Quantity: ${medicine.quantity} boxes
       {data.length > 0 && (
         <>
           <div className="w-full md:w-4/5 p-2">
-            <div className="bg-gray-950 font-semibold text-sm rounded-lg py-1 flex items-center p-1">
+            <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg py-1 flex items-center p-1">
               <div className="w-[5%] text-center">Sr No.</div>
               <div className="w-[50%] text-center">Medicine</div>
               <div className="w-[15%] text-center">Min Stock Count</div>
@@ -234,7 +234,7 @@ Required Quantity: ${medicine.quantity} boxes
               {filteredData.map((details, index) => (
                 <div
                   key={index}
-                  className="border-b border-gray-900 font-semibold text-sm rounded-lg p-1 flex items-center"
+                  className="border-b border-gray-900 text-gray-100 font-semibold text-sm rounded-lg p-1 flex items-center"
                 >
                   <div className="w-[5%] text-center">{index + 1}</div>
                   <div className="w-[50%] text-center">{details.name}</div>
@@ -273,7 +273,7 @@ Required Quantity: ${medicine.quantity} boxes
                 {selectedMedicines.map((details, index) => (
                   <div
                     key={index}
-                    className="border-b border-gray-900 bg-gray-800 font-semibold text-sm rounded-lg p-1 flex items-center"
+                    className="border-b border-gray-900 text-gray-100 bg-gray-800 font-semibold text-sm rounded-lg p-1 flex items-center"
                   >
                     <div className="w-[5%] text-center">{index + 1}</div>
                     <div className="w-[50%] text-center">{details.name}</div>
@@ -306,7 +306,7 @@ Required Quantity: ${medicine.quantity} boxes
             </div>
           </div>
 
-          <div className="font-semibold">
+          <div className="font-semibold text-white">
             {"Send Message to " +
               (selectedType === "manufacturer" ? "MR" : "Vendor")}
           </div>

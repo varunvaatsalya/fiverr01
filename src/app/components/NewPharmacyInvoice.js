@@ -455,19 +455,17 @@ function NewPharmacyInvoice({
                   </div>
                   <div className="max-h-52 overflow-y-auto">
                     {selectedPatientList.data.length > 0 ? (
-                      selectedPatientList.data.map((patient, index) => (
-                        <>
-                          <div
-                            key={index}
-                            onClick={() => {
-                              setSelectedPatient(patient);
-                              setDropDown(!dropDown);
-                            }}
-                            className="p-1 cursor-pointer border-b border-gray-600 hover:rounded-lg hover:bg-gray-600 px-6 text-white"
-                          >
-                            {patient.name + ", UHID: " + patient.uhid}
-                          </div>
-                        </>
+                      selectedPatientList.data.map((patient) => (
+                        <div
+                          key={patient._id}
+                          onClick={() => {
+                            setSelectedPatient(patient);
+                            setDropDown(!dropDown);
+                          }}
+                          className="p-1 cursor-pointer border-b border-gray-600 hover:rounded-lg hover:bg-gray-600 px-6 text-white"
+                        >
+                          {patient.name + ", UHID: " + patient.uhid}
+                        </div>
                       ))
                     ) : (
                       <div className="text-gray-400 font-semibold">

@@ -17,7 +17,7 @@ function MedicineDetailsSection({
   async function handleDelivered(id) {
     setSubmitting(true);
     try {
-      let result = await fetch(`/api/newPharmacyInvoice`, {
+      let result = await fetch(`/api/newPharmacyInvoice?delivered=1`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -147,6 +147,91 @@ export async function POST(req) {
   }
 }
 
+export async function PUT(req) {
+  await dbConnect();
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+  if (userRole !== "admin" && userRole !== "nurse") {
+    return NextResponse.json(
+      { message: "Access denied. admins only.", success: false },
+      { status: 403 }
+    );
+  }
+  const { invoiceId ,patientId, medicines } = await req.json();
+
+  try {
+    let pharmacyExpressInvoice = await PharmacyExpress.findById(invoiceId);
+    if (!pharmacyExpressInvoice) {
+      return NextResponse.json(
+        {
+          message: "Invoice not found",
+          success: false,
+        },
+        { status: 404 }
+      );
+    }
+    let patient = await Patient.findById(patientId);
+    if (!patient) {
+      return NextResponse.json(
+        {
+          message: "Patient not found",
+          success: false,
+        },
+        { status: 404 }
+      );
+    }
+    pharmacyExpressInvoice.patientId = patientId;
+    pharmacyExpressInvoice.medicines = medicines;
+    await pharmacyExpressInvoice.save();
+
+    const updatedNewExpressInvoice = await PharmacyExpress.findById(
+      pharmacyExpressInvoice._id
+    )
+      .populate({
+        path: "patientId", // Populate the department field
+        select: "_id name uhid",
+      })
+      .populate({
+        path: "medicines.medicineId", // Populate the department field
+        select: "name _id packetSize isTablets",
+        populate: {
+          path: "salts",
+          select: "_id name",
+        },
+      });
+
+    // Send response with UID
+    return NextResponse.json(
+      {
+        newExpressInvoice: updatedNewExpressInvoice,
+        success: true,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error during registration:", error);
+    return NextResponse.json(
+      { message: "Internal server error", success: false },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(req) {
   await dbConnect();
   const { id } = await req.json();
