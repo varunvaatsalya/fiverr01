@@ -19,6 +19,7 @@ export async function GET(req) {
 
   const decoded = await verifyToken(token.value);
   const userRole = decoded.role;
+  let editPermission = decoded.editPermission || false;
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -53,6 +54,7 @@ export async function GET(req) {
       {
         allExpressBill,
         userRole,
+        editPermission,
         totalPages: Math.ceil(totalPharmacyExpressInvoices / limit),
         success: true,
       },
@@ -172,7 +174,7 @@ export async function PUT(req) {
       { status: 403 }
     );
   }
-  const { invoiceId ,patientId, medicines } = await req.json();
+  const { invoiceId, patientId, medicines } = await req.json();
 
   try {
     let pharmacyExpressInvoice = await PharmacyExpress.findById(invoiceId);

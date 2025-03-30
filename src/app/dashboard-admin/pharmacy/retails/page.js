@@ -5,6 +5,7 @@ import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Link from "next/link";
 import { IoBagAddSharp } from "react-icons/io5";
+import { MdAssignmentReturned } from "react-icons/md";
 
 function Page() {
   const Works = [
@@ -14,6 +15,13 @@ function Page() {
       icon: <FaHandHoldingMedical size={50} />,
       link: "/dashboard-admin/pharmacy/retails/works",
       color: "bg-blue-800",
+    },
+    {
+      name: "Medicine Return",
+      description: "You can create & edit wards and their beds",
+      icon: <MdAssignmentReturned size={50} />,
+      link: "/dashboard-admin/pharmacy/retails/medicineReturn",
+      color: "bg-red-900",
     },
     {
       name: "Stock Info",

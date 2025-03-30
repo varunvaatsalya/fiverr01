@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { MdFormatListBulletedAdd, MdOutlineLibraryAdd } from "react-icons/md";
+import { MdFormatListBulletedAdd, MdOutlineLibraryAdd, MdSpeakerNotes } from "react-icons/md";
 import {
   TbClockExclamation,
   TbEditCircle,
@@ -45,6 +45,13 @@ function Page() {
       icon: <VscGitPullRequestGoToChanges size={50} />,
       link: "/dashboard-stockist/godownStockRequest",
       color: "bg-yellow-700",
+    },
+    {
+      name: "Express Billing",
+      description: "You can show all the pharmacy Express Invoices here",
+      icon: <MdSpeakerNotes size={50} />,
+      link: "/dashboard-stockist/pharmacyExpressBilling",
+      color: "bg-sky-600",
     },
     {
       name: "Stock Edit",
