@@ -240,7 +240,7 @@ function ExpressBillSearchList({
                           </button>
                         </>
                       )}
-                      {(role === "admin" || role === "salesman") && (
+                      {(role === "admin" || role === "salesman" || role === "stockist") && (
                         <button
                           className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
                           onClick={() => {
