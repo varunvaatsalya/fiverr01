@@ -13,7 +13,7 @@ function ExpressBillSearchList({
   setPage,
   totalPages,
   role,
-  isEditPermission=false,
+  isEditPermission = false,
   expressBills,
   setExpressBills,
 }) {
@@ -218,7 +218,9 @@ function ExpressBillSearchList({
                       })}
                     </div>
                     <div className="flex justify-around items-center gap-2 mt-3">
-                      {(role === "admin" || role === "nurse") && (
+                      {(role === "admin" ||
+                        role === "nurse" ||
+                        role === "stockist") && (
                         <>
                           <button
                             className="py-2 px-4 text-white bg-red-700 hover:bg-red-800 rounded-lg font-semibold flex gap-1 items-center"
@@ -238,19 +240,18 @@ function ExpressBillSearchList({
                           >
                             Edit
                           </button>
+
+                          <button
+                            className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
+                            onClick={() => {
+                              console.log(invoice);
+                              setExpressData(invoice);
+                              setCreateInvoiceSection(true);
+                            }}
+                          >
+                            Create Invoice
+                          </button>
                         </>
-                      )}
-                      {(role === "admin" || role === "salesman" || role === "stockist") && (
-                        <button
-                          className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
-                          onClick={() => {
-                            console.log(invoice);
-                            setExpressData(invoice);
-                            setCreateInvoiceSection(true);
-                          }}
-                        >
-                          Create Invoice
-                        </button>
                       )}
                     </div>
                   </div>

@@ -105,6 +105,7 @@ function EditPharmacyInvoice({
           <option value="Card">Card</option>
           <option value="Credit-Insurance">{"Credit (Insurance)"}</option>
           <option value="Credit-Doctor">{"Credit (Doctor)"}</option>
+          <option value="Credit-Society">{"Credit (Society)"}</option>
           <option value="Credit-Others">{"Credit (Others)"}</option>
           {/*!ipdPrice && <option value="Insurence">Insurence Patient</option>*/}
         </select>

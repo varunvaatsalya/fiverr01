@@ -168,7 +168,7 @@ export async function PUT(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin" && userRole !== "nurse") {
+  if (userRole !== "admin" && userRole !== "nurse" && userRole !== "stockist") {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }
