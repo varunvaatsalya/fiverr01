@@ -87,7 +87,7 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin") {
+  if (userRole !== "admin" && userRole !== "stockist") {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }
@@ -138,7 +138,7 @@ export async function PUT(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin") {
+  if (userRole !== "admin" && userRole !== "stockist") {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }

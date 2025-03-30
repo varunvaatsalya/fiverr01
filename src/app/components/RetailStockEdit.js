@@ -9,8 +9,6 @@ function RetailStockEdit() {
   const [finding, setFinding] = useState(false);
   const [details, setDetails] = useState([]);
   const [message, setMessage] = useState("");
-  const [activeIndex, setActiveIndex] = useState(null);
-  const [isEditPermission, setIsEditPermission] = useState(false);
 
   const groupAndCountMedicines = (stocks) => {
     const grouped = {};

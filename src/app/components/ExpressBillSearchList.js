@@ -111,7 +111,7 @@ function ExpressBillSearchList({
             // }}
             className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
           />
-          {(role === "admin" || role === "nurse") && (
+          {(role === "admin" || role === "nurse" || role === "stockist") && (
             <button
               onClick={() => {
                 setNewInvoiceSection((newInvoiceSection) => !newInvoiceSection);
