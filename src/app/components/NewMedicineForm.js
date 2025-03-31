@@ -227,7 +227,7 @@ function NewMedicineForm() {
           </div>
         </div>
       )}
-      <div className="text-center py-2 rounded-t-xl bg-slate-800 text-xl font-medium">
+      <div className="text-center py-2 rounded-t-xl bg-slate-800 text-white text-xl font-medium">
         Add Medicine
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="p-2">

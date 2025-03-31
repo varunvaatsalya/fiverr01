@@ -9,6 +9,7 @@ function RetailStockEdit() {
   const [finding, setFinding] = useState(false);
   const [details, setDetails] = useState([]);
   const [message, setMessage] = useState("");
+  const [formTypeErrMessage, setFormTypeErrMessage] = useState("");
 
   const groupAndCountMedicines = (stocks) => {
     const grouped = {};
@@ -105,6 +106,7 @@ function RetailStockEdit() {
 
       if (result.success) {
         clear();
+        fetchData();
       }
       setMessage(result.message);
     } catch (error) {
@@ -113,7 +115,7 @@ function RetailStockEdit() {
       setFinding(false);
       setTimeout(() => {
         setMessage("");
-      }, 3500);
+      }, 4000);
     }
   };
 
@@ -123,6 +125,10 @@ function RetailStockEdit() {
   };
 
   const handleStockChange = (medicineIndex, stockIndex, field, value) => {
+    setFormTypeErrMessage("");
+    if (value == "") {
+      setFormTypeErrMessage("No value should be blank!");
+    }
     setDetails((prevDetails) => {
       return prevDetails.map((medicine, idx) => {
         if (idx !== medicineIndex) return medicine;
@@ -225,11 +231,12 @@ function RetailStockEdit() {
           <div className="w-full space-y-1">
             <button
               onClick={handleSave}
-              disabled={finding}
+              disabled={finding || formTypeErrMessage}
               className="px-2 py-1 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg "
             >
               {finding ? "Saving..." : "Save"}
             </button>
+            <span className="text-red-600 mx-2 font-semibold">{formTypeErrMessage}</span>
             <div className="bg-gray-900 rounded-lg flex flex-wrap items-center justify-around gap-1 font-semibold text-sm py-1 px-2 text-white">
               <div className="flex-1 min-w-28 text-center">Batch</div>
               <div className="flex-1 min-w-28 text-center">Expiry</div>

@@ -70,7 +70,7 @@ function InvoicePharmacy({
           </div>
           <div>
             <div className={"mb-6 " + (isToken ? "text-start" : "text-center")}>
-              <h1 className="text-3xl font-bold uppercase">
+              <h1 className="text-xl font-bold uppercase">
                 {PharmacyDetails?.name}
               </h1>
               <p className={"text-xs " + (isToken ? "" : "")}>
@@ -82,12 +82,18 @@ function InvoicePharmacy({
                   ? `| Website: ${PharmacyDetails.website}`
                   : ""}
               </p>
+              <p className={"text-xs " + (isToken ? "" : "")}>
+                D.L.No.: {PharmacyDetails?.dlNumber}{" "}
+                {PharmacyDetails.gst
+                  ? `| GST No.: ${PharmacyDetails.gst}`
+                  : ""}
+              </p>
             </div>
-            <hr className="my-4" />
+            <hr className="my-2" />
 
             <div
               className={
-                (isToken ? "" : "flex") + " justify-between mb-6 text-sm"
+                (isToken ? "" : "flex") + " justify-around mb-4 text-sm"
               }
             >
               <div>
@@ -140,9 +146,9 @@ function InvoicePharmacy({
                 </p>
               </div>
             </div>
-            <hr className="my-4" />
+            <hr className="my-2" />
 
-            <div className="my-6">
+            <div className="my-3">
               <h2 className="text-lg font-semibold mb-2">Medicine Details</h2>
               <p className="text-sm">
                 <strong>Department:</strong> {"Pharmacy"}
@@ -246,7 +252,7 @@ function InvoicePharmacy({
                       Sub Total: ₹ {printInvoice.price.subtotal}
                     </p>
                     <p className="font-semibold text-lg">
-                      Discount: {printInvoice.price.discount}
+                      Discount: {printInvoice.price.discount+"%"}
                     </p>
                   </>
                 )}

@@ -486,7 +486,7 @@ function NewPharmacyInvoice({
               onChange={(e) => {
                 handleSearchMedicine(e.target.value);
               }}
-              className="rounded-full bg-gray-700 outline-none focus:ring-2 focus:ring-gray-600 px-3 py-1"
+              className="rounded-full bg-gray-700 text-white outline-none focus:ring-2 focus:ring-gray-600 px-3 py-1"
             />
             <div className="max-h-64 overflow-y-auto bg-gray-700 py-2 px-3 rounded-xl my-2">
               {searchedMedicines.length > 0 ? (

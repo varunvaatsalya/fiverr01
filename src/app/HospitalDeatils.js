@@ -13,6 +13,8 @@ export const PharmacyDetails = {
   phone: "9554696999", // only one mobile number
   email: "upasanamedistore@gmail.com",
   website: "www.shivamakshayvat.in",
+  dlNumber: "UP70210003711",
+  gst: "09AAIHA6239H1Z7",
 };
 
 // IMPORTANT
