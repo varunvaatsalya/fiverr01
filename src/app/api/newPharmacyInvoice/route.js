@@ -420,7 +420,11 @@ export async function PUT(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin" && userRole !== "salesman") {
+  if (
+    userRole !== "admin" &&
+    userRole !== "salesman" &&
+    userRole !== "dispenser"
+  ) {
     return NextResponse.json(
       { message: "Access denied. Admins only.", success: false },
       { status: 403 }

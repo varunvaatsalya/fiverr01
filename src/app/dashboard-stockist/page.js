@@ -1,6 +1,10 @@
 "use client";
 import React from "react";
-import { MdFormatListBulletedAdd, MdOutlineLibraryAdd, MdSpeakerNotes } from "react-icons/md";
+import {
+  MdFormatListBulletedAdd,
+  MdOutlineLibraryAdd,
+  MdSpeakerNotes,
+} from "react-icons/md";
 import {
   TbClockExclamation,
   TbEditCircle,
@@ -14,6 +18,7 @@ import Link from "next/link";
 import { FaEdit, FaFileInvoiceDollar, FaWhatsapp } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { IoLogOut } from "react-icons/io5";
+import { BsReceipt } from "react-icons/bs";
 
 function Page() {
   const router = useRouter();
@@ -45,6 +50,13 @@ function Page() {
       icon: <VscGitPullRequestGoToChanges size={50} />,
       link: "/dashboard-stockist/godownStockRequest",
       color: "bg-yellow-700",
+    },
+    {
+      name: "Invoices",
+      description: "You can show all the pharmacy Invoices here",
+      icon: <BsReceipt size={50} />,
+      link: "/dashboard-stockist/invoices",
+      color: "bg-rose-900",
     },
     {
       name: "Express Billing",

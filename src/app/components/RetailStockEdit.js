@@ -306,7 +306,11 @@ function RetailStockEdit() {
                         />
                         <input
                           type="date"
-                          value={stock.expiryDate.split("T")[0]}
+                          value={
+                            stock.expiryDate
+                              ? stock.expiryDate.split("T")[0]
+                              : ""
+                          }
                           onChange={(e) => {
                             handleStockChange(
                               it,

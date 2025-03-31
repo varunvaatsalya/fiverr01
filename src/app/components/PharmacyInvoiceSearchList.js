@@ -42,6 +42,15 @@ function PharmacyInvoiceSearchList({
       setPage(page - 1);
     }
   };
+
+  if (accessInfo &&accessInfo.accessRole === "stockist" && !accessInfo.accessEditPermission) {
+    return (
+      <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center bg-slate-800 text-white py-2 text-lg rounded-xl mx-auto my-2">
+        You do not have permission to edit medicines bills.
+      </div>
+    );
+  }
+
   if (printInvoice) {
     return (
       <>
@@ -238,7 +247,8 @@ function PharmacyInvoiceSearchList({
                         />
                       )}
                       {(accessInfo?.accessRole === "admin" ||
-                        accessInfo?.accessRole === "salesman") &&
+                        accessInfo?.accessRole === "salesman"||
+                        accessInfo?.accessRole === "stockist") &&
                         invoice.paymentMode !== "Credit-Others" && (
                           <button
                             className="py-2 px-4 text-white bg-fuchsia-900 rounded-lg font-semibold flex gap-1 items-center"
@@ -260,7 +270,8 @@ function PharmacyInvoiceSearchList({
                         Details
                       </button>
                       {(accessInfo?.accessRole === "admin" ||
-                        accessInfo?.accessRole === "salesman") && (
+                        accessInfo?.accessRole === "salesman"||
+                        accessInfo?.accessRole === "stockist") && (
                         <button
                           className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
                           onClick={() => {
