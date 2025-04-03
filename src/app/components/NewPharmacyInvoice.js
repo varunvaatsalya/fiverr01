@@ -1,4 +1,3 @@
-// medcine edit section
 // daily sale details
 // auto efresh
 // new page medcine
@@ -30,9 +29,13 @@
 // xepense module pagination advanced serch
 // expense type
 // pathology adv search
+// required stock order limit
+// last 3 purchase vendors with pur Prices
+// analytics for salts order with pru price & profit comparision
 
 // --- DONE ---
 
+// medcine edit section
 // bulk request
 // dispute section
 // retails in production

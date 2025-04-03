@@ -254,15 +254,6 @@ export async function POST(req) {
         let totalprice =
           (stripsAllocated + tabletsAllocated / packetSize.tabletsPerStrip) *
           sellingPrice;
-        console.log(
-          totalprice,
-          stripsAllocated,
-          tabletsAllocated,
-          packetSize.tabletsPerStrip,
-          packetSize,
-          sellingPrice,
-          "gtcu6"
-        );
         // Record allocation
         allocatedQuantities.push({
           batchName: batch.batchName,
@@ -270,6 +261,7 @@ export async function POST(req) {
           stripsAllocated,
           tabletsAllocated,
           sellingPrice,
+          packetSize,
           price: parseFloat(totalprice.toFixed(2)),
         });
 
@@ -342,6 +334,7 @@ export async function POST(req) {
             allocatedStock: allocatedQuantities.map((item) => ({
               batchName: item.batchName,
               expiryDate: item.expiryDate,
+              packetSize: item.packetSize,
               sellingPrice: item.sellingPrice,
               quantity: {
                 strips: item.stripsAllocated,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyToken } from "../../utils/jwt";
+import Medicine from "../../models/Medicine";
 import RetailStock from "../../models/RetailStock";
 
 export async function GET(req) {
@@ -36,12 +37,26 @@ export async function GET(req) {
   }
 
   try {
+    let allMedicines = await Medicine.find({}, "_id name isTablets");
     let retailStocks = await RetailStock.find().populate({
       path: "medicine",
-      select: "name",
+      select: "_id name isTablets",
+    });
+    let stockMap = new Map(
+      retailStocks.map((stock) => [stock.medicine._id.toString(), stock])
+    );
+
+    // Step 4: Create the final list with the same structure as RetailStock.find()
+    let finalStockList = allMedicines.map((med) => {
+      return (
+        stockMap.get(med._id.toString()) || {
+          medicine: { _id: med._id, name: med.name, isTablets: med.isTablets }, // Include medicine name
+          stocks: [],
+        }
+      );
     });
     return NextResponse.json(
-      { stocks: retailStocks, success: true },
+      { stocks: finalStockList, success: true },
       { status: 200 }
     );
   } catch (error) {
@@ -82,19 +97,73 @@ export async function POST(req) {
   const { data } = await req.json();
 
   try {
+    // for (const medicineStock of data) {
+    //   medicineStock.stocks.forEach((stock) => {
+    //     stock.quantity.totalStrips =
+    //       stock.quantity.boxes * stock.packetSize.strips + stock.quantity.extra;
+    //   });
+
+    //   await RetailStock.findOneAndUpdate(
+    //     { medicine: medicineStock.medicine },
+    //     { stocks: medicineStock.stocks },
+    //     { upsert: true, new: true }
+    //   );
+    // }
+    let missingFieldsMedicines = [];
+
     for (const medicineStock of data) {
+      // Check if stocks exist and have all required fields
+      if (!medicineStock.stocks || medicineStock.stocks.length === 0) {
+        missingFieldsMedicines.push(medicineStock.medicine.name);
+        continue;
+      }
+
+      let isValid = true;
+
       medicineStock.stocks.forEach((stock) => {
+        // Check if all required fields exist
+        if (
+          !stock.batchName ||
+          !stock.expiryDate ||
+          !stock.packetSize?.strips ||
+          !stock.packetSize?.tabletsPerStrip ||
+          !stock.quantity?.boxes ||
+          stock.quantity.extra === undefined ||
+          stock.quantity.tablets === undefined ||
+          !stock.purchasePrice ||
+          !stock.sellingPrice
+        ) {
+          isValid = false;
+        }
+
+        // Calculate totalStrips
         stock.quantity.totalStrips =
           stock.quantity.boxes * stock.packetSize.strips + stock.quantity.extra;
       });
 
+      if (!isValid) {
+        missingFieldsMedicines.push(medicineStock.medicine.name);
+        continue;
+      }
+      
+
+      // Update or Insert the retail stock
       await RetailStock.findOneAndUpdate(
-        { medicine: medicineStock.medicine },
-        { stocks: medicineStock.stocks },
+        { medicine: medicineStock.medicine._id },
+        { medicine: medicineStock.medicine, stocks: medicineStock.stocks },
         { upsert: true, new: true }
       );
     }
 
+    if (missingFieldsMedicines.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Following medicines have missing stock fields: ${missingFieldsMedicines.join(", ")}. Please refresh the page.`,
+        },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { message: "Updated Successfully!", success: true },
       { status: 200 }

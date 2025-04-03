@@ -7,6 +7,7 @@ import { AiFillMedicineBox } from "react-icons/ai";
 import { IoCreate } from "react-icons/io5";
 import NewPharmacyInvoice from "./NewPharmacyInvoice";
 import EditPharmacyInvoice from "./EditPharmacyInvoice";
+import ReturnInvoice from "./ReturnInvoice";
 import { formatDateTimeToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import MedicineDetailsSection from "./MedicineDetailsSection";
@@ -22,6 +23,7 @@ function PharmacyInvoiceSearchList({
   const [resData, setResData] = useState([]);
   const [newInvoiceSection, setNewInvoiceSection] = useState(false);
   const [editInvoice, setEditInvoice] = useState(null);
+  const [returnInvoice, setReturnInvoice] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
   const [medicineDetails, setMedicineDetails] = useState(null);
   const [medicineDetailsSection, setMedicineDetailsSection] = useState(false);
@@ -43,7 +45,11 @@ function PharmacyInvoiceSearchList({
     }
   };
 
-  if (accessInfo &&accessInfo.accessRole === "stockist" && !accessInfo.accessEditPermission) {
+  if (
+    accessInfo &&
+    accessInfo.accessRole === "stockist" &&
+    !accessInfo.accessEditPermission
+  ) {
     return (
       <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center bg-slate-800 text-white py-2 text-lg rounded-xl mx-auto my-2">
         You do not have permission to edit medicines bills.
@@ -59,6 +65,19 @@ function PharmacyInvoiceSearchList({
             printInvoice={printInvoice}
             setPrintInvoice={setPrintInvoice}
             // prescriptionPrinted={prescriptionPrinted}
+          />
+        </div>
+      </>
+    );
+  }
+
+  if (returnInvoice) {
+    return (
+      <>
+        <div className="bg-white h-full">
+          <ReturnInvoice
+            returnInvoice={returnInvoice}
+            setReturnInvoice={setReturnInvoice}
           />
         </div>
       </>
@@ -223,17 +242,18 @@ function PharmacyInvoiceSearchList({
                       })}
                     </div>
                     <div className="flex justify-around items-center gap-2 mt-3">
-                      {accessInfo?.accessEditPermission && (
-                        <button
-                          className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
-                          onClick={() => {
-                            // setEditInvoice(invoice);
-                            // setNewInvoiceSection((prev) => !prev);
-                          }}
-                        >
-                          Return
-                        </button>
-                      )}
+                      {(accessInfo?.accessRole === "dispenser" ||
+                        accessInfo?.accessEditPermission) &&
+                        invoice.isDelivered && (
+                          <button
+                            className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
+                            onClick={() => {
+                              setReturnInvoice(invoice);
+                            }}
+                          >
+                            Return
+                          </button>
+                        )}
                       {invoice.isPrint && (
                         <div className="text-sm text-black text-center">
                           invoice has been printed
@@ -247,7 +267,7 @@ function PharmacyInvoiceSearchList({
                         />
                       )}
                       {(accessInfo?.accessRole === "admin" ||
-                        accessInfo?.accessRole === "salesman"||
+                        accessInfo?.accessRole === "salesman" ||
                         accessInfo?.accessRole === "stockist") &&
                         invoice.paymentMode !== "Credit-Others" && (
                           <button
@@ -270,7 +290,7 @@ function PharmacyInvoiceSearchList({
                         Details
                       </button>
                       {(accessInfo?.accessRole === "admin" ||
-                        accessInfo?.accessRole === "salesman"||
+                        accessInfo?.accessRole === "salesman" ||
                         accessInfo?.accessRole === "stockist") && (
                         <button
                           className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"

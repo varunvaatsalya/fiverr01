@@ -66,6 +66,7 @@ function RetailStockEdit() {
       if (result.success) {
         let medcinesStock = groupAndCountMedicines(result.stocks);
         setMedicineStock(medcinesStock);
+        console.log(medcinesStock);
       } else setMessage(result.message);
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -107,15 +108,15 @@ function RetailStockEdit() {
       if (result.success) {
         clear();
         fetchData();
+        setTimeout(() => {
+          setMessage("");
+        }, 4000);
       }
       setMessage(result.message);
     } catch (error) {
       console.error("Error submitting application:", error);
     } finally {
       setFinding(false);
-      setTimeout(() => {
-        setMessage("");
-      }, 4000);
     }
   };
 
@@ -170,6 +171,31 @@ function RetailStockEdit() {
         const updatedStocks = medicine.stocks.filter(
           (stock) => stock._id !== stockId
         );
+
+        return {
+          ...medicine,
+          stocks: updatedStocks,
+          isEdit: true,
+        };
+      });
+    });
+  };
+  const addStock = (medicineIndex) => {
+    setFormTypeErrMessage("No value should be blank!");
+    setDetails((prevDetails) => {
+      return prevDetails.map((medicine, idx) => {
+        if (idx !== medicineIndex) return medicine;
+
+        const updatedStocks = [
+          {
+            batchName: "",
+            expiryDate: "",
+            quantity: { boxes: "", extra: "", tablets: "" },
+            sellingPrice: "",
+            purchasePrice: 1,
+            packetSize: { strips: "", tabletsPerStrip: "" },
+          },
+        ];
 
         return {
           ...medicine,
@@ -236,7 +262,9 @@ function RetailStockEdit() {
             >
               {finding ? "Saving..." : "Save"}
             </button>
-            <span className="text-red-600 mx-2 font-semibold">{formTypeErrMessage}</span>
+            <span className="text-red-600 mx-2 font-semibold">
+              {formTypeErrMessage}
+            </span>
             <div className="bg-gray-900 rounded-lg flex flex-wrap items-center justify-around gap-1 font-semibold text-sm py-1 px-2 text-white">
               <div className="flex-1 min-w-28 text-center">Batch</div>
               <div className="flex-1 min-w-28 text-center">Expiry</div>
@@ -355,7 +383,7 @@ function RetailStockEdit() {
                           className="px-2 rounded flex-1 min-w-28"
                         />
                         <div className="flex-1 min-w-28">
-                          {stock.packetSize.tabletsPerStrip > 1 && (
+                          {mStocks.medicine.isTablets && (
                             <input
                               type="number"
                               value={stock.quantity.tablets}
@@ -421,8 +449,7 @@ function RetailStockEdit() {
                             stock.quantity.extra
                           ).toLocaleString()}{" "}
                           Strips
-                          {stock.packetSize.tabletsPerStrip > 1 &&
-                          stock.quantity.tablets
+                          {mStocks.medicine.isTablets && stock.quantity.tablets
                             ? `, ${stock.quantity.tablets.toLocaleString()} Tablets`
                             : ""}
                         </div>
@@ -436,8 +463,16 @@ function RetailStockEdit() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-red-600 font-semibold text-center text-sm">
-                    No Stock Avavilable
+                  <div className="text-center text-sm">
+                    <span className="text-red-600 font-semibold text-center text-sm">
+                      No Stock Avavilable{" "}
+                    </span>
+                    <button
+                      onClick={() => addStock(it)}
+                      className="px-1 text-gray-800 hover:underline"
+                    >
+                      Click here to add Stock
+                    </button>
                   </div>
                 )}
               </div>

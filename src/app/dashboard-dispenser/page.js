@@ -7,6 +7,7 @@ import Footer from "../components/Footer";
 import Link from "next/link";
 import { IoBagAddSharp, IoLogOut } from "react-icons/io5";
 import { useRouter } from "next/navigation";
+import { BsReceipt } from "react-icons/bs";
 
 function Page() {
   const router = useRouter();
@@ -17,6 +18,13 @@ function Page() {
       icon: <FaHandHoldingMedical size={50} />,
       link: "/dashboard-dispenser/works",
       color: "bg-blue-800",
+    },
+    {
+      name: "Invoices",
+      description: "You can show all the pharmacy Invoices here",
+      icon: <BsReceipt size={50} />,
+      link: "/dashboard-dispenser/invoices",
+      color: "bg-rose-900",
     },
     {
       name: "Stock Request",

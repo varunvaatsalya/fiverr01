@@ -28,6 +28,14 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
             type: Date,
             required: true,
           },
+          packetSize: {
+            strips: {
+              type: Number,
+            },
+            tabletsPerStrip: {
+              type: Number,
+            },
+          },
           sellingPrice: {
             type: Number,
             required: true,
@@ -38,6 +46,43 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
           },
         },
       ],
+    },
+  ],
+  returns: [
+    {
+      medicines: [
+        {
+          medicineId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Medicine",
+            required: true,
+          },
+          returnStock: [
+            {
+              batchName: {
+                type: String,
+                required: true,
+              },
+              expiryDate: {
+                type: Date,
+                required: true,
+              },
+              sellingPrice: {
+                type: Number,
+                required: true,
+              },
+              quantity: { type: Number, default: 0 },
+            },
+          ],
+        },
+      ],
+      isReturnAmtPaid: {
+        type: Date,
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
     },
   ],
   paymentMode: {
