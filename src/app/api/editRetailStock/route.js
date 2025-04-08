@@ -37,7 +37,9 @@ export async function GET(req) {
   }
 
   try {
-    let allMedicines = await Medicine.find({}, "_id name isTablets");
+    let allMedicines = await Medicine.find({}, "_id name isTablets").sort({
+      name: 1,
+    });
     let retailStocks = await RetailStock.find().populate({
       path: "medicine",
       select: "_id name isTablets",
@@ -122,13 +124,13 @@ export async function POST(req) {
 
       medicineStock.stocks.forEach((stock) => {
         // Check if all required fields exist
+        console.log(stock, 111);
         if (
           !stock.batchName ||
           !stock.expiryDate ||
           !stock.packetSize?.strips ||
           !stock.packetSize?.tabletsPerStrip ||
-          !stock.quantity?.boxes ||
-          stock.quantity.extra === undefined ||
+          stock.quantity?.totalStrips === undefined ||
           stock.quantity.tablets === undefined ||
           !stock.purchasePrice ||
           !stock.sellingPrice
@@ -137,15 +139,17 @@ export async function POST(req) {
         }
 
         // Calculate totalStrips
-        stock.quantity.totalStrips =
-          stock.quantity.boxes * stock.packetSize.strips + stock.quantity.extra;
+        stock.quantity.boxes = Math.floor(
+          stock.quantity.totalStrips / stock.packetSize.strips
+        );
+        stock.quantity.extra =
+          stock.quantity.totalStrips % stock.packetSize.strips;
       });
 
       if (!isValid) {
         missingFieldsMedicines.push(medicineStock.medicine.name);
         continue;
       }
-      
 
       // Update or Insert the retail stock
       await RetailStock.findOneAndUpdate(
@@ -159,7 +163,9 @@ export async function POST(req) {
       return NextResponse.json(
         {
           success: false,
-          message: `Following medicines have missing stock fields: ${missingFieldsMedicines.join(", ")}. Please refresh the page.`,
+          message: `Following medicines have missing stock fields: ${missingFieldsMedicines.join(
+            ", "
+          )}. Please refresh the page.`,
         },
         { status: 400 }
       );

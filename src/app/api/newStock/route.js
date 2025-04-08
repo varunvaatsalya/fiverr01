@@ -167,66 +167,77 @@ export async function POST(req) {
   //     { status: 403 }
   //   );
   // }
-  const {
-    medicine,
-    batchName,
-    mfgDate,
-    expiryDate,
-    extra,
-    purchasePrice,
-    quantity,
-    sellingPrice,
-    invoiceNumber,
-  } = await req.json();
+  const { stocks, invoiceNumber } = await req.json();
 
   try {
-    let medicineData = await Medicine.findById(medicine);
-    if (!medicineData) {
-      return NextResponse.json(
-        { message: "Medicine not found", success: false },
-        { status: 404 }
-      );
-    }
-    let stripsPerBox = medicineData.packetSize.strips;
-    let totalStrips = quantity * stripsPerBox + extra;
-
-    let newMedicineStock = new Stock({
-      medicine,
-      batchName,
-      mfgDate,
-      expiryDate,
-      purchasePrice,
-      sellingPrice,
-      medicine,
-      invoiceId: invoiceNumber,
-      totalAmount: totalStrips * purchasePrice,
-      quantity: {
-        boxes: quantity,
-        extra,
-        totalStrips,
-      },
-      initialQuantity: {
-        boxes: quantity,
-        extra,
-        totalStrips,
-      },
-    });
     const invoice = await PurchaseInvoice.findOne({ invoiceNumber });
     if (!invoice) {
       return NextResponse.json(
-        { newMedicineStock, message: "Invoice ID not found!", success: false },
+        { message: "Invoice ID not found!", success: false },
         { status: 404 }
       );
     }
-    invoice.stocks.push({
-      stockId: newMedicineStock._id,
-      insertedAt: new Date(),
-    });
+    let savedStocks = [];
 
-    await invoice.save();
-    await newMedicineStock.save();
+    for (const stock of stocks) {
+      const {
+        medicine,
+        batchName,
+        mfgDate,
+        expiryDate,
+        quantity,
+        purchasePrice,
+        sellingPrice,
+      } = stock;
+      let medicineData = await Medicine.findById(medicine);
+      if (!medicineData) {
+        savedStocks.push({
+          medicine,
+          success: false,
+          message: ` not found`,
+        });
+        continue;
+      }
+      let stripsPerBox = medicineData.packetSize.strips;
+      let boxes = Math.floor(quantity / stripsPerBox);
+      let extra = quantity % stripsPerBox;
+
+      let newMedicineStock = new Stock({
+        medicine,
+        batchName,
+        mfgDate,
+        expiryDate,
+        purchasePrice,
+        sellingPrice,
+        invoiceId: invoiceNumber,
+        totalAmount: quantity * purchasePrice,
+        quantity: {
+          boxes,
+          extra,
+          totalStrips: quantity,
+        },
+        initialQuantity: {
+          boxes,
+          extra,
+          totalStrips: quantity,
+        },
+      });
+      invoice.stocks.push({
+        stockId: newMedicineStock._id,
+        insertedAt: new Date(),
+      });
+
+      await invoice.save();
+      await newMedicineStock.save();
+      savedStocks.push({
+        medicine,
+        success: true,
+        message: ` saved successfully`,
+      });
+    }
+
     return NextResponse.json(
-      { newMedicineStock, message: "Stock Added Successfully!", success: true },
+      { savedStocks, message: "Stocks Added Successfully!", success: true },
       { status: 201 }
     );
   } catch (error) {

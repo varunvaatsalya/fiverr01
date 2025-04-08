@@ -91,3 +91,106 @@ export async function GET(req) {
     { status: 200 }
   );
 }
+
+export async function POST(req) {
+  const { invoiceId, returnInvoice } = await req.json();
+  if (!invoiceId || !returnInvoice) {
+    return NextResponse.json(
+      { message: "ID not found.", success: false },
+      { status: 404 }
+    );
+  }
+
+  await dbConnect();
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+
+  const invoice = await PharmacyInvoice.findById(invoiceId).populate(
+    "medicines.medicineId"
+  );
+
+  if (!invoice) {
+    return NextResponse.json(
+      { message: "Invoice not found.", success: false },
+      { status: 404 }
+    );
+  }
+
+  // Check if the invoice is already returned
+  if (invoice.returns.length > 0) {
+    return NextResponse.json(
+      { message: "Invoice already returned.", success: false },
+      { status: 400 }
+    );
+  }
+
+  // Check if the return invoice is empty
+  if (returnInvoice.medicines.length === 0) {
+    return NextResponse.json(
+      { message: "No medicines to return.", success: false },
+      { status: 400 }
+    );
+  }
+
+  // Check if the return quantity exceeds the allocated quantity
+  for (const medicine of returnInvoice.medicines) {
+    const allocatedMedicine = invoice.medicines.find(
+      (med) => med.medicineId._id.toString() === medicine.medicineId._id
+    );
+
+    if (!allocatedMedicine) {
+      return NextResponse.json(
+        {
+          message: `Medicine ${medicine.medicineId.name} not found in invoice`,
+          success: false,
+        },
+        { status: 404 }
+      );
+    }
+
+    for (const batch of medicine.returnStock) {
+      const allocatedBatch = allocatedMedicine.allocatedStock.find(
+        (b) =>
+          b.batchName === batch.batchName && b.expiryDate === batch.expiryDate
+      );
+      if (!allocatedBatch) {
+        return NextResponse.json(
+          {
+            message: `Batch ${batch.batchName} not found in invoice`,
+            success: false,
+          },
+          { status: 404 }
+        );
+      }
+      const allocatedQuantity =
+        allocatedBatch.quantity.strips * batch.packetSize.strips +
+        allocatedBatch.quantity.tablets;
+      const returnQuantity =
+        batch.quantity.strips * batch.packetSize.strips +
+        batch.quantity.tablets;
+      if (returnQuantity > allocatedQuantity) {
+        return NextResponse.json(
+          {
+            message: `Return quantity exceeds allocated quantity for ${allocatedMedicine.medicineId.name}`,
+            success: false,
+          },
+          { status: 400 }
+        );
+      }
+    }
+  }
+}

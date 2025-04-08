@@ -1,25 +1,22 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { RxCross2 } from "react-icons/rx";
+import { useForm, useFieldArray } from "react-hook-form";
 import Loading from "./Loading";
 
 function NewMedicineForm() {
-  const [medicineDetailsSection, setMedicineDetailsSection] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [data, setData] = useState({});
-  const [isTablets, setIsTablets] = useState(false);
   const [manufacturers, setManufacturers] = useState([]);
   // const [vendors, setVendors] = useState([]);
   const [salts, setSalts] = useState([]);
   const [editMedicineSection, setEditMedicineSection] = useState(false);
   const [medicines, setMedicines] = useState([]);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isEditPermission, setIsEditPermission] = useState(false);
 
-  useEffect(() => {}, [isTablets]);
   useEffect(() => {
     fetch("/api/medicineMetaData")
       .then((res) => res.json())
@@ -31,13 +28,15 @@ function NewMedicineForm() {
       });
   }, []);
 
-  const { register, handleSubmit, reset, setValue } = useForm({
+  const { register, handleSubmit, control, setValue, watch, reset } = useForm({
     defaultValues: {
-      isTablets: false,
-      packetSize: {
-        tabletsPerStrip: 1,
-      },
+      medicines: [],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "medicines",
   });
 
   useEffect(() => {
@@ -56,29 +55,33 @@ function NewMedicineForm() {
       fetch(`/api/newMedicine?id=${selectedMedicine}`)
         .then((res) => res.json())
         .then((data) => {
-          setValue("manufacturer", data.response.manufacturer);
-          // setValue("vendor", data.response.vendor);
-          setValue("name", data.response.name);
-          setValue("medicineType", data.response.medicineType);
-          setValue("salts", data.response.salts);
-          setValue("packetSize.strips", data.response.packetSize.strips);
-          setValue(
-            "packetSize.tabletsPerStrip",
-            data.response.packetSize.tabletsPerStrip
-          );
-          setValue("isTablets", data.response.isTablets);
-          setIsTablets(data.response.isTablets);
+          // Add selected medicine to editedMedicines array
+          setValue("medicines", [
+            {
+              id: selectedMedicine,
+              name: data.response.name,
+              manufacturer: data.response.manufacturer,
+              medicineType: data.response.medicineType,
+              salts: data.response.salts,
+              packetSize: {
+                strips: data.response.packetSize?.strips || 1,
+                tabletsPerStrip: data.response.packetSize?.tabletsPerStrip || 1,
+              },
+              isTablets: data.response.isTablets,
+            },
+          ]);
+          setLoading(false);
         });
-      setLoading(false);
     }
   }, [selectedMedicine]);
 
   function onSubmit(data) {
     console.log(data);
-    setData(data);
-    setMedicineDetailsSection(true);
+    handleSave(data);
+    // setData(data);
+    // setMedicineDetailsSection(true);
   }
-  async function handleSave() {
+  async function handleSave(data) {
     setSubmitting(true);
     try {
       let result = await fetch("/api/newMedicine", {
@@ -89,14 +92,14 @@ function NewMedicineForm() {
         body: JSON.stringify(data),
       });
       result = await result.json();
-      setMessage(result.message);
+      setResult(result.medicines);
       if (result.success) {
         reset();
+        setSelectedMedicine(null);
         setEditMedicineSection(false);
         setTimeout(() => {
-          setMedicineDetailsSection(false);
           setMessage("");
-        }, 2500);
+        }, 5000);
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -125,262 +128,209 @@ function NewMedicineForm() {
     );
   }
   return (
-    <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center border border-slate-800 rounded-xl mx-auto my-2">
-      {medicineDetailsSection && (
-        <div className="absolute top-0 left-0">
-          <div className="fixed w-screen h-screen bg-gray-700/[.5] z-30 flex justify-center items-center">
-            <div className="w-[95%] md:w-4/5 lg:w-3/4 py-4 text-center bg-slate-950 px-4 rounded-xl">
-              <h2 className="font-bold text-2xl text-blue-500">
-                Medicine Details
-              </h2>
-              <hr className="border border-slate-800 w-full my-2" />
-              {message && (
-                <div className="my-1 text-center text-red-500">{message}</div>
-              )}
-              <div className="font-semibold text-white space-y-1 w-full md:w-1/2 mx-auto text-sm md:text-base">
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Manufacturer</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">
-                    {getManufacturerNameById(data.manufacturer)}
-                  </span>
-                </div>
-                {/* <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Vendor</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">
-                    {getVendorNameById(data.vendor)}
-                  </span>
-                </div> */}
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Name</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">{data.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Medicine Type</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">{data.medicineType}</span>
-                </div>
-                {/* <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between items-center">
-                    <div className="">Medical Representator</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">
-                    {data.manufacturer.medicalRepresentator?.name +
-                      " - " +
-                      data.manufacturer.medicalRepresentator?.contact}
-                  </span>
-                </div> */}
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Salts</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">
-                    {getSaltNameById(data.salts)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Box Size</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">
-                    {data.packetSize.tabletsPerStrip +
-                      " Nos/Strip, & " +
-                      data.packetSize.strips +
-                      " Strips"}
-                  </span>
-                </div>
+    <div className="w-full px-2">
+      {/* {medicineDetailsSection && (
+        <MedicineDetailsSection
+          data={data}
+          message={message}
+          handleSave={handleSave}
+          getManufacturerNameById={getManufacturerNameById}
+          getSaltNameById={getSaltNameById}
+          submitting={submitting}
+          setMedicineDetailsSection={setMedicineDetailsSection}
+        />
+      )} */}
+      {message && (
+        <div className="my-1 text-center text-red-500">{message}</div>
+      )}
+      <form onSubmit={handleSubmit(onSubmit)} className="p-2">
+        <div className="flex justify-between items-center gap-3">
+          <div>
+            {!editMedicineSection && (
+              <div
+                className="bg-blue-800 cursor-pointer hover:bg-blue-700 text-white rounded-lg px-3 py-1"
+                onClick={() =>
+                  append({
+                    manufacturer: "",
+                    name: "",
+                    isTablets: false,
+                    medicineType: "",
+                    salts: "",
+                    packetSize: { strips: "", tabletsPerStrip: 1 },
+                  })
+                }
+              >
+                Add New Medicine
               </div>
-
-              <hr className="border border-slate-800 w-full my-2" />
-              <div className="flex px-4 gap-3 justify-end">
-                <div
-                  className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
-                  onClick={() => {
-                    setMedicineDetailsSection(false);
-                  }}
-                >
-                  Cancel
-                </div>
-                <button
-                  onClick={handleSave}
-                  className="w-20 h-8 py-1 flex items-center justify-center gap-2 bg-green-500 rounded-lg font-semibold cursor-pointer text-white"
-                  disabled={submitting}
-                >
-                  {submitting ? <Loading size={15} /> : <></>}
-                  {submitting ? "Wait..." : "Confirm"}
-                </button>
-              </div>
+            )}
+          </div>
+          <div className="flex justify-center items-center gap-2">
+            {editMedicineSection && (
+              <select
+                onChange={(e) => {
+                  setSelectedMedicine(e.target.value);
+                }}
+                className="px-4 py-2 text-white bg-gray-900 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+              >
+                <option value="">-- Select a Medicine to edit --</option>
+                {medicines &&
+                  medicines.map((medicine, index) => (
+                    <option key={index} value={medicine._id}>
+                      {medicine.name}
+                    </option>
+                  ))}
+              </select>
+            )}
+            <div
+              className="bg-slate-800 cursor-pointer hover:bg-gray-700 text-white rounded-lg px-3 py-1"
+              onClick={() => {
+                setEditMedicineSection(!editMedicineSection);
+                setSelectedMedicine(null);
+                reset();
+              }}
+            >
+              Click to Edit Medicine
             </div>
           </div>
         </div>
+        {result && result.length > 0 && (
+        <ol>
+          {result.map((med, index) => (
+            <li key={index} className={med.success ? "text-gray-900" : "text-red-600"}>
+              {index + 1 + ". " + med.message}
+            </li>
+          ))}
+          <button
+            onClick={() => setResult(null)}
+            className="text-white bg-blue-600 rounded-lg px-4 py-2 hover:bg-blue-700"
+          >
+            Clear
+          </button>
+        </ol>
       )}
-      <div className="text-center py-2 rounded-t-xl bg-slate-800 text-white text-xl font-medium">
-        Add Medicine
-      </div>
-      <form onSubmit={handleSubmit(onSubmit)} className="p-2">
-        <div
-          className="bg-slate-900 w-1/2 mx-auto cursor-pointer hover:bg-gray-800 text-white font-semibold rounded-lg px-3 py-1"
-          onClick={() => {
-            setEditMedicineSection(!editMedicineSection);
-            setSelectedMedicine(null);
-            reset();
-          }}
-        >
-          Click to Edit Medicine
-        </div>
-        {editMedicineSection && (
-          <div className="my-2 p-2 bg-slate-300 rounded-lg">
-            <label
-              className="block font-semibold text-gray-900"
-              htmlFor="manufacturer"
-            >
-              Select Medicine
-            </label>
-            <select
-              id="manufacturer"
-              {...register("id")}
-              onChange={(e) => {
-                setSelectedMedicine(e.target.value);
-              }}
-              className="mt-1 block px-4 py-3 text-white w-full md:w-3/4 mx-auto bg-gray-900 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-            >
-              <option value="">-- Select a Medicine to edit --</option>
-              {medicines &&
-                medicines.map((medicine, index) => (
-                  <option key={index} value={medicine._id}>
-                    {medicine.name}
-                  </option>
-                ))}
-            </select>
+        {loading && <div className="text-center">Loading...</div>}
+        {fields.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 my-2 bg-gray-800 text-white rounded-lg py-1 px-2">
+            <div className="flex-1 min-w-28 text-center">Manufacturer</div>
+            <div className="flex-1 min-w-28 text-center">Medicine Name</div>
+            <div className="flex-1 text-center">isTablets</div>
+            <div className="flex-1 min-w-28 text-center">Medicine Type</div>
+            <div className="flex-1 min-w-28 text-center">Salts</div>
+            <div className="flex-1 min-w-28 text-center">
+              {watch("medicines")[0]?.isTablets ? "Strips/Box" : "Quantity"}
+            </div>
+            <div className="flex-1 min-w-28 text-center">
+              {watch("medicines")[0]?.isTablets ? "Tablets/Strip" : "--"}
+            </div>
+            {!editMedicineSection && (
+              <div className="flex-1 min-w-28 text-center">Action</div>
+            )}
           </div>
         )}
-        {loading && <div className="text-center">Loading...</div>}
-        <label
-          className="block font-semibold text-gray-900"
-          htmlFor="manufacturer"
-        >
-          Select Manufacturer
-        </label>
-        <select
-          id="manufacturer"
-          {...register("manufacturer", {
-            required: "Manufacturer is required",
-          })}
-          className="mt-1 block px-4 py-3 text-white w-full md:w-3/4 mx-auto bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        >
-          <option value="">-- Select a Manufacturer --</option>
-          {manufacturers.map((Manufacturer, index) => (
-            <option key={index} value={Manufacturer._id}>
-              {Manufacturer.name}
-            </option>
-          ))}
-        </select>
-        <div className="block font-semibold text-gray-900">Medicine Name</div>
-        <div className="flex justify-center items-center text-gray-800 py-1">
-          <input
-            type="text"
-            name="name"
-            placeholder="Medicine Name"
-            {...register("name", { required: "Name is required" })}
-            className="p-2 rounded-xl w-full md:w-3/4 bg-gray-300 text-gray-900"
-          />
-        </div>
-
-        <div className="w-full md:w-3/4 flex items-center gap-2 mx-auto text-gray-900">
-          <input
-            type="checkbox"
-            {...register("isTablets")}
-            checked={isTablets}
-            onChange={(e) => {
-              setIsTablets(e.target.checked);
-            }}
-            className="size-4"
-          />
-          <div className="font-semibold">
-            IsTablet
-            <span className="text-red-500">
-              {"* (Check this Box if Medicine is of Tablet or Capsules type.)"}
-            </span>
-          </div>
-        </div>
-        <div className="block font-semibold text-gray-900">Medicine Type</div>
-        <div className="flex justify-center items-center text-gray-800 py-1">
-          <input
-            type="text"
-            name="medicineType"
-            placeholder="Medicine Type"
-            {...register("medicineType")}
-            className="p-2 rounded-xl w-full md:w-3/4 bg-gray-300 text-gray-900"
-          />
-        </div>
-        <label className="block font-semibold text-gray-900" htmlFor="Salts">
-          Select Salts
-        </label>
-        <select
-          id="Salts"
-          {...register("salts", { required: "Salts is required" })}
-          className="mt-1 block px-4 py-3 text-white w-full md:w-3/4 mx-auto bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        >
-          <option value="">-- Select a Salts --</option>
-          {salts.map((mr, index) => (
-            <option key={index} value={mr._id}>
-              {mr.name}
-            </option>
-          ))}
-        </select>
-        <div className="block font-semibold text-gray-900">Select Box Size</div>
-        <div
-          className="flex justify-center items-center text-gray-800 py-1"
-          key={isTablets}
-        >
-          <input
-            type="number"
-            {...register("packetSize.strips", {
-              required: "Strip Size is required",
-            })}
-            placeholder={isTablets ? "Strips/Box" : "Quantity"}
-            className="p-2 rounded-xl w-36 bg-gray-300"
-            min={1}
-          />
-          {isTablets && (
-            <>
-              <div className="p-2 text-xl font-semibold">
-                <RxCross2 />
-              </div>
-              <input
-                type="number"
-                {...register("packetSize.tabletsPerStrip", {
-                  required: "Tablets Size is required",
-                  valueAsNumber: true,
-                  min: 1,
-                })}
-                placeholder="Tablets/Strip"
-                className="p-2 rounded-xl w-36 bg-gray-300"
-              />
-            </>
-          )}
-        </div>
-
-        <div className="w-full md:w-3/4 mx-auto flex justify-center itmes-center my-2">
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-800 py-2 px-4 rounded-xl font-semibold"
+        {fields.map((field, index) => (
+          <div
+            key={field.id}
+            className="flex flex-wrap items-center gap-2 my-2 bg-gray-400 text-white rounded-lg py-1 px-2"
           >
-            {selectedMedicine ? "Update" : "Add"}
-          </button>
+            <select
+              id="manufacturer"
+              {...register(`medicines.${index}.manufacturer`, {
+                required: "Manufacturer is required",
+              })}
+              className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+            >
+              <option value="">-- Select a Manufacturer --</option>
+              {manufacturers.map((Manufacturer, index) => (
+                <option key={index} value={Manufacturer._id}>
+                  {Manufacturer.name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="text"
+              {...register(`medicines.${index}.name`, {
+                required: "Medicine name is required",
+              })}
+              placeholder="Medicine Name"
+              className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+            />
+            <input
+              type="checkbox"
+              checked={watch("medicines")[index]?.isTablets}
+              {...register(`medicines.${index}.isTablets`)}
+              className="size-6"
+            />
+            <input
+              type="text"
+              {...register(`medicines.${index}.medicineType`)}
+              placeholder="Medicine Type"
+              className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+            />
+            <select
+              id="salts"
+              {...register(`medicines.${index}.salts`, {
+                required: "salts is required",
+              })}
+              className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+            >
+              <option value="">-- Select a salt --</option>
+              {salts.map((mr, index) => (
+                <option key={index} value={mr._id}>
+                  {mr.name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="number"
+              {...register(`medicines.${index}.packetSize.strips`, {
+                required: "packetSize strips is required",
+              })}
+              min={1}
+              placeholder={
+                watch("medicines")[index]?.isTablets ? "Strips/Box" : "Quantity"
+              }
+              className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+            />
+            <div className="flex-1 min-w-28 text-center">
+              {watch("medicines")[index]?.isTablets ? (
+                <input
+                  type="number"
+                  {...register(
+                    `medicines.${index}.packetSize.tabletsPerStrip`,
+                    {
+                      required: "Tablets Size is required",
+                      valueAsNumber: true,
+                      min: 1,
+                    }
+                  )}
+                  placeholder="Tablets per Strip"
+                  className="w-full px-1 h-8 rounded-lg bg-gray-600"
+                />
+              ) : (
+                "--"
+              )}
+            </div>
+            {!editMedicineSection && (
+              <button
+                type="button"
+                className="text-red-500 hover:text-red-700"
+                onClick={() => remove(index)}
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        ))}
+        <div className="flex justify-end">
+          {fields.length > 0 && (
+            <button
+              type="submit"
+              disabled={submitting}
+              className="bg-blue-600 hover:bg-blue-800 text-white py-2 px-4 rounded-xl font-semibold my-2"
+            >
+              {submitting ? "Wait..." : selectedMedicine ? "Update" : "Save"}
+            </button>
+          )}
         </div>
       </form>
     </div>
@@ -388,3 +338,113 @@ function NewMedicineForm() {
 }
 
 export default NewMedicineForm;
+
+function MedicineDetailsSection({
+  data,
+  message,
+  handleSave,
+  getManufacturerNameById,
+  getSaltNameById,
+  submitting,
+  setMedicineDetailsSection,
+}) {
+  return (
+    <div className="absolute top-0 left-0">
+      <div className="fixed w-screen h-screen bg-gray-700/[.5] z-30 flex justify-center items-center">
+        <div className="w-[95%] md:w-4/5 lg:w-3/4 py-4 text-center bg-slate-950 px-4 rounded-xl">
+          <h2 className="font-bold text-2xl text-blue-500">Medicine Details</h2>
+          <hr className="border border-slate-800 w-full my-2" />
+          {message && (
+            <div className="my-1 text-center text-red-500">{message}</div>
+          )}
+          <div className="font-semibold text-white space-y-1 w-full md:w-1/2 mx-auto text-sm md:text-base">
+            <div className="flex items-center gap-2">
+              <div className="w-2/5 flex justify-between">
+                <div className="">Manufacturer</div>
+                <div className="">:</div>
+              </div>
+              <span className="text-blue-500">
+                {getManufacturerNameById(data.manufacturer)}
+              </span>
+            </div>
+            {/* <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Vendor</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">
+              {getVendorNameById(data.vendor)}
+            </span>
+          </div> */}
+            <div className="flex items-center gap-2">
+              <div className="w-2/5 flex justify-between">
+                <div className="">Name</div>
+                <div className="">:</div>
+              </div>
+              <span className="text-blue-500">{data.name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2/5 flex justify-between">
+                <div className="">Medicine Type</div>
+                <div className="">:</div>
+              </div>
+              <span className="text-blue-500">{data.medicineType}</span>
+            </div>
+            {/* <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between items-center">
+              <div className="">Medical Representator</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">
+              {data.manufacturer.medicalRepresentator?.name +
+                " - " +
+                data.manufacturer.medicalRepresentator?.contact}
+            </span>
+          </div> */}
+            <div className="flex items-center gap-2">
+              <div className="w-2/5 flex justify-between">
+                <div className="">Salts</div>
+                <div className="">:</div>
+              </div>
+              <span className="text-blue-500">
+                {getSaltNameById(data.salts)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2/5 flex justify-between">
+                <div className="">Box Size</div>
+                <div className="">:</div>
+              </div>
+              <span className="text-blue-500">
+                {data.packetSize.tabletsPerStrip +
+                  " Nos/Strip, & " +
+                  data.packetSize.strips +
+                  " Strips"}
+              </span>
+            </div>
+          </div>
+
+          <hr className="border border-slate-800 w-full my-2" />
+          <div className="flex px-4 gap-3 justify-end">
+            <div
+              className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
+              onClick={() => {
+                setMedicineDetailsSection(false);
+              }}
+            >
+              Cancel
+            </div>
+            <button
+              onClick={handleSave}
+              className="w-20 h-8 py-1 flex items-center justify-center gap-2 bg-green-500 rounded-lg font-semibold cursor-pointer text-white"
+              disabled={submitting}
+            >
+              {submitting ? <Loading size={15} /> : <></>}
+              {submitting ? "Wait..." : "Confirm"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,26 +1,37 @@
 "use client";
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import React, { useEffect, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
 import Loading from "./Loading";
 
 function NewStockForm({ medicines, ids }) {
-  const [selectedMedicine, setSelectedMedicine] = useState(null);
-  const [medicineDetailsSection, setMedicineDetailsSection] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [data, setData] = useState();
-  const [quantity, setQunatity] = useState("");
-  const [extras, setExtras] = useState("");
-  const [sprice, setSPrice] = useState("");
-  const [mrp, setMrp] = useState("");
+  const [result, setResult] = useState(null);
 
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, control, watch, reset } = useForm({
+    defaultValues: {
+      invoiceNumber: "",
+      stocks: [],
+    },
+  });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "stocks",
+  });
+
+  const stocks = watch("stocks") || [];
+  useEffect(() => {
+    console.log("Updated Stocks:", stocks);
+  }, [stocks]);
+
   function onSubmit(data) {
     console.log(data);
-    setData(data);
-    setMedicineDetailsSection(true);
+    handleSave(data);
+    // setData(data);
+    // setMedicineDetailsSection(true);
   }
-  async function handleSave() {
+  async function handleSave(data) {
     setSubmitting(true);
     try {
       let result = await fetch("/api/newStock", {
@@ -32,13 +43,12 @@ function NewStockForm({ medicines, ids }) {
       });
       result = await result.json();
       setMessage(result.message);
+      setResult(result.savedStocks);
       if (result.success) {
         reset();
         setTimeout(() => {
-          setMedicineDetailsSection(false);
-          setSelectedMedicine(null);
           setMessage("");
-        }, 2500);
+        }, 5000);
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -47,378 +57,205 @@ function NewStockForm({ medicines, ids }) {
     }
   }
 
-  let invoiceID = ids.find((id)=>id.invoiceNumber === data?.invoiceNumber)
   return (
-    <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center border border-slate-800 rounded-xl mx-auto my-2">
-      {medicineDetailsSection && (
-        <div className="absolute top-0 left-0">
-          <div className="fixed w-screen h-screen bg-gray-700/[.5] z-30 flex justify-center items-center">
-            <div className="w-[95%] md:w-4/5 lg:w-3/4 py-4 text-center bg-slate-950 px-4 rounded-xl">
-              <h2 className="font-bold text-2xl text-blue-500">
-                Stock Details
-              </h2>
-              <hr className="border border-slate-800 w-full my-2" />
-              {message && (
-                <div className="my-1 text-center text-red-500">{message}</div>
-              )}
-              <div className="font-semibold text-white space-y-1 w-full md:w-1/2 mx-auto text-sm md:text-base">
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Manufacturer</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">
-                    {selectedMedicine.manufacturer.name}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Name</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">{selectedMedicine.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Salts</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">
-                    {selectedMedicine.salts.name}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Box Size</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">
-                    {selectedMedicine.packetSize.tabletsPerStrip +
-                      " Nos/Strip, & " +
-                      selectedMedicine.packetSize.strips +
-                      " Strips"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">MRP {"(per strip)"}</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">
-                    {data.sellingPrice + "/-"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Purchase Price {"(per strip)"}</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">
-                    {data.purchasePrice + "/-"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Batch Name</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">{data.batchName}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">MFG Date</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">{data.mfgDate}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Expiry Date</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">{data.expiryDate}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Box Quantity</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">{data.quantity}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Extra Strips</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">{data.extra}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">Invoice ID</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">{invoiceID.invoiceNumber}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2/5 flex justify-between">
-                    <div className="">From</div>
-                    <div className="">:</div>
-                  </div>
-                  <span className="text-blue-500">{invoiceID.manufacturer? invoiceID.manufacturer.name:invoiceID.vendor.name}</span>
-                </div>
-              </div>
-
-              <hr className="border border-slate-800 w-full my-2" />
-              <div className="flex px-4 gap-3 justify-end">
-                <div
-                  className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
-                  onClick={() => {
-                    setMedicineDetailsSection(false);
-                  }}
-                >
-                  Cancel
-                </div>
-                <button
-                  onClick={handleSave}
-                  className="w-20 h-8 py-1 flex items-center justify-center gap-2 bg-green-500 rounded-lg font-semibold cursor-pointer text-white"
-                  disabled={submitting}
-                >
-                  {submitting ? <Loading size={15} /> : <></>}
-                  {submitting ? "Wait..." : "Confirm"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="text-center py-2 rounded-t-xl bg-slate-800 text-xl font-medium">
-        Add Stock
-      </div>
-      <form onSubmit={handleSubmit(onSubmit)} className="p-2">
-        <label className="block font-semibold text-gray-900" htmlFor="medicine">
-          Select Medicine
-        </label>
-        <select
-          id="medicine"
-          {...register("medicine", { required: "Medicine is required" })}
-          onChange={(e) => {
-            const medicine = medicines.find(
-              (med) => med._id === e.target.value
-            );
-            setSelectedMedicine(medicine);
-          }}
-          className="mt-1 block px-4 py-3 text-white w-full md:w-3/4 mx-auto bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+    <div className="w-full px-2">
+      <div className="flex justify-between items-center gap-2 flex-wrap my-1">
+        <div
+          className="bg-blue-800 cursor-pointer hover:bg-blue-700 text-white rounded-lg px-3 py-1"
+          onClick={() =>
+            append({
+              medicine: "",
+              batchName: "",
+              mfgDate: "",
+              expiryDate: "",
+              quantity: "",
+              extra: "",
+              sellingPrice: "",
+              purchasePrice: "",
+            })
+          }
         >
-          <option value="">-- Select a Medicine --</option>
-          {medicines.map((medicine, index) => (
-            <option key={index} value={medicine._id}>
-              {medicine.name}
+          Add New Stock
+        </div>
+        <select
+          {...register("invoiceNumber", { required: true })}
+          className="rounded-lg bg-gray-800 text-white px-3 py-2"
+        >
+          <option value="">-- Select Invoice ID --</option>
+          {ids.map((id, index) => (
+            <option value={id.invoiceNumber} key={index}>
+              {id.invoiceNumber +
+                " - " +
+                (id.manufacturer ? id.manufacturer.name : id.vendor.name)}
             </option>
           ))}
         </select>
-        {selectedMedicine && (
-          <div className="font-semibold text-gray-900 my-2 space-y-1 w-full md:w-1/2 mx-auto text-sm md:text-base">
-            <div className="flex items-center gap-2">
-              <div className="w-2/5 flex justify-between">
-                <div className="">Manufacturer</div>
-                <div className="">:</div>
-              </div>
-              <span className="text-blue-500">
-                {selectedMedicine.manufacturer.name}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2/5 flex justify-between">
-                <div className="">Name</div>
-                <div className="">:</div>
-              </div>
-              <span className="text-blue-500">{selectedMedicine.name}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2/5 flex justify-between">
-                <div className="">Salts</div>
-                <div className="">:</div>
-              </div>
-              <span className="text-blue-500">
-                {selectedMedicine.salts.name}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2/5 flex justify-between">
-                <div className="">Box Size</div>
-                <div className="">:</div>
-              </div>
-              <span className="text-blue-500">
-                {selectedMedicine.packetSize.tabletsPerStrip +
-                  " Nos/Strip, & " +
-                  selectedMedicine.packetSize.strips +
-                  " Strips"}
-              </span>
-            </div>
-            {/* <div className="flex items-center gap-2">
-              <div className="w-2/5 flex justify-between">
-                <div className="">previos stock MRP</div>
-                <div className="">:</div>
-              </div>
-              <span className="text-blue-500">
-                {selectedMedicine.sellingPrice?selectedMedicine.sellingPrice:"Not Available"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2/5 flex justify-between">
-                <div className="">previous purchase price</div>
-                <div className="">:</div>
-              </div>
-              <span className="text-blue-500">
-                {selectedMedicine.purchasePrice?selectedMedicine.purchasePrice:"Not Available"}
-              </span>
-            </div> */}
+      </div>
+      {message && (
+        <div className="my-1 text-center text-red-500">{message}</div>
+      )}
+      {result && result.length > 0 && (
+        <ol>
+          {result.map((med, index) => {
+            let name = medicines.find(
+              (medicine) => medicine._id === med.medicine
+            )?.name;
+            return (
+              <li
+                key={index}
+                className={med.success ? "text-gray-900" : "text-red-600"}
+              >
+                {index + 1 + ". " + name + med.message}
+              </li>
+            );
+          })}
+          <button
+            onClick={() => setResult(null)}
+            className="text-white bg-blue-600 rounded-lg px-4 py-2 hover:bg-blue-700"
+          >
+            Clear
+          </button>
+        </ol>
+      )}
+      <form onSubmit={handleSubmit(onSubmit)} className="px-2">
+        {fields.length > 0 && (
+          <>
             <div className="text-center text-red-500">
-              *If the details do not match then contact the admin.
+              *If the packetSize details do not match then contact the admin.
             </div>
-          </div>
+            <div className="flex flex-wrap items-center gap-2 my-2 bg-gray-800 text-white rounded-lg py-1 px-2">
+              <div className="flex-1 min-w-28 text-center">Medicine</div>
+              <div className="flex-1 min-w-28 text-center">Batch</div>
+              <div className="flex-1 min-w-28 text-center">Mfg</div>
+              <div className="flex-1 min-w-28 text-center">Expiry</div>
+              <div className="flex-1 min-w-28 text-center">
+                Total Qty or Pcs
+              </div>
+              <div className="flex-1 min-w-28 text-center">Purchase Price</div>
+              <div className="flex-1 min-w-28 text-center">MRP</div>
+              <div className="px-3">Action</div>
+            </div>
+          </>
         )}
-        <div className="block font-semibold text-gray-900">Batch Name</div>
-        <div className="flex justify-center items-center text-gray-800 py-1">
-          <input
-            type="text"
-            name="batchName"
-            {...register("batchName", { required: "Batch Name is required" })}
-            className="p-2 rounded-xl w-full md:w-3/4 bg-gray-300 text-gray-900"
-            placeholder="Enter Batch Name"
-          />
-        </div>
-        <div className="block font-semibold text-gray-900">MFG Date</div>
-        <div className="flex justify-center items-center text-gray-800 py-1">
-          <input
-            type="date"
-            name="mfgDate"
-            {...register("mfgDate")}
-            className="p-2 rounded-xl w-full md:w-3/4 bg-gray-300 text-gray-900"
-          />
-        </div>
-        <div className="block font-semibold text-gray-900">Expiry Date</div>
-        <div className="flex justify-center items-center text-gray-800 py-1">
-          <input
-            type="date"
-            name="expiryDate"
-            {...register("expiryDate", { required: "Expiry Date is required" })}
-            className="p-2 rounded-xl w-full md:w-3/4 bg-gray-300 text-gray-900"
-          />
-        </div>
-        <div className="block font-semibold text-gray-900">
-          Select Number of Boxes
-        </div>
-        <div className="flex justify-center items-center text-gray-800 py-1">
-          <input
-            type="number"
-            {...register("quantity", {
-              required: true,
-            })}
-            onChange={(e) => {
-              setQunatity(e.target.value);
-            }}
-            placeholder="Nos of Boxes"
-            className="p-2 rounded-xl w-1/2 bg-gray-300"
-            min={0}
-          />
-        </div>
-        {quantity && selectedMedicine && selectedMedicine.packetSize.strips && (
-          <div className="text-center text-red-600 font-semibold">
-            {quantity * selectedMedicine.packetSize.strips +
-              " Total Strips/Bottels"}
-          </div>
-        )}
-        <div className="block font-semibold text-gray-900">
-          Select Extra/offer Medicine Strips
-        </div>
-        <div className="flex justify-center items-center text-gray-800 py-1">
-          <input
-            type="number"
-            {...register("extra")}
-            onChange={(e) => {
-              setExtras(e.target.value);
-            }}
-            placeholder="Nos of Extra Strips"
-            className="p-2 rounded-xl w-1/2 bg-gray-300"
-            min={0}
-          />
-        </div>
+        {fields.map((field, index) => {
+          const medicineId = stocks[index]?.medicine;
+          const medicineQty = stocks[index]?.quantity;
+          const medicinePurchasePrice = stocks[index]?.purchasePrice;
+          const medicine = medicines.find((med) => med._id === medicineId);
+          const medicineIsTablets = medicine?.isTablets;
+          const packetSize = medicine?.packetSize;
+          return (
+            <div
+              key={field.id}
+              className=" my-2 bg-gray-400 text-white rounded-lg py-1 px-2"
+            >
+              <div key={field.id} className="flex flex-wrap items-center gap-2">
+                <select
+                  id="medicine"
+                  {...register(`stocks.${index}.medicine`, {
+                    required: "Medicine is required",
+                  })}
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                >
+                  <option value="">-- Select a Medicine --</option>
+                  {medicines.map((medicine, index) => (
+                    <option key={index} value={medicine._id}>
+                      {medicine.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  name="batchName"
+                  {...register(`stocks.${index}.batchName`, {
+                    required: "Batch Name is required",
+                  })}
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  placeholder="Enter Batch Name"
+                />
+                <input
+                  type="date"
+                  name="mfgDate"
+                  {...register(`stocks.${index}.mfgDate`)}
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                />
+                <input
+                  type="date"
+                  name="expiryDate"
+                  {...register(`stocks.${index}.expiryDate`, {
+                    required: "Expiry Date is required",
+                  })}
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                />
+                <input
+                  type="number"
+                  {...register(`stocks.${index}.quantity`, {
+                    required: true,
+                  })}
+                  placeholder="Total Strips/Pcs"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  min={0}
+                />
+                <input
+                  type="number"
+                  {...register(`stocks.${index}.purchasePrice`, {
+                    required: "Purchase Price is required",
+                  })}
+                  placeholder="Purchase Price"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  min={1}
+                />
+                <input
+                  type="number"
+                  {...register(`stocks.${index}.sellingPrice`, {
+                    required: "MRP is required",
+                  })}
+                  placeholder="MRP"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  min={1}
+                />
+
+                <button
+                  type="button"
+                  className="text-red-700 hover:text-red-900"
+                  onClick={() => remove(index)}
+                >
+                  Remove
+                </button>
+              </div>
+              <div className="flex justify-between px-3">
+                <div className="text-red-700">
+                  Packet Size: {packetSize?.strips || 0} Qty/Boxes{" "}
+                  {medicineIsTablets
+                    ? `, ${packetSize?.tabletsPerStrip || 1} Tablets/Strip`
+                    : ""}
+                </div>
+                <div className="text-center text-red-700">
+                  {medicineQty * medicinePurchasePrice + " Rs COST PRICE"}
+                </div>
+                <div className="text-red-700">
+                  Total: {Math.floor(medicineQty / packetSize?.strips) || 0}{" "}
+                  Boxes {Number(medicineQty % packetSize?.strips) || 0} Extras
+                </div>
+              </div>
+            </div>
+          );
+        })}
         <div className="text-center text-red-500">
           *Please carefully set the price of a single unit/pcs/strip/qty of
           medicines.
         </div>
-        <div className="flex justify-center items-center text-gray-800 py-1 gap-10">
-          <div className="flex-flex-col justify-center items-center">
-            <div className="block font-semibold text-gray-900">
-              MRP of Strip
-            </div>
-            <input
-              type="number"
-              {...register("sellingPrice", {
-                required: "MRP is required",
-              })}
-              onChange={(e) => {
-                setMrp(e.target.value);
-              }}
-              placeholder="MRP"
-              className="p-2 rounded-xl w-40 bg-gray-300"
-              min={1}
-            />
-          </div>
-          <div className="flex-flex-col justify-center items-center">
-            <div className="block font-semibold text-gray-900">
-              Purchase Price of Strip
-            </div>
-            <input
-              type="number"
-              {...register("purchasePrice", {
-                required: "Purchase Price is required",
-              })}
-              onChange={(e) => {
-                setSPrice(e.target.value);
-              }}
-              placeholder="Purchase Price"
-              className="p-2 rounded-xl w-40 bg-gray-300"
-              min={1}
-            />
-          </div>
-        </div>
-        {sprice &&
-          quantity &&
-          selectedMedicine &&
-          selectedMedicine.packetSize.strips && (
-            <div className="text-center text-red-600 font-semibold">
-              {sprice * quantity * selectedMedicine.packetSize.strips +
-                sprice * extras +
-                " Rs COST PRICE"}
-            </div>
+        <div className="flex justify-end">
+          {fields.length > 0 && (
+            <button
+              type="submit"
+              disabled={submitting}
+              className="bg-blue-600 hover:bg-blue-800 py-2 px-4 rounded-xl font-semibold"
+            >
+              {submitting ? <Loading size={15} /> : <></>}
+              {submitting ? "Wait..." : "Save Stock"}
+            </button>
           )}
-
-        <div className="flex flex-col p-2 my-2 mx-auto w-full lg:w-3/4 justify-center items-center gap-2 bg-gray-400 rounded-lg">
-          <div className="text-lg font-semibold">Select Invoice ID</div>
-          <select
-            {...register("invoiceNumber", { required: true })}
-            className="w-full rounded-lg bg-gray-800 text-white text-lg p-2"
-          >
-            <option value="">-- Select Invoice ID --</option>
-            {ids.map((id, index) => (
-              <option value={id.invoiceNumber} key={index}>
-                {id.invoiceNumber +
-                  " - " +
-                  (id.manufacturer ? id.manufacturer.name : id.vendor.name)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <hr className="border-t border-slate-500 w-full my-2" />
-        <div className="w-full md:w-3/4 mx-auto flex justify-center itmes-center my-2">
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-800 py-2 px-4 rounded-xl font-semibold"
-          >
-            Add
-          </button>
         </div>
       </form>
     </div>
@@ -426,3 +263,153 @@ function NewStockForm({ medicines, ids }) {
 }
 
 export default NewStockForm;
+
+{
+  /*medicineDetailsSection && (
+  <div className="absolute top-0 left-0">
+    <div className="fixed w-screen h-screen bg-gray-700/[.5] z-30 flex justify-center items-center">
+      <div className="w-[95%] md:w-4/5 lg:w-3/4 py-4 text-center bg-slate-950 px-4 rounded-xl">
+        <h2 className="font-bold text-2xl text-blue-500">
+          Stock Details
+        </h2>
+        <hr className="border border-slate-800 w-full my-2" />
+        {message && (
+          <div className="my-1 text-center text-red-500">{message}</div>
+        )}
+        <div className="font-semibold text-white space-y-1 w-full md:w-1/2 mx-auto text-sm md:text-base">
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Manufacturer</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">
+              {selectedMedicine.manufacturer.name}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Name</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">{selectedMedicine.name}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Salts</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">
+              {selectedMedicine.salts.name}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Box Size</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">
+              {selectedMedicine.packetSize.tabletsPerStrip +
+                " Nos/Strip, & " +
+                selectedMedicine.packetSize.strips +
+                " Strips"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">MRP {"(per strip)"}</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">
+              {data.sellingPrice + "/-"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Purchase Price {"(per strip)"}</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">
+              {data.purchasePrice + "/-"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Batch Name</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">{data.batchName}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">MFG Date</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">{data.mfgDate}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Expiry Date</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">{data.expiryDate}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Box Quantity</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">{data.quantity}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Extra Strips</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">{data.extra}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">Invoice ID</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">
+              {invoiceID.invoiceNumber}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2/5 flex justify-between">
+              <div className="">From</div>
+              <div className="">:</div>
+            </div>
+            <span className="text-blue-500">
+              {invoiceID.manufacturer
+                ? invoiceID.manufacturer.name
+                : invoiceID.vendor.name}
+            </span>
+          </div>
+        </div>
+
+        <hr className="border border-slate-800 w-full my-2" />
+        <div className="flex px-4 gap-3 justify-end">
+          <div
+            className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
+            onClick={() => {
+              setMedicineDetailsSection(false);
+            }}
+          >
+            Cancel
+          </div>
+          <button
+            onClick={handleSave}
+            className="w-20 h-8 py-1 flex items-center justify-center gap-2 bg-green-500 rounded-lg font-semibold cursor-pointer text-white"
+            disabled={submitting}
+          >
+            {submitting ? <Loading size={15} /> : <></>}
+            {submitting ? "Wait..." : "Confirm"}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)*/
+}

@@ -54,7 +54,7 @@ export async function GET(req) {
           select: "name",
         })
         .exec();
-        console.log(ids)
+      console.log(ids);
 
       return NextResponse.json(
         {
@@ -143,21 +143,44 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { name, manufacturer, medicineType, packetSize, isTablets, salts } =
-    await req.json();
+  const { medicines } = await req.json();
 
   try {
-    let medicine = new Medicine({
-      name,
-      manufacturer,
-      packetSize,
-      isTablets,
-      medicineType,
-      salts,
-    });
-    await medicine.save();
+    let savedMedicines = [];
+
+    for (const med of medicines) {
+      const { name, manufacturer, medicineType, packetSize, isTablets, salts } =
+        med;
+
+      // Ensure tabletsPerStrip is not empty, default to 1
+      const finalPacketSize = {
+        strips: packetSize?.strips || 0,
+        tabletsPerStrip: packetSize?.tabletsPerStrip || 1,
+      };
+
+      let newMedicine = new Medicine({
+        name,
+        manufacturer,
+        packetSize: finalPacketSize,
+        isTablets,
+        medicineType,
+        salts,
+      });
+
+      await newMedicine.save();
+      savedMedicines.push({
+        name,
+        success: true,
+        message: `${name} saved successfully`,
+      });
+    }
+
     return NextResponse.json(
-      { medicine, message: "Medicine Saved Successfully!", success: true },
+      {
+        medicines: savedMedicines,
+        message: "Medicine Saved Successfully!",
+        success: true,
+      },
       { status: 201 }
     );
   } catch (error) {
@@ -199,29 +222,30 @@ export async function PUT(req) {
   //   );
   // }
 
-  const {
-    id,
-    godownMinQty,
-    retailsMinQty,
-    name,
-    manufacturer,
-    medicineType,
-    packetSize,
-    isTablets,
-    salts,
-  } = await req.json();
+  const { id, godownMinQty, retailsMinQty, medicines } = await req.json();
 
   try {
-    let updateFields = {
-      "minimumStockCount.retails": retailsMinQty,
-      "minimumStockCount.godown": godownMinQty,
-    };
-    if (
-      userRole === "admin" ||
-      (userRole === "stockist" && userEditPermission)
-    ) {
-      updateFields = {
-        ...updateFields,
+    let updatedMedicines = [];
+
+  if (medicines && Array.isArray(medicines)) {
+    // Multiple medicines update
+    for (const med of medicines) {
+      const {
+        id,
+        name,
+        manufacturer,
+        medicineType,
+        packetSize,
+        isTablets,
+        salts,
+      } = med;
+
+      // Ensure packetSize.tabletsPerStrip is always at least 1
+      if (!packetSize?.tabletsPerStrip) {
+        packetSize.tabletsPerStrip = 1;
+      }
+
+      let updateFields = {
         name,
         manufacturer,
         packetSize,
@@ -229,17 +253,47 @@ export async function PUT(req) {
         isTablets,
         salts,
       };
+
+      let updatedMedicine = await Medicine.findOneAndUpdate(
+        { _id: id },
+        { $set: updateFields },
+        { new: true, upsert: true }
+      );
+
+      updatedMedicines.push({
+        updatedMedicine,
+        success: true,
+        message: `${name} updated successfully`,
+      });
     }
+
+    return NextResponse.json(
+      { medicines: updatedMedicines, success: true },
+      { status: 201 }
+    );
+  } else if (id && (godownMinQty !== undefined || retailsMinQty !== undefined)) {
+    // Only stock count update
+    let updateFields = {
+      "minimumStockCount.retails": retailsMinQty,
+      "minimumStockCount.godown": godownMinQty,
+    };
+
     let medicine = await Medicine.findOneAndUpdate(
       { _id: id },
       { $set: updateFields },
-      { new: true, upsert: true }
+      { new: true }
     );
-    await medicine.save();
+
     return NextResponse.json(
-      { medicine, message: "Medicine updated successfully!", success: true },
+      { medicine, message: "Stock count updated successfully!", success: true },
       { status: 201 }
     );
+  }
+
+  return NextResponse.json(
+    { message: "Invalid request data", success: false },
+    { status: 400 }
+  );
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(
