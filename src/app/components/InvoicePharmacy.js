@@ -42,7 +42,7 @@ function InvoicePharmacy({
                     document.head.removeChild(printStyle);
                   }, 100);
                 }}
-                className="text-blue-600 border border-blue-600 hover:bg-blue-100 rounded px-6 py-2 my-2 font-semibold text-lg"
+                className="text-blue-600 border border-blue-600 hover:bg-blue-100 rounded px-6 py-2 my-2 font-semibold text-base"
               >
                 Token
               </button>
@@ -51,7 +51,7 @@ function InvoicePharmacy({
                   // prescriptionPrinted(printInvoice._id);
                   window.print();
                 }}
-                className="bg-blue-600 hover:bg-blue-500 rounded px-6 py-2 my-2 font-semibold text-lg text-white"
+                className="bg-blue-600 hover:bg-blue-500 rounded px-6 py-2 my-2 font-semibold text-base text-white"
               >
                 Print
               </button>
@@ -59,7 +59,7 @@ function InvoicePharmacy({
                 onClick={() => {
                   setPrintInvoice(null);
                 }}
-                className="bg-red-600 hover:bg-red-500 rounded px-4 py-2 my-2 font-semibold text-lg text-white"
+                className="bg-red-600 hover:bg-red-500 rounded px-4 py-2 my-2 font-semibold text-base text-white"
               >
                 Cancel
               </button>
@@ -73,16 +73,16 @@ function InvoicePharmacy({
               <h1 className="text-xl font-bold uppercase">
                 {PharmacyDetails?.name}
               </h1>
-              <p className={"text-xs " + (isToken ? "" : "")}>
+              <p className={"text-[10px] " + (isToken ? "" : "")}>
                 {PharmacyDetails?.address} | Phone: {PharmacyDetails?.phone}
               </p>
-              <p className={"text-xs " + (isToken ? "" : "")}>
+              <p className={"text-[10px] " + (isToken ? "" : "")}>
                 Email: {PharmacyDetails?.email}{" "}
                 {PharmacyDetails.website
                   ? `| Website: ${PharmacyDetails.website}`
                   : ""}
               </p>
-              <p className={"text-xs " + (isToken ? "" : "")}>
+              <p className={"text-[10px] " + (isToken ? "" : "")}>
                 D.L.No.: {PharmacyDetails?.dlNumber}{" "}
                 {PharmacyDetails.gst
                   ? `| GST No.: ${PharmacyDetails.gst}`
@@ -93,11 +93,11 @@ function InvoicePharmacy({
 
             <div
               className={
-                (isToken ? "" : "flex") + " justify-around mb-4 text-sm"
+                (isToken ? "" : "flex") + " justify-around mb-4 text-xs"
               }
             >
               <div>
-                <h2 className="text-lg font-semibold mb-2">Patient Details</h2>
+                <h2 className="text-base font-semibold mb-2">Patient Details</h2>
                 <p>
                   <strong>Name: </strong>
                   <span className="uppercase">
@@ -127,7 +127,7 @@ function InvoicePharmacy({
               <div>
                 <h2
                   className={
-                    (isToken ? "mt-3" : "") + " text-lg font-semibold mb-2"
+                    (isToken ? "mt-3" : "") + " text-base font-semibold mb-2"
                   }
                 >
                   Invoice Info
@@ -149,15 +149,15 @@ function InvoicePharmacy({
             <hr className="my-2" />
 
             <div className="my-3">
-              <h2 className="text-lg font-semibold mb-2">Medicine Details</h2>
-              <p className="text-sm">
+              <h2 className="text-base font-semibold mb-2">Medicine Details</h2>
+              <p className="text-xs">
                 <strong>Department:</strong> {"Pharmacy"}
               </p>
               <table
                 className={(isToken ? "min-w-1/4" : "min-w-full") + " bg-white"}
               >
                 <thead>
-                  <tr className="text-sm">
+                  <tr className="text-xs">
                     <th className="p-1 border border-black w-12">Sr.</th>
                     <th className="p-1 border border-black text-start ">
                       Medicine
@@ -204,7 +204,7 @@ function InvoicePharmacy({
                     );
 
                     return (
-                      <tr key={index} className="text-sm">
+                      <tr key={index} className="text-xs">
                         <td className="p-1 border border-black text-center w-12">
                           {index + 1 + "."}
                         </td>
@@ -248,15 +248,15 @@ function InvoicePharmacy({
               >
                 {printInvoice.price.discount && (
                   <>
-                    <p className="font-semibold text-lg">
+                    <p className="font-semibold text-base">
                       Sub Total: ₹ {printInvoice.price.subtotal}
                     </p>
-                    <p className="font-semibold text-lg">
+                    <p className="font-semibold text-base">
                       Discount: {printInvoice.price.discount+"%"}
                     </p>
                   </>
                 )}
-                <p className="font-semibold text-lg">
+                <p className="font-semibold text-base">
                   Grand Total: ₹ {printInvoice.price.total}
                 </p>
               </div>
@@ -264,22 +264,20 @@ function InvoicePharmacy({
             <hr className="my-4" />
 
             {/* <div className="mb-6 capitalize">
-              <h2 className="text-lg font-bold mb-2 ">Doctor Details</h2>
-              <p className="text-sm">
+              <h2 className="text-base font-bold mb-2 ">Doctor Details</h2>
+              <p className="text-xs">
                 <strong>Doctor Name:</strong> Dr.{" "}
                 {printInvoice.doctor.name}
               </p>
-              <p className="text-sm">
+              <p className="text-xs">
                 <strong>Speciality:</strong>{" "}
                 {printInvoice.doctor.specialty}
               </p>
             </div> */}
           </div>
 
-          <hr className="my-4" />
-
           <div
-            className={(isToken ? "text-start" : "text-center") + " text-xs"}
+            className={(isToken ? "text-start" : "text-center") + " text-[10px]"}
           >
             <p>Thank you for choosing Shivam Akshayvat Hospital</p>
             <p className="mt-1">This is a computer-generated invoice.</p>

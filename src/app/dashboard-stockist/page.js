@@ -6,6 +6,7 @@ import {
   MdSpeakerNotes,
 } from "react-icons/md";
 import {
+  TbChartInfographic,
   TbClockExclamation,
   TbEditCircle,
   TbExchange,
@@ -100,6 +101,13 @@ function Page() {
       icon: <MdFormatListBulletedAdd size={50} />,
       link: "/dashboard-stockist/pharmacyConfig",
       color: "bg-green-800",
+    },
+    {
+      name: "Stock Info",
+      description: "You can view & manage retail stock here",
+      icon: <TbChartInfographic size={50} />,
+      link: "/dashboard-stockist/retailStock",
+      color: "bg-lime-700",
     },
     {
       name: "Retail Stock Edit",

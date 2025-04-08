@@ -277,10 +277,10 @@ function RetailStockEdit() {
         <div className="bg-gray-900 rounded-lg flex flex-wrap items-center justify-around gap-1 font-semibold text-sm py-1 px-2 text-white">
           <div className="flex-1 min-w-28 text-center">Batch</div>
           <div className="flex-1 min-w-28 text-center">Expiry</div>
-          <div className="flex-1 min-w-28 text-center">Total Strips</div>
+          <div className="flex-1 min-w-28 text-center">{"Current Stock (Strps or Pack)"}</div>
           <div className="flex-1 min-w-28 text-center">Tablets</div>
           <div className="flex-1 min-w-28 text-center">MRP</div>
-          <div className="flex-1 min-w-28 text-center">Strips</div>
+          <div className="flex-1 min-w-28 text-center">{"(Qty or Strps) per Box"}</div>
           <div className="flex-1 min-w-28 text-center">Tbs/Strp</div>
           <div className="flex-1 min-w-28 text-center">{"Totals"}</div>
           <div className="flex-1 min-w-28 text-center">Remove</div>
