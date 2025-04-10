@@ -78,6 +78,8 @@ function PharmacyInvoiceSearchList({
           <ReturnInvoice
             returnInvoice={returnInvoice}
             setReturnInvoice={setReturnInvoice}
+            setInvoices={setInvoices}
+            accessInfo={accessInfo}
           />
         </div>
       </>
@@ -243,6 +245,7 @@ function PharmacyInvoiceSearchList({
                     </div>
                     <div className="flex justify-around items-center gap-2 mt-3">
                       {(accessInfo?.accessRole === "dispenser" ||
+                        accessInfo?.accessRole === "salesman" ||
                         accessInfo?.accessEditPermission) &&
                         invoice.isDelivered && (
                           <button

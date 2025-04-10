@@ -1,6 +1,6 @@
 import React from "react";
 import { FaFileArrowUp, FaHouseMedicalFlag, FaOutdent } from "react-icons/fa6";
-import { MdAccountBalanceWallet, MdFormatListBulletedAdd, MdSpeakerNotes } from "react-icons/md";
+import { MdAccountBalanceWallet, MdAssignmentReturned, MdFormatListBulletedAdd, MdSpeakerNotes } from "react-icons/md";
 import { BsClipboardDataFill, BsReceipt } from "react-icons/bs";
 import { BiTransferAlt } from "react-icons/bi";
 import Navbar from "../../components/Navbar";
@@ -16,7 +16,7 @@ function Page() {
       description: "You can view pharmacy accounts here",
       icon: <MdAccountBalanceWallet size={50} />,
       link: "/dashboard-admin/pharmacy/pharmacyAnalytics",
-      color: "bg-teal-800",
+      color: "bg-emerald-700",
     },
     {
       name: "Create Invoices",
@@ -31,6 +31,13 @@ function Page() {
       icon: <BsReceipt size={50} />,
       link: "/dashboard-admin/pharmacy/invoices",
       color: "bg-rose-900",
+    },
+    {
+      name: "Return Invoices",
+      description: "You can show all the return pharmacy Invoices here",
+      icon: <MdAssignmentReturned size={50} />,
+      link: "/dashboard-admin/pharmacy/returnInvoices",
+      color: "bg-teal-800",
     },
     {
       name: "Express Billing",

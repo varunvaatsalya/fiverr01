@@ -3,6 +3,7 @@ import dbConnect from "../../lib/Mongodb";
 import { verifyToken } from "../../utils/jwt";
 import { Manufacturer, Vendor } from "../../models/MedicineMetaData";
 import PurchaseInvoice from "../../models/PurchaseInvoice";
+import { generateUID } from "../../utils/counter";
 
 function getGrandTotal(medicineDetails) {
   const grandTotal = medicineDetails.reduce((grandTotal, medicine) => {
@@ -21,18 +22,9 @@ function getGrandTotal(medicineDetails) {
   return grandTotal;
 }
 
-function generateUID() {
+function getUID() {
   const prefix = "PI";
-  const now = new Date();
-
-  const year = now.getFullYear().toString().slice(-2);
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const date = String(now.getDate()).padStart(2, "0");
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
-
-  let uniqueDigit = `${year}${month}${date}${hours}${minutes}${seconds}`;
+  let uniqueDigit = generateUID();
 
   const uniqueID = `${prefix}${uniqueDigit}`;
   return uniqueID;
@@ -74,7 +66,7 @@ export async function GET(req) {
       } else if (info === "vendor") {
         lists = await Vendor.find({}, "_id name").sort({ _id: -1 }).exec();
       }
-      let uniqueID = generateUID();
+      let uniqueID = getUID();
 
       return NextResponse.json(
         { lists, uniqueID, success: true },

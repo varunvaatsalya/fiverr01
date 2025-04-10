@@ -332,7 +332,7 @@ export async function PUT(req) {
       medicineStock.quantity.boxes = quantity;
       medicineStock.quantity.extra = extra;
       medicineStock.quantity.totalStrips = totalStrips;
-      medicineStock.initialQuantity.boxes = initialQuantity;
+      medicineStock.initialQuantity.boxes = quantity;
       medicineStock.initialQuantity.extra = extra;
       medicineStock.initialQuantity.totalStrips = totalStrips;
     }

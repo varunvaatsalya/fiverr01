@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../../lib/Mongodb";
 import { verifyToken } from "../../../utils/jwt";
-import Patient from "../../../models/Patients";
-import Medicine from "../../../models/Medicine";
-import RetailStock from "../../../models/RetailStock";
+import { generateUID } from "../../../utils/counter";
 import PharmacyInvoice from "../../../models/PharmacyInvoice";
 
 export async function GET(req) {
@@ -93,14 +91,6 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  const { invoiceId, returnInvoice } = await req.json();
-  if (!invoiceId || !returnInvoice) {
-    return NextResponse.json(
-      { message: "ID not found.", success: false },
-      { status: 404 }
-    );
-  }
-
   await dbConnect();
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -119,78 +109,249 @@ export async function POST(req) {
     );
   }
 
-  const invoice = await PharmacyInvoice.findById(invoiceId).populate(
-    "medicines.medicineId"
-  );
+  try {
+    const { invoiceId, returnMedicineDetails } = await req.json();
 
-  if (!invoice) {
-    return NextResponse.json(
-      { message: "Invoice not found.", success: false },
-      { status: 404 }
-    );
-  }
-
-  // Check if the invoice is already returned
-  if (invoice.returns.length > 0) {
-    return NextResponse.json(
-      { message: "Invoice already returned.", success: false },
-      { status: 400 }
-    );
-  }
-
-  // Check if the return invoice is empty
-  if (returnInvoice.medicines.length === 0) {
-    return NextResponse.json(
-      { message: "No medicines to return.", success: false },
-      { status: 400 }
-    );
-  }
-
-  // Check if the return quantity exceeds the allocated quantity
-  for (const medicine of returnInvoice.medicines) {
-    const allocatedMedicine = invoice.medicines.find(
-      (med) => med.medicineId._id.toString() === medicine.medicineId._id
-    );
-
-    if (!allocatedMedicine) {
+    if (!invoiceId || !returnMedicineDetails) {
       return NextResponse.json(
         {
-          message: `Medicine ${medicine.medicineId.name} not found in invoice`,
           success: false,
+          message: "Missing invoiceId or returnMedicineDetails",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Fetch invoice
+    let invoice = await PharmacyInvoice.findById(invoiceId);
+    if (!invoice) {
+      return NextResponse.json(
+        { success: false, message: "Invoice not found" },
+        { status: 404 }
+      );
+    }
+
+    let invalidReturns = [];
+    let uid = "RI" + generateUID();
+    let newReturnEntry = {
+      returnId: uid,
+      medicines: [],
+      createdAt: new Date(),
+    };
+
+    for (const [medicineId, batchData] of Object.entries(
+      returnMedicineDetails
+    )) {
+      let medicine = invoice.medicines.find(
+        (med) => med.medicineId.toString() === medicineId
+      );
+
+      if (!medicine) {
+        console.log("medicine not found....");
+        invalidReturns.push(medicineId);
+        continue;
+      }
+
+      let returnMedicine = { medicineId, returnStock: [] };
+
+      for (const [batchIndex, returnQty] of Object.entries(batchData)) {
+        let batch = medicine.allocatedStock[batchIndex];
+
+        if (!batch) {
+          invalidReturns.push(`Batch ${batchIndex} for medicine ${medicineId}`);
+          continue;
+        }
+
+        let tabletsPerStrip =
+          batch.packetSize?.tabletsPerStrip || returnQty.tabletsPerStrip;
+        if (!tabletsPerStrip) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: `Missing tabletsPerStrip for ${medicineId} batch ${batchIndex}`,
+            },
+            { status: 400 }
+          );
+        }
+
+        let allocatedStrips =
+          batch.quantity.strips * tabletsPerStrip + batch.quantity.tablets;
+        let returnQtyStrips = parseInt(returnQty.strips) || 0;
+        let returnQtyTablets = parseInt(returnQty.tablets) || 0;
+
+        let returnStrips = returnQtyStrips * tabletsPerStrip + returnQtyTablets;
+
+        let previousReturns = invoice.returns.flatMap((ret) =>
+          ret.medicines
+            .filter((med) => med.medicineId.toString() === medicineId)
+            .flatMap((med) =>
+              med.returnStock
+                .filter((stock) => stock.batchName === batch.batchName)
+                .map(
+                  (stock) =>
+                    stock.quantity.strips * tabletsPerStrip +
+                    stock.quantity.tablets
+                )
+            )
+        );
+
+        let totalPreviousReturns = previousReturns.reduce((a, b) => a + b, 0);
+        let totalAllowedReturn = allocatedStrips - totalPreviousReturns;
+        // console.log("totalPreviousReturns", totalPreviousReturns);
+        // console.log("allocatedStrips", allocatedStrips);
+        // console.log("totalAllowedReturn", totalAllowedReturn);
+        // console.log("returnStrips", returnStrips);
+        if (returnStrips > totalAllowedReturn) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: `Return quantity exceeds allocated stock`,
+              // message: `Return quantity exceeds allocated stock for ${medicineId} batch ${batchIndex}`,
+            },
+            { status: 400 }
+          );
+        }
+
+        console.log(returnQty);
+        returnMedicine.returnStock.push({
+          batchName: batch.batchName,
+          expiryDate: batch.expiryDate,
+          sellingPrice: batch.sellingPrice,
+          // quantity: returnQty.strips * tabletsPerStrip + returnQty.tablets,
+          quantity: { strips: returnQtyStrips, tablets: returnQtyTablets },
+          price: (
+            returnQtyStrips * batch.sellingPrice +
+            (returnQtyTablets / tabletsPerStrip) * batch.sellingPrice
+          ).toFixed(2),
+        });
+      }
+
+      newReturnEntry.medicines.push(returnMedicine);
+    }
+
+    console.log(invalidReturns);
+    if (invalidReturns.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Invalid return details for: ${invalidReturns.join(", ")}`,
+          invalidReturns,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Add new return entry
+    invoice.returns.push(newReturnEntry);
+
+    // Save updated invoice
+    await invoice.save();
+
+    let updatedInvoice = await PharmacyInvoice.findById(invoice._id)
+      .populate({
+        path: "patientId",
+        select: "name uhid address age gender mobileNumber",
+      })
+      .populate({
+        path: "medicines.medicineId",
+        select: "name salts isTablets medicineType packetSize rackPlace",
+        populate: {
+          path: "salts",
+          select: "name",
+        },
+      });
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Return processed successfully",
+        invoice: updatedInvoice,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req) {
+  await dbConnect();
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+  const decoded = await verifyToken(token.value);
+  const userRole = decoded.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
+
+  try {
+    const { invoiceId, returnId } = await req.json();
+
+    const newDate = new Date();
+
+    if (!invoiceId || !returnId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Missing invoiceId or returnId",
+        },
+        { status: 400 }
+      );
+    }
+    const updatedInvoice = await PharmacyInvoice.findOneAndUpdate(
+      { _id: invoiceId, "returns.returnId": returnId },
+      { $set: { "returns.$.isReturnAmtPaid": newDate } },
+      { new: true }
+    );
+    if (!updatedInvoice) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invoice or Return not found!",
         },
         { status: 404 }
       );
     }
 
-    for (const batch of medicine.returnStock) {
-      const allocatedBatch = allocatedMedicine.allocatedStock.find(
-        (b) =>
-          b.batchName === batch.batchName && b.expiryDate === batch.expiryDate
-      );
-      if (!allocatedBatch) {
-        return NextResponse.json(
-          {
-            message: `Batch ${batch.batchName} not found in invoice`,
-            success: false,
-          },
-          { status: 404 }
-        );
-      }
-      const allocatedQuantity =
-        allocatedBatch.quantity.strips * batch.packetSize.strips +
-        allocatedBatch.quantity.tablets;
-      const returnQuantity =
-        batch.quantity.strips * batch.packetSize.strips +
-        batch.quantity.tablets;
-      if (returnQuantity > allocatedQuantity) {
-        return NextResponse.json(
-          {
-            message: `Return quantity exceeds allocated quantity for ${allocatedMedicine.medicineId.name}`,
-            success: false,
-          },
-          { status: 400 }
-        );
-      }
-    }
+    let updatedNewInvoice = await PharmacyInvoice.findById(updatedInvoice._id)
+      .populate({
+        path: "patientId",
+        select: "name uhid address age gender mobileNumber",
+      })
+      .populate({
+        path: "medicines.medicineId",
+        select: "name salts isTablets medicineType packetSize rackPlace",
+        populate: {
+          path: "salts",
+          select: "name",
+        },
+      });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Return processed successfully",
+        invoice: updatedNewInvoice,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   }
 }

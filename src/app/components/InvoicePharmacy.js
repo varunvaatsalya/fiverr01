@@ -249,7 +249,7 @@ function InvoicePharmacy({
                 {printInvoice.price.discount && (
                   <>
                     <p className="font-semibold text-base">
-                      Sub Total: ₹ {printInvoice.price.subtotal}
+                      Sub Total: ₹ {parseFloat(printInvoice.price.subtotal.toFixed(2))}
                     </p>
                     <p className="font-semibold text-base">
                       Discount: {printInvoice.price.discount+"%"}
@@ -257,7 +257,7 @@ function InvoicePharmacy({
                   </>
                 )}
                 <p className="font-semibold text-base">
-                  Grand Total: ₹ {printInvoice.price.total}
+                  Grand Total: ₹ {parseFloat(printInvoice.price.total.toFixed(2))}
                 </p>
               </div>
             </div>

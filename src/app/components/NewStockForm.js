@@ -192,7 +192,7 @@ function NewStockForm({ medicines, ids }) {
                   {...register(`stocks.${index}.quantity`, {
                     required: true,
                   })}
-                  placeholder="Total Strips/Pcs"
+                  placeholder="Total Strips or Pcs"
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
                   min={0}
                 />

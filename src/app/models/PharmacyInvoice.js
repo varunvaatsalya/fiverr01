@@ -50,6 +50,9 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
   ],
   returns: [
     {
+      returnId: {
+        type: String,
+      },
       medicines: [
         {
           medicineId: {
@@ -71,7 +74,11 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
                 type: Number,
                 required: true,
               },
-              quantity: { type: Number, default: 0 },
+              quantity: {
+                strips: { type: Number, default: 0 },
+                tablets: { type: Number, default: 0 },
+              },
+              price: { type: Number },
             },
           ],
         },

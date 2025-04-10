@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import Loading from "./Loading";
 
 function EditStockForm({ medicines }) {
+  const [selectedLetter, setSelectedLetter] = useState("A");
+  const [letters, setLetters] = useState([]);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
   const [selectedStocks, setSelectedStocks] = useState(null);
   const [medicineDetailsSection, setMedicineDetailsSection] = useState(false);
@@ -13,6 +15,38 @@ function EditStockForm({ medicines }) {
   const [stocks, setStocks] = useState([]);
 
   const { register, handleSubmit, reset, setValue } = useForm();
+
+  // const getUniqueStartingLetters = () => {
+  //   const uniqueLetters = [
+  //     ...new Set(medicines.map((medicine) => medicine.name[0].toUpperCase())),
+  //   ].sort();
+  //   setSelectedLetter(uniqueLetters[0]);
+  //   setLetters(uniqueLetters);
+  // };
+
+  // const fetchData = async () => {
+  //   try {
+  //     setMessage(null);
+  //     let result = await fetch(`/api/editRetailStock`);
+  //     result = await result.json();
+
+  //     if (result.success) {
+  //       let medcinesStock = groupAndCountMedicines(result.stocks);
+  //       setMedicineStock(medcinesStock);
+  //       console.log(medcinesStock);
+  //     } else setMessage(result.message);
+  //   } catch (error) {
+  //     console.error("Error submitting application:", error);
+  //   } finally {
+  //     setTimeout(() => {
+  //       setMessage("");
+  //     }, 3500);
+  //   }
+  // };
+  // useEffect(() => {
+  //   getUniqueStartingLetters();
+  //   fetchData();
+  // }, []);
 
   useEffect(() => {
     if (selectedMedicine) {
