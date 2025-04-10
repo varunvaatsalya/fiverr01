@@ -244,7 +244,7 @@ function ReturnInvoice({
                         <div className="flex-1 min-w-28 text-center">Price</div>
                       </div>
                       {invoice.medicines.map((medicine) => (
-                        <div className="bg-gray-700 rounded-lg w-full border-b border-gray-900">
+                        <div key={medicine.medicineId} className="bg-gray-700 rounded-lg w-full border-b border-gray-900">
                           <div className="text-sm">
                             Medicines Name:{" "}
                             <span className="text-blue-400">
