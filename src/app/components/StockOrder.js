@@ -10,6 +10,7 @@ function StockOrder({ info, selectedType }) {
   const [data, setData] = useState([]);
   const [allData, setAllData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [searchedMedicines, setSearchedMedicines] = useState([]);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
   const [lowStockManufacturers, setLowStockManufacturers] = useState(new Set());
 
@@ -24,7 +25,10 @@ function StockOrder({ info, selectedType }) {
         // minimumStockCount?.godown - medicine.totalBoxes
         const lowStockSet = new Set();
         data.medicinesWithStock.forEach((med) => {
-          if (!med.minimumStockCount || med.totalBoxes < med.minimumStockCount.godown) {
+          if (
+            !med.minimumStockCount ||
+            med.totalBoxes < med.minimumStockCount.godown
+          ) {
             lowStockSet.add(med.manufacturer);
           }
         });
@@ -37,12 +41,42 @@ function StockOrder({ info, selectedType }) {
     setFilteredData(data);
   }, [data]);
 
-  function handleSearchMedicine(query) {
-    const updatedFilteredData = data.filter((medicine) =>
-      medicine.name.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredData(updatedFilteredData);
+  function filterData(type) {
+    let updatedData = data.filter((item) => {
+      if (type === "all") {
+        return true;
+      } else if (type === "belowMinstockCount") {
+        return (
+          item.minimumStockCount?.godown !== undefined &&
+          item.totalBoxes <= item.minimumStockCount.godown
+        );
+      } else if (type === "minStockCountNotSet") {
+        return (
+          !item.minimumStockCount || item.minimumStockCount.godown === undefined
+        );
+      } else if (type === "aboveMinstockCount") {
+        return (
+          item.minimumStockCount?.godown !== undefined &&
+          item.totalBoxes > item.minimumStockCount.godown
+        );
+      }
+      return false;
+    });
+    setFilteredData(updatedData);
   }
+  function handleSearchMedicine(query) {
+    if (query.trim() !== "") {
+      const updatedSearchedMedicines = filteredData.filter((medicine) =>
+        medicine.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchedMedicines(updatedSearchedMedicines);
+    } else {
+      setSearchedMedicines(filteredData);
+    }
+  }
+  useEffect(()=>{
+    setSearchedMedicines(filteredData);
+  },[filteredData])
 
   useEffect(() => {
     if (selectedType !== "manufacturer") {
@@ -222,16 +256,33 @@ Required Quantity: ${medicine.quantity} boxes
               <div className="w-[15%] text-center">Current Stock</div>
               <div className="w-[15%] text-center">Required</div>
             </div>
-            <input
-              type="text"
-              placeholder="Serch Medicine"
-              onChange={(e) => {
-                handleSearchMedicine(e.target.value);
-              }}
-              className="rounded-full bg-gray-700 outline-none focus:ring-2 focus:ring-gray-600 px-3 py-1"
-            />
-            <div className="px-2 max-h-[50vh] overflow-y-auto ">
-              {filteredData.map((details, index) => (
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                placeholder="Serch Medicine"
+                onChange={(e) => {
+                  handleSearchMedicine(e.target.value);
+                }}
+                className="rounded-full bg-gray-700 outline-none focus:ring-2 focus:ring-gray-600 px-3 py-1"
+              />
+              <select
+                onChange={(e) => filterData(e.target.value)}
+                className="bg-gray-700 rounded-lg text-white px-2 py-1"
+              >
+                <option value="all">All</option>
+                <option value="belowMinstockCount">
+                  Below Min stock Count
+                </option>
+                <option value="minStockCountNotSet">
+                  Min Stock Count not set
+                </option>
+                <option value="aboveMinstockCount">
+                  Above Min stock Count
+                </option>
+              </select>
+            </div>
+            <div className="px-2 max-h-[60vh] overflow-y-auto ">
+              {searchedMedicines.map((details, index) => (
                 <div
                   key={index}
                   className="border-b border-gray-900 text-gray-100 font-semibold text-sm rounded-lg p-1 flex items-center"
