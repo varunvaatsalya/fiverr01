@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import PharmacySectionComponent from "./PharmacySectionComponent";
 import InvoicePharmacy from "./InvoicePharmacy";
+import AdvPharmacyInvoiceSearch from "./AdvPharmacyInvoiceSearch";
 import { AiFillMedicineBox } from "react-icons/ai";
 import { IoCreate } from "react-icons/io5";
 import NewPharmacyInvoice from "./NewPharmacyInvoice";
@@ -11,6 +12,7 @@ import ReturnInvoice from "./ReturnInvoice";
 import { formatDateTimeToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import MedicineDetailsSection from "./MedicineDetailsSection";
+import { FaCheckCircle } from "react-icons/fa";
 
 function PharmacyInvoiceSearchList({
   page,
@@ -18,9 +20,14 @@ function PharmacyInvoiceSearchList({
   totalPages,
   invoices,
   setInvoices,
+  isReturn,
+  setIsReturn,
   accessInfo,
+  isLoading,
 }) {
   const [resData, setResData] = useState([]);
+  const [copyInvoices, setCopyInvoices] = useState([]);
+  const [searchedInvoices, setSearchedInvoices] = useState(null);
   const [newInvoiceSection, setNewInvoiceSection] = useState(false);
   const [editInvoice, setEditInvoice] = useState(null);
   const [returnInvoice, setReturnInvoice] = useState(null);
@@ -28,10 +35,32 @@ function PharmacyInvoiceSearchList({
   const [medicineDetails, setMedicineDetails] = useState(null);
   const [medicineDetailsSection, setMedicineDetailsSection] = useState(false);
   const [printInvoice, setPrintInvoice] = useState(null);
+  const [advSearch, setAdvSearch] = useState(false);
+
+  function updatedata(query) {
+    let filterRes = copyInvoices.filter((invoice) => {
+      let lowerCaseQuery = query.toLowerCase();
+      return (
+        invoice.patientId?.uhid.toLowerCase().includes(lowerCaseQuery) ||
+        invoice.patientId?.name?.toLowerCase().includes(lowerCaseQuery) ||
+        invoice.inid.toLowerCase().includes(lowerCaseQuery) ||
+        invoice.paymentMode.toLowerCase().includes(lowerCaseQuery)
+      );
+    });
+    setResData(filterRes);
+  }
 
   useEffect(() => {
-    setResData(invoices);
-  }, [invoices]);
+    setResData(copyInvoices);
+  }, [copyInvoices]);
+
+  useEffect(() => {
+    if (searchedInvoices) {
+      setCopyInvoices(searchedInvoices);
+    } else {
+      setCopyInvoices(invoices);
+    }
+  }, [searchedInvoices, invoices]);
 
   const handleNextPage = () => {
     if (page < totalPages) {
@@ -105,9 +134,9 @@ function PharmacyInvoiceSearchList({
           <input
             type="text"
             placeholder="Search"
-            // onChange={(e) => {
-            //   updatedata(e.target.value);
-            // }}
+            onChange={(e) => {
+              updatedata(e.target.value);
+            }}
             className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
           />
           {(accessInfo?.accessRole === "admin" ||
@@ -123,8 +152,21 @@ function PharmacyInvoiceSearchList({
             </button>
           )}
         </div>
-        <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 mx-auto bg-black text-white">
-          List of all the Pharmacy Invoices
+        <div className="flex gap-2 items-center">
+          <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 mx-auto bg-black text-white">
+            List of all the Pharmacy Invoices
+          </div>
+          <button
+            onClick={() => {
+              setIsReturn(!isReturn);
+              setPage(1);
+            }}
+            disabled={isLoading|| advSearch}
+            className="h-12 flex justify-center items-center gap-2 text-xl rounded-full px-6 bg-black text-white"
+          >
+            {isReturn && <FaCheckCircle />}
+            <div>{isLoading ? "Wait..." : "Return"}</div>
+          </button>
         </div>
         <div className="flex flex-wrap justify-center items-center mx-auto">
           {resData.length > 0 ? (
@@ -195,6 +237,22 @@ function PharmacyInvoiceSearchList({
                           {formatDateTimeToIST(invoice.createdAt)}
                         </span>
                       </div>
+                      {invoice.createdByRole && (
+                        <div className="py-1 px-4 ">
+                          Created By Role:{" "}
+                          <span className="text-blue-500 font-semibold capitalize">
+                            {invoice.createdByRole}
+                          </span>
+                        </div>
+                      )}
+                      {invoice.createdBy && invoice.createdByRole==="salesman" && (
+                        <div className="py-1 px-4 ">
+                          Created By Name:{" "}
+                          <span className="text-blue-500 font-semibold capitalize">
+                            {invoice.createdBy?.name}
+                          </span>
+                        </div>
+                      )}
                       {invoice.isDelivered && (
                         <div className="py-1 px-4 ">
                           Delivered At:{" "}
@@ -318,39 +376,44 @@ function PharmacyInvoiceSearchList({
         </div>
       </div>
       <div className="flex justify-end gap-2 pr-4 ">
-        {/* <div
+        <div
           className="px-4 py-3 bg-gray-900 text-white text-lg rounded-lg font-bold cursor-pointer"
           onClick={() => {
             if (advSearch) {
-              setSearchedPrescription(null);
+              setSearchedInvoices(null);
             }
+            setIsReturn(false);
+            setPage(1);
             setAdvSearch(!advSearch);
           }}
         >
           {advSearch ? "Close" : "Advanced Search"}
-        </div> */}
-        {/* {!advSearch && ( */}
-        <div className="bg-gray-900 text-white rounded-lg">
-          <button
-            onClick={handlePreviousPage}
-            disabled={page === 1}
-            className="p-3"
-          >
-            <FaArrowLeft size={20} />
-          </button>
-          <span className="text-white border-x border-white p-3">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={handleNextPage}
-            disabled={page === totalPages}
-            className="p-3"
-          >
-            <FaArrowRight size={20} />
-          </button>
         </div>
-        {/* )} */}
+        {!advSearch && (
+          <div className="bg-gray-900 text-white rounded-lg">
+            <button
+              onClick={handlePreviousPage}
+              disabled={page === 1}
+              className="p-3"
+            >
+              <FaArrowLeft size={20} />
+            </button>
+            <span className="text-white border-x border-white p-3">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={page === totalPages}
+              className="p-3"
+            >
+              <FaArrowRight size={20} />
+            </button>
+          </div>
+        )}
       </div>
+      {advSearch && (
+        <AdvPharmacyInvoiceSearch setSearchedInvoices={setSearchedInvoices} />
+      )}
     </div>
   );
 }

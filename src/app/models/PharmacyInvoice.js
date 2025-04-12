@@ -96,11 +96,7 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // biller: {
-  //   type: String,
-  //   required: true,
-  //   default: "Temporary Biller",
-  // },
+
   price: {
     discount: {
       type: Number,
@@ -116,6 +112,14 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
   },
   isDelivered: {
     type: Date,
+  },
+  createdByRole: {
+    type: String,
+    enum: ["admin", "salesman"],
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
   createdAt: {
     type: Date,

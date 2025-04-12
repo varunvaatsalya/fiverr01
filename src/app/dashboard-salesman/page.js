@@ -67,7 +67,7 @@ function Page() {
       color: "bg-gray-800",
     },
     {
-      name: "Invoices",
+      name: "Pharmacy Invoices",
       description: "You can show all the pharmacy Invoices here",
       icon: <BsReceipt size={50} />,
       link: "/dashboard-salesman/invoices",

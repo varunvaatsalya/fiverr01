@@ -108,6 +108,7 @@ export async function POST(req) {
       }
 
       const token = await generateToken({
+        _id: credentials.id,
         email,
         password,
         role,

@@ -259,6 +259,10 @@ export async function POST(req) {
           path: "salts",
           select: "name",
         },
+      })
+      .populate({
+        path: "createdBy",
+        select: "name email",
       });
 
     return NextResponse.json(
@@ -338,6 +342,10 @@ export async function PUT(req) {
           path: "salts",
           select: "name",
         },
+      })
+      .populate({
+        path: "createdBy",
+        select: "name email",
       });
     return NextResponse.json(
       {

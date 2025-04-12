@@ -324,7 +324,7 @@ function NewPharmacyInvoice({
               setNewInvoiceSection(false);
             }
             setMessage("");
-          }, 2500);
+          }, 1500);
         }
       } catch (error) {
         setMessage("Error in submitting application");

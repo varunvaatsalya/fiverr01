@@ -37,6 +37,7 @@ export async function GET(req) {
 
   let info = req.nextUrl.searchParams.get("info");
   let page = req.nextUrl.searchParams.get("page");
+  let isReturn = req.nextUrl.searchParams.get("isReturn");
   let pending = req.nextUrl.searchParams.get("pending");
 
   const token = req.cookies.get("authToken");
@@ -86,6 +87,9 @@ export async function GET(req) {
       query = { isDelivered: { $exists: false } };
     }
     let userOrderQuery = pending === "1" ? {} : { _id: -1 };
+    if (isReturn === "1") {
+      query.returns = { $exists: true, $not: { $size: 0 } };
+    }
     const allPharmacyInvoices = await PharmacyInvoice.find(query)
       .sort(userOrderQuery)
       .skip(skip)
@@ -101,6 +105,10 @@ export async function GET(req) {
           path: "salts",
           select: "name",
         },
+      })
+      .populate({
+        path: "createdBy",
+        select: "name email",
       });
 
     const totalPharmacyInvoices = await PharmacyInvoice.countDocuments();
@@ -138,18 +146,19 @@ export async function POST(req) {
   }
   const decoded = await verifyToken(token.value);
   const userRole = decoded.role;
+  const userId = decoded._id;
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
   }
-  // if (userRole !== "admin" && userRole !== "salesman") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. admins only.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
+  if (userRole !== "admin" && userRole !== "salesman") {
+    return NextResponse.json(
+      { message: "Access denied. admins only.", success: false },
+      { status: 403 }
+    );
+  }
 
   const { requestedMedicine, selectedPatient, selectedPaymentMode, discount } =
     await req.json();
@@ -318,7 +327,7 @@ export async function POST(req) {
       );
     }
     let subtotal = getGrandTotal(result);
-    console.log(JSON.stringify(result), 123456);
+    // console.log(JSON.stringify(result), 123456);
 
     const invoice = new PharmacyInvoice({
       patientId: selectedPatient,
@@ -352,12 +361,14 @@ export async function POST(req) {
           (subtotal * ((100 - discount) / 100)).toFixed(2)
         ).toString(),
       },
+      createdBy: userRole === "admin" || !userId ? null : userId,
+      createdByRole: userRole,
     });
     if (selectedPaymentMode === "Credit-Others") {
       invoice.isDelivered = new Date();
     }
 
-    console.log("Invoice:", JSON.stringify(invoice));
+    // console.log("Invoice:", JSON.stringify(invoice));
     await invoice.save();
 
     const populatedInvoice = await PharmacyInvoice.findById(invoice._id)
