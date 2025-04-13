@@ -231,13 +231,29 @@ function PrescriptionsSearchList({
                             {prescription.paymentMode}
                           </span>
                         </div>
-
                         <div className="py-1 px-4 ">
                           Create At:{" "}
                           <span className="text-blue-500 font-semibold uppercase">
                             {formatDateTimeToIST(prescription.createdAt)}
                           </span>
                         </div>
+                        {prescription.createdByRole && (
+                          <div className="py-1 px-4 ">
+                            Created By Role:{" "}
+                            <span className="text-blue-500 font-semibold capitalize">
+                              {prescription.createdByRole}
+                            </span>
+                          </div>
+                        )}
+                        {prescription.createdBy &&
+                          prescription.createdByRole !== "admin" && (
+                            <div className="py-1 px-4 ">
+                              Created By Name:{" "}
+                              <span className="text-blue-500 font-semibold capitalize">
+                                {prescription.createdBy?.name}
+                              </span>
+                            </div>
+                          )}
                       </div>
                       {prescription.items.map((item, it) => {
                         // Find the test that matches the current item name, if any

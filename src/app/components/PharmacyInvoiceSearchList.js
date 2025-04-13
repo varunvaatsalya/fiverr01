@@ -140,7 +140,9 @@ function PharmacyInvoiceSearchList({
             className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
           />
           {(accessInfo?.accessRole === "admin" ||
-            accessInfo?.accessRole === "salesman") && (
+            accessInfo?.accessRole === "salesman" ||
+            (accessInfo?.accessRole === "dispenser" &&
+              accessInfo.accessEditPermission)) && (
             <button
               onClick={() => {
                 setNewInvoiceSection((newInvoiceSection) => !newInvoiceSection);
@@ -161,7 +163,7 @@ function PharmacyInvoiceSearchList({
               setIsReturn(!isReturn);
               setPage(1);
             }}
-            disabled={isLoading|| advSearch}
+            disabled={isLoading || advSearch}
             className="h-12 flex justify-center items-center gap-2 text-xl rounded-full px-6 bg-black text-white"
           >
             {isReturn && <FaCheckCircle />}
@@ -245,14 +247,15 @@ function PharmacyInvoiceSearchList({
                           </span>
                         </div>
                       )}
-                      {invoice.createdBy && invoice.createdByRole==="salesman" && (
-                        <div className="py-1 px-4 ">
-                          Created By Name:{" "}
-                          <span className="text-blue-500 font-semibold capitalize">
-                            {invoice.createdBy?.name}
-                          </span>
-                        </div>
-                      )}
+                      {invoice.createdBy &&
+                        invoice.createdByRole !== "admin" && (
+                          <div className="py-1 px-4 ">
+                            Created By Name:{" "}
+                            <span className="text-blue-500 font-semibold capitalize">
+                              {invoice.createdBy?.name}
+                            </span>
+                          </div>
+                        )}
                       {invoice.isDelivered && (
                         <div className="py-1 px-4 ">
                           Delivered At:{" "}

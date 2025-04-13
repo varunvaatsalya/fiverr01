@@ -70,11 +70,10 @@ export async function POST(req) {
     }
 
     if (ageFrom || ageTo) {
-        query.age = {};
-        if (ageFrom) query.age.$gte = parseInt(ageFrom); // Age greater than or equal to ageFrom
-        if (ageTo) query.age.$lte = parseInt(ageTo); // Age less than or equal to ageTo
-      }
-
+      query.age = {};
+      if (ageFrom) query.age.$gte = parseInt(ageFrom); // Age greater than or equal to ageFrom
+      if (ageTo) query.age.$lte = parseInt(ageTo); // Age less than or equal to ageTo
+    }
 
     // Date range filter
     if (startDate && endDate) {
@@ -97,7 +96,11 @@ export async function POST(req) {
     // Fetch data with filters
     const patients = await Patient.find(query)
       .sort({ _id: -1 })
-      .limit(100);
+      .limit(200)
+      .populate({
+        path: "createdBy",
+        select: "name email",
+      });
     // Send response with UID
     return NextResponse.json({ patients, success: true }, { status: 201 });
   } catch (error) {

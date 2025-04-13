@@ -79,7 +79,7 @@ function NewUserForm({ setNewUserSection, role, updateUsers }) {
           {...register("password", { required: "Password is required" })}
           className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />
-        {(role == "salesman" || role == "stockist") && (
+        {(role == "salesman" || role == "stockist"|| role == "dispenser") && (
           <>
             <div className=" py-1 text-sm text-blue-500 text-start px-2">
               Permission of Edit Invoice

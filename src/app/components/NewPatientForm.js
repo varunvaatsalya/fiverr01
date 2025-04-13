@@ -14,6 +14,19 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
   const [prefix, setPrefix] = useState("");
   const [message, setMessage] = useState(null);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const isConfirmed = window.confirm(
+        "Are you sure that this patient is not already registered?"
+      );
+      if (!isConfirmed) {
+        setNewUserSection(false);
+      }
+    }, 400);
+  
+    return () => clearTimeout(timer);
+  }, []);
+
   const onSubmit = async (data) => {
     data.fathersName = prefix + data.fathersName;
     setSubmitting(true);
@@ -69,16 +82,30 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
         <div className="mt-1 flex gap-2 items-center">
           <select
             name="prefix"
-            onChange={(e) => {setPrefix(e.target.value)}}
+            onChange={(e) => {
+              setPrefix(e.target.value);
+            }}
             className="text-white w-20 px-1 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
           >
             <option value="">prefix</option>
-            <option value="S/o " title="Son of">S/o</option>
-            <option value="W/o " title="Wife of">W/o</option>
-            <option value="D/o " title="Daughter of">D/o</option>
-            <option value="H/o " title="Husband of">H/o</option>
-            <option value="F/o " title="Father of">M/o</option>
-            <option value="M/o " title="Mother of">M/o</option>
+            <option value="S/o " title="Son of">
+              S/o
+            </option>
+            <option value="W/o " title="Wife of">
+              W/o
+            </option>
+            <option value="D/o " title="Daughter of">
+              D/o
+            </option>
+            <option value="H/o " title="Husband of">
+              H/o
+            </option>
+            <option value="F/o " title="Father of">
+              M/o
+            </option>
+            <option value="M/o " title="Mother of">
+              M/o
+            </option>
           </select>
           <input
             id="fathersName"

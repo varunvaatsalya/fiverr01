@@ -130,6 +130,10 @@ export async function GET(req) {
         path: "department", // Populate the department field
         select: "name",
       })
+      .populate({
+        path: "createdBy",
+        select: "name email",
+      })
       .select("-tests.results");
 
     const totalPrescriptions = await Prescription.countDocuments(query);
@@ -166,6 +170,7 @@ export async function POST(req) {
 
   const decoded = await verifyToken(token.value);
   const userRole = decoded.role;
+  const userId = decoded._id;
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -270,6 +275,8 @@ export async function POST(req) {
       pid,
       paymentMode,
       tests: filteredTests,
+      createdBy: userRole === "admin" || !userId ? null : userId,
+      createdByRole: userRole,
     });
 
     // // Save user to the database
@@ -289,6 +296,10 @@ export async function POST(req) {
       .populate({
         path: "department",
         select: "name",
+      })
+      .populate({
+        path: "createdBy",
+        select: "name email",
       });
 
     // Send response with UID
@@ -373,6 +384,9 @@ export async function PUT(req) {
       .populate({
         path: "department",
         select: "name",
+      }).populate({
+        path: "createdBy",
+        select: "name email",
       });
 
     // Send response with updated patient details

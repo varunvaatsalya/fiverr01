@@ -132,7 +132,7 @@ function PatientSearchList({
                 className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
               />
               {(accessInfo?.accessRole === "admin" ||
-                accessInfo?.accessRole === "salesman"||
+                accessInfo?.accessRole === "salesman" ||
                 accessInfo?.accessRole === "nurse") && (
                 <button
                   onClick={() => {
@@ -211,6 +211,23 @@ function PatientSearchList({
                           {formatDateTimeToIST(patient.createdAt)}
                         </span>
                       </div>
+                      {patient.createdByRole && (
+                        <div className="py-1 px-4 ">
+                          Created By Role:{" "}
+                          <span className="text-blue-500 font-semibold capitalize">
+                            {patient.createdByRole}
+                          </span>
+                        </div>
+                      )}
+                      {patient.createdBy &&
+                        patient.createdByRole !== "admin" && (
+                          <div className="py-1 px-4 ">
+                            Created By Name:{" "}
+                            <span className="text-blue-500 font-semibold capitalize">
+                              {patient.createdBy?.name}
+                            </span>
+                          </div>
+                        )}
                       <div className="w-3/4 text-center">
                         Address:{" "}
                         <span className="text-blue-500 font-semibold">

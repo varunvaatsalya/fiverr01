@@ -115,7 +115,7 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
   },
   createdByRole: {
     type: String,
-    enum: ["admin", "salesman"],
+    enum: ["admin", "salesman", "dispenser"],
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

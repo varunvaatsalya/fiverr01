@@ -53,20 +53,6 @@ function Page() {
       color: "bg-yellow-700",
     },
     {
-      name: "Invoices",
-      description: "You can show all the pharmacy Invoices here",
-      icon: <BsReceipt size={50} />,
-      link: "/dashboard-stockist/invoices",
-      color: "bg-rose-900",
-    },
-    {
-      name: "Express Billing",
-      description: "You can show all the pharmacy Express Invoices here",
-      icon: <MdSpeakerNotes size={50} />,
-      link: "/dashboard-stockist/pharmacyExpressBilling",
-      color: "bg-sky-600",
-    },
-    {
       name: "Stock Edit",
       description: "You can View & Edit godown stock here",
       icon: <FaEdit size={50} />,

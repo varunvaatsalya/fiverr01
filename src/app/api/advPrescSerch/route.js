@@ -54,8 +54,7 @@ export async function POST(req) {
       startDate,
       startTime,
       uhid,
-    })
-
+    });
 
     // Add filters dynamically
     if (uhid) {
@@ -67,7 +66,7 @@ export async function POST(req) {
     }
 
     const matchingPatients = await Patients.find(pateintQuery).select("_id");
-    const patientIds = matchingPatients.map(patient => patient._id);
+    const patientIds = matchingPatients.map((patient) => patient._id);
     query["patient"] = { $in: patientIds };
 
     if (doctor) {
@@ -120,12 +119,13 @@ export async function POST(req) {
         path: "department", // Populate the department field
         select: "name",
       })
+      .populate({
+        path: "createdBy",
+        select: "name email",
+      })
       .select("-tests.results");
     // Send response with UID
-    return NextResponse.json(
-      { prescriptions, success: true },
-      { status: 201 }
-    );
+    return NextResponse.json({ prescriptions, success: true }, { status: 201 });
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(

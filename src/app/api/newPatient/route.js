@@ -43,7 +43,11 @@ export async function GET(req) {
     const patients = await Patient.find()
       .sort({ _id: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .populate({
+        path: "createdBy",
+        select: "name email",
+      });
 
     const totalPatient = await Patient.countDocuments();
     return NextResponse.json(
@@ -78,6 +82,7 @@ export async function POST(req) {
 
   const decoded = await verifyToken(token.value);
   const userRole = decoded.role;
+  const userId = decoded._id;
   if (!decoded || !userRole) {
     return NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -133,6 +138,8 @@ export async function POST(req) {
       aadharNumber,
       address,
       uhid,
+      createdBy: userRole === "admin" || !userId ? null : userId,
+      createdByRole: userRole,
     });
 
     // Save user to the database
@@ -183,7 +190,10 @@ export async function PUT(req) {
 
   try {
     // Check if patient exists
-    const existingPatient = await Patient.findById(_id);
+    const existingPatient = await Patient.findById(_id).populate({
+      path: "createdBy",
+      select: "name email",
+    });
     if (!existingPatient) {
       return NextResponse.json(
         { message: "Patient not found", success: false },

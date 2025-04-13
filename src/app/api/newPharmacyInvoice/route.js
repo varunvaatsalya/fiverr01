@@ -153,12 +153,12 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  if (userRole !== "admin" && userRole !== "salesman") {
-    return NextResponse.json(
-      { message: "Access denied. admins only.", success: false },
-      { status: 403 }
-    );
-  }
+  // if (userRole !== "admin" && userRole !== "salesman") {
+  //   return NextResponse.json(
+  //     { message: "Access denied. admins only.", success: false },
+  //     { status: 403 }
+  //   );
+  // }
 
   const { requestedMedicine, selectedPatient, selectedPaymentMode, discount } =
     await req.json();
