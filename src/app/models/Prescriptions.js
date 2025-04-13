@@ -67,6 +67,14 @@ const prescriptionSchema = new mongoose.Schema({
       isCompleted: { type: Boolean, default: false },
     },
   ],
+  createdByRole: {
+    type: String,
+    enum: ["admin", "salesman", "nurse"],
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   createdAt: { type: Date, default: Date.now, required: true },
 });
 
