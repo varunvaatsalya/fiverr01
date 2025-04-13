@@ -19,7 +19,7 @@ function Page() {
             accessRole: result.userRole,
             accessEditPermission: result.userEditPermission,
           });
-        }
+        } else console.log(result.error);
       } catch (err) {
         console.log("error: ", err);
       }

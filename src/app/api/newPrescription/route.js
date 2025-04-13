@@ -151,7 +151,7 @@ export async function GET(req) {
   } catch (error) {
     console.error("Error fetching patients:", error);
     return NextResponse.json(
-      { message: "Internal server error", success: false },
+      { message: "Internal server error", error, success: false },
       { status: 500 }
     );
   }
@@ -384,7 +384,8 @@ export async function PUT(req) {
       .populate({
         path: "department",
         select: "name",
-      }).populate({
+      })
+      .populate({
         path: "createdBy",
         select: "name email",
       });
