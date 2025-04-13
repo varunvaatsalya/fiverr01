@@ -332,7 +332,8 @@ function PharmacyInvoiceSearchList({
                       )}
                       {(accessInfo?.accessRole === "admin" ||
                         accessInfo?.accessRole === "salesman" ||
-                        accessInfo?.accessRole === "stockist") &&
+                        (accessInfo?.accessRole === "dispenser" &&
+                          accessInfo.accessEditPermission)) &&
                         invoice.paymentMode !== "Credit-Others" && (
                           <button
                             className="py-2 px-4 text-white bg-fuchsia-900 rounded-lg font-semibold flex gap-1 items-center"
@@ -355,7 +356,7 @@ function PharmacyInvoiceSearchList({
                       </button>
                       {(accessInfo?.accessRole === "admin" ||
                         accessInfo?.accessRole === "salesman" ||
-                        accessInfo?.accessRole === "stockist") && (
+                        accessInfo?.accessRole === "dispenser") && (
                         <button
                           className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
                           onClick={() => {

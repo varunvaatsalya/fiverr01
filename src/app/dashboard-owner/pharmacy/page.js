@@ -5,7 +5,7 @@ import { BiTransferAlt } from "react-icons/bi";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Link from "next/link";
-import { FaNotesMedical } from "react-icons/fa";
+import { FaNotesMedical, FaOutdent } from "react-icons/fa";
 import { MdAccountBalanceWallet } from "react-icons/md";
 
 function Page() {
@@ -24,7 +24,13 @@ function Page() {
       link: "/dashboard-owner/pharmacy/invoices",
       color: "bg-rose-900",
     },
-
+    {
+      name: "GoDown",
+      description: "You can view all the Medicine Stock here",
+      icon: <FaOutdent size={50} />,
+      link: "/dashboard-owner/pharmacy/godown",
+      color: "bg-blue-900",
+    },
     {
       name: "Requests",
       description: "You can view all the retails godown Stock Requests here",

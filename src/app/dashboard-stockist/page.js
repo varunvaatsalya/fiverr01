@@ -3,7 +3,6 @@ import React from "react";
 import {
   MdFormatListBulletedAdd,
   MdOutlineLibraryAdd,
-  MdSpeakerNotes,
 } from "react-icons/md";
 import {
   TbChartInfographic,
@@ -19,7 +18,6 @@ import Link from "next/link";
 import { FaEdit, FaFileInvoiceDollar, FaWhatsapp } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { IoLogOut } from "react-icons/io5";
-import { BsReceipt } from "react-icons/bs";
 
 function Page() {
   const router = useRouter();

@@ -5,7 +5,11 @@ import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { BsBuildingFillAdd, BsFillPersonBadgeFill } from "react-icons/bs";
 import { FaFilePrescription } from "react-icons/fa";
-import { FaMoneyBillTrendUp, FaPersonCirclePlus, FaUserDoctor } from "react-icons/fa6";
+import {
+  FaMoneyBillTrendUp,
+  FaPersonCirclePlus,
+  FaUserDoctor,
+} from "react-icons/fa6";
 import { IoMdAnalytics } from "react-icons/io";
 import { IoLogOut } from "react-icons/io5";
 import { GiMedicines } from "react-icons/gi";
@@ -35,13 +39,12 @@ function Page() {
       color: "bg-fuchsia-700",
     },
     {
-          name: "Pharmacy",
-          description:
-            "You can see all Parmacy logs here",
-          icon: <GiMedicines size={50} />,
-          link: "/dashboard-owner/pharmacy",
-          color: "bg-red-900",
-        },
+      name: "Pharmacy",
+      description: "You can see all Parmacy logs here",
+      icon: <GiMedicines size={50} />,
+      link: "/dashboard-owner/pharmacy",
+      color: "bg-red-900",
+    },
     {
       name: "Sales Men",
       description:
