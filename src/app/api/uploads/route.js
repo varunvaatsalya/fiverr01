@@ -211,8 +211,8 @@ export async function POST(req) {
               initialQuantity: { boxes, extra, totalStrips },
               purchasePrice: stock.PRate ? stock.PRate : 0,
               sellingPrice: stock.MRP ? stock.MRP : 0,
-              totalAmount : stock.PRate * totalStrips,
-              invoiceId : stock.Invoice || "N/A",
+              totalAmount: stock.PRate * totalStrips,
+              invoiceId: stock.Invoice || "N/A",
             });
 
             await stocks.save();
@@ -277,7 +277,7 @@ export async function POST(req) {
           };
 
           if (existingStock && existingStock.stocks) {
-            existingStock.stocks.push(data);
+            existingStock.stocks= [data];
             await existingStock.save();
             resultMessage.push({
               info: `Updated stock for ${stock.Name}`,
