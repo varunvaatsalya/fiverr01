@@ -277,7 +277,21 @@ export async function POST(req) {
           };
 
           if (existingStock && existingStock.stocks) {
-            existingStock.stocks= [data];
+            const existing = existingStock.stocks[0]; // Assuming one entry per medicine
+            const mergedData = {
+              batchName: stock.Batch || existing.batchName,
+              expiryDate: stock.Expiry || existing.expiryDate,
+              packetSize: existing.packetSize,
+              quantity: {
+                boxes: boxes || existing.quantity.boxes,
+                extra: extra || existing.quantity.extra,
+                tablets: stock.Tablets || existing.quantity.tablets,
+                totalStrips: totalStrips || existing.quantity.totalStrips,
+              },
+              purchasePrice: stock.PRate || existing.purchasePrice,
+              sellingPrice: stock.MRP || existing.sellingPrice,
+            };
+            existingStock.stocks = [mergedData];
             await existingStock.save();
             resultMessage.push({
               info: `Updated stock for ${stock.Name}`,
