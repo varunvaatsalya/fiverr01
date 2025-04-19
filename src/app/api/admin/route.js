@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import Admin from "../../models/Admins";
-import { verifyToken } from "../../utils/jwt";
+import { verifyTokenWithLogout } from "../../utils/jwt";
 import LoginInfo from "../../models/LoginInfo";
+import { credentials } from "../../credentials";
 
 export async function GET(req) {
   await dbConnect();
+  // const userId1 = req.headers.get("x-user-id");
+  // const userRole1 = req.headers.get("x-user-role");
 
+  // let res = NextResponse.json(
+  //   { message: "Invalid token.", redirect: "/login", success: false },
+  //   { status: 403 }
+  // );
+  // res.cookies.delete("authToken");
+  // return res;
   let loginInfo = req.nextUrl.searchParams.get("loginInfo");
 
   const token = req.cookies.get("authToken");
@@ -18,13 +27,15 @@ export async function GET(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin") {
     return NextResponse.json(
@@ -39,7 +50,10 @@ export async function GET(req) {
       return NextResponse.json({ loginInfos, success: true }, { status: 200 });
     }
     const admins = await Admin.find().sort({ _id: -1 });
-    return NextResponse.json({ admins, success: true }, { status: 200 });
+    return NextResponse.json(
+      { admins, credentials, success: true },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(
@@ -60,13 +74,15 @@ export async function POST(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin") {
     return NextResponse.json(

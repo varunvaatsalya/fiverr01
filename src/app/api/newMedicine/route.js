@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
-import { verifyToken } from "../../utils/jwt";
+import { verifyTokenWithLogout } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
 import PurchaseInvoice from "../../models/PurchaseInvoice";
 
@@ -19,13 +19,15 @@ export async function GET(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
 
   try {
@@ -129,13 +131,15 @@ export async function POST(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin") {
     return NextResponse.json(
@@ -206,14 +210,16 @@ export async function PUT(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
-  const userEditPermission = decoded.editPermission;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
+  const userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   // if (userRole !== "admin") {
   //   return NextResponse.json(

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../../lib/Mongodb";
 import PharmacyInvoice from "../../../models/PharmacyInvoice";
-import { verifyToken } from "../../../utils/jwt";
+import { verifyTokenWithLogout } from "../../../utils/jwt";
 import Patients from "../../../models/Patients";
 
 export async function POST(req) {
@@ -15,14 +15,16 @@ export async function POST(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
+  const decoded = await verifyTokenWithLogout(token.value);
   console.log(decoded);
-  const userRole = decoded.role;
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
 
   const { patientName, uhid, startDate, endDate, inid, paymentMode, isReturn } =

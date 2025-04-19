@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
-import { verifyToken } from "../../utils/jwt";
+import { verifyTokenWithLogout } from "../../utils/jwt";
 import PharmacyInvoice from "../../models/PharmacyInvoice";
 
 function getDates() {
@@ -40,13 +40,15 @@ export async function GET(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin" && userRole !== "owner") {
     return NextResponse.json(
@@ -95,13 +97,15 @@ export async function POST(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin" && userRole !== "owner" && userRole !== "salesman") {
     return NextResponse.json(

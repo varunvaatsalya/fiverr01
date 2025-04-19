@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
-import { verifyToken } from "../../utils/jwt";
+import { verifyTokenWithLogout } from "../../utils/jwt";
 import { Manufacturer, Vendor } from "../../models/MedicineMetaData";
 import PurchaseInvoice from "../../models/PurchaseInvoice";
 import { generateUID } from "../../utils/counter";
@@ -46,14 +46,16 @@ export async function GET(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
-  const userEditPermission = decoded.editPermission;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
+  const userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
 
   try {
@@ -130,13 +132,15 @@ export async function POST(req) {
       { status: 401 }
     );
   }
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin" && userRole !== "stockist") {
     return NextResponse.json(
@@ -196,13 +200,15 @@ export async function DELETE(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin") {
     return NextResponse.json(

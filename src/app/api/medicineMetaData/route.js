@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
-import { verifyToken } from "../../utils/jwt";
+import { verifyTokenWithLogout } from "../../utils/jwt";
 import { Manufacturer, Vendor, Salt } from "../../models/MedicineMetaData";
 
 export async function GET(req) {
@@ -18,15 +18,17 @@ export async function GET(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   let editPermission = decoded.editPermission;
   console.log(editPermission);
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
 
   try {
@@ -79,13 +81,15 @@ export async function POST(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin" && userRole !== "stockist") {
     return NextResponse.json(
@@ -130,13 +134,15 @@ export async function PUT(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin" && userRole !== "stockist") {
     return NextResponse.json(

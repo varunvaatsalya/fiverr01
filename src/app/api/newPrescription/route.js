@@ -5,7 +5,7 @@ import Doctor from "../../models/Doctors";
 import Department from "../../models/Departments";
 import Prescription from "../../models/Prescriptions";
 import LabTest from "../../models/LabTests";
-import { verifyToken } from "../../utils/jwt";
+import { verifyTokenWithLogout } from "../../utils/jwt";
 import { generateUniqueId } from "../../utils/counter";
 import LabTests from "../../models/LabTests";
 import Admission from "../../models/Admissions";
@@ -34,14 +34,16 @@ export async function GET(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  let userRole = decoded.role;
-  let userEditPermission = decoded.editPermission;
+  const decoded = await verifyTokenWithLogout(token.value);
+  let userRole = decoded?.role;
+  let userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
 
   try {
@@ -168,14 +170,16 @@ export async function POST(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   const userId = decoded._id;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin" && userRole !== "salesman") {
     return NextResponse.json(
@@ -331,14 +335,16 @@ export async function PUT(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
-  const userEditPermission = decoded.editPermission;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
+  const userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   if (userRole !== "admin" && userRole !== "salesman" && userEditPermission) {
     return NextResponse.json(

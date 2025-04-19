@@ -4,23 +4,19 @@ import AddAdminSection from "./AddAdminSection";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { IoPersonAdd } from "react-icons/io5";
-import { credentials } from "../credentials";
 import Link from "next/link";
 
-function AdminsList({ admins, setAdmins }) {
+function AdminsList({ admins, setAdmins, credentials }) {
   const [newUserSection, setNewUserSection] = useState(false);
   const [isActiveSection, setIsActiveSection] = useState(false);
+  const [isDefaultAdminVisible, setIsDefaultAdminVisible] = useState(false);
   const pressedKeys = useRef(new Set());
 
   const handleKeyDown = (event) => {
     pressedKeys.current.add(event.key.toLowerCase());
 
     // Check if Q + W + E + R are pressed
-    if (
-      event.altKey &&
-      event.shiftKey &&
-      event.ctrlKey
-    ) {
+    if (event.altKey && event.shiftKey && event.ctrlKey) {
       setIsActiveSection(true);
     }
   };
@@ -126,19 +122,27 @@ function AdminsList({ admins, setAdmins }) {
                 </div>
               );
             })}
-            <div
-              className="h-12 px-4 text-sm md:text-base flex hover:rounded-full text-black border-b-2 border-gray-300 w-full"
-              key={"default"}
-            >
-              <div className="w-[8%] px-2 flex items-center justify-center">
-                {admins.length + 1}
+            {credentials && (
+              <div
+                className="h-12 px-4 text-sm md:text-base flex hover:rounded-full text-black border-b-2 border-gray-300 w-full select-none"
+                onDoubleClick={() =>
+                  setIsDefaultAdminVisible(!isDefaultAdminVisible)
+                }
+                key={"default"}
+                title={!isDefaultAdminVisible ? "Double click to view":""}
+              >
+                <div className="w-[8%] px-2 flex items-center justify-center">
+                  {admins.length + 1}
+                </div>
+                <div className="w-2/5 flex items-center">
+                  {isDefaultAdminVisible ? credentials.email : "************"}
+                </div>
+                <div className="w-2/5 flex items-center justify-center">
+                  {isDefaultAdminVisible ? credentials.password : "**********"}
+                </div>
+                <div className="flex items-center">Default</div>
               </div>
-              <div className="w-2/5 flex items-center">{credentials.email}</div>
-              <div className="w-2/5 flex items-center justify-center">
-                {credentials.password}
-              </div>
-              <div className="flex items-center">Default</div>
-            </div>
+            )}
             {isActiveSection && (
               <div className="bg-gray-300 rounded-lg p-2 flex justify-center">
                 <Link

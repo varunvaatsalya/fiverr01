@@ -217,7 +217,7 @@ function NewMedicineForm() {
             <div className="flex-1 min-w-28 text-center">Medicine Type</div>
             <div className="flex-1 min-w-28 text-center">Salts</div>
             <div className="flex-1 min-w-28 text-center">
-              {watch("medicines")[0]?.isTablets ? "Strips/Box" : "Quantity"}
+              {watch("medicines")[0]?.isTablets ? "Strips/Box" : "Quantity/Box"}
             </div>
             <div className="flex-1 min-w-28 text-center">
               {watch("medicines")[0]?.isTablets ? "Tablets/Strip" : "--"}

@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { verifyToken } from "../utils/jwt";
+import { verifyTokenWithLogout } from "../utils/jwt";
 
 export async function middleware(req) {
     const token = req.cookies.get("authToken");
@@ -9,8 +9,8 @@ export async function middleware(req) {
       return NextResponse.json({message: 'Access denied. No token provided.'},{ success: false }, { status: 401 });
     }
 
-    const decoded = await verifyToken(token.value);
-    const userRole = decoded.role;
+    const decoded = await verifyTokenWithLogout(token.value);
+    const userRole = decoded?.role;
     if(!decoded || !userRole){
         return NextResponse.json({message: 'Invalid token.'},{ success: false }, { status: 403 });
     }

@@ -4,6 +4,7 @@ import AddUserSection from "./AddUserSection";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { IoPersonAdd } from "react-icons/io5";
+import { formatDateTimeToIST } from "../utils/date";
 
 function SearchList({ users, updateUsers, role, accessInfo }) {
   const [newUserSection, setNewUserSection] = useState(false);
@@ -27,6 +28,8 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
     setResData(filterRes);
   }
   async function removeUser(id) {
+    let confirm = window.confirm("Do you want to delete this user!");
+    if (!confirm) return;
     try {
       const response = await fetch(`/api/newUsers`, {
         method: "DELETE",
@@ -39,12 +42,32 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
       const result = await response.json();
       if (result.success) {
         setActiveIndex(null);
-        updateUsers((prevUsers) =>
-          prevUsers.filter((user) => user._id !== id)
-        );
+        updateUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
       }
     } catch (error) {
       console.error("Error deleting user:", error);
+    }
+  }
+  async function logoutUser(id) {
+    let confirm = window.confirm("Do you want to logout this user!");
+    if (!confirm) return;
+    try {
+      const response = await fetch(`/api/newUsers`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        updateUsers((prevUsers) =>
+          prevUsers.map((user) => (user._id === id ? result.user : user))
+        );
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
     }
   }
 
@@ -98,13 +121,12 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
             </div>
             {resData.map((user, index) => {
               return (
-                <>
+                <div key={index}>
                   <div
                     onClick={() =>
                       setActiveIndex(activeIndex === index ? null : index)
                     }
                     className="h-12 flex hover:rounded-full text-black border-b-2 border-gray-300 hover:bg-gray-300 cursor-pointer"
-                    key={index}
                   >
                     <div className="w-2/5 md:w-1/5 px-2 flex items-center justify-center">
                       {user.uid}
@@ -116,14 +138,12 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
                       {user.email}
                     </div>
                     <div className="w-1/5 flex items-center justify-center">
-                      {user.editPermission
-                        ? "Edit Access"
-                        : ""}
+                      {user.editPermission ? "Edit Access" : ""}
                     </div>
                   </div>
                   {activeIndex === index && (
-                    <div className="w-full px-3 py-3 bg-gray-200 rounded-b-xl text-center">
-                      <div className="font-bold text-black">
+                    <div className="w-full px-3 py-3 bg-gray-200 rounded-b-xl text-center flex flex-wrap items-center gap-2">
+                      <div className=" w-full font-bold text-black">
                         Password:{" "}
                         <span className="text-red-500">{user.password}</span>
                       </div>
@@ -131,13 +151,32 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
                         onClick={() => {
                           removeUser(user._id);
                         }}
-                        className="py-2 px-4 text-white bg-red-700 rounded-lg font-semibold flex gap-1 items-center"
+                        className="py-2 px-4 text-red-700 border border-red-700 rounded-lg font-semibold flex gap-1 items-center"
                       >
                         Delete
                       </button>
+                      <button
+                        onClick={() => {
+                          logoutUser(user._id);
+                        }}
+                        disabled={user.logout && user.logout.isLogoutPending}
+                        className="py-2 px-4 text-white bg-red-700 disabled:bg-gray-600 rounded-lg font-semibold flex gap-1 items-center"
+                      >
+                        {user.logout && user.logout.isLogoutPending
+                          ? "Logout Pending..."
+                          : "Logout"}
+                      </button>
+                      {user.logout && user.logout.lastLogoutByAdmin && (
+                        <div className="text-sm text-gray-700">
+                          Last Logout by admin:{" "}
+                          <span className="text-red-600">
+                            {formatDateTimeToIST(user.logout.lastLogoutByAdmin)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
-                </>
+                </div>
               );
             })}
           </div>

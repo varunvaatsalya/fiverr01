@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import dbConnect from "../../lib/Mongodb";
-import { generateToken, verifyToken } from "../../utils/jwt";
+import { generateToken, verifyTokenWithLogout } from "../../utils/jwt";
 
 import User from "../../models/Users";
 import Admin from "../../models/Admins";
@@ -50,8 +50,10 @@ export async function GET(req) {
     );
   }
 
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  console.log(decoded)
+  // const decoded = null;
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
     return NextResponse.json(
       { route: "/login", success: false },

@@ -18,6 +18,7 @@ import { TbReportMedical } from "react-icons/tb";
 import { GrTest } from "react-icons/gr";
 import { IoLogOut } from "react-icons/io5";
 import { useEffect, useState } from "react";
+import { MdOutlineSecurity } from "react-icons/md";
 
 function Page() {
   const router = useRouter();
@@ -116,13 +117,19 @@ function Page() {
       link: "/dashboard-admin/doctors",
       color: "bg-green-700",
     },
-
     {
       name: "User Role",
       description: "You can show & add the all role users here",
       icon: <FaUsersGear size={40} />,
       link: "/dashboard-admin/roles",
       color: "bg-rose-700",
+    },
+    {
+      name: "Security",
+      description: "You can manage website's security here",
+      icon: <MdOutlineSecurity size={40} />,
+      link: "/dashboard-admin/security",
+      color: "bg-cyan-700",
     },
   ];
   return (

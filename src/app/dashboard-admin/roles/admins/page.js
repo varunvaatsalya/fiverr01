@@ -4,6 +4,7 @@ import AdminsList from "../../../components/AdminsList";
 
 function Page() {
   const [admins, setAdmins] = useState([]);
+  const [credentials, setCredentials] = useState(null);
   useEffect(() => {
     async function fetchData() {
       try {
@@ -11,6 +12,7 @@ function Page() {
         result = await result.json();
         if (result.success) {
           setAdmins(result.admins);
+          setCredentials(result.credentials);
         }
       } catch (err) {
         console.log("error: ", err);
@@ -23,6 +25,7 @@ function Page() {
       <AdminsList
         admins={admins}
         setAdmins={setAdmins}
+        credentials={credentials}
       />
     </>
   );

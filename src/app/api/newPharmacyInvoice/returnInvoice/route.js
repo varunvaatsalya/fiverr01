@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../../lib/Mongodb";
-import { verifyToken } from "../../../utils/jwt";
+import { verifyTokenWithLogout } from "../../../utils/jwt";
 import { generateUID } from "../../../utils/counter";
 import PharmacyInvoice from "../../../models/PharmacyInvoice";
 
@@ -22,13 +22,15 @@ export async function GET(req) {
       { status: 401 }
     );
   }
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
   const invoice = await PharmacyInvoice.findById(id).populate(
     "medicines.medicineId returns.medicines.medicineId"
@@ -100,13 +102,15 @@ export async function POST(req) {
       { status: 401 }
     );
   }
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
 
   try {
@@ -292,13 +296,15 @@ export async function PUT(req) {
       { status: 401 }
     );
   }
-  const decoded = await verifyToken(token.value);
-  const userRole = decoded.role;
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
   if (!decoded || !userRole) {
-    return NextResponse.json(
+    let res = NextResponse.json(
       { message: "Invalid token.", success: false },
       { status: 403 }
     );
+    res.cookies.delete("authToken");
+    return res;
   }
 
   try {

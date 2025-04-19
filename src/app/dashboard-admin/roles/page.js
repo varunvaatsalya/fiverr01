@@ -1,12 +1,10 @@
 import React from "react";
-import { FaFileArrowUp, FaHouseMedicalFlag, FaOutdent, FaUserDoctor } from "react-icons/fa6";
-import { MdAdminPanelSettings, MdFormatListBulletedAdd, MdSpeakerNotes } from "react-icons/md";
-import { BsClipboardDataFill, BsFillPersonBadgeFill, BsFillPersonVcardFill, BsReceipt } from "react-icons/bs";
-import { BiTransferAlt } from "react-icons/bi";
+import { FaHouseMedicalFlag, FaUserDoctor } from "react-icons/fa6";
+import { MdAdminPanelSettings } from "react-icons/md";
+import { BsFillPersonBadgeFill, BsFillPersonVcardFill } from "react-icons/bs";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Link from "next/link";
-import { IoCreate } from "react-icons/io5";
 import { FaNotesMedical, FaUserNurse } from "react-icons/fa";
 
 function Page() {

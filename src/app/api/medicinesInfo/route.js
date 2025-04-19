@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
-import { verifyToken } from "../../utils/jwt";
+import { verifyTokenWithLogout } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
 import Stock from "../../models/Stock";
 import RetailStock from "../../models/RetailStock";
@@ -9,23 +9,25 @@ export async function GET(req) {
   await dbConnect();
   let letter = req.nextUrl.searchParams.get("letter");
 
-//   const token = req.cookies.get("authToken");
-//   if (!token) {
-//     console.log("Token not found. Redirecting to login.");
-//     return NextResponse.json(
-//       { message: "Access denied. No token provided.", success: false },
-//       { status: 401 }
-//     );
-//   }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-//   const decoded = await verifyToken(token.value);
-//   const userRole = decoded?.role;
-//   if (!decoded || !userRole) {
-//     return NextResponse.json(
-//       { message: "Invalid token.", success: false },
-//       { status: 403 }
-//     );
-//   }
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
+  if (!decoded || !userRole) {
+    let res = NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+    res.cookies.delete("authToken");
+    return res;
+  }
   if (!letter || letter.length !== 1) {
     return NextResponse.json(
       {
