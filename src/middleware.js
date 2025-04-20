@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "./app/utils/jwt";
+import { verifyToken } from "./app/utils/verification";
 
 const roleRoutes = {
   admin: "/dashboard-admin",

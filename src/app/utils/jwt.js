@@ -22,16 +22,6 @@ export const generateToken = async (user) => {
   return token;
 };
 
-export const verifyToken = async (token) => {
-  try {
-    const { payload } = await jwtVerify(token, secret); // Verify the token
-    return payload; // This will contain the role and any other claims
-  } catch (error) {
-    console.error("Invalid or expired token:", error);
-    return null; // Token is invalid or expired
-  }
-};
-
 export const verifyTokenWithLogout = async (token) => {
   try {
     const { payload } = await jwtVerify(token, secret); // Verify the token
