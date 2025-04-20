@@ -79,6 +79,7 @@ function StockRequest({ stockRequest, setStockRequests }) {
         setstockDetails({
           allocatedStocks: result.allocatedStocks,
           request: result.request,
+          status: result.status,
         });
         console.log(JSON.stringify(result));
       } else {
@@ -159,10 +160,10 @@ function StockRequest({ stockRequest, setStockRequests }) {
           }}
         >
           <div className="flex justify-center items-center outline outline-1 outline-offset-1 outline-gray-800 w-5 h-5 rounded-full">
-            {(stockRequest.length > 0 &&
-              stockRequest.length === selectedIds.length) && (
-              <FaCircleCheck className="text-gray-800" />
-            )}
+            {stockRequest.length > 0 &&
+              stockRequest.length === selectedIds.length && (
+                <FaCircleCheck className="text-gray-800" />
+              )}
           </div>
           <div className="font-semibold text-gray-800">Select All</div>
         </button>
@@ -209,29 +210,44 @@ function StockRequest({ stockRequest, setStockRequests }) {
               )}
               {stockDetails && (
                 <>
-                  <div className="flex flex-wrap justify-around text-white">
-                    <div className="py-1 px-4 ">
+                  <div className="flex flex-wrap justify-around gap-2 text-white w-full">
+                    <div className="">
                       Medicine Name:{" "}
                       <span className="text-blue-500 font-semibold">
                         {stockDetails.request.medicine.name}
                       </span>
                     </div>
-                    <div className="py-1 px-4">
+                    <div className="">
                       Salts:{" "}
                       <span className="text-blue-500 font-semibold capitalize">
                         {stockDetails.request.medicine.salts.name}
                       </span>
                     </div>
                   </div>
-                  <div className="py-1 px-4 text-white ">
-                    Box Size:{" "}
-                    <span className="text-blue-500 font-semibold capitalize">
-                      {stockDetails.request.medicine.packetSize.strips +
-                        " Units, * " +
-                        stockDetails.request.medicine.packetSize
-                          .tabletsPerStrip +
-                        " Pcs"}
-                    </span>
+                  <div className="flex flex-wrap justify-around gap-2 text-white w-full">
+                    <div className="">
+                      Box Size:{" "}
+                      <span className="text-blue-500 font-semibold capitalize">
+                        {stockDetails.request.medicine.packetSize.strips +
+                          " Units, * " +
+                          stockDetails.request.medicine.packetSize
+                            .tabletsPerStrip +
+                          " Pcs"}
+                      </span>
+                    </div>
+                    <div className="">
+                      Status:{" "}
+                      <span
+                        className={
+                          "font-semibold capitalize " +
+                          (stockDetails.status === "Fullfilled"
+                            ? "text-green-500"
+                            : "text-yellow-500")
+                        }
+                      >
+                        {stockDetails.status}
+                      </span>
+                    </div>
                   </div>
                   <hr className="border border-slate-800 w-full my-2" />
                   <div className="w-full md:w-4/5 px-2 mx-auto my-2 max-h-[60vh] text-white overflow-auto space-y-2">

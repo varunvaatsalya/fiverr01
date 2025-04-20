@@ -56,7 +56,6 @@ export async function GET(req) {
           select: "name",
         })
         .exec();
-      console.log(ids);
 
       return NextResponse.json(
         {

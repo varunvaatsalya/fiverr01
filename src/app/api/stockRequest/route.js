@@ -96,21 +96,22 @@ export async function GET(req) {
         remainingStrips -= allocatedStrips;
       }
 
-      if (remainingStrips > 0) {
-        return NextResponse.json(
-          {
-            message: "Insufficient stock to fulfill this request",
-            success: false,
-          },
-          { status: 400 }
-        );
-      }
+      // if (remainingStrips > 0) {
+      //   return NextResponse.json(
+      //     {
+      //       message: "Insufficient stock to fulfill this request",
+      //       success: false,
+      //     },
+      //     { status: 400 }
+      //   );
+      // }
 
       // Step 4: Respond with the allocation details
       return NextResponse.json(
         {
           allocatedStocks,
           request,
+          status: remainingStrips > 0 ? "Partially Fullfilled" : "Fullfilled",
           message: "Allocation details fetched successfully",
           success: true,
         },

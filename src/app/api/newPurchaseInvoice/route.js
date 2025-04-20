@@ -94,7 +94,6 @@ export async function GET(req) {
       })
       .populate({
         path: "stocks.stockId",
-        select: "medicine totalAmount",
         populate: {
           path: "medicine",
           select: "name",
