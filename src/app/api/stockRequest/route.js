@@ -57,7 +57,10 @@ export async function GET(req) {
       const totalRequestedStrips = requestedQuantity * packetSize;
 
       // Step 2: Fetch all stocks for the given medicine, sorted by oldest first (FIFO)
-      const stocks = await Stock.find({ medicine: medicine._id })
+      const stocks = await Stock.find({
+        medicine: medicine._id,
+        "quantity.totalStrips": { $gt: 0 },
+      })
         .sort({ createdAt: 1 })
         .select("quantity remainingStrips batchName expiryDate createdAt");
 

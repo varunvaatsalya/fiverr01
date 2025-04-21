@@ -1,3 +1,5 @@
+import PurchaseInvoice from "./PurchaseInvoice";
+
 const mongoose = require("mongoose");
 
 const stockSchema = new mongoose.Schema({
@@ -70,6 +72,18 @@ const stockSchema = new mongoose.Schema({
     default: Date.now,
     required: true,
   },
+});
+
+stockSchema.post("save", async function (doc) {
+  const Stock = this.constructor;
+
+  const invoice = await PurchaseInvoice.findOne({ "stocks.stockId": doc._id });
+  if (invoice) {
+    const stocks = await Stock.find({ _id: { $in: invoice.stocks } });
+    const total = stocks.reduce((sum, s) => sum + s.totalAmount, 0);
+    invoice.grandTotal = total;
+    await invoice.save();
+  }
 });
 
 export default mongoose.models.Stock || mongoose.model("Stock", stockSchema);

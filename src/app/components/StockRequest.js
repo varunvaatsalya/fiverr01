@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import { MdClearAll } from "react-icons/md";
 import { formatDateTimeToIST } from "../utils/date";
@@ -14,8 +14,15 @@ function StockRequest({ stockRequest, setStockRequests }) {
   const [message, setMessage] = useState("");
   const [sheetMessage, setSheetMessage] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
+  const [stockPendingRequests, setStockPendingRequests] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [waiting, setWaiting] = useState(false);
+
+  useEffect(() => {
+    setStockPendingRequests(
+      stockRequest.filter((request) => request.status === "Pending")
+    );
+  }, [stockRequest]);
 
   async function downloadAllocatedStocks() {
     setWaiting(true);
@@ -152,16 +159,18 @@ function StockRequest({ stockRequest, setStockRequests }) {
         <button
           className="px-3 py-2 border border-gray-800 hover:bg-gray-200 rounded-full flex justify-center items-center gap-2"
           disabled={
-            stockRequest.length === 0 ||
-            selectedIds.length === stockRequest.length
+            stockPendingRequests.length === 0 ||
+            selectedIds.length === stockPendingRequests.length
           }
           onClick={() => {
-            setSelectedIds(stockRequest.map((request) => request._id));
+            setSelectedIds(
+              stockPendingRequests.map((request) => request._id)
+            );
           }}
         >
           <div className="flex justify-center items-center outline outline-1 outline-offset-1 outline-gray-800 w-5 h-5 rounded-full">
-            {stockRequest.length > 0 &&
-              stockRequest.length === selectedIds.length && (
+            {stockPendingRequests.length > 0 &&
+              stockPendingRequests.length === selectedIds.length && (
                 <FaCircleCheck className="text-gray-800" />
               )}
           </div>

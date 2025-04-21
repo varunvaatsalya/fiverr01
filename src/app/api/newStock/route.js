@@ -338,9 +338,15 @@ export async function PUT(req) {
       medicineStock.quantity.boxes = quantity;
       medicineStock.quantity.extra = extra;
       medicineStock.quantity.totalStrips = totalStrips;
-      medicineStock.initialQuantity.boxes = quantity;
-      medicineStock.initialQuantity.extra = extra;
-      medicineStock.initialQuantity.totalStrips = totalStrips;
+      // medicineStock.initialQuantity.boxes = quantity;
+      // medicineStock.initialQuantity.extra = extra;
+      // medicineStock.initialQuantity.totalStrips = totalStrips;
+    }
+
+    if (purchasePrice || quantity) {
+      const strips = medicineStock.quantity.totalStrips;
+      const price = medicineStock.purchasePrice;
+      medicineStock.totalAmount = strips * price;
     }
 
     await medicineStock.save();
