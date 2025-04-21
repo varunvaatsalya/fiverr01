@@ -311,7 +311,7 @@ function StockRequest({ stockRequest, setStockRequests }) {
               <hr className="border border-slate-800 w-full my-2" />
               <div className="flex px-4 gap-3 justify-end">
                 <div
-                  className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
+                  className="px-3 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
                   onClick={() => {
                     setstockDetails(null);
                     setIsOpenDetailsSection(false);
@@ -322,11 +322,11 @@ function StockRequest({ stockRequest, setStockRequests }) {
                 </div>
                 <button
                   onClick={handleResolveRequest}
-                  className="w-20 h-8 py-1 flex items-center justify-center gap-2 bg-green-500 rounded-lg font-semibold cursor-pointer text-white"
+                  className="px-3 py-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-800 rounded-lg font-semibold cursor-pointer text-white"
                   disabled={submitting}
                 >
                   {submitting ? <Loading size={15} /> : <></>}
-                  {submitting ? "Wait..." : "Confirm"}
+                  {submitting ? "Wait..." : "Confirm Aprroval & Transfer"}
                 </button>
               </div>
             </div>
@@ -405,7 +405,7 @@ function StockRequest({ stockRequest, setStockRequests }) {
                         disabled={isOpenDetailsSection}
                         className="py-2 px-4 text-white bg-sky-600 hover:bg-sky-700 rounded-lg font-semibold flex gap-1 items-center"
                       >
-                        Godown Transfer Details
+                        Approved & Transfer Details
                       </button>
                     </div>
                   )}

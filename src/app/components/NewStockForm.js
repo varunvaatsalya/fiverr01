@@ -6,7 +6,7 @@ import Loading from "./Loading";
 function NewStockForm({ medicines, ids }) {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-  const [data, setData] = useState();
+  // const [data, setData] = useState();
   const [result, setResult] = useState(null);
 
   const { register, handleSubmit, control, watch, reset } = useForm({
@@ -198,21 +198,21 @@ function NewStockForm({ medicines, ids }) {
                 />
                 <input
                   type="number"
+                  step="any"
                   {...register(`stocks.${index}.purchasePrice`, {
                     required: "Purchase Price is required",
                   })}
                   placeholder="Purchase Price"
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
-                  min={1}
                 />
                 <input
                   type="number"
+                  step="any"
                   {...register(`stocks.${index}.sellingPrice`, {
                     required: "MRP is required",
                   })}
                   placeholder="MRP"
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
-                  min={1}
                 />
 
                 <button

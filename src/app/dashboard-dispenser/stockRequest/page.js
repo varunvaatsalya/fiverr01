@@ -14,10 +14,16 @@ function Page() {
       .then((data) => {
         if (data.success) {
           setMedicineStock(data.medicines);
-          console.log(data.medicines)
+          console.log(data.medicines);
         } else console.log(data.message);
       });
   }, [selectedLetter]);
+
+  useEffect(() => {
+    if (query.length > 0 && query[0] !== selectedLetter) {
+      setSelectedLetter(query[0].toUpperCase());
+    }
+  }, [query]);
 
   return (
     <div>

@@ -6,6 +6,7 @@ import Medicine from "../../../models/Medicine";
 export async function GET(req) {
   await dbConnect();
   let letter = req.nextUrl.searchParams.get("letter");
+  let approved = req.nextUrl.searchParams.get("approved");
 
     const token = req.cookies.get("authToken");
     if (!token) {
@@ -25,6 +26,7 @@ export async function GET(req) {
       );
     }
 
+    let onlyApproved = approved === "1" ? true : false;
   try {
     const retailOutOfStockData = await Medicine.aggregate([
       {
@@ -93,7 +95,19 @@ export async function GET(req) {
               $filter: {
                 input: "$requests",
                 as: "request",
-                cond: { $or: [{ $eq: ["$$request.status", "Pending"] }, { $eq: ["$$request.status", "Approved"] }] },
+                cond: {
+                  $cond: {
+                    if: { $eq: [onlyApproved, true] }, // `onlyApproved` ko boolean bana ke bhejna
+                    then: { $eq: ["$$request.status", "Approved"] },
+                    else: {
+                      $or: [
+                        { $eq: ["$$request.status", "Pending"] },
+                        { $eq: ["$$request.status", "Approved"] }
+                      ]
+                    }
+                  }
+                }
+                
               },
             },
           },
