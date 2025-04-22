@@ -140,7 +140,7 @@ export async function POST(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  if (userRole !== "admin") {
+  if (userRole !== "admin" && userRole !== "stockist") {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }
@@ -232,73 +232,80 @@ export async function PUT(req) {
   try {
     let updatedMedicines = [];
 
-  if (medicines && Array.isArray(medicines)) {
-    // Multiple medicines update
-    for (const med of medicines) {
-      const {
-        id,
-        name,
-        manufacturer,
-        medicineType,
-        packetSize,
-        isTablets,
-        salts,
-      } = med;
+    if (medicines && Array.isArray(medicines)) {
+      // Multiple medicines update
+      for (const med of medicines) {
+        const {
+          id,
+          name,
+          manufacturer,
+          medicineType,
+          packetSize,
+          isTablets,
+          salts,
+        } = med;
 
-      // Ensure packetSize.tabletsPerStrip is always at least 1
-      if (!packetSize?.tabletsPerStrip) {
-        packetSize.tabletsPerStrip = 1;
+        // Ensure packetSize.tabletsPerStrip is always at least 1
+        if (!packetSize?.tabletsPerStrip) {
+          packetSize.tabletsPerStrip = 1;
+        }
+
+        let updateFields = {
+          name,
+          manufacturer,
+          packetSize,
+          medicineType,
+          isTablets,
+          salts,
+        };
+
+        let updatedMedicine = await Medicine.findOneAndUpdate(
+          { _id: id },
+          { $set: updateFields },
+          { new: true, upsert: true }
+        );
+
+        updatedMedicines.push({
+          updatedMedicine,
+          success: true,
+          message: `${name} updated successfully`,
+        });
       }
 
+      return NextResponse.json(
+        { medicines: updatedMedicines, success: true },
+        { status: 201 }
+      );
+    } else if (
+      id &&
+      (godownMinQty !== undefined || retailsMinQty !== undefined)
+    ) {
+      // Only stock count update
       let updateFields = {
-        name,
-        manufacturer,
-        packetSize,
-        medicineType,
-        isTablets,
-        salts,
+        "minimumStockCount.retails": retailsMinQty,
+        "minimumStockCount.godown": godownMinQty,
       };
 
-      let updatedMedicine = await Medicine.findOneAndUpdate(
+      let medicine = await Medicine.findOneAndUpdate(
         { _id: id },
         { $set: updateFields },
-        { new: true, upsert: true }
+        { new: true }
       );
 
-      updatedMedicines.push({
-        updatedMedicine,
-        success: true,
-        message: `${name} updated successfully`,
-      });
+      return NextResponse.json(
+        {
+          medicine,
+          message: "Stock count updated successfully!",
+          success: true,
+        },
+        { status: 201 }
+      );
     }
 
     return NextResponse.json(
-      { medicines: updatedMedicines, success: true },
-      { status: 201 }
+      { message: "Invalid request data", success: false },
+      { status: 400 }
     );
-  } else if (id && (godownMinQty !== undefined || retailsMinQty !== undefined)) {
-    // Only stock count update
-    let updateFields = {
-      "minimumStockCount.retails": retailsMinQty,
-      "minimumStockCount.godown": godownMinQty,
-    };
-
-    let medicine = await Medicine.findOneAndUpdate(
-      { _id: id },
-      { $set: updateFields },
-      { new: true }
-    );
-
-    return NextResponse.json(
-      { medicine, message: "Stock count updated successfully!", success: true },
-      { status: 201 }
-    );
-  }
-
-  return NextResponse.json(
-    { message: "Invalid request data", success: false },
-    { status: 400 }
-  );
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(
