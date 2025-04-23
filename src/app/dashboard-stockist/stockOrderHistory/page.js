@@ -1,6 +1,6 @@
 import React from "react";
-import Navbar from "../../../../components/Navbar";
-import StockOrderHistory from "../../../../components/StockOrderHistory";
+import Navbar from "../../components/Navbar";
+import StockOrderHistory from "../../components/StockOrderHistory";
 
 function Page() {
   return (
