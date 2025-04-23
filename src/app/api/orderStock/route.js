@@ -7,28 +7,46 @@ import Medicine from "../../models/Medicine";
 export async function GET(req) {
   await dbConnect();
 
-    const token = req.cookies.get("authToken");
-    if (!token) {
-      console.log("Token not found. Redirecting to login.");
-      return NextResponse.json(
-        { message: "Access denied. No token provided.", success: false },
-        { status: 401 }
-      );
-    }
+  let info = req.nextUrl.searchParams.get("info");
+  let page = req.nextUrl.searchParams.get("page");
 
-    const decoded = await verifyTokenWithLogout(token.value);
-    const userRole = decoded?.role;
-    if (!decoded || !userRole) {
-      return NextResponse.json(
-        { message: "Invalid token.", success: false },
-        { status: 403 }
-      );
-    }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
 
   try {
-    let params = {};
-
-    console.log(params);
+    if (info === "1" && page) {
+      page = parseInt(page) || 1;
+      const limit = 50;
+      const skip = (page - 1) * limit;
+      const orderHistory = await OrderHistory.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+      const totalOrderHistory = await OrderHistory.countDocuments();
+      return NextResponse.json(
+        {
+          orderHistory,
+          totalPages: Math.ceil(totalOrderHistory / limit),
+          success: true,
+        },
+        { status: 200 }
+      );
+    }
     const medicinesWithStock = await Medicine.aggregate([
       // {
       //   $match: { _id: new mongoose.Types.ObjectId(id) },
@@ -56,6 +74,7 @@ export async function GET(req) {
           medicineType: 1,
           "minimumStockCount.godown": 1,
           totalBoxes: 1,
+          stockOrderInfo: 1,
         },
       },
       {
@@ -113,7 +132,7 @@ export async function POST(req) {
   const { to, mrName, contact, medicines } = await req.json();
 
   try {
-    console.log(to, mrName, contact, medicines)
+    console.log(to, mrName, contact, medicines);
     if (!to || !contact) {
       return NextResponse.json(
         {
@@ -148,6 +167,17 @@ export async function POST(req) {
 
     // Save History to the database
     await newHistory.save();
+
+    for (const med of medicines) {
+      if (!med.medicineId || !med.quantity) continue;
+
+      await Medicine.findByIdAndUpdate(med.medicineId, {
+        stockOrderInfo: {
+          quantity: med.quantity,
+          orderedAt: new Date(),
+        },
+      });
+    }
 
     // Send response with UID
     return NextResponse.json(

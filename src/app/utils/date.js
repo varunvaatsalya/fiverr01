@@ -57,3 +57,13 @@ export function timeDifference(startTime, endTime) {
     return "- -";
   }
 }
+
+export function formatShortDateTime(date) {
+  const d = new Date(date);
+  const day = d.getDate();
+  const month = d.getMonth() + 1; // 0-based indexing
+  const hours = d.getHours().toString().padStart(2, '0');
+  const minutes = d.getMinutes().toString().padStart(2, '0');
+
+  return `${day}/${month} ${hours}:${minutes}`;
+}

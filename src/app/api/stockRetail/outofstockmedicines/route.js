@@ -8,25 +8,25 @@ export async function GET(req) {
   let letter = req.nextUrl.searchParams.get("letter");
   let approved = req.nextUrl.searchParams.get("approved");
 
-    const token = req.cookies.get("authToken");
-    if (!token) {
-      console.log("Token not found. Redirecting to login.");
-      return NextResponse.json(
-        { message: "Access denied. No token provided.", success: false },
-        { status: 401 }
-      );
-    }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-    const decoded = await verifyTokenWithLogout(token.value);
-    const userRole = decoded?.role;
-    if (!decoded || !userRole) {
-      return NextResponse.json(
-        { message: "Invalid token.", success: false },
-        { status: 403 }
-      );
-    }
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
+  if (!decoded || !userRole) {
+    return NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+  }
 
-    let onlyApproved = approved === "1" ? true : false;
+  let onlyApproved = approved === "1" ? true : false;
   try {
     const retailOutOfStockData = await Medicine.aggregate([
       {
@@ -69,6 +69,26 @@ export async function GET(req) {
           as: "retailStock",
         },
       },
+
+      {
+        $addFields: {
+          filteredRequests: {
+            $filter: {
+              input: "$requests",
+              as: "request",
+              cond: onlyApproved
+                ? { $eq: ["$$request.status", "Approved"] }
+                : {
+                    $or: [
+                      { $eq: ["$$request.status", "Pending"] },
+                      { $eq: ["$$request.status", "Approved"] },
+                    ],
+                  },
+            },
+          },
+        },
+      },
+
       {
         $unwind: {
           path: "$retailStock",
@@ -95,38 +115,74 @@ export async function GET(req) {
               $filter: {
                 input: "$requests",
                 as: "request",
-                cond: {
-                  $cond: {
-                    if: { $eq: [onlyApproved, true] }, // `onlyApproved` ko boolean bana ke bhejna
-                    then: { $eq: ["$$request.status", "Approved"] },
-                    else: {
+                cond: onlyApproved
+                  ? { $eq: ["$$request.status", "Approved"] }
+                  : {
                       $or: [
                         { $eq: ["$$request.status", "Pending"] },
-                        { $eq: ["$$request.status", "Approved"] }
-                      ]
-                    }
-                  }
-                }
-                
+                        { $eq: ["$$request.status", "Approved"] },
+                      ],
+                    },
               },
             },
           },
           totalRetailStock: { $sum: "$retailStock.stocks.quantity.boxes" },
         },
       },
-      {
-        $match: {
-          $or: [
-            { minimumStockCount: null }, // Medicines with no minimum stock count
+      // {
+      //   $match: {
+      //     $or: [
+      //       { minimumStockCount: null }, // Medicines with no minimum stock count
+      //       {
+      //         "minimumStockCount.retails": { $exists: true },
+      //         $expr: {
+      //           $lt: ["$totalRetailStock", "$minimumStockCount.retails"],
+      //         },
+      //       },
+      //     ],
+      //   },
+      // },
+      ...(onlyApproved
+        ? [
             {
-              "minimumStockCount.retails": { $exists: true },
-              $expr: {
-                $lt: ["$totalRetailStock", "$minimumStockCount.retails"],
+              $match: {
+                $and: [
+                  {
+                    $or: [
+                      { minimumStockCount: null },
+                      {
+                        "minimumStockCount.retails": { $exists: true },
+                        $expr: {
+                          $lt: [
+                            "$totalRetailStock",
+                            "$minimumStockCount.retails",
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                  {
+                    "requests.0.status": "Approved", // ensure at least one approved
+                  },
+                ],
               },
             },
-          ],
-        },
-      },
+          ]
+        : [
+            {
+              $match: {
+                $or: [
+                  { minimumStockCount: null },
+                  {
+                    "minimumStockCount.retails": { $exists: true },
+                    $expr: {
+                      $lt: ["$totalRetailStock", "$minimumStockCount.retails"],
+                    },
+                  },
+                ],
+              },
+            },
+          ]),
       {
         $project: {
           name: 1,

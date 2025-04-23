@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { FaRegDotCircle, FaWhatsapp } from "react-icons/fa";
 import { CiCircleRemove } from "react-icons/ci";
+import {formatShortDateTime} from "../utils/date";
 
 function StockOrder({ info, selectedType }) {
   const [selectedManfacturer, setSelectedManfacturer] = useState(null);
@@ -74,9 +75,9 @@ function StockOrder({ info, selectedType }) {
       setSearchedMedicines(filteredData);
     }
   }
-  useEffect(()=>{
+  useEffect(() => {
     setSearchedMedicines(filteredData);
-  },[filteredData])
+  }, [filteredData]);
 
   useEffect(() => {
     if (selectedType !== "manufacturer") {
@@ -145,6 +146,7 @@ function StockOrder({ info, selectedType }) {
 
   async function handleSaveHistory() {
     const medicinesWithNameAndQuantity = selectedMedicines.map((medicine) => ({
+      medicineId: medicine._id,
       name: medicine.name,
       quantity: medicine.quantity,
     }));
@@ -248,13 +250,14 @@ Required Quantity: ${medicine.quantity} boxes
       </select>
       {data.length > 0 && (
         <>
-          <div className="w-full md:w-4/5 p-2">
-            <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg py-1 flex items-center p-1">
+          <div className="w-full md:w-[85%] p-2">
+            <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex items-center p-1">
               <div className="w-[5%] text-center">Sr No.</div>
-              <div className="w-[50%] text-center">Medicine</div>
-              <div className="w-[15%] text-center">Min Stock Count</div>
-              <div className="w-[15%] text-center">Current Stock</div>
-              <div className="w-[15%] text-center">Required</div>
+              <div className="w-[40%] text-center">Medicine</div>
+              <div className="w-[10%] text-end px-2">Req</div>
+              <div className="w-[15%] text-center">Min Amt</div>
+              <div className="w-[15%] text-center">Avl Amt</div>
+              <div className="w-[15%] text-center">Order Status</div>
             </div>
             <div className="flex gap-2 items-center">
               <input
@@ -281,23 +284,24 @@ Required Quantity: ${medicine.quantity} boxes
                 </option>
               </select>
             </div>
-            <div className="px-2 max-h-[60vh] overflow-y-auto ">
+            <div className="px-2 max-h-[60vh] overflow-y-auto my-2">
               {searchedMedicines.map((details, index) => (
                 <div
                   key={index}
-                  className="border-b border-gray-900 text-gray-100 font-semibold text-sm rounded-lg p-1 flex items-center"
+                  className="border-b border-gray-900 text-gray-100 font-semibold text-sm rounded-lg p-1 flex items-center flex-wrap"
                 >
                   <div className="w-[5%] text-center">{index + 1}</div>
-                  <div className="w-[50%] text-center">{details.name}</div>
-                  <div className="w-[15%] text-center">
-                    {details.minimumStockCount?.godown
-                      ? details.minimumStockCount.godown
-                      : "N/A"}
-                  </div>
-                  <div className="w-[15%] text-center">
-                    {details.totalBoxes}
-                  </div>
-                  <div className="w-[15%] flex justify-center gap-2 items-center">
+                  <div
+                    className="w-[40%] min-w-24 line-clamp-1 text-center"
+                    title={details.name}
+                  >
+                    {details.name}
+                  </div><div className="w-[10%] flex justify-end gap-2 items-center px-2">
+                    {(!details.minimumStockCount?.godown ||
+                      details.minimumStockCount?.godown - details.totalBoxes >=
+                        0) && (
+                      <FaRegDotCircle className="size-4 animate-pulse text-red-600" />
+                    )}
                     <input
                       type="checkbox"
                       className="size-5 cursor-pointer"
@@ -307,16 +311,35 @@ Required Quantity: ${medicine.quantity} boxes
                       onChange={() => handleCheckboxChange(details)}
                       id={index}
                     />
-                    {(!details.minimumStockCount?.godown ||
-                      details.minimumStockCount?.godown - details.totalBoxes >=
-                        0) && (
-                      <FaRegDotCircle className="size-4 animate-pulse text-red-600" />
+                  </div>
+                  <div className="w-[15%] text-center">
+                    {details.minimumStockCount?.godown
+                      ? details.minimumStockCount.godown
+                      : "N/A"}
+                  </div>
+                  <div className="w-[15%] text-center">
+                    {details.totalBoxes}
+                  </div>
+                  <div className="w-[15%] text-center">
+                    {details.stockOrderInfo ? (
+                      <>
+                        <span className="italic font-normal">
+                          {formatShortDateTime(details.stockOrderInfo?.orderedAt)}
+                        </span>
+                        {"  |  "}
+                        <span className="text-red-500">
+                          {details.stockOrderInfo?.quantity}
+                        </span>
+                      </>
+                    ) : (
+                      "--"
                     )}
                   </div>
+                  
                 </div>
               ))}
             </div>
-            <div className="rounded-xl p-2 bg-gray-600 my-2">
+            <div className="rounded-xl p-2 bg-gray-600 my-4">
               <div className="text-center font-semibold text-gray-400 text-lg">
                 Selected Medicines
               </div>

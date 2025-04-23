@@ -6,10 +6,17 @@ import RetailStockRequest from "../../components/RetailStockRequest";
 function Page() {
   const [medicineStock, setMedicineStock] = useState([]);
   const [selectedLetter, setSelectedLetter] = useState("A");
+  const [isApprovedOnlyMedicine, setIsApprovedOnlyMedicine] = useState(false);
   const [query, setQuery] = useState("");
+  const [finding, setFinding] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/stockRetail/outofstockmedicines?letter=${selectedLetter}`)
+    setFinding(true);
+    fetch(
+      `/api/stockRetail/outofstockmedicines?letter=${selectedLetter}${
+        isApprovedOnlyMedicine ? "&approved=1" : ""
+      }`
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -17,7 +24,8 @@ function Page() {
           console.log(data.medicines);
         } else console.log(data.message);
       });
-  }, [selectedLetter]);
+    setFinding(false);
+  }, [selectedLetter, isApprovedOnlyMedicine]);
 
   useEffect(() => {
     if (query.length > 0 && query[0] !== selectedLetter) {
@@ -37,6 +45,7 @@ function Page() {
                 onClick={() => {
                   setSelectedLetter(letter);
                 }}
+                disabled={finding}
                 className={
                   "w-8 text-sm aspect-square border border-gray-900 text-black hover:bg-gray-800 hover:text-gray-100 rounded flex justify-center items-center" +
                   (selectedLetter === letter
@@ -49,7 +58,21 @@ function Page() {
             );
           })}
         </div>
-        <div className="w-full flex justify-center items-center">
+        <div className="w-full flex justify-center items-center gap-2">
+          <button
+            onClick={() => {
+              setIsApprovedOnlyMedicine((prev) => !prev);
+            }}
+            disabled={finding}
+            className={
+              "px-3 py-1 text-sm border rounded-xl flex justify-center items-center " +
+              (isApprovedOnlyMedicine
+                ? " bg-gray-800 text-gray-100"
+                : "border-gray-900 text-black")
+            }
+          >
+            Approved Only
+          </button>
           <input
             type="text"
             value={query}

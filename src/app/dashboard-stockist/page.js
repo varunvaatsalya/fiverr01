@@ -1,9 +1,6 @@
 "use client";
 import React from "react";
-import {
-  MdFormatListBulletedAdd,
-  MdOutlineLibraryAdd,
-} from "react-icons/md";
+import { MdFormatListBulletedAdd, MdOutlineLibraryAdd } from "react-icons/md";
 import {
   TbChartInfographic,
   TbClockExclamation,
@@ -15,7 +12,12 @@ import { VscGitPullRequestGoToChanges } from "react-icons/vsc";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Link from "next/link";
-import { FaEdit, FaFileInvoiceDollar, FaWhatsapp } from "react-icons/fa";
+import {
+  FaEdit,
+  FaFileInvoiceDollar,
+  FaHistory,
+  FaWhatsapp,
+} from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { IoLogOut } from "react-icons/io5";
 
@@ -78,6 +80,13 @@ function Page() {
       icon: <FaWhatsapp size={50} />,
       link: "/dashboard-stockist/stockOrder",
       color: "bg-green-700",
+    },
+    {
+      name: "Whatsapp Order History",
+      description: "You can see history of the godown orders here",
+      icon: <FaHistory size={50} />,
+      link: "/dashboard-stockist/stockOrderHistory",
+      color: "bg-rose-700",
     },
     {
       name: "Pharmacy Config",

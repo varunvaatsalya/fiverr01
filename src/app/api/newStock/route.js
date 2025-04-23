@@ -233,6 +233,11 @@ export async function POST(req) {
 
       await invoice.save();
       await newMedicineStock.save();
+      
+      await Medicine.findByIdAndUpdate(medicine, {
+        $unset: { stockOrderInfo: "" },
+      });
+
       savedStocks.push({
         medicine,
         success: true,

@@ -59,7 +59,7 @@ function Page() {
           })}
         </div>
         <div className="w-full flex justify-center items-center gap-2">
-          {/* <button
+          <button
             onClick={() => {
               setIsApprovedOnlyMedicine((prev) => !prev);
             }}
@@ -72,7 +72,7 @@ function Page() {
             }
           >
             Approved Only
-          </button> */}
+          </button>
           <input
             type="text"
             value={query}

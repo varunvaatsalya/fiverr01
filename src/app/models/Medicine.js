@@ -54,6 +54,10 @@ const medicineSchema = new mongoose.Schema({
   currentSellingPrice: {
     type: Number,
   },
+  stockOrderInfo: {
+    quantity: Number,
+    orderedAt: Date,
+  },
   createdAt: { type: Date, default: Date.now, required: true },
 });
 
