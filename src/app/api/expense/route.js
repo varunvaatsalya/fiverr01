@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
-import Admin from "../../models/Admins";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import { Expense } from "../../models/Expenses";
 
 export async function GET(req) {
   await dbConnect();
+
+  let page = req.nextUrl.searchParams.get("page");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -28,8 +29,20 @@ export async function GET(req) {
   }
 
   try {
-    const expenses = await Expense.find().sort({ _id: -1 }).limit(150);
-    return NextResponse.json({ expenses, success: true }, { status: 200 });
+    page = parseInt(page) || 1;
+    const limit = 50; // Number of prescriptions per page
+    const skip = (page - 1) * limit;
+
+    const expenses = await Expense.find()
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(limit);
+    const totalExpenses = await Expense.countDocuments();
+
+    return NextResponse.json(
+      { expenses, totalPages: Math.ceil(totalExpenses / limit), success: true },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(
@@ -66,10 +79,20 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { name, amount, quantity, validity, expenseMessage } = await req.json();
+  const {
+    category,
+    subCategory,
+    name,
+    amount,
+    quantity,
+    validity,
+    expenseMessage,
+  } = await req.json();
 
   try {
     const newExpense = new Expense({
+      category,
+      subCategory,
       name,
       amount,
       quantity,

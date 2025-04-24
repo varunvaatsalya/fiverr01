@@ -2,33 +2,42 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
+import { showError, showSuccess } from "../utils/toast";
 
 function NewExpenseForm({ setNewUserSection, setExpenses }) {
   // const router = useRouter();
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    mode: "onChange",
+  });
   const [categories, setCategories] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState(null);
 
   async function fetchData() {
-      try {
-        let result = await fetch("/api/expense/categories");
-        result = await result.json();
-        if (result.success) {
-          setCategories(result.categories);
-        }
-      } catch (err) {
-        console.log("error: ", err);
+    try {
+      let result = await fetch("/api/expense/categories");
+      result = await result.json();
+      if (result.success) {
+        setCategories(result.categories);
       }
+    } catch (err) {
+      console.log("error: ", err);
     }
-    useEffect(() => {
-      fetchData();
-    }, []);
-    
+  }
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const selectedCategoryName = watch("category");
+
+  // Get the selected category object
+  const selectedCategory = categories.find(
+    (cat) => cat.name === selectedCategoryName
+  );
 
   const onSubmit = async (data) => {
     setSubmitting(true);
@@ -47,8 +56,9 @@ function NewExpenseForm({ setNewUserSection, setExpenses }) {
       if (result.success) {
         setExpenses((prevExpenses) => [result.expense, ...prevExpenses]);
         setNewUserSection((prev) => !prev);
+        showSuccess("Expense saved successfully!");
       } else {
-        setMessage(result.message);
+        showError(result.message);
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -62,50 +72,84 @@ function NewExpenseForm({ setNewUserSection, setExpenses }) {
         Details of new <span className="text-blue-500">Expense</span>
       </h2>
       <hr className="border border-slate-800 w-full my-2" />
-      {message && (
-        <div className="my-1 text-center text-red-500">{message}</div>
-      )}
 
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="w-full md:w-4/5 lg:w-3/4 mx-auto my-2"
       >
+        <select
+          id="category"
+          {...register("category", { required: "category is required" })}
+          className="mt-1 block text-white w-full px-4 py-3 bg-gray-800 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+        >
+          <option value="">Select a category</option>
+          {categories.map((category) => (
+            <option key={category._id} value={category.name}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        {selectedCategory?.subCategory?.length > 0 && (
+          <select
+            {...register("subCategory")}
+            className="mt-2 block text-white w-full px-4 py-3 bg-gray-800 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 transition duration-150 ease-in-out"
+          >
+            <option value="">Select a subcategory</option>
+            {selectedCategory?.subCategory.map((sub, index) => (
+              <option key={index} value={sub.name}>
+                {sub.name}
+              </option>
+            ))}
+          </select>
+        )}
         <input
           id="name"
           type="text"
-          placeholder={"Enter the Expenses's name"}
-          {...register("name", { required: "Name is required" })}
-          className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          placeholder={"Enter the Expenses's Summary"}
+          {...register("name", {
+            required: "Name is required",
+            maxLength: {
+              value: 25,
+              message: "Summary cannot exceed 25 characters",
+            },
+          })}
+          className="mt-2 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />
-        <div className=" py-1 text-sm text-red-500 text-start px-2">
-          {errors.name ? "* " + errors.name.message : ""}
+        <div className="text-xs flex justify-between w-full px-2 my-0.5">
+          <div className="text-red-500">{errors?.name?.message}</div>
+          <div>
+            <span className={errors?.name?.message ? "text-red-500" : ""}>
+              {watch("name")?.length || 0}
+            </span>
+            /25
+          </div>
         </div>
-
         <input
           id="amount"
           type="number"
           placeholder={"Set the Expense's amount"}
           {...register("amount", { required: "amount is required" })}
-          className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          className=" block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />
-        <div className="flex gap-2 w-full mt-1">
+
+        <div className="flex gap-2 w-full mt-2">
           <input
             id="quantity"
             type="number"
             placeholder={"Set the Expense's quantity"}
             {...register("quantity")}
-            className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+            className="block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
           />
           <input
             id="validity"
             type="date"
             {...register("validity")}
-            className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+            className="block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
           />
         </div>
         <textarea
           {...register("expenseMessage")}
-          className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          className="mt-2 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         ></textarea>
 
         <hr className="border border-slate-800 w-full my-2" />

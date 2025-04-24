@@ -4,7 +4,7 @@ import { TbChartInfographic, TbClockExclamation, TbEditCircle } from "react-icon
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Link from "next/link";
-import { IoBagAddSharp } from "react-icons/io5";
+import { IoBagAddSharp, IoStatsChart } from "react-icons/io5";
 import { MdAssignmentReturned } from "react-icons/md";
 
 function Page() {
@@ -36,6 +36,13 @@ function Page() {
       icon: <IoBagAddSharp size={50} />,
       link: "/dashboard-admin/pharmacy/retails/stockRequest",
       color: "bg-rose-700",
+    },
+    {
+      name: "Medicine Sell Report",
+      description: "You can show all the medicine sell report.",
+      icon: <IoStatsChart  size={50} />,
+      link: "/dashboard-admin/pharmacy/retails/medicineSellReport",
+      color: "bg-teal-700",
     },
     {
       name: "Stock Expiring Soon",

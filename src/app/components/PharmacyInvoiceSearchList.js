@@ -13,6 +13,7 @@ import { formatDateTimeToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import MedicineDetailsSection from "./MedicineDetailsSection";
 import { FaCheckCircle } from "react-icons/fa";
+import { MdAssignmentReturned } from "react-icons/md";
 
 function PharmacyInvoiceSearchList({
   page,
@@ -186,6 +187,9 @@ function PharmacyInvoiceSearchList({
                   </h3>
                   <div className="">{invoice.inid}</div>
                   <div className="flex justify-center items-center gap-2">
+                    {invoice.returns.length > 0 && (
+                      <MdAssignmentReturned className="text-red-600 size-6" />
+                    )}
                     {!invoice.isDelivered && (
                       <AiFillMedicineBox className="text-yellow-600 size-6" />
                     )}
@@ -265,6 +269,14 @@ function PharmacyInvoiceSearchList({
                         </div>
                       )}
                     </div>
+                    {invoice.returns.length > 0 && (
+                      <div className="text-center text-red-600 font-sembold flex gap-1 items-center justify-center">
+                        <MdAssignmentReturned className="size-4" />
+                        <div className="font-semibold">
+                          Medicines has been returned in this invoice!
+                        </div>
+                      </div>
+                    )}
                     <div className="max-h-80 overflow-y-auto">
                       {invoice.medicines.map((medicine, it) => {
                         const calculateTotalAllocated =
