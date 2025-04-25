@@ -1,5 +1,6 @@
 // lib/mongodb.js
 import mongoose from 'mongoose';
+import '../models';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

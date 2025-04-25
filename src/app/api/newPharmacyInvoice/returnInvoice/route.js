@@ -3,6 +3,7 @@ import dbConnect from "../../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../../utils/jwt";
 import { generateUID } from "../../../utils/counter";
 import PharmacyInvoice from "../../../models/PharmacyInvoice";
+import RetailStock from "../../../models/RetailStock";
 
 export async function GET(req) {
   let id = req.nextUrl.searchParams.get("id");
@@ -216,7 +217,50 @@ export async function POST(req) {
           );
         }
 
-        console.log(returnQty);
+        const retailStock = await RetailStock.findOne({ medicine: medicineId });
+
+        const batchIndex1 = retailStock.stocks.findIndex(
+          (b) =>
+            b.batchName === batch.batchName &&
+            new Date(b.expiryDate).toISOString() ===
+              new Date(batch.expiryDate).toISOString() &&
+            b.sellingPrice === batch.sellingPrice
+        );
+
+        if (batchIndex1 > -1) {
+          // Update existing stock
+          retailStock.stocks[batchIndex1].quantity.totalStrips +=
+            returnQtyStrips;
+          retailStock.stocks[batchIndex1].quantity.tablets += returnQtyTablets;
+          retailStock.stocks[batchIndex1].quantity.boxes = Math.floor(
+            retailStock.stocks[batchIndex1].quantity.totalStrips /
+              retailStock.stocks[batchIndex1].packetSize.strips
+          );
+          retailStock.stocks[batchIndex1].quantity.extra =
+            retailStock.stocks[batchIndex1].quantity.totalStrips %
+            retailStock.stocks[batchIndex1].packetSize.strips;
+        } else {
+          // Push new batch
+          retailStock.stocks.push({
+            batchName: batch.batchName,
+            expiryDate: batch.expiryDate,
+            packetSize: {
+              strips: batch.packetSize.strips,
+              tabletsPerStrip,
+            },
+            quantity: {
+              boxes: Math.floor(returnQtyStrips / batch.packetSize.strips) || 0,
+              extra: returnQtyStrips % batch.packetSize.strips || 0,
+              tablets: returnQtyTablets,
+              totalStrips: returnQtyStrips,
+            },
+            purchasePrice: batch.purchasePrice,
+            sellingPrice: batch.sellingPrice,
+          });
+        }
+
+        await retailStock.save();
+
         returnMedicine.returnStock.push({
           batchName: batch.batchName,
           expiryDate: batch.expiryDate,

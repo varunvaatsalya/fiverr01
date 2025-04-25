@@ -18,7 +18,7 @@ function NewMedicineForm() {
   const [isEditPermission, setIsEditPermission] = useState(false);
 
   useEffect(() => {
-    fetch("/api/medicineMetaData")
+    fetch("/api/medicineMetaData?manufacturer=1&salts=1")
       .then((res) => res.json())
       .then((data) => {
         setManufacturers(data.response.manufacturers);

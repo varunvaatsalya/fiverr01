@@ -2,42 +2,65 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../../utils/jwt";
 import PharmacyInvoice from "../../../models/PharmacyInvoice";
+import mongoose from "mongoose";
+
+function getDates() {
+  const now = new Date();
+
+  const endIST = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+    999
+  );
+
+  const endUTC = new Date(endIST.getTime());
+  return { endUTC };
+}
 
 export async function POST(req) {
   await dbConnect();
-  //   const token = req.cookies.get("authToken");
-  //   if (!token) {
-  //     console.log("Token not found. Redirecting to login.");
-  //     return NextResponse.json(
-  //       { message: "Access denied. No token provided.", success: false },
-  //       { status: 401 }
-  //     );
-  //   }
-  //   const decoded = await verifyTokenWithLogout(token.value);
-  //   const userRole = decoded?.role;
-  //   if (!decoded || !userRole) {
-  //     let res = NextResponse.json(
-  //       { message: "Invalid token.", success: false },
-  //       { status: 403 }
-  //     );
-  //     res.cookies.delete("authToken");
-  //     return res;
-  //   }
+    const token = req.cookies.get("authToken");
+    if (!token) {
+      console.log("Token not found. Redirecting to login.");
+      return NextResponse.json(
+        { message: "Access denied. No token provided.", success: false },
+        { status: 401 }
+      );
+    }
+    const decoded = await verifyTokenWithLogout(token.value);
+    const userRole = decoded?.role;
+    if (!decoded || !userRole) {
+      let res = NextResponse.json(
+        { message: "Invalid token.", success: false },
+        { status: 403 }
+      );
+      res.cookies.delete("authToken");
+      return res;
+    }
 
-  const {
-    startDate,
-    endDate,
-    manufacturerId,
-    saltId,
-    // sortBy = "netRevenue",
-    // order = "desc",
-  } = await req.json();
+  const { startDate, endDate, manufacturerId, saltId } = await req.json();
+
+  let { endUTC } = getDates();
+  const now = new Date();
+  const firstDateIST = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+
+  function getUTCDateTime(dateTime) {
+    return new Date(dateTime);
+  }
+
+  let start = startDate ? getUTCDateTime(startDate) : firstDateIST;
+
+  let end = endDate ? getUTCDateTime(endDate) : endUTC;
 
   try {
     const matchStage = {
       createdAt: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
+        $gte: start,
+        $lte: end,
       },
     };
 
@@ -88,8 +111,9 @@ export async function POST(req) {
         ? [
             {
               $match: {
-                "medicineDetails.manufacturer":
-                  mongoose.Types.ObjectId(manufacturerId),
+                "medicineDetails.manufacturer": new mongoose.Types.ObjectId(
+                  manufacturerId
+                ),
               },
             },
           ]
@@ -98,7 +122,7 @@ export async function POST(req) {
         ? [
             {
               $match: {
-                "medicineDetails.salts": mongoose.Types.ObjectId(saltId),
+                "medicineDetails.salts": new mongoose.Types.ObjectId(saltId),
               },
             },
           ]

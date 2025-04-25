@@ -58,6 +58,7 @@ import { RxCross2 } from "react-icons/rx";
 import Loading from "./Loading";
 import { FaCircleDot } from "react-icons/fa6";
 import { formatDateToIST } from "../utils/date";
+import { showError, showInfo, showSuccess } from "../utils/toast";
 
 function NewPharmacyInvoice({
   setNewInvoiceSection,
@@ -68,7 +69,6 @@ function NewPharmacyInvoice({
   setExpressData,
   setExpressBills,
 }) {
-  const [message, setMessage] = useState("");
   const [patients, setPatients] = useState([]);
   const [medicines, setMedicines] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -120,7 +120,7 @@ function NewPharmacyInvoice({
           setMedicines(result.medicinesList);
           setSearchedMedicines(result.medicinesList);
         } else {
-          setMessage(result.message);
+          showError(result.message);
         }
       } catch (err) {
         console.log("error: ", err);
@@ -144,7 +144,6 @@ function NewPharmacyInvoice({
   const handleSearchPatient = async () => {
     if (query) {
       try {
-        setMessage(null);
         setFinding(true);
         let result = await fetch(`/api/searchPatient`, {
           method: "POST",
@@ -161,7 +160,7 @@ function NewPharmacyInvoice({
           setSearchedPatientsList(result.patients);
           setSelectedPatientList({ type: "Searched", data: result.patients });
         }
-        setMessage(result.message);
+        showInfo(result.message);
       } catch (error) {
         console.error("Error submitting application:", error);
       } finally {
@@ -237,21 +236,18 @@ function NewPharmacyInvoice({
         });
         result = await result.json();
         if (result.success) {
-          console.log(result.requestResults, result.updatedRetailStock, 11);
+          // console.log(result.requestResults, result.updatedRetailStock, 11);
           setRequestedMedicineDetails(result.requestResults);
         } else {
-          setMessage(result.message);
+          showError(result.message);
         }
       } catch (error) {
-        setMessage("Error in submitting application");
+        showError("Error in submitting application");
         console.error("Error submitting application:", error);
       }
       setSubmitting(false);
     } catch (error) {
-      setMessage(error.message);
-      setTimeout(() => {
-        setMessage("");
-      }, 4000);
+      showError(error.message);
     }
   };
   const handleConfirm = async () => {
@@ -292,8 +288,8 @@ function NewPharmacyInvoice({
           }),
         });
         result = await result.json();
-        setMessage(result.message);
         if (result.success) {
+          showSuccess(result.message);
           setRequestedMedicineDetails(null);
           setSelectedPatient(null);
           setSelectedPaymentMode(null);
@@ -323,19 +319,15 @@ function NewPharmacyInvoice({
             if (setNewInvoiceSection) {
               setNewInvoiceSection(false);
             }
-            setMessage("");
           }, 1500);
-        }
+        } else showError(result.message);
       } catch (error) {
-        setMessage("Error in submitting application");
+        showError("Error in submitting application");
         console.error("Error submitting application:", error);
       }
       setSubmitting(false);
     } catch (error) {
-      setMessage(error.message);
-      setTimeout(() => {
-        setMessage("");
-      }, 4000);
+      showError(error.message);
     }
   };
 
@@ -365,9 +357,6 @@ function NewPharmacyInvoice({
         <div className="text-center py-2 rounded-t-lg bg-slate-900 text-xl text-white font-semibold">
           New Invoice
         </div>
-        {message && (
-          <div className="my-1 text-center text-red-500">{message}</div>
-        )}
         <div className="p-2">
           {selectedPatient ? (
             <div className="flex flex-wrap justify-around text-white">

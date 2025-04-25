@@ -76,45 +76,35 @@ export async function POST(req) {
 
     // Fetch available godown stock for the requested medicine, sorted by expiryDate
     let stocks = await Stock.find({ medicine }).sort({ expiryDate: 1 });
-    let medicineData = await Medicine.findById(medicine);
+    const packetSize = medicine.packetSize;
 
     // let approvedBoxes = 0;
     // let approvedExtra = 0;
     // let approvedTotalStrips = 0;
 
     let transferredStocks = [];
-    let remainingQuantity = requestedQuantity;
+    let remainingQuantity = requestedQuantity * packetSize.strips;
 
     // Fulfill the request by transferring stocks`
     for (let stock of stocks) {
       if (remainingQuantity <= 0) break;
 
-      const availableBoxes = stock.quantity.boxes;
-      const packetSize = medicine.packetSize; // Strips and tabletsPerStrip
+      const availableQuantity = stock.quantity.totalStrips;
+      // Strips and tabletsPerStrip
 
-      if (availableBoxes > 0) {
-        let transferBoxes = Math.min(remainingQuantity, availableBoxes);
+      if (availableQuantity > 0) {
+        let transferQuantity = Math.min(remainingQuantity, availableQuantity);
 
-        let extraStrips = 0;
-        if (remainingQuantity - transferBoxes > 0 && stock.quantity.extra > 0) {
-          extraStrips = Math.min(
-            (remainingQuantity - transferBoxes) * packetSize.strips,
-            stock.quantity.extra
-          );
-        }
-
-        const totalStrips =
-          transferBoxes * packetSize.strips + Math.floor(extraStrips);
-
+        
         transferredStocks.push({
           stockId: stock._id,
           batchName: stock.batchName,
           expiryDate: stock.expiryDate,
-          packetSize: medicineData.packetSize,
+          packetSize,
           quantity: {
-            boxes: transferBoxes,
-            extra: extraStrips,
-            totalStrips: totalStrips,
+            boxes: Math.floor(transferQuantity / packetSize.strips),
+            extra: transferQuantity % packetSize.strips,
+            totalStrips: transferQuantity,
           },
           purchasePrice: stock.purchasePrice,
           sellingPrice: stock.sellingPrice,
@@ -124,12 +114,12 @@ export async function POST(req) {
         // approvedExtra += extraStrips;
         // approvedTotalStrips += totalStrips;
 
-        remainingQuantity -= transferBoxes;
+        remainingQuantity -= transferQuantity;
 
         // Update stock in godown
-        stock.quantity.boxes -= transferBoxes;
-        stock.quantity.extra -= extraStrips;
-        stock.quantity.totalStrips -= totalStrips;
+        stock.quantity.boxes -= Math.floor(transferQuantity / packetSize.strips),
+        stock.quantity.extra -= transferQuantity % packetSize.strips,
+        stock.quantity.totalStrips -= transferQuantity;
 
         await stock.save();
       }
