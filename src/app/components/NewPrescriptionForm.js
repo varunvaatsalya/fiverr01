@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import Loading from "./Loading";
+import { showSuccess } from "../utils/toast";
 
 // const fakedetails = {
 //   patients: [
@@ -109,6 +110,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
             ...prevPrescription,
           ]);
           setNewUserSection((prev) => !prev);
+          showSuccess("Invoice Created Successfully");
         } else {
           setMessage(result.message);
         }

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
+import { showSuccess } from "../utils/toast";
 
 function NewPatientForm({ setNewUserSection, setEntity }) {
   const {
@@ -45,6 +46,7 @@ function NewPatientForm({ setNewUserSection, setEntity }) {
       if (result.success) {
         setEntity((prevPatient) => [result.patient, ...prevPatient]);
         setNewUserSection((prev) => !prev);
+        showSuccess("Patient added successfully!");
       } else {
         setMessage(result.message);
       }
