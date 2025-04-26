@@ -7,6 +7,7 @@ import Footer from "../../components/Footer";
 import Link from "next/link";
 import { FaNotesMedical, FaOutdent } from "react-icons/fa";
 import { MdAccountBalanceWallet } from "react-icons/md";
+import { IoStatsChart } from "react-icons/io5";
 
 function Page() {
   const Works = [
@@ -37,6 +38,13 @@ function Page() {
       icon: <BiTransferAlt size={50} />,
       link: "/dashboard-owner/pharmacy/retailGodownRequests",
       color: "bg-yellow-700",
+    },
+    {
+      name: "Medicine Sell Report",
+      description: "You can show all the medicine sell report.",
+      icon: <IoStatsChart size={50} />,
+      link: "/dashboard-owner/pharmacy/medicineSellReport",
+      color: "bg-teal-700",
     },
   ];
 

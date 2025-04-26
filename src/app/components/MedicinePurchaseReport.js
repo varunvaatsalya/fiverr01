@@ -2,22 +2,29 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FaChevronCircleDown, FaChevronCircleUp } from "react-icons/fa";
 
-function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
+function MedicinePurchaseReport({
+  setPayload,
+  purchaseData,
+  loading,
+  fetchData,
+}) {
   const [manufacturers, setManufacturers] = useState([]);
   const [salts, setSalts] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   useEffect(() => {
-    fetch("/api/medicineMetaData?manufacturer=1&salts=1")
+    fetch("/api/medicineMetaData")
       .then((res) => res.json())
       .then((data) => {
         setManufacturers(data.response.manufacturers);
         setSalts(data.response.salts);
+        setVendors(data.response.vendors);
       });
   }, []);
 
   const sortedMedicines = useMemo(() => {
-    let sortable = [...medicineData];
+    let sortable = [...purchaseData];
     if (sortConfig.key) {
       sortable.sort((a, b) => {
         let valA = a[sortConfig.key];
@@ -38,7 +45,7 @@ function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
       });
     }
     return sortable;
-  }, [medicineData, sortConfig]);
+  }, [purchaseData, sortConfig]);
 
   const handleSort = (key) => {
     setSortConfig((prev) => ({
@@ -90,6 +97,20 @@ function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
             </option>
           ))}
         </select>
+        <select
+          onChange={(e) => {
+            setPayload((prev) => ({ ...prev, vendorId: e.target.value }));
+          }}
+          className=" block px-3 py-2 text-white w-48 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+        >
+          <option value="">Select Vendor</option>
+          {vendors.map((vendor) => (
+            <option key={vendor._id} value={vendor._id}>
+              {vendor.name}
+            </option>
+          ))}
+        </select>
+
         <button
           disabled={loading}
           onClick={fetchData}
@@ -106,8 +127,8 @@ function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
                 "name",
                 "manufacturer",
                 "salts",
-                "netRevenue",
-                "netStripsSold",
+                "totalPurchasedStrips",
+                "totalAmount",
               ].map((col) => (
                 <th
                   key={col}
@@ -135,11 +156,11 @@ function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
               >
                 <td className="py-2 px-4">{med.name}</td>
                 <td className="py-2 px-4">{med.manufacturer}</td>
-                <td className="py-2 px-4">{med.salts.join(", ")}</td>
+                <td className="py-2 px-4">{med.salts}</td>
                 <td className="py-2 px-4">
-                  ₹{parseFloat(med.netRevenue.toFixed(2))}
+                  ₹{parseFloat(med.totalAmount.toFixed(2))}
                 </td>
-                <td className="py-2 px-4">{med.netStripsSold}</td>
+                <td className="py-2 px-4">{med.totalPurchasedStrips}</td>
               </tr>
             ))}
           </tbody>
@@ -149,4 +170,4 @@ function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
   );
 }
 
-export default MedicineSellReport;
+export default MedicinePurchaseReport;

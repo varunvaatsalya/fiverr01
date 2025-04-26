@@ -193,6 +193,16 @@ export async function POST(req) {
         purchasePrice,
         sellingPrice,
       } = stock;
+
+      if (purchasePrice > sellingPrice) {
+        savedStocks.push({
+          medicine,
+          success: false,
+          message: ` Selling price should be Greater than purchase price`,
+        });
+        continue;
+      }
+
       let medicineData = await Medicine.findById(medicine);
       if (!medicineData) {
         savedStocks.push({
@@ -233,7 +243,7 @@ export async function POST(req) {
 
       await invoice.save();
       await newMedicineStock.save();
-      
+
       await Medicine.findByIdAndUpdate(medicine, {
         $unset: { stockOrderInfo: "" },
       });

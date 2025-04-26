@@ -4,6 +4,7 @@ import { ImBoxRemove } from "react-icons/im";
 import { BiInjection } from "react-icons/bi";
 import { TiWarning } from "react-icons/ti";
 import { FaSquarePen } from "react-icons/fa6";
+import { showError } from "../utils/toast";
 
 function GodownStock({ medicineStock, query }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -42,6 +43,33 @@ function GodownStock({ medicineStock, query }) {
       setFilteredMedicines(filtered);
     }
   }, [query, onlyInStock, medicineStock]);
+
+  async function handleGetRecQty(id) {
+    setSubmitting(true);
+    try {
+      let result = await fetch(
+        `/api/newStock/getGodownRecQty?medicineId=${id}`
+      );
+      result = await result.json();
+      if (result.success) {
+        // console.log(result.recQty);
+        const updatedMedicines = filteredMedicines.map((medicine) =>
+          medicine._id === id
+            ? {
+                ...medicine,
+                recQty: result.recQty,
+              }
+            : medicine
+        );
+        setFilteredMedicines(updatedMedicines);
+      }
+    } catch (error) {
+      showError("Error to getting recommended quantity:");
+      console.error("Error submitting application:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   async function handleSetMinQty(id) {
     setSubmitting(true);
@@ -170,6 +198,19 @@ function GodownStock({ medicineStock, query }) {
                     </div>
                   </div>
                   <div className="flex justify-center items-center gap-2 mt-2">
+                    <button
+                      className="rounded-lg px-3 py-1 text-white font-semibold bg-yellow-700 disabled:bg-slate-600"
+                      onClick={() => {
+                        handleGetRecQty(medicine._id);
+                      }}
+                      disabled={submitting || medicine.recQty !== undefined}
+                    >
+                      {submitting
+                        ? "Wait..."
+                        : medicine.recQty!== undefined
+                        ? "Recommended Qty: " + medicine.recQty
+                        : "Get Recommended Qty"}
+                    </button>
                     {medicine.minimumStockCount &&
                     medicine.minimumStockCount.godown !== null ? (
                       <>
