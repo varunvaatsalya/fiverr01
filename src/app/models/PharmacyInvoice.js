@@ -18,6 +18,7 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
         required: true,
       },
       status: { type: String, required: true },
+      isDiscountApplicable: { type: Boolean },
       allocatedStock: [
         {
           batchName: {
@@ -35,6 +36,10 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
             tabletsPerStrip: {
               type: Number,
             },
+          },
+          purchasePrice: {
+            type: Number,
+            required: true,
           },
           sellingPrice: {
             type: Number,

@@ -315,15 +315,15 @@ function RetailStock({
                         </div>
                         <div className="">{"MRP: " + stock.sellingPrice}</div>
                         <div className="">
-                          {stock.quantity.boxes +
-                            " Boxes " +
-                            stock.quantity.totalStrips +
-                            " Strips"}
+                          {stock.quantity.totalStrips +
+                            " Strips = " +
+                            stock.quantity.boxes +
+                            " Boxes"}
                           {stock.quantity.extra
-                            ? " " + stock.quantity.extra + " Extra"
+                            ? ", " + stock.quantity.extra + " Extra"
                             : ""}
                           {stock.quantity.tablets
-                            ? " " + stock.quantity.tablets + " Tablets"
+                            ? ", " + stock.quantity.tablets + " Tablets"
                             : ""}
                         </div>
                         {/* <div className="w-[10%]">

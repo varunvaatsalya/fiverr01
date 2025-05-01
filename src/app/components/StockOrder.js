@@ -2,7 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { FaRegDotCircle, FaWhatsapp } from "react-icons/fa";
 import { CiCircleRemove } from "react-icons/ci";
-import {formatShortDateTime} from "../utils/date";
+import { formatShortDateTime } from "../utils/date";
+import { FaCircleCheck } from "react-icons/fa6";
+import { RxCrossCircled } from "react-icons/rx";
 
 function StockOrder({ info, selectedType }) {
   const [selectedManfacturer, setSelectedManfacturer] = useState(null);
@@ -144,6 +146,24 @@ function StockOrder({ info, selectedType }) {
     setSelectedMedicines(updatedMedicines);
   };
 
+  const handleSelectAll = () => {
+    if (
+      searchedMedicines.length === 0 ||
+      searchedMedicines.length === selectedMedicines.length
+    ) {
+      return;
+    }
+    const newSelectedMedicines = searchedMedicines.map((medicine) => ({
+      ...medicine,
+      quantity:
+        medicine.minimumStockCount &&
+        medicine.minimumStockCount?.godown - medicine.totalBoxes >= 0
+          ? medicine.minimumStockCount?.godown - medicine.totalBoxes
+          : "",
+    }));
+    setSelectedMedicines(newSelectedMedicines);
+  };
+
   async function handleSaveHistory() {
     const medicinesWithNameAndQuantity = selectedMedicines.map((medicine) => ({
       medicineId: medicine._id,
@@ -283,6 +303,32 @@ Required Quantity: ${medicine.quantity} boxes
                   Above Min stock Count
                 </option>
               </select>
+              <button
+                className="px-3 py-1 border border-gray-500 hover:bg-gray-600 rounded-full flex justify-center items-center gap-2"
+                disabled={
+                  searchedMedicines.length === 0 ||
+                  searchedMedicines.length === selectedMedicines.length
+                }
+                onClick={handleSelectAll}
+              >
+                <div className="flex justify-center items-center outline outline-1 outline-offset-1 outline-gray-500 w-4 h-4 rounded-full">
+                  {searchedMedicines.length === selectedMedicines.length && (
+                      <FaCircleCheck className="text-gray-200" />
+                    )}
+                </div>
+                <div className="font-semibold text-gray-200">Select All</div>
+              </button>
+              {selectedMedicines.length > 0 && (
+                <button
+                  onClick={() => {
+                    setSelectedMedicines([]);
+                  }}
+                  className="px-3 py-1 text-gray-200 border border-gray-500 rounded-full flex justify-center items-center gap-2"
+                >
+                  <RxCrossCircled className="size-5" />
+                  <div className="font-semibold">Clear</div>
+                </button>
+              )}
             </div>
             <div className="px-2 max-h-[60vh] overflow-y-auto my-2">
               {searchedMedicines.map((details, index) => (
@@ -296,7 +342,8 @@ Required Quantity: ${medicine.quantity} boxes
                     title={details.name}
                   >
                     {details.name}
-                  </div><div className="w-[10%] flex justify-end gap-2 items-center px-2">
+                  </div>
+                  <div className="w-[10%] flex justify-end gap-2 items-center px-2">
                     {(!details.minimumStockCount?.godown ||
                       details.minimumStockCount?.godown - details.totalBoxes >=
                         0) && (
@@ -324,7 +371,9 @@ Required Quantity: ${medicine.quantity} boxes
                     {details.stockOrderInfo ? (
                       <>
                         <span className="italic font-normal">
-                          {formatShortDateTime(details.stockOrderInfo?.orderedAt)}
+                          {formatShortDateTime(
+                            details.stockOrderInfo?.orderedAt
+                          )}
                         </span>
                         {"  |  "}
                         <span className="text-red-500">
@@ -335,7 +384,6 @@ Required Quantity: ${medicine.quantity} boxes
                       "--"
                     )}
                   </div>
-                  
                 </div>
               ))}
             </div>

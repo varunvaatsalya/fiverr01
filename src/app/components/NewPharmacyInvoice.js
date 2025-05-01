@@ -59,6 +59,7 @@ import Loading from "./Loading";
 import { FaCircleDot } from "react-icons/fa6";
 import { formatDateToIST } from "../utils/date";
 import { showError, showInfo, showSuccess } from "../utils/toast";
+import { RiDiscountPercentFill } from "react-icons/ri";
 
 function NewPharmacyInvoice({
   setNewInvoiceSection,
@@ -342,6 +343,32 @@ function NewPharmacyInvoice({
             (total, batch) => total + batch.price,
             0
           );
+          return grandTotal + totalPrice;
+        }
+        return grandTotal;
+      },
+      0
+    );
+    return parseFloat(grandTotal.toFixed(2));
+  }
+
+  function getDiscountedTotal() {
+    if (!discount) return getGrandTotal();
+    if (discount < 0 || discount > 5) return getGrandTotal();
+
+    const grandTotal = requestedMedicineDetails.reduce(
+      (grandTotal, medicine) => {
+        if (
+          medicine.allocatedQuantities &&
+          medicine.allocatedQuantities.length > 0
+        ) {
+          let totalPrice = medicine.allocatedQuantities.reduce(
+            (total, batch) => total + batch.price,
+            0
+          );
+          if (medicine.isDiscountApplicable !== false) {
+            totalPrice = (totalPrice * (100 - discount)) / 100;
+          }
           return grandTotal + totalPrice;
         }
         return grandTotal;
@@ -700,8 +727,11 @@ function NewPharmacyInvoice({
                           )}
                         </div>
                         <div className="text-center w-[10%]">{MRP + "/-"}</div>
-                        <div className="text-end w-[15%]">
-                          {totalPrice + "/-"}
+                        <div className=" w-[15%] flex items-center justify-end gap-1">
+                          {medicine.isDiscountApplicable && discount && (
+                            <RiDiscountPercentFill className="text-blue-400 size-4" />
+                          )}
+                          {totalPrice}/-
                         </div>
                       </div>
                       {activeIndex === index && (
@@ -800,9 +830,7 @@ function NewPharmacyInvoice({
                       Grand Total:
                     </div>
                     <div className="">
-                      {parseFloat(
-                        (getGrandTotal() * ((100 - discount) / 100)).toFixed(2)
-                      ).toString() + "/-"}
+                      {getDiscountedTotal().toString() + "/-"}
                     </div>
                   </div>
                 ) : (

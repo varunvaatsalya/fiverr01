@@ -9,6 +9,8 @@ import {
   FaHistory,
   FaWhatsapp,
 } from "react-icons/fa";
+import { BsCashCoin } from "react-icons/bs";
+import { BiSolidReport } from "react-icons/bi";
 
 function Page() {
   const Works = [
@@ -54,6 +56,21 @@ function Page() {
       icon: <FaWhatsapp size={50} />,
       link: "/dashboard-owner/pharmacy/godown/stockOrder",
       color: "bg-green-700",
+    },
+    {
+      name: "Profit Margin Report",
+      description:
+        "You can view salts & manufacturer wise medicines profit margins here",
+      icon: <BsCashCoin size={50} />,
+      link: "/dashboard-owner/pharmacy/godown/profitMarginReport",
+      color: "bg-sky-700",
+    },
+    {
+      name: "Purchase Report",
+      description: "You can create and view all the due invoices here",
+      icon: <BiSolidReport size={50} />,
+      link: "/dashboard-owner/pharmacy/godown/purchaseReport",
+      color: "bg-indigo-700",
     },
     {
       name: "Whatsapp Order History",

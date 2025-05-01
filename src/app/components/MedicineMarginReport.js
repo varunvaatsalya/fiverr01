@@ -211,7 +211,7 @@ function MedicineMarginReport({
                     <td key={`profitPercent-${i}`} className="py-2 px-4">
                       {med.stocks[i]
                         ? `${parseFloat(
-                            med.stocks[i].profitPercent.toFixed(2)
+                            med.stocks[i].profitPercent?.toFixed(2)
                           )}%`
                         : "-"}
                     </td>

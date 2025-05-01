@@ -24,6 +24,29 @@ function getGrandTotal(medicineDetails) {
   return grandTotal;
 }
 
+function getDiscountedTotal(medicineDetails, discount) {
+  if (!discount) return getGrandTotal(medicineDetails);
+  if (discount < 0 || discount > 5) return getGrandTotal(medicineDetails);
+
+  const grandTotal = medicineDetails.reduce((grandTotal, medicine) => {
+    if (
+      medicine.allocatedQuantities &&
+      medicine.allocatedQuantities.length > 0
+    ) {
+      let totalPrice = medicine.allocatedQuantities.reduce(
+        (total, batch) => total + batch.price,
+        0
+      );
+      if (medicine.isDiscountApplicable !== false) {
+        totalPrice = (totalPrice * (100 - discount)) / 100;
+      }
+      return grandTotal + totalPrice;
+    }
+    return grandTotal;
+  }, 0);
+  return grandTotal;
+}
+
 async function generateUID() {
   const prefix = "IN";
   // const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
@@ -176,7 +199,7 @@ export async function POST(req) {
 
     for (const request of requestedMedicine) {
       const { medicineId, isTablets, quantity } = request;
-
+      let isDiscountApplicable = true;
       const stock = retailStock.find((rs) => rs.medicine.equals(medicineId));
 
       if (!stock || !stock.stocks || stock.stocks.length === 0) {
@@ -199,6 +222,7 @@ export async function POST(req) {
           packetSize,
           quantity: stockQuantity,
           sellingPrice,
+          purchasePrice,
           expiryDate,
         } = batch;
 
@@ -268,12 +292,19 @@ export async function POST(req) {
           (stripsAllocated + tabletsAllocated / packetSize.tabletsPerStrip) *
           sellingPrice;
         // Record allocation
+        if (!sellingPrice || !purchasePrice || sellingPrice < purchasePrice)
+          isDiscountApplicable = false;
+
+        isDiscountApplicable =
+          ((sellingPrice - purchasePrice) / sellingPrice) * 100 > 10;
+
         allocatedQuantities.push({
           batchName: batch.batchName,
           expiryDate,
           stripsAllocated,
           tabletsAllocated,
           sellingPrice,
+          purchasePrice,
           packetSize,
           price: parseFloat(totalprice.toFixed(2)),
         });
@@ -289,6 +320,7 @@ export async function POST(req) {
       if (remainingQuantity.strips > 0 || remainingQuantity.tablets > 0) {
         result.push({
           medicineId,
+          isDiscountApplicable,
           status: "Insufficient Stock",
           remainingQuantity,
           allocatedQuantities,
@@ -296,6 +328,7 @@ export async function POST(req) {
       } else {
         result.push({
           medicineId,
+          isDiscountApplicable,
           status: "Fulfilled",
           allocatedQuantities,
         });
@@ -304,6 +337,8 @@ export async function POST(req) {
       // console.log(`Medicine ID: ${medicineId}`);
       // console.log("Allocated Quantities:", allocatedQuantities);
     }
+
+    // TODO: check this line
     retailStock.forEach((medicine) => {
       medicine.stocks = medicine.stocks.filter((batch) => {
         const { totalStrips, tablets } = batch.quantity;
@@ -331,39 +366,47 @@ export async function POST(req) {
       );
     }
     let subtotal = getGrandTotal(result);
+    let total = getDiscountedTotal(result, discount);
     // console.log(JSON.stringify(result), 123456);
 
     const invoice = new PharmacyInvoice({
       patientId: selectedPatient,
       inid: await generateUID(),
       medicines: result
-        .map(({ medicineId, status, allocatedQuantities }) => {
-          if (!allocatedQuantities) {
-            return null;
-          }
-          return {
+        .map(
+          ({
             medicineId,
             status,
-            allocatedStock: allocatedQuantities.map((item) => ({
-              batchName: item.batchName,
-              expiryDate: item.expiryDate,
-              packetSize: item.packetSize,
-              sellingPrice: item.sellingPrice,
-              quantity: {
-                strips: item.stripsAllocated,
-                tablets: item.tabletsAllocated,
-              },
-            })),
-          };
-        })
+            isDiscountApplicable,
+            allocatedQuantities,
+          }) => {
+            if (!allocatedQuantities) {
+              return null;
+            }
+            return {
+              medicineId,
+              status,
+              isDiscountApplicable,
+              allocatedStock: allocatedQuantities.map((item) => ({
+                batchName: item.batchName,
+                expiryDate: item.expiryDate,
+                packetSize: item.packetSize,
+                sellingPrice: item.sellingPrice,
+                purchasePrice: item.purchasePrice,
+                quantity: {
+                  strips: item.stripsAllocated,
+                  tablets: item.tabletsAllocated,
+                },
+              })),
+            };
+          }
+        )
         .filter((medicine) => medicine !== null),
       paymentMode: selectedPaymentMode,
       price: {
         discount,
         subtotal,
-        total: parseFloat(
-          (subtotal * ((100 - discount) / 100)).toFixed(2)
-        ).toString(),
+        total,
       },
       createdBy: userRole === "admin" || !userId ? null : userId,
       createdByRole: userRole,

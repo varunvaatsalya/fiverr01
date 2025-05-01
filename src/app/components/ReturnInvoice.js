@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa6";
 import { formatDateTimeToIST, formatDateToIST } from "../utils/date";
+import PrintReturnInvoice from "./PrintReturnInvoice";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 function ReturnInvoice({
   returnInvoice,
@@ -13,6 +15,7 @@ function ReturnInvoice({
   const [openReturnInvoiceIndex, setOpenReturnInvoiceIndex] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [printReturnInv, setPrintReturnInv] = useState(null);
 
   const handleStockChange = (medicineId, stockIndex, field, value) => {
     setReturnMedicineDetails((prevDetails) => {
@@ -120,6 +123,21 @@ function ReturnInvoice({
     setSubmitting(false);
   }
 
+  if (printReturnInv) {
+    return (
+      <>
+        <div className="bg-white h-full">
+          <PrintReturnInvoice
+            returnInvoice={returnInvoice}
+            setReturnInvoice={setReturnInvoice}
+            printReturnInv={printReturnInv}
+            setPrintReturnInv={setPrintReturnInv}
+          />
+        </div>
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full bg-gray-950 text-white px-2">
       <div className="flex items-center gap-2 p-2">
@@ -222,11 +240,23 @@ function ReturnInvoice({
                       {!invoice.isReturnAmtPaid &&
                       (accessInfo.accessRole === "dispenser" ||
                         accessInfo.accessRole === "admin") ? (
-                        <button className="rounded px-2 bg-blue-600">
+                        <button
+                          onClick={() => {
+                            setPrintReturnInv(invoice);
+                          }}
+                          className="rounded px-2 bg-blue-600 hover:bg-blue-700"
+                        >
                           Print
                         </button>
                       ) : (
                         "--"
+                      )}
+                    </div>
+                    <div className="px-2 text-gray-100">
+                      {openReturnInvoiceIndex === index ? (
+                        <FaChevronUp />
+                      ) : (
+                        <FaChevronDown />
                       )}
                     </div>
                   </div>
@@ -244,7 +274,10 @@ function ReturnInvoice({
                         <div className="flex-1 min-w-28 text-center">Price</div>
                       </div>
                       {invoice.medicines.map((medicine) => (
-                        <div key={medicine.medicineId} className="bg-gray-700 rounded-lg w-full border-b border-gray-900">
+                        <div
+                          key={medicine.medicineId}
+                          className="bg-gray-700 rounded-lg w-full border-b border-gray-900"
+                        >
                           <div className="text-sm">
                             Medicines Name:{" "}
                             <span className="text-blue-400">

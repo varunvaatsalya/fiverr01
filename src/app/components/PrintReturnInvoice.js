@@ -1,15 +1,23 @@
 import React, { useState } from "react";
 import { formatDateTimeToIST, formatDateToIST } from "../utils/date";
 import { PharmacyDetails } from "../HospitalDeatils";
-import { RiDiscountPercentFill } from "react-icons/ri";
 
-function InvoicePharmacy({
-  printInvoice,
-  setPrintInvoice,
-  prescriptionPrinted,
+function PrintReturnInvoice({
+  returnInvoice,
+  printReturnInv,
+  setPrintReturnInv,
 }) {
   const [isToken, setIstoken] = useState(false);
 
+  let grandTotal = printReturnInv.medicines.reduce((total, medicine) => {
+    return (
+      total +
+      medicine.returnStock.reduce((stockTotal, stock) => {
+        const price = stock.price || 0;
+        return stockTotal + price;
+      }, 0)
+    );
+  }, 0);
   return (
     <>
       <div
@@ -30,7 +38,7 @@ function InvoicePharmacy({
         >
           <div className="print-btn">
             <div className="flex justify-center space-x-2">
-              <button
+              {/* <button
                 onClick={() => {
                   setIstoken(true);
                   const printStyle = document.createElement("style");
@@ -46,7 +54,7 @@ function InvoicePharmacy({
                 className="text-blue-600 border border-blue-600 hover:bg-blue-100 rounded px-6 py-2 my-2 font-semibold text-base"
               >
                 Token
-              </button>
+              </button> */}
               <button
                 onClick={() => {
                   // prescriptionPrinted(printInvoice._id);
@@ -58,7 +66,7 @@ function InvoicePharmacy({
               </button>
               <button
                 onClick={() => {
-                  setPrintInvoice(null);
+                  setPrintReturnInv(null);
                 }}
                 className="bg-red-600 hover:bg-red-500 rounded px-4 py-2 my-2 font-semibold text-base text-white"
               >
@@ -69,11 +77,11 @@ function InvoicePharmacy({
               * Invoice will not be editable after clicking the print button.
             </div>
           </div>
-          <div className="relative ">
+          <div className="relative">
             <div className="absolute w-full text-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-45 text-4xl font-semibold text-gray-400/[0.3] -z-1">
               {PharmacyDetails?.name}
             </div>
-            <div className={"mb-6 " + (isToken ? "text-start" : "text-center")}>
+            <div className={"mb-3 " + (isToken ? "text-start" : "text-center")}>
               <h1 className="text-xl font-bold uppercase">
                 {PharmacyDetails?.name}
               </h1>
@@ -91,6 +99,7 @@ function InvoicePharmacy({
                 {PharmacyDetails.gst ? `| GST No.: ${PharmacyDetails.gst}` : ""}
               </p>
             </div>
+            <div className="font-bold text-lg text-center">Return Invoice</div>
             <hr className="my-2" />
 
             <div
@@ -105,27 +114,28 @@ function InvoicePharmacy({
                 <p>
                   <strong>Name: </strong>
                   <span className="uppercase">
-                    {printInvoice.patientId.name}
+                    {returnInvoice.patientId.name}
                   </span>
                 </p>
                 <p>
                   <strong>Gender/Age:</strong>{" "}
                   <span className="uppercase">
-                    {(printInvoice.patientId.gender
-                      ? printInvoice.patientId.gender[0]
+                    {(returnInvoice.patientId.gender
+                      ? returnInvoice.patientId.gender[0]
                       : "-") +
                       "/" +
-                      printInvoice.patientId.age}
+                      returnInvoice.patientId.age}
                   </span>
                 </p>
                 <p>
-                  <strong>Mobile:</strong> {printInvoice.patientId.mobileNumber}
+                  <strong>Mobile:</strong>{" "}
+                  {returnInvoice.patientId.mobileNumber}
                 </p>
                 <p>
-                  <strong>UHID:</strong> {printInvoice.patientId.uhid}
+                  <strong>UHID:</strong> {returnInvoice.patientId.uhid}
                 </p>
                 <p>
-                  <strong>Address:</strong> {printInvoice.patientId.address}
+                  <strong>Address:</strong> {returnInvoice.patientId.address}
                 </p>
               </div>
               <div>
@@ -137,16 +147,22 @@ function InvoicePharmacy({
                   Invoice Info
                 </h2>
                 <p>
-                  <strong>Invoice ID:</strong> {printInvoice.inid}
+                  <strong>Invoice ID:</strong> {returnInvoice.inid}
+                </p>
+                <p>
+                  <strong>Invoice Date:</strong>{" "}
+                  <span className="uppercase">
+                    {formatDateTimeToIST(returnInvoice.createdAt)}
+                  </span>
+                </p>
+                <p>
+                  <strong> Return Inv ID:</strong> {printReturnInv.returnId}
                 </p>
                 <p>
                   <strong>Date:</strong>{" "}
                   <span className="uppercase">
-                    {formatDateTimeToIST(printInvoice.createdAt)}
+                    {formatDateTimeToIST(printReturnInv.createdAt)}
                   </span>
-                </p>
-                <p>
-                  <strong>Mode of Payment:</strong> {printInvoice.paymentMode}
                 </p>
               </div>
             </div>
@@ -184,8 +200,8 @@ function InvoicePharmacy({
                   </tr>
                 </thead>
                 <tbody>
-                  {printInvoice.medicines.map((item, index) => {
-                    const total = item.allocatedStock.reduce(
+                  {printReturnInv.medicines.map((medicine, index) => {
+                    const total = medicine.returnStock.reduce(
                       (sum, stock) => {
                         sum.strips += stock.quantity.strips;
                         sum.tablets += stock.quantity.tablets;
@@ -193,16 +209,9 @@ function InvoicePharmacy({
                       },
                       { strips: 0, tablets: 0 }
                     );
-                    const totalPrice = item.allocatedStock.reduce(
+                    const totalPrice = medicine.returnStock.reduce(
                       (sum, stock) => {
-                        const stripPrice =
-                          stock.quantity.strips * stock.sellingPrice;
-                        const tabletPrice =
-                          stock.quantity.tablets *
-                          (stock.sellingPrice /
-                            item.medicineId.packetSize.tabletsPerStrip);
-
-                        return sum + stripPrice + tabletPrice;
+                        return sum + stock.price;
                       },
                       0
                     );
@@ -213,7 +222,12 @@ function InvoicePharmacy({
                           {index + 1 + "."}
                         </td>
                         <td className={"p-1 border border-black text-start"}>
-                          {item.medicineId.name}
+                          {
+                            returnInvoice.medicines.find(
+                              (med) =>
+                                med.medicineId._id === medicine.medicineId
+                            ).medicineId.name
+                          }
                         </td>
                         {!isToken && (
                           <>
@@ -224,20 +238,17 @@ function InvoicePharmacy({
                                   : "")}
                             </td>
                             <td className="py-1 px-2 border border-black text-center w-24">
-                              {item.allocatedStock[0].sellingPrice}
+                              {medicine.returnStock[0].sellingPrice}
                             </td>
                             <td className="py-1 px-2 border border-black text-center w-24">
-                              {item.allocatedStock[0].batchName}
+                              {medicine.returnStock[0].batchName}
                             </td>
                             <td className="p-1 border border-black text-center w-28">
                               {formatDateToIST(
-                                item.allocatedStock[0].expiryDate
+                                medicine.returnStock[0].expiryDate
                               )}
                             </td>
-                            <td className="py-1 px-2 font-semibold border border-black text-end w-28">
-                              {item.isDiscountApplicable &&
-                                printInvoice.price.discount &&
-                                "% "}
+                            <td className="p-1 border border-black text-center w-28">
                               {parseFloat(totalPrice.toFixed(2))}
                             </td>
                           </>
@@ -253,7 +264,7 @@ function InvoicePharmacy({
                   (isToken ? "items-start" : "items-end")
                 }
               >
-                {printInvoice.price.discount && (
+                {/* {printInvoice.price.discount && (
                   <>
                     <p className="font-semibold text-base">
                       Sub Total: ₹{" "}
@@ -262,14 +273,10 @@ function InvoicePharmacy({
                     <p className="font-semibold text-base">
                       Discount: {printInvoice.price.discount + "%"}
                     </p>
-                    <p className="text-[10px] font-light">
-                      {"(Discount applicable only on selected medicines)"}
-                    </p>
                   </>
-                )}
+                )} */}
                 <p className="font-semibold text-base">
-                  Grand Total: ₹{" "}
-                  {parseFloat(printInvoice.price.total.toFixed(2))}
+                  Grand Total: ₹ {parseFloat(grandTotal.toFixed(2))}
                 </p>
               </div>
             </div>
@@ -302,4 +309,4 @@ function InvoicePharmacy({
   );
 }
 
-export default InvoicePharmacy;
+export default PrintReturnInvoice;
