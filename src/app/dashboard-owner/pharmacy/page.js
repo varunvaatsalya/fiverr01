@@ -5,7 +5,7 @@ import { BiTransferAlt } from "react-icons/bi";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Link from "next/link";
-import { FaNotesMedical, FaOutdent } from "react-icons/fa";
+import { FaFileInvoice, FaNotesMedical, FaOutdent } from "react-icons/fa";
 import { MdAccountBalanceWallet } from "react-icons/md";
 import { IoStatsChart } from "react-icons/io5";
 
@@ -38,6 +38,13 @@ function Page() {
       icon: <BiTransferAlt size={50} />,
       link: "/dashboard-owner/pharmacy/retailGodownRequests",
       color: "bg-yellow-700",
+    },
+    {
+      name: "Sell Records",
+      description: "You can view all the pharmacy Sell Records here",
+      icon: <FaFileInvoice size={50} />,
+      link: "/dashboard-owner/pharmacy/sellDataRecord",
+      color: "bg-amber-800",
     },
     {
       name: "Medicine Sell Report",

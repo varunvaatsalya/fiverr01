@@ -47,34 +47,170 @@ export async function GET(req) {
         { status: 200 }
       );
     }
+
+    // const medicinesWithStock = await Medicine.aggregate([
+    //   // {
+    //   //   $match: { _id: new mongoose.Types.ObjectId(id) },
+    //   // },
+    //   {
+    //     $lookup: {
+    //       from: "stocks",
+    //       localField: "_id",
+    //       foreignField: "medicine",
+    //       as: "stocks",
+    //     },
+    //   },
+    //   {
+    //     $addFields: {
+    //       totalBoxes: {
+    //         $sum: "$stocks.quantity.boxes",
+    //       },
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 1,
+    //       name: 1,
+    //       manufacturer: 1,
+    //       medicineType: 1,
+    //       "minimumStockCount.godown": 1,
+    //       totalBoxes: 1,
+    //       stockOrderInfo: 1,
+    //     },
+    //   },
+    //   {
+    //     $sort: { name: 1 },
+    //   },
+    // ]);
+
     const medicinesWithStock = await Medicine.aggregate([
-      // {
-      //   $match: { _id: new mongoose.Types.ObjectId(id) },
-      // },
       {
+        // Lookup all stocks of this medicine
         $lookup: {
           from: "stocks",
           localField: "_id",
           foreignField: "medicine",
-          as: "stocks",
+          as: "stockDocs",
         },
       },
       {
+        // Calculate totalBoxes
         $addFields: {
           totalBoxes: {
-            $sum: "$stocks.quantity.boxes",
+            $sum: "$stockDocs.quantity.boxes",
           },
         },
       },
       {
+        $lookup: {
+          from: "purchaseinvoices",
+          let: { medicineId: "$_id" },
+          pipeline: [
+            { $unwind: "$stocks" },
+            {
+              $lookup: {
+                from: "stocks",
+                localField: "stocks.stockId",
+                foreignField: "_id",
+                as: "stockDoc",
+              },
+            },
+            { $unwind: "$stockDoc" },
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$stockDoc.medicine", "$$medicineId"],
+                },
+              },
+            },
+            {
+              $sort: { "stocks.insertedAt": -1 },
+            },
+            { $limit: 1 },
+
+            // Populate vendor
+            {
+              $lookup: {
+                from: "vendors",
+                localField: "vendor",
+                foreignField: "_id",
+                as: "vendorDetails",
+              },
+            },
+            {
+              $lookup: {
+                from: "manufacturers",
+                localField: "manufacturer",
+                foreignField: "_id",
+                as: "manufacturerDetails",
+              },
+            },
+
+            {
+              $project: {
+                vendor: {
+                  _id: { $arrayElemAt: ["$vendorDetails._id", 0] },
+                  name: { $arrayElemAt: ["$vendorDetails.name", 0] },
+                },
+                manufacturer: {
+                  _id: { $arrayElemAt: ["$manufacturerDetails._id", 0] },
+                  name: { $arrayElemAt: ["$manufacturerDetails.name", 0] },
+                },
+              },
+            },
+          ],
+          as: "latestInvoice",
+        },
+      },
+      {
+        // Determine the latest source and its type
+        $addFields: {
+          latestSource: {
+            $cond: {
+              if: { $gt: [{ $size: "$latestInvoice" }, 0] },
+              then: {
+                id: {
+                  $ifNull: [
+                    { $arrayElemAt: ["$latestInvoice.vendor._id", 0] },
+                    { $arrayElemAt: ["$latestInvoice.manufacturer._id", 0] },
+                  ],
+                },
+                name: {
+                  $ifNull: [
+                    { $arrayElemAt: ["$latestInvoice.vendor.name", 0] },
+                    { $arrayElemAt: ["$latestInvoice.manufacturer.name", 0] },
+                  ],
+                },
+                type: {
+                  $cond: [
+                    {
+                      $ifNull: [
+                        { $arrayElemAt: ["$latestInvoice.vendor._id", 0] },
+                        false,
+                      ],
+                    },
+                    "Vendor",
+                    "Manufacturer",
+                  ],
+                },
+              },
+              else: null,
+            },
+          },
+        },
+      },
+      {
+        // Final output format
         $project: {
           _id: 1,
           name: 1,
           manufacturer: 1,
+          salts: 1,
+          totalBoxes: { $ifNull: ["$totalBoxes", 0] },
           medicineType: 1,
           "minimumStockCount.godown": 1,
-          totalBoxes: 1,
           stockOrderInfo: 1,
+          latestSource: 1,
         },
       },
       {

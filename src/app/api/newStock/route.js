@@ -100,6 +100,7 @@ export async function GET(req) {
           salts: 1,
           packetSize: 1,
           minimumStockCount: 1,
+          maximumStockCount: 1,
           stocks: {
             _id: 1,
             batchName: 1,
@@ -181,6 +182,9 @@ export async function POST(req) {
         { status: 404 }
       );
     }
+    const sourceId = invoice.vendor ?? invoice.manufacturer;
+    const sourceType = invoice.vendor ? "Vendor" : "Manufacturer";
+
     let savedStocks = [];
 
     for (const stock of stocks) {
@@ -212,6 +216,8 @@ export async function POST(req) {
         });
         continue;
       }
+      let updatedList = medicineData.latestSource || [];
+
       let stripsPerBox = medicineData.packetSize.strips;
       let boxes = Math.floor(quantity / stripsPerBox);
       let extra = quantity % stripsPerBox;
@@ -244,9 +250,17 @@ export async function POST(req) {
       await invoice.save();
       await newMedicineStock.save();
 
-      await Medicine.findByIdAndUpdate(medicine, {
-        $unset: { stockOrderInfo: "" },
-      });
+      updatedList = updatedList.filter(
+        (entry) => !entry.sourceId.equals(sourceId)
+      );
+
+      updatedList.unshift({ sourceId, sourceType });
+
+      medicineData.latestSource = updatedList.slice(0, 3);
+      medicineData.stockOrderInfo = undefined;
+
+      // 4. Save final medicineData update
+      await medicineData.save();
 
       savedStocks.push({
         medicine,

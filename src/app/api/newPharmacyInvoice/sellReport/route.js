@@ -131,6 +131,7 @@ export async function POST(req) {
       {
         $group: {
           _id: "$medicines.medicineId",
+          medId: { $first: "$medicineDetails._id" },
           name: { $first: "$medicineDetails.name" },
           manufacturer: { $first: "$manufacturerDetails.name" },
           salts: { $first: "$saltDetails.name" },
@@ -214,6 +215,7 @@ export async function POST(req) {
       {
         $project: {
           _id: 1,
+          medId: 1,
           name: 1,
           manufacturer: 1,
           salts: 1,

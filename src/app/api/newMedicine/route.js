@@ -7,6 +7,7 @@ import PurchaseInvoice from "../../models/PurchaseInvoice";
 export async function GET(req) {
   await dbConnect();
   let basicInfo = req.nextUrl.searchParams.get("basicInfo");
+  let sellRecord = req.nextUrl.searchParams.get("sellRecord");
   let ids = req.nextUrl.searchParams.get("ids");
   let id = req.nextUrl.searchParams.get("id");
 
@@ -85,6 +86,21 @@ export async function GET(req) {
       return NextResponse.json(
         {
           response,
+          success: true,
+        },
+        { status: 200 }
+      );
+    }
+
+    if (sellRecord === "1") {
+      response = await Medicine.find(
+        {},
+        { name: 1, _id: 1, avgMonthlyBoxes: 1 }
+      ).sort({ name: 1 });
+
+      return NextResponse.json(
+        {
+          records: response,
           success: true,
         },
         { status: 200 }
@@ -227,7 +243,14 @@ export async function PUT(req) {
   //   );
   // }
 
-  const { id, godownMinQty, retailsMinQty, medicines } = await req.json();
+  const {
+    id,
+    godownMinQty,
+    godownMaxQty,
+    retailsMinQty,
+    retailsMaxQty,
+    medicines,
+  } = await req.json();
 
   try {
     let updatedMedicines = [];
@@ -278,15 +301,86 @@ export async function PUT(req) {
       );
     } else if (
       id &&
-      (godownMinQty !== undefined || retailsMinQty !== undefined)
+      (retailsMinQty !== undefined ||
+        godownMinQty !== undefined ||
+        retailsMaxQty !== undefined ||
+        godownMaxQty !== undefined)
     ) {
-      // Only stock count update
-      let updateFields = {
-        "minimumStockCount.retails": retailsMinQty,
-        "minimumStockCount.godown": godownMinQty,
-      };
+      const existingMedicine = await Medicine.findById(id).select({
+        minimumStockCount: 1,
+        maximumStockCount: 1,
+      });
 
-      let medicine = await Medicine.findOneAndUpdate(
+      if (!existingMedicine) {
+        return NextResponse.json(
+          { success: false, message: "Medicine not found." },
+          { status: 404 }
+        );
+      }
+
+      // Validation: retails
+      const existingRetailMin =
+        existingMedicine.minimumStockCount?.retails ?? 0;
+      const existingRetailMax =
+        existingMedicine.maximumStockCount?.retails ?? 0;
+
+      const newRetailMin = retailsMinQty ?? existingRetailMin;
+      const newRetailMax = retailsMaxQty ?? existingRetailMax;
+
+      if (
+        newRetailMin !== undefined &&
+        newRetailMax !== undefined &&
+        newRetailMax < newRetailMin
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Retail max quantity cannot be less than min quantity.",
+          },
+          { status: 400 }
+        );
+      }
+
+      // Validation: godown
+      const existingGodownMin = existingMedicine.minimumStockCount?.godown ?? 0;
+      const existingGodownMax = existingMedicine.maximumStockCount?.godown ?? 0;
+
+      const newGodownMin = godownMinQty ?? existingGodownMin;
+      const newGodownMax = godownMaxQty ?? existingGodownMax;
+
+      if (
+        newGodownMin !== undefined &&
+        newGodownMax !== undefined &&
+        newGodownMax < newGodownMin
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Godown max quantity cannot be less than min quantity.",
+          },
+          { status: 400 }
+        );
+      }
+
+      let updateFields = {};
+
+      if (retailsMinQty !== undefined) {
+        updateFields["minimumStockCount.retails"] = retailsMinQty;
+      }
+
+      if (godownMinQty !== undefined) {
+        updateFields["minimumStockCount.godown"] = godownMinQty;
+      }
+
+      if (retailsMaxQty !== undefined) {
+        updateFields["maximumStockCount.retails"] = retailsMaxQty;
+      }
+
+      if (godownMaxQty !== undefined) {
+        updateFields["maximumStockCount.godown"] = godownMaxQty;
+      }
+
+      const updatedMedicine = await Medicine.findOneAndUpdate(
         { _id: id },
         { $set: updateFields },
         { new: true }
@@ -294,7 +388,7 @@ export async function PUT(req) {
 
       return NextResponse.json(
         {
-          medicine,
+          medicine: updatedMedicine,
           message: "Stock count updated successfully!",
           success: true,
         },

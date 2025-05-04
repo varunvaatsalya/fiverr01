@@ -7,7 +7,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Link from "next/link";
 import { IoCreate } from "react-icons/io5";
-import { FaNotesMedical } from "react-icons/fa";
+import { FaFileInvoice, FaNotesMedical } from "react-icons/fa";
 
 function Page() {
   const Works = [
@@ -59,6 +59,13 @@ function Page() {
       icon: <BiTransferAlt size={50} />,
       link: "/dashboard-admin/pharmacy/retailGodownRequests",
       color: "bg-yellow-700",
+    },
+    {
+      name: "Sell Records",
+      description: "You can view all the pharmacy Sell Records here",
+      icon: <FaFileInvoice size={50} />,
+      link: "/dashboard-admin/pharmacy/sellDataRecord",
+      color: "bg-amber-800",
     },
     {
       name: "Pharmacy Config",

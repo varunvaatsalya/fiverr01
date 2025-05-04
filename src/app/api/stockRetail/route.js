@@ -78,6 +78,7 @@ export async function GET(req) {
           salts: 1,
           packetSize: 1,
           minimumStockCount: 1,
+          maximumStockCount: 1,
           retailStocks: {
             _id: 1,
             stocks: 1,

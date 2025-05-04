@@ -25,6 +25,7 @@ function StockOrder({ info, selectedType }) {
       .then((res) => res.json())
       .then((data) => {
         setAllData(data.medicinesWithStock);
+        console.log(data.medicinesWithStock);
         // minimumStockCount?.godown - medicine.totalBoxes
         const lowStockSet = new Set();
         data.medicinesWithStock.forEach((med) => {
@@ -69,8 +70,12 @@ function StockOrder({ info, selectedType }) {
   }
   function handleSearchMedicine(query) {
     if (query.trim() !== "") {
-      const updatedSearchedMedicines = filteredData.filter((medicine) =>
-        medicine.name.toLowerCase().includes(query.toLowerCase())
+      const updatedSearchedMedicines = filteredData.filter(
+        (medicine) =>
+          medicine.latestSource?.name
+            ?.toLowerCase()
+            .includes(query.toLowerCase())||
+          medicine.name.toLowerCase().includes(query.toLowerCase())
       );
       setSearchedMedicines(updatedSearchedMedicines);
     } else {
@@ -270,23 +275,24 @@ Required Quantity: ${medicine.quantity} boxes
       </select>
       {data.length > 0 && (
         <>
-          <div className="w-full md:w-[85%] p-2">
-            <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex items-center p-1">
+          <div className="w-full p-2">
+            <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex flex-wrap items-center p-1">
               <div className="w-[5%] text-center">Sr No.</div>
-              <div className="w-[40%] text-center">Medicine</div>
+              <div className="w-[35%] text-center">Medicine</div>
               <div className="w-[10%] text-end px-2">Req</div>
-              <div className="w-[15%] text-center">Min Amt</div>
-              <div className="w-[15%] text-center">Avl Amt</div>
-              <div className="w-[15%] text-center">Order Status</div>
+              <div className="w-[5%] text-center">Min Amt</div>
+              <div className="w-[5%] text-center">Avl Amt</div>
+              <div className="w-[10%] text-center">Order Status</div>
+              <div className="w-[30%] text-center">Prev Source</div>
             </div>
             <div className="flex gap-2 items-center">
               <input
                 type="text"
-                placeholder="Serch Medicine"
+                placeholder="Serch by Medicine or Vendor"
                 onChange={(e) => {
                   handleSearchMedicine(e.target.value);
                 }}
-                className="rounded-full bg-gray-700 outline-none focus:ring-2 focus:ring-gray-600 px-3 py-1"
+                className="w-1/2 rounded-full bg-gray-700 outline-none focus:ring-2 focus:ring-gray-600 px-3 py-1"
               />
               <select
                 onChange={(e) => filterData(e.target.value)}
@@ -313,8 +319,8 @@ Required Quantity: ${medicine.quantity} boxes
               >
                 <div className="flex justify-center items-center outline outline-1 outline-offset-1 outline-gray-500 w-4 h-4 rounded-full">
                   {searchedMedicines.length === selectedMedicines.length && (
-                      <FaCircleCheck className="text-gray-200" />
-                    )}
+                    <FaCircleCheck className="text-gray-200" />
+                  )}
                 </div>
                 <div className="font-semibold text-gray-200">Select All</div>
               </button>
@@ -330,7 +336,7 @@ Required Quantity: ${medicine.quantity} boxes
                 </button>
               )}
             </div>
-            <div className="px-2 max-h-[60vh] overflow-y-auto my-2">
+            <div className="px-2 max-h-[70vh] overflow-y-auto my-2">
               {searchedMedicines.map((details, index) => (
                 <div
                   key={index}
@@ -338,7 +344,7 @@ Required Quantity: ${medicine.quantity} boxes
                 >
                   <div className="w-[5%] text-center">{index + 1}</div>
                   <div
-                    className="w-[40%] min-w-24 line-clamp-1 text-center"
+                    className="w-[35%] min-w-24 line-clamp-1 text-center"
                     title={details.name}
                   >
                     {details.name}
@@ -359,15 +365,13 @@ Required Quantity: ${medicine.quantity} boxes
                       id={index}
                     />
                   </div>
-                  <div className="w-[15%] text-center">
+                  <div className="w-[5%] text-center">
                     {details.minimumStockCount?.godown
                       ? details.minimumStockCount.godown
                       : "N/A"}
                   </div>
-                  <div className="w-[15%] text-center">
-                    {details.totalBoxes}
-                  </div>
-                  <div className="w-[15%] text-center">
+                  <div className="w-[5%] text-center">{details.totalBoxes}</div>
+                  <div className="w-[10%] text-center">
                     {details.stockOrderInfo ? (
                       <>
                         <span className="italic font-normal">
@@ -378,6 +382,30 @@ Required Quantity: ${medicine.quantity} boxes
                         {"  |  "}
                         <span className="text-red-500">
                           {details.stockOrderInfo?.quantity}
+                        </span>
+                      </>
+                    ) : (
+                      "--"
+                    )}
+                  </div>
+                  <div
+                    title={
+                      details.latestSource
+                        ? details.latestSource?.type +
+                          " | " +
+                          details.latestSource?.name
+                        : ""
+                    }
+                    className="w-[30%] text-nowrap line-clamp-1 text-center"
+                  >
+                    {details.latestSource ? (
+                      <>
+                        <span className="italic  text-red-500">
+                          {details.latestSource?.type[0]}
+                        </span>
+                        {"  |  "}
+                        <span className="font-normal">
+                          {details.latestSource?.name}
                         </span>
                       </>
                     ) : (

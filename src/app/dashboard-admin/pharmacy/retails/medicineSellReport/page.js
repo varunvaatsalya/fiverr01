@@ -12,9 +12,10 @@ function Page() {
     saltId: "",
   });
   const [medicineData, setMedicineData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const response = await fetch("/api/newPharmacyInvoice/sellReport", {
         method: "POST",

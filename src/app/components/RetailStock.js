@@ -4,6 +4,8 @@ import { ImBoxRemove } from "react-icons/im";
 import { BiInjection } from "react-icons/bi";
 import { TiWarning } from "react-icons/ti";
 import Loading from "./Loading";
+import { IoIosRemoveCircle } from "react-icons/io";
+import { showError } from "../utils/toast";
 
 function RetailStock({
   medicineStock,
@@ -14,9 +16,9 @@ function RetailStock({
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [requestedMedicine, setRequestedMedicine] = useState(null);
   const [requestedQuantity, setRequestedQuantity] = useState("");
-
   const [enteredRemainingQuantity, setEnteredRemainingQuantity] = useState("");
   const [minQty, setMinQty] = useState("");
+  const [maxQty, setMaxQty] = useState("");
   const [message, setMessage] = useState("");
   const [responseMessage, setResponseMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -96,6 +98,39 @@ function RetailStock({
     }
   }
 
+  async function handleSetMaxQty(id) {
+    setSubmitting(true);
+    try {
+      let result = await fetch("/api/newMedicine?maxqty=1", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id, retailsMaxQty: maxQty }),
+      });
+      result = await result.json();
+      if (result.success) {
+        const updatedMedicines = filteredMedicines.map((medicine) =>
+          medicine._id === id
+            ? {
+                ...medicine,
+                maximumStockCount: {
+                  ...medicine.maximumStockCount,
+                  retails: maxQty,
+                },
+              }
+            : medicine
+        );
+        setFilteredMedicines(updatedMedicines);
+        setMaxQty("");
+      } else showError(result.message);
+    } catch (error) {
+      console.error("Error submitting application:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function handleSetMinQty(id) {
     setSubmitting(true);
     try {
@@ -121,7 +156,7 @@ function RetailStock({
         );
         setFilteredMedicines(updatedMedicines);
         setMinQty("");
-      }
+      } else showError(result.message);
     } catch (error) {
       console.error("Error submitting application:", error);
     } finally {
@@ -230,7 +265,7 @@ function RetailStock({
                           </span>
                         </div>
                         <div
-                          className="text-red-500 bg-red-50 px-1 rounded-md hover:text-red-700 cursor-pointer"
+                          className="text-red-700 bg-red-200 p-1 rounded-md hover:text-red-800 cursor-pointer"
                           onClick={() => {
                             setFilteredMedicines((prevMedicines) =>
                               prevMedicines.map((med) =>
@@ -247,7 +282,7 @@ function RetailStock({
                             );
                           }}
                         >
-                          Reset
+                          <IoIosRemoveCircle className="size-4" />
                         </div>
                       </div>
                     ) : (
@@ -266,6 +301,59 @@ function RetailStock({
                           className="rounded-lg px-3 py-1 text-white font-semibold bg-slate-700 hover:bg-slate-600"
                           onClick={() => {
                             handleSetMinQty(medicine._id);
+                          }}
+                          disabled={submitting}
+                        >
+                          {submitting ? "Wait..." : "Set"}
+                        </button>
+                      </div>
+                    )}
+                    {medicine.maximumStockCount &&
+                    medicine.maximumStockCount.retails != null ? (
+                      <div className="flex justify-center items-center gap-2 ">
+                        <div className="font-semibold text-gray-600 bg-slate-300 px-2 rounded">
+                          Max Stock Qty:{" "}
+                          <span className="text-black">
+                            {medicine.maximumStockCount.retails}
+                          </span>
+                        </div>
+                        <div
+                          className="text-red-700 bg-red-200 p-1 rounded-md hover:text-red-800 cursor-pointer"
+                          onClick={() => {
+                            setFilteredMedicines((prevMedicines) =>
+                              prevMedicines.map((med) =>
+                                med._id === medicine._id
+                                  ? {
+                                      ...med,
+                                      maximumStockCount: {
+                                        ...med.maximumStockCount,
+                                        retails: null,
+                                      },
+                                    }
+                                  : med
+                              )
+                            );
+                          }}
+                        >
+                          <IoIosRemoveCircle className="size-4" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center items-center gap-2">
+                        <input
+                          type="number"
+                          value={maxQty}
+                          min={0}
+                          onChange={(e) => {
+                            setMaxQty(e.target.value);
+                          }}
+                          placeholder="Set Max Stock Qty"
+                          className="rounded-lg py-1 px-2 bg-slate-300 text-black outline-none"
+                        />
+                        <button
+                          className="rounded-lg px-3 py-1 text-white font-semibold bg-slate-700 hover:bg-slate-600"
+                          onClick={() => {
+                            handleSetMaxQty(medicine._id);
                           }}
                           disabled={submitting}
                         >

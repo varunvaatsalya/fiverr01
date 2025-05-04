@@ -14,6 +14,7 @@ import Footer from "../components/Footer";
 import Link from "next/link";
 import {
   FaEdit,
+  FaFileInvoice,
   FaFileInvoiceDollar,
   FaHistory,
   FaWhatsapp,
@@ -58,6 +59,13 @@ function Page() {
       icon: <FaEdit size={50} />,
       link: "/dashboard-stockist/editGodownStock",
       color: "bg-rose-700",
+    },
+    {
+      name: "Sell Records",
+      description: "You can view all the pharmacy Sell Records here",
+      icon: <FaFileInvoice size={50} />,
+      link: "/dashboard-stockist/sellDataRecord",
+      color: "bg-amber-800",
     },
     {
       name: "Payments Due",

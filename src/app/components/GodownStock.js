@@ -4,11 +4,13 @@ import { ImBoxRemove } from "react-icons/im";
 import { BiInjection } from "react-icons/bi";
 import { TiWarning } from "react-icons/ti";
 import { FaSquarePen } from "react-icons/fa6";
+import { IoIosRemoveCircle } from "react-icons/io";
 import { showError } from "../utils/toast";
 
 function GodownStock({ medicineStock, query }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [minQty, setMinQty] = useState("");
+  const [maxQty, setMaxQty] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [filteredMedicines, setFilteredMedicines] = useState(
@@ -44,27 +46,33 @@ function GodownStock({ medicineStock, query }) {
     }
   }, [query, onlyInStock, medicineStock]);
 
-  async function handleGetRecQty(id) {
+  async function handleSetMaxQty(id) {
     setSubmitting(true);
     try {
-      let result = await fetch(
-        `/api/newStock/getGodownRecQty?medicineId=${id}`
-      );
+      let result = await fetch("/api/newMedicine?maxqty=1", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id, godownMaxQty: maxQty }),
+      });
       result = await result.json();
       if (result.success) {
-        // console.log(result.recQty);
         const updatedMedicines = filteredMedicines.map((medicine) =>
           medicine._id === id
             ? {
                 ...medicine,
-                recQty: result.recQty,
+                maximumStockCount: {
+                  ...medicine.maximumStockCount,
+                  godown: maxQty,
+                },
               }
             : medicine
         );
         setFilteredMedicines(updatedMedicines);
-      }
+        setMaxQty("");
+      } else showError(result.message);
     } catch (error) {
-      showError("Error to getting recommended quantity:");
       console.error("Error submitting application:", error);
     } finally {
       setSubmitting(false);
@@ -96,13 +104,14 @@ function GodownStock({ medicineStock, query }) {
         );
         setFilteredMedicines(updatedMedicines);
         setMinQty("");
-      }
+      } else showError(result.message);
     } catch (error) {
       console.error("Error submitting application:", error);
     } finally {
       setSubmitting(false);
     }
   }
+
   return (
     <div className="p-2 w-full md:w-4/5 lg:w-3/4 mx-auto text-gray-900">
       <div className="flex items-center gap-1 w-full">
@@ -198,19 +207,6 @@ function GodownStock({ medicineStock, query }) {
                     </div>
                   </div>
                   <div className="flex justify-center items-center gap-2 mt-2">
-                    <button
-                      className="rounded-lg px-3 py-1 text-white font-semibold bg-yellow-700 disabled:bg-slate-600"
-                      onClick={() => {
-                        handleGetRecQty(medicine._id);
-                      }}
-                      disabled={submitting || medicine.recQty !== undefined}
-                    >
-                      {submitting
-                        ? "Wait..."
-                        : medicine.recQty!== undefined
-                        ? "Recommended Qty: " + medicine.recQty
-                        : "Get Recommended Qty"}
-                    </button>
                     {medicine.minimumStockCount &&
                     medicine.minimumStockCount.godown !== null ? (
                       <>
@@ -221,7 +217,7 @@ function GodownStock({ medicineStock, query }) {
                           </span>
                         </div>
                         <div
-                          className="text-red-500 bg-red-50 px-1 rounded-md hover:text-red-700 cursor-pointer"
+                          className="text-red-700 bg-red-200 p-1 rounded-md hover:text-red-800 cursor-pointer"
                           onClick={() => {
                             setFilteredMedicines((prevMedicines) =>
                               prevMedicines.map((med) =>
@@ -238,7 +234,7 @@ function GodownStock({ medicineStock, query }) {
                             );
                           }}
                         >
-                          Reset
+                          <IoIosRemoveCircle className="size-4" />
                         </div>
                       </>
                     ) : (
@@ -257,6 +253,59 @@ function GodownStock({ medicineStock, query }) {
                           className="rounded-lg px-3 py-1 text-white font-semibold bg-slate-700 hover:bg-slate-600"
                           onClick={() => {
                             handleSetMinQty(medicine._id);
+                          }}
+                          disabled={submitting}
+                        >
+                          {submitting ? "Wait..." : "Set"}
+                        </button>
+                      </>
+                    )}
+                    {medicine.maximumStockCount &&
+                    medicine.maximumStockCount.godown !== null ? (
+                      <>
+                        <div className="font-semibold text-gray-600 bg-slate-300 px-2 rounded">
+                          Max Stock Qty:{" "}
+                          <span className="text-black">
+                            {medicine.maximumStockCount.godown}
+                          </span>
+                        </div>
+                        <div
+                          className="text-red-700 bg-red-200 p-1 rounded-md hover:text-red-800 cursor-pointer"
+                          onClick={() => {
+                            setFilteredMedicines((prevMedicines) =>
+                              prevMedicines.map((med) =>
+                                med._id === medicine._id
+                                  ? {
+                                      ...med,
+                                      maximumStockCount: {
+                                        ...med.maximumStockCount,
+                                        godown: null,
+                                      },
+                                    }
+                                  : med
+                              )
+                            );
+                          }}
+                        >
+                          <IoIosRemoveCircle className="size-4" />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <input
+                          type="number"
+                          value={maxQty}
+                          min={0}
+                          onChange={(e) => {
+                            setMaxQty(e.target.value);
+                          }}
+                          placeholder="Set Max Stock Qty"
+                          className="rounded-lg py-1 px-2 bg-slate-300 text-black outline-none"
+                        />
+                        <button
+                          className="rounded-lg px-3 py-1 text-white font-semibold bg-slate-700 hover:bg-slate-600"
+                          onClick={() => {
+                            handleSetMaxQty(medicine._id);
                           }}
                           disabled={submitting}
                         >

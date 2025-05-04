@@ -40,6 +40,27 @@ const medicineSchema = new mongoose.Schema({
       type: Number,
     },
   },
+  maximumStockCount: {
+    godown: {
+      type: Number,
+    },
+    retails: {
+      type: Number,
+    },
+  },
+  avgMonthlyBoxes: {
+    type: new mongoose.Schema(
+      {
+        "1m": { type: Number, default: 0 },
+        "2m": { type: Number, default: 0 },
+        "3m": { type: Number, default: 0 },
+        "6m": { type: Number, default: 0 },
+        "12m": { type: Number, default: 0 },
+        savedAt: { type: Date, default: Date.now },
+      },
+      { _id: false }
+    ),
+  },
   rackPlace: {
     godown: {
       type: String,
@@ -54,6 +75,20 @@ const medicineSchema = new mongoose.Schema({
   currentSellingPrice: {
     type: Number,
   },
+  latestSource: [
+    {
+      sourceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        refPath: "latestVendors.sourceType",
+      },
+      sourceType: {
+        type: String,
+        enum: ["Vendor", "Manufacturer"],
+        required: true,
+      },
+    },
+  ],
   stockOrderInfo: {
     quantity: Number,
     orderedAt: Date,
