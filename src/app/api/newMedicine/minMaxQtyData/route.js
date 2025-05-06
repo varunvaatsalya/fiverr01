@@ -108,7 +108,8 @@ export async function GET(req) {
   
         const avg = (n) => {
           const total = monthlyStrips.slice(0, n).reduce((a, b) => a + b, 0);
-          return Math.ceil(total / n / (stripsPerBox || 1));
+          // return Math.ceil(total / n / (stripsPerBox || 1));
+          return total;
         };
   
         await Medicine.findByIdAndUpdate(
