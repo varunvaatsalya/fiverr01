@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import Prescription from "../../models/Prescriptions";
-import Doctor from "../../models/Doctors";
+import PharmacyInvoice from "../../models/PharmacyInvoice";
 import Department from "../../models/Departments";
 
 function getDates() {
@@ -34,6 +34,14 @@ function getDates() {
 export async function GET(req) {
   const startDateTime = req.nextUrl.searchParams.get("startDateTime");
   const endDateTime = req.nextUrl.searchParams.get("endDateTime");
+  const type = req.nextUrl.searchParams.get("type");
+
+  if (!type || (type !== "hospital" && type !== "pharmacy")) {
+    return NextResponse.json(
+      { message: "Invalid Params.", success: false },
+      { status: 401 }
+    );
+  }
 
   await dbConnect();
   const token = req.cookies.get("authToken");
@@ -89,6 +97,29 @@ export async function GET(req) {
         $lt: end,
       },
     };
+    if (type === "pharmacy") {
+      const pharmacyInvoice = await PharmacyInvoice.find({
+        ...dateQuery,
+        paymentMode: { $in: ["Cash", "UPI", "Card"] },
+      })
+        .select("patientId price paymentMode")
+        .populate({
+          path: "patientId",
+          select: "name pid",
+        });
+
+      const formatted = pharmacyInvoice.map((invoice) => ({
+        _id: invoice._id,
+        patient: invoice.patientId,
+        price: invoice.price,
+        paymentMode: invoice.paymentMode,
+      }));
+
+      return NextResponse.json(
+        { prescriptions: formatted, departments: [], success: true },
+        { status: 201 }
+      );
+    }
     const prescriptions = await Prescription.find(dateQuery)
       .select("patient price department items paymentMode")
       .populate({
@@ -99,11 +130,10 @@ export async function GET(req) {
         path: "department",
       });
 
-    const doctors = await Doctor.find({}, "_id name department").exec();
     const departments = await Department.find({}, "_id name items").exec();
     // Send response with UID
     return NextResponse.json(
-      { prescriptions, doctors, departments, success: true },
+      { prescriptions, departments, success: true },
       { status: 201 }
     );
   } catch (error) {
@@ -116,6 +146,15 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
+  const type = req.nextUrl.searchParams.get("type");
+
+  if (!type || (type !== "hospital" && type !== "pharmacy")) {
+    return NextResponse.json(
+      { message: "Invalid Params.", success: false },
+      { status: 401 }
+    );
+  }
+
   await dbConnect();
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -142,16 +181,12 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { prescriptionIds, discountPercentage } = await req.json();
+  const { invoiceIds, discountPercentage } = await req.json();
 
   try {
-    if (
-      !prescriptionIds ||
-      !Array.isArray(prescriptionIds) ||
-      prescriptionIds.length === 0
-    ) {
+    if (!invoiceIds || !Array.isArray(invoiceIds) || invoiceIds.length === 0) {
       return NextResponse.json(
-        { message: "Invalid prescription IDs!", success: false },
+        { message: "Invalid invoiceIds IDs!", success: false },
         { status: 400 }
       );
     }
@@ -162,14 +197,35 @@ export async function POST(req) {
       );
     }
 
-    const prescriptions = await Prescription.find({
-      _id: { $in: prescriptionIds },
+    const Model = type === "hospital" ? Prescription : PharmacyInvoice;
+
+    const invoices = await Model.find({
+      _id: { $in: invoiceIds },
     });
-    for (let prescription of prescriptions) {
-      prescription.price.discount =
-        (prescription.price.subtotal * discountPercentage) / 100;
-      prescription.price.total =
-        prescription.price.subtotal - prescription.price.discount;
+
+    for (let prescription of invoices) {
+      // prescription.price.discount =
+      //   (prescription.price.subtotal * discountPercentage) / 100;
+      // prescription.price.total =
+      //   prescription.price.subtotal - prescription.price.discount;
+
+      let priceDiscount = (prescription.price.subtotal * discountPercentage) / 100;
+
+      await Model.updateOne(
+        { _id: prescription._id },
+        {
+          $set: {
+            "price.discount":
+              type === "hospital" ? priceDiscount : discountPercentage,
+            "price.total":
+              type === "hospital"
+                ? prescription.price.subtotal - priceDiscount
+                : (prescription.price.subtotal * (100 - discountPercentage)) /
+                  100,
+          },
+        }
+      );
+
       await prescription.save();
     }
 

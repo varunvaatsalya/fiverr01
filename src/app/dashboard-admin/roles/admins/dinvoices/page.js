@@ -3,11 +3,11 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../../../../components/Navbar";
 import { RxCrossCircled } from "react-icons/rx";
 import { FaCircleCheck } from "react-icons/fa6";
+import { showError, showInfo } from "../../../../utils/toast";
 
 function Page() {
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
-  const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [finaling, setFinaling] = useState(false);
   const [prescriptions, setPrescriptions] = useState([]);
@@ -16,6 +16,7 @@ function Page() {
   const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
   const [discountPercentage, setDiscountPercentage] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedType, setSelectedType] = useState("hospital");
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedPaymentMode, setSelectedPaymentMode] = useState(null);
 
@@ -23,14 +24,14 @@ function Page() {
     setSubmitting(true);
     try {
       let result = await fetch(
-        `/api/bulkDiscount?startDateTime=${startDateTime}&endDateTime=${endDateTime}`
+        `/api/bulkDiscount?startDateTime=${startDateTime}&endDateTime=${endDateTime}&type=${selectedType}`
       );
       result = await result.json();
       if (result.success) {
         setPrescriptions(result.prescriptions);
         setDepartments(result.departments);
       } else {
-        setMessage(result.message);
+        showError(result.message);
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -61,6 +62,17 @@ function Page() {
     setFilteredPrescriptions(filtered);
   };
 
+  function clear() {
+    setDepartments([]);
+    setSelectedItem(null);
+    setSelectedIds([]);
+    setStartDateTime("");
+    setEndDateTime("");
+    setDiscountPercentage("");
+    setPrescriptions([]);
+    setFilteredPrescriptions([]);
+  }
+
   useEffect(() => {
     handleFilter();
   }, [prescriptions, selectedDepartment, selectedItem, selectedPaymentMode]);
@@ -69,13 +81,13 @@ function Page() {
     setFinaling(true);
     try {
       // Make a POST request to the API with the request ID
-      const response = await fetch(`/api/bulkDiscount`, {
+      const response = await fetch(`/api/bulkDiscount?type=${selectedType}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prescriptionIds: selectedIds.map((p) => p._id),
+          invoiceIds: selectedIds.map((p) => p._id),
           discountPercentage,
         }), // Send requestId in the body
       });
@@ -83,27 +95,23 @@ function Page() {
       // Parse the JSON response
       const result = await response.json();
 
-      setMessage(result.message);
+      showInfo(result.message);
       if (result.success) {
         setTimeout(() => {
-          setSelectedIds([]);
-          setStartDateTime("");
-          setEndDateTime("");
-          setDiscountPercentage("");
-          setPrescriptions([]);
-          setMessage("");
-        }, 2000);
+          clear();
+        }, 1500);
       }
     } catch (error) {
       console.error("Error resolving the request:", error);
-      setMessage("An error occurred while resolving the request.");
+      showError("An error occurred while resolving the request.");
     } finally {
       setFinaling(false);
     }
   }
 
   const getTotalAmount = (ps) => {
-    return ps.reduce((sum, p) => sum + p.price.total, 0);
+    let total = ps.reduce((sum, p) => sum + p.price.total, 0);
+    return parseFloat(total?.toFixed(2));
   };
   const getTotalDiscountAmount = () => {
     let total = getTotalAmount(selectedIds);
@@ -121,6 +129,22 @@ function Page() {
         <Navbar route={["discount"]} />
       </div>
       <div className="w-full flex flex-wrap justify-center gap-3 my-2">
+        <select
+          name="type"
+          id="type"
+          value={selectedType}
+          onChange={(e) => {
+            clear();
+            setSelectedType(e.target.value);
+          }}
+          className={
+            "block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 rounded-xl shadow-sm focus:outline-none ring-2 ring-offset-2  transition duration-150 ease-in-out bg-gray-700 " +
+            (selectedType === "hospital" ? "ring-green-600" : "ring-blue-600")
+          }
+        >
+          <option value="hospital">Hospital</option>
+          <option value="pharmacy">Pharmacy</option>
+        </select>
         <div className="flex justify-center items-center px-2 py-1 gap-2 bg-gray-700 rounded-xl shadow-sm focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
           <label
             htmlFor="sdate"
@@ -161,29 +185,33 @@ function Page() {
         </button>
       </div>
       <div className="w-full flex flex-wrap items-center justify-center gap-2 bg-slate-800 p-3 text-gray-100">
-        <select
-          onChange={(e) => setSelectedDepartment(e.target.value)}
-          className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        >
-          <option value="">Select Department</option>
-          {departments.map((dept) => (
-            <option key={dept._id} value={dept._id}>
-              {dept.name}
-            </option>
-          ))}
-        </select>
-        {selectedDepartment && (
-          <select
-            onChange={(e) => setSelectedItem(e.target.value)}
-            className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-          >
-            <option value="">Select Item</option>
-            {getItems().map((item) => (
-              <option key={item.name} value={item.name}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+        {selectedType === "hospital" && (
+          <>
+            <select
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+            >
+              <option value="">Select Department</option>
+              {departments.map((dept) => (
+                <option key={dept._id} value={dept._id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+            {selectedDepartment && (
+              <select
+                onChange={(e) => setSelectedItem(e.target.value)}
+                className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+              >
+                <option value="">Select Item</option>
+                {getItems().map((item) => (
+                  <option key={item.name} value={item.name}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </>
         )}
         <select
           onChange={(e) => setSelectedPaymentMode(e.target.value)}
@@ -195,9 +223,6 @@ function Page() {
           <option value="UPI">UPI</option>
         </select>
       </div>
-      {message && (
-        <div className="my-1 text-center text-red-500">{message}</div>
-      )}
       {filteredPrescriptions.length > 0 && (
         <>
           <div className="w-4/5 md:w-3/5 flex flex-col min-h-80 max-h-[60vh] rounded-lg border border-gray-700">
@@ -246,8 +271,17 @@ function Page() {
                     <div className="w-[50%] line-clamp-1 px-1">
                       {prescription.patient.name}
                     </div>
-                    <div className="w-[30%] text-center">
-                      {prescription.price.total}
+                    <div className="w-[10%] text-center">
+                      {parseFloat(prescription.price.subtotal?.toFixed(2))}
+                    </div>
+                    <div className="w-[10%] text-center">
+                      {prescription.price.discount
+                        ? prescription.price.discount +
+                          (selectedType === "hospital" ? " ₹" : "%")
+                        : "--"}
+                    </div>
+                    <div className="w-[10%] text-center">
+                      {parseFloat(prescription.price.total?.toFixed(2))}
                     </div>
                     <div className="w-[15%]">
                       <button
