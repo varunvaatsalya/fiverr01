@@ -144,6 +144,8 @@ export async function POST(req) {
       createdAt: new Date(),
     };
 
+    let discount = invoice.price?.discount || 0;
+
     for (const [medicineId, batchData] of Object.entries(
       returnMedicineDetails
     )) {
@@ -151,11 +153,14 @@ export async function POST(req) {
         (med) => med.medicineId.toString() === medicineId
       );
 
+      
       if (!medicine) {
         console.log("medicine not found....");
         invalidReturns.push(medicineId);
         continue;
       }
+      let isDiscountApplicable = medicine?.isDiscountApplicable ?? true;
+      console.log(isDiscountApplicable, medicine.isDiscountApplicable);
 
       let returnMedicine = { medicineId, returnStock: [] };
 
@@ -261,16 +266,21 @@ export async function POST(req) {
 
         await retailStock.save();
 
+        let price =
+          returnQtyStrips * batch.sellingPrice +
+          (returnQtyTablets / tabletsPerStrip) * batch.sellingPrice;
+
+        if (isDiscountApplicable) {
+          price = price - (price * discount) / 100;
+        }
+
         returnMedicine.returnStock.push({
           batchName: batch.batchName,
           expiryDate: batch.expiryDate,
           sellingPrice: batch.sellingPrice,
           // quantity: returnQty.strips * tabletsPerStrip + returnQty.tablets,
           quantity: { strips: returnQtyStrips, tablets: returnQtyTablets },
-          price: (
-            returnQtyStrips * batch.sellingPrice +
-            (returnQtyTablets / tabletsPerStrip) * batch.sellingPrice
-          ).toFixed(2),
+          price: price.toFixed(2),
         });
       }
 

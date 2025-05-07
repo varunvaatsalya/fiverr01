@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import Loading from "./Loading";
-import { showSuccess } from "../utils/toast";
+import { showError, showSuccess } from "../utils/toast";
 
 // const fakedetails = {
 //   patients: [
@@ -35,8 +35,9 @@ import { showSuccess } from "../utils/toast";
 
 const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState(null);
+  // const [message, setMessage] = useState(null);
   const [details, setDetails] = useState(null);
+  const [isAddInfoOpen, setIsAddInfoOpen] = useState(false);
 
   const { register, handleSubmit, setValue } = useForm();
 
@@ -88,8 +89,13 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
   }, []);
 
   const onSubmit = async (data) => {
+    if (data.createdAt) {
+      let confirm = window.confirm("Are you sure you want to change the date?");
+      if (!confirm) {
+        return;
+      }
+    }
     if (selectedItems.length > 0 || ipdPrice) {
-      setMessage(null);
       setSubmitting(true);
       try {
         console.log(data, selectedItems.length);
@@ -112,7 +118,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
           setNewUserSection((prev) => !prev);
           showSuccess("Invoice Created Successfully");
         } else {
-          setMessage(result.message);
+          showError(result.message);
         }
       } catch (error) {
         console.error("Error submitting application:", error);
@@ -120,7 +126,7 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         setSubmitting(false);
       }
     } else {
-      setMessage("choose atleast one items");
+      showError("choose atleast one items");
     }
   };
 
@@ -152,9 +158,9 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         New <span className="text-blue-500">Prescription</span>
       </h2>
       <hr className="border border-slate-800 w-full my-2" />
-      {message && (
+      {/* {message && (
         <div className="my-1 text-center text-red-500">{message}</div>
-      )}
+      )} */}
       <select
         id="patient"
         {...register("patient", { required: "patient is required" })}
@@ -229,7 +235,9 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
                   type="number"
                   min={0}
                   placeholder="Amount"
-                  onChange={(e)=>{setIpdPrice(e.target.value)}}
+                  onChange={(e) => {
+                    setIpdPrice(e.target.value);
+                  }}
                   className="px-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
                 />
               </div>
@@ -320,14 +328,15 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         <>
           <p className="font-semibold text-lg text-gray-100">
             Grand Total: ₹{" "}
-            {selectedItems?.reduce((sum, item) => sum + item.price, 0) + (parseFloat(ipdPrice)||0) }
+            {selectedItems?.reduce((sum, item) => sum + item.price, 0) +
+              (parseFloat(ipdPrice) || 0)}
           </p>
           <select
             id="paymentMode"
             {...register("paymentMode", {
               required: "Payment Mode is required",
             })}
-            className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+            className="my-1 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
           >
             <option value="">-- Payment Mode --</option>
             <option value="Cash">Cash</option>
@@ -335,6 +344,32 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
             <option value="Card">Card</option>
             {!ipdPrice && <option value="Insurence">Insurence Patient</option>}
           </select>
+          <div className="text-blue-800 text-start px-2">
+            <span
+              className="hover:underline underline-offset-2 text-sm cursor-pointer"
+              onClick={() => {
+                setIsAddInfoOpen(!isAddInfoOpen);
+              }}
+            >
+              additional Info
+            </span>
+          </div>
+          {isAddInfoOpen && (
+            <div className="w-full">
+              <label for="createdAt" className="text-gray-200">
+                Created date
+              </label>
+              <input
+                type="datetime-local"
+                name="createdAt"
+                id="createdAt"
+                onChange={(e) => {
+                  setValue("createdAt", e.target.value);
+                }}
+                className="px-3 py-1 mx-2 bg-gray-800 text-gray-300 outline-none rounded-lg shadow-sm"
+              />
+            </div>
+          )}
         </>
       )}
 

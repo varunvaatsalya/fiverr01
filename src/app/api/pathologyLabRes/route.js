@@ -9,7 +9,7 @@ import { generateUniqueId } from "../../utils/counter";
 async function generateLTRID() {
   const prefix = "LTR";
   // const timestamp = Math.floor(Date.now() / 1000).toString();
-  const uniqueDigit = await generateUniqueId('report')
+  const uniqueDigit = await generateUniqueId("report");
   const uniqueID = `${prefix}${uniqueDigit}`;
   return uniqueID;
 }
@@ -129,7 +129,8 @@ export async function POST(req) {
     );
   }
 
-  const { testResults, selectedTest, selectedPrescription } = await req.json();
+  const { testResults, selectedTest, selectedPrescription, resultDate } =
+    await req.json();
   console.log(testResults, selectedTest, selectedPrescription);
   try {
     const prescription = await Prescription.findOne({
@@ -141,10 +142,10 @@ export async function POST(req) {
       (test) => test.test.toString() === selectedTest.toString()
     );
 
-    let ltridUpdate={};
-    if(testIndex !== -1 && !prescription.tests[testIndex].ltrid){
+    let ltridUpdate = {};
+    if (testIndex !== -1 && !prescription.tests[testIndex].ltrid) {
       const ltrid = await generateLTRID();
-      ltridUpdate={ "tests.$.ltrid": ltrid }
+      ltridUpdate = { "tests.$.ltrid": ltrid };
     }
 
     const updatedPrescription = await Prescription.findOneAndUpdate(
@@ -154,8 +155,8 @@ export async function POST(req) {
       },
       {
         $set: {
-          "tests.$.isCompleted": true, // Set the isCompleted flag to true for the specific test
-          "tests.$.resultDate": Date.now(), // Set the isCompleted flag to true for the specific test
+          "tests.$.isCompleted": true,
+          "tests.$.resultDate": resultDate ? new Date(resultDate) : Date.now(),
           "tests.$.results": testResults, // Save the new results array
           ...ltridUpdate,
         },

@@ -51,7 +51,7 @@ export async function GET(req) {
 
     if (patient) {
       const prescriptions = await Prescription.find({ patient })
-        .sort({ _id: -1 })
+        .sort({ createdAt: -1 })
         .populate({
           path: "doctor",
           select: "name",
@@ -113,7 +113,7 @@ export async function GET(req) {
     }
 
     const allPrescription = await Prescription.find(query)
-      .sort({ _id: -1 })
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .populate({
@@ -187,7 +187,7 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { patient, items, doctor, ipdAmount, department, paymentMode } =
+  const { patient, items, doctor, ipdAmount, department, paymentMode, createdAt } =
     await req.json();
 
   try {
@@ -281,6 +281,7 @@ export async function POST(req) {
       tests: filteredTests,
       createdBy: userRole === "admin" || !userId ? null : userId,
       createdByRole: userRole,
+      createdAt: createdAt ? new Date(createdAt) : new Date(),
     });
 
     // // Save user to the database
@@ -353,7 +354,7 @@ export async function PUT(req) {
     );
   }
 
-  const { _id, patient, department, doctor, items, paymentMode } =
+  const { _id, patient, department, doctor, items, paymentMode, createdAt } =
     await req.json();
 
   try {
@@ -372,6 +373,9 @@ export async function PUT(req) {
     existingPrescription.doctor = doctor;
     existingPrescription.items = items;
     existingPrescription.paymentMode = paymentMode;
+    if(createdAt){
+      existingPrescription.createdAt = new Date(createdAt);
+    }
 
     // Save updated patient to the database
     await existingPrescription.save();

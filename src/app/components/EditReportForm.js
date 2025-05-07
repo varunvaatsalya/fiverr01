@@ -6,6 +6,8 @@ function EditReportForm({ setNewUserSection, editReport }) {
   const [message, setMessage] = useState(null);
   const [results, setResults] = useState();
   const [submitting, setSubmitting] = useState(false);
+  const [createdAt, setCreatedAt] = useState("");
+  const [isAddInfoOpen, setIsAddInfoOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -40,8 +42,12 @@ function EditReportForm({ setNewUserSection, editReport }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    
+    if (createdAt) {
+      let confirm = window.confirm("Are you sure you want to change the date?");
+      if (!confirm) {
+        return;
+      }
+    }
     const testResults = data?.testDetails[0]?.testItems.map((test, index) => ({
       name: test.name,
       result: results[index],
@@ -57,8 +63,9 @@ function EditReportForm({ setNewUserSection, editReport }) {
         },
         body: JSON.stringify({
           testResults,
-          selectedTest:editReport.testId,
-          selectedPrescription:editReport._id,
+          selectedTest: editReport.testId,
+          selectedPrescription: editReport._id,
+          resultDate: createdAt,
         }),
       });
 
@@ -71,7 +78,7 @@ function EditReportForm({ setNewUserSection, editReport }) {
       setSubmitting(false);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="py-3">
       <div className="w-full p-2 flex flex-wrap justify-around">
@@ -119,11 +126,35 @@ function EditReportForm({ setNewUserSection, editReport }) {
           )}
         </tbody>
       </table>
-      {
-        message && (
-          <div className="my-1 text-center text-red-500">{message}</div>
-        )
-      }
+      <div className="text-blue-800 text-start px-4">
+        <span
+          className="hover:underline underline-offset-2 text-sm cursor-pointer"
+          onClick={() => {
+            setIsAddInfoOpen(!isAddInfoOpen);
+          }}
+        >
+          additional Info
+        </span>
+      </div>
+      {isAddInfoOpen && (
+        <div className="w-full px-4">
+          <label for="createdAt" className="text-gray-200">
+            Created date
+          </label>
+          <input
+            type="datetime-local"
+            name="createdAt"
+            id="createdAt"
+            onChange={(e) => {
+              setCreatedAt(e.target.value);
+            }}
+            className="px-3 py-1 mx-2 bg-gray-700 text-gray-300 outline-none rounded-lg shadow-sm"
+          />
+        </div>
+      )}
+      {message && (
+        <div className="my-1 text-center text-red-500">{message}</div>
+      )}
       <hr className="border border-slate-800 w-full my-2" />
       <div className="flex px-4 gap-3 justify-end">
         <div
@@ -135,12 +166,12 @@ function EditReportForm({ setNewUserSection, editReport }) {
           Cancel
         </div>
         <button
-              type="submit"
-              className="px-3 py-1 my-1 flex items-center justify-center gap-2 bg-red-500 rounded-lg font-semibold cursor-pointer text-white"
-              disabled={submitting}
-            >
-              {submitting ? "Submitting..." : "Submit Results"}
-            </button>
+          type="submit"
+          className="px-3 py-1 my-1 flex items-center justify-center gap-2 bg-red-500 rounded-lg font-semibold cursor-pointer text-white"
+          disabled={submitting}
+        >
+          {submitting ? "Submitting..." : "Submit Results"}
+        </button>
       </div>
     </form>
   );

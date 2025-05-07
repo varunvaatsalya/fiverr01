@@ -5,6 +5,7 @@ import Patient from "../../models/Patients";
 import Medicine from "../../models/Medicine";
 import RetailStock from "../../models/RetailStock";
 import PharmacyInvoice from "../../models/PharmacyInvoice";
+import Admission from "../../models/Admissions";
 import { generateUniqueId } from "../../utils/counter";
 
 function getGrandTotal(medicineDetails) {
@@ -295,8 +296,10 @@ export async function POST(req) {
         if (!sellingPrice || !purchasePrice || sellingPrice < purchasePrice)
           isDiscountApplicable = false;
 
-        isDiscountApplicable =
-          ((sellingPrice - purchasePrice) / sellingPrice) * 100 > 10;
+        if (isDiscountApplicable) {
+          isDiscountApplicable =
+            ((sellingPrice - purchasePrice) / sellingPrice) * 100 > 10;
+        }
 
         allocatedQuantities.push({
           batchName: batch.batchName,
@@ -356,6 +359,39 @@ export async function POST(req) {
         { status: 200 }
       );
     }
+    let inid = await generateUID();
+    if (selectedPaymentMode === "Credit-Insurance") {
+      const admission = await Admission.findOne({
+        patientId: selectedPatient,
+        isCompleted: false,
+      });
+      if (!admission) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "No active admission found for this patient.",
+          },
+          { status: 404 }
+        );
+      }
+      if (!admission.insuranceInfo || !admission.insuranceInfo.providerName) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "This Patient is not registered for the Insurence",
+          },
+          { status: 400 }
+        );
+      }
+      // items.forEach((item) => {
+      admission.supplementaryService.push({
+        name: `Medicine InId - ${inid}`,
+        amount: getDiscountedTotal(result, discount),
+        date: new Date(),
+      });
+      // });
+      await admission.save();
+    }
 
     // Otherwise, save changes to the database and create an invoice
     if (selectedPaymentMode !== "Credit-Others") {
@@ -371,7 +407,7 @@ export async function POST(req) {
 
     const invoice = new PharmacyInvoice({
       patientId: selectedPatient,
-      inid: await generateUID(),
+      inid,
       medicines: result
         .map(
           ({

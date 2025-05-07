@@ -4,6 +4,7 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { formatDateTimeToIST, formatDateToIST } from "../utils/date";
 import PrintReturnInvoice from "./PrintReturnInvoice";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { showError, showSuccess } from "../utils/toast";
 
 function ReturnInvoice({
   returnInvoice,
@@ -14,7 +15,7 @@ function ReturnInvoice({
   const [returnMedicineDetails, setReturnMedicineDetails] = useState({});
   const [openReturnInvoiceIndex, setOpenReturnInvoiceIndex] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
+  // const [message, setMessage] = useState("");
   const [printReturnInv, setPrintReturnInv] = useState(null);
 
   const handleStockChange = (medicineId, stockIndex, field, value) => {
@@ -66,9 +67,10 @@ function ReturnInvoice({
         }),
       });
       const result = await response.json();
-      setMessage(result.message);
-      console.log(result);
+      // setMessage(result.message);
+      // console.log(result);
       if (result.success) {
+        showSuccess(result.message);
         setInvoices((prevInvoices) =>
           prevInvoices.map((invoice) =>
             invoice._id === returnInvoice._id ? result.invoice : invoice
@@ -77,7 +79,7 @@ function ReturnInvoice({
         setTimeout(() => {
           setReturnInvoice(null);
         }, 2500);
-      }
+      } else showError(result.message);
     } catch (error) {
       console.error("Error while saving return invoice", error);
     }
@@ -105,9 +107,10 @@ function ReturnInvoice({
         }),
       });
       const result = await response.json();
-      setMessage(result.message);
-      console.log(result);
+      // setMessage(result.message);
+      // console.log(result);
       if (result.success) {
+        showSuccess(result.message);
         setInvoices((prevInvoices) =>
           prevInvoices.map((invoice) =>
             invoice._id === returnInvoice._id ? result.invoice : invoice
@@ -116,7 +119,7 @@ function ReturnInvoice({
         setTimeout(() => {
           setReturnInvoice(null);
         }, 2500);
-      }
+      } else showError(result.message);
     } catch (error) {
       console.error("Error while saving return invoice", error);
     }
@@ -153,9 +156,9 @@ function ReturnInvoice({
           Pharmcy Invoice Return Details
         </div>
       </div>
-      {message && (
+      {/* {message && (
         <div className="text-center text-red-600 font-semibold">{message}</div>
-      )}
+      )} */}
       <div className="flex items-center justify-around">
         <div className="">
           Patient Name:{" "}

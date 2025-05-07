@@ -810,7 +810,12 @@ function NewPharmacyInvoice({
                   <div className="">{getGrandTotal() + "/-"}</div>
                 </div>
                 <div className="flex justify-end items-center gap-3 px-2 my-1">
-                  <div className="font-semibold">Discount</div>
+                  <div className="font-semibold flex flex-col-reverse md:flex-row md:gap-1 items-center justify-end">
+                    <span className="text-gray-300 text-xs font-light">
+                      {"(Discount Applicable only on selected medicines)"}
+                    </span>
+                    Discount:
+                  </div>
                   <input
                     type="number"
                     onChange={(e) => {

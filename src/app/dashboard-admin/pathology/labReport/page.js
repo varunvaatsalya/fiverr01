@@ -1,14 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-
-const testFormat = {
-  items: [
-    { name: "hemoglobine", range: "200 - 300", unit: "kg/ml" },
-    { name: "wbc", range: "50 - 100", unit: "mg/ml" },
-    { name: "iron", range: "150 - 300", unit: "g/ml" },
-  ],
-};
+// const testFormat = {
+//   items: [
+//     { name: "hemoglobine", range: "200 - 300", unit: "kg/ml" },
+//     { name: "wbc", range: "50 - 100", unit: "mg/ml" },
+//     { name: "iron", range: "150 - 300", unit: "g/ml" },
+//   ],
+// };
 
 function Page() {
   const [tests, setTests] = useState([]);
@@ -19,6 +18,8 @@ function Page() {
   const [testFormat, setTestFormat] = useState(null);
   const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(null);
+  const [createdAt, setCreatedAt] = useState("");
+  const [isAddInfoOpen, setIsAddInfoOpen] = useState(false);
 
   const [results, setResults] = useState();
 
@@ -82,7 +83,12 @@ function Page() {
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (createdAt) {
+      let confirm = window.confirm("Are you sure you want to change the date?");
+      if (!confirm) {
+        return;
+      }
+    }
     // Collecting data to submit
     const testResults = testFormat.items.map((test, index) => ({
       name: test.name,
@@ -101,6 +107,7 @@ function Page() {
           testResults,
           selectedTest,
           selectedPrescription,
+          resultDate: createdAt,
         }),
       });
 
@@ -213,13 +220,41 @@ function Page() {
             </tbody>
           </table>
           {selectedTest && (
-            <button
-              type="submit"
-              className="px-3 py-2 mx-auto my-3 flex items-center justify-center gap-2 bg-red-500 rounded-lg font-semibold cursor-pointer text-white"
-              disabled={submitting}
-            >
-              {submitting ? "Submitting..." : "Submit Results"}
-            </button>
+            <>
+              <div className="text-blue-800 text-start px-4">
+                <span
+                  className="hover:underline underline-offset-2 text-sm cursor-pointer"
+                  onClick={() => {
+                    setIsAddInfoOpen(!isAddInfoOpen);
+                  }}
+                >
+                  additional Info
+                </span>
+              </div>
+              {isAddInfoOpen && (
+                <div className="w-full px-4">
+                  <label for="createdAt" className="text-gray-200">
+                    Created date
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="createdAt"
+                    id="createdAt"
+                    onChange={(e) => {
+                      setCreatedAt(e.target.value);
+                    }}
+                    className="px-3 py-1 mx-2 bg-gray-700 text-gray-300 outline-none rounded-lg shadow-sm"
+                  />
+                </div>
+              )}
+              <button
+                type="submit"
+                className="px-3 py-2 mx-auto my-3 flex items-center justify-center gap-2 bg-red-500 rounded-lg font-semibold cursor-pointer text-white"
+                disabled={submitting}
+              >
+                {submitting ? "Submitting..." : "Submit Results"}
+              </button>
+            </>
           )}
         </form>
       </div>

@@ -177,14 +177,14 @@ function PrescriptionsSearchList({
                 </button>
               )}
             </div>
-            <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 md:w-4/5 lg:w-3/4 mx-auto bg-black text-white">
+            <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 md:w-4/5 mx-auto bg-black text-white">
               List of all the Invoices/Reports
             </div>
-            <div className="flex flex-wrap justify-center items-center mx-auto py-4">
+            <div className="flex flex-wrap justify-center items-center mx-auto py-1">
               {resData.map((prescription, index) => (
                 <div
                   key={index}
-                  className="text-black w-full px-2 md:w-4/5 lg:w-3/4 mx-auto"
+                  className="text-black w-full px-2 md:w-4/5 mx-auto"
                 >
                   {/* Patient Header */}
                   <div
@@ -291,18 +291,19 @@ function PrescriptionsSearchList({
                       })}
 
                       <div className="flex justify-around items-center gap-2 mt-3">
-                        {!prescription.isPrint &&
-                          accessInfo?.accessRole === "admin" && (
-                            <button
-                              className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
-                              onClick={() => {
-                                setEditPrescription(prescription);
-                                setNewUserSection((prev) => !prev);
-                              }}
-                            >
-                              Edit
-                            </button>
-                          )}
+                        {((!prescription.isPrint &&
+                          accessInfo?.accessEditPermission) ||
+                          accessInfo?.accessRole === "admin") && (
+                          <button
+                            className="py-2 px-4 text-white bg-blue-900 rounded-lg font-semibold flex gap-1 items-center"
+                            onClick={() => {
+                              setEditPrescription(prescription);
+                              setNewUserSection((prev) => !prev);
+                            }}
+                          >
+                            Edit
+                          </button>
+                        )}
                         {prescription.isPrint && (
                           <div className="text-sm text-black text-center">
                             Prescription has been printed

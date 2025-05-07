@@ -18,7 +18,7 @@ import { TbReportMedical } from "react-icons/tb";
 import { GrTest } from "react-icons/gr";
 import { IoLogOut } from "react-icons/io5";
 import { useEffect, useState } from "react";
-import { MdOutlineSecurity } from "react-icons/md";
+import { MdOutlineQueuePlayNext, MdOutlineSecurity } from "react-icons/md";
 
 function Page() {
   const router = useRouter();
@@ -123,6 +123,13 @@ function Page() {
       icon: <FaUsersGear size={40} />,
       link: "/dashboard-admin/roles",
       color: "bg-rose-700",
+    },
+    {
+      name: "Display",
+      description: "You can manage hospital queue display here",
+      icon: <MdOutlineQueuePlayNext size={40} />,
+      link: "/dashboard-admin/display",
+      color: "bg-teal-700",
     },
     {
       name: "Security",

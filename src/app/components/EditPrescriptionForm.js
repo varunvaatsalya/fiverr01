@@ -3,34 +3,34 @@ import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import Loading from "./Loading";
 
-const fakedetails = {
-  patients: [
-    { _id: "12345", name: "John Doe", uhid: "UH1234" },
-    { _id: "67890", name: "Jane Smith", uhid: "UH5678" },
-  ],
-  doctors: [
-    { _id: "54321", name: "Dr. Alice", department: "98765" },
-    { _id: "09876", name: "Dr. Bob", department: "56789" },
-  ],
-  departments: [
-    {
-      _id: "98765",
-      name: "Cardiology",
-      itmes: [
-        { name: "x-ray", price: 125 },
-        { name: "x-mas", price: 5412 },
-      ],
-    },
-    {
-      _id: "56789",
-      name: "Neurology",
-      itmes: [
-        { name: "x-ray", price: 125 },
-        { name: "x-mas", price: 5412 },
-      ],
-    },
-  ],
-};
+// const fakedetails = {
+//   patients: [
+//     { _id: "12345", name: "John Doe", uhid: "UH1234" },
+//     { _id: "67890", name: "Jane Smith", uhid: "UH5678" },
+//   ],
+//   doctors: [
+//     { _id: "54321", name: "Dr. Alice", department: "98765" },
+//     { _id: "09876", name: "Dr. Bob", department: "56789" },
+//   ],
+//   departments: [
+//     {
+//       _id: "98765",
+//       name: "Cardiology",
+//       itmes: [
+//         { name: "x-ray", price: 125 },
+//         { name: "x-mas", price: 5412 },
+//       ],
+//     },
+//     {
+//       _id: "56789",
+//       name: "Neurology",
+//       itmes: [
+//         { name: "x-ray", price: 125 },
+//         { name: "x-mas", price: 5412 },
+//       ],
+//     },
+//   ],
+// };
 
 const NewPrescriptionForm = ({
   setNewUserSection,
@@ -41,6 +41,7 @@ const NewPrescriptionForm = ({
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
   const [details, setDetails] = useState(null);
+  const [isAddInfoOpen, setIsAddInfoOpen] = useState(false);
 
   const { register, handleSubmit, setValue } = useForm();
 
@@ -60,6 +61,7 @@ const NewPrescriptionForm = ({
     setValue("doctor", editPrescription.doctor._id);
     setValue("items", editPrescription.items);
     setValue("paymentMode", editPrescription.paymentMode);
+    setValue("createdAt", editPrescription.createdAt);
   }, [editPrescription]);
 
   useEffect(() => {
@@ -72,7 +74,7 @@ const NewPrescriptionForm = ({
     setValue("doctor", "");
     // }
   }, [selectedDepartment]);
-  
+
   useEffect(() => {
     if (details?.departments) {
       const department = details.departments.find(
@@ -80,9 +82,8 @@ const NewPrescriptionForm = ({
       );
       if (department) {
         setAvailableItems(department.items);
-      }else{
+      } else {
         setAvailableItems([]);
-
       }
     }
   }, [selectedDepartment, details]);
@@ -109,6 +110,12 @@ const NewPrescriptionForm = ({
   }, []);
 
   const onSubmit = async (data) => {
+    if (data.createdAt) {
+      let confirm = window.confirm("Are you sure you want to change the date?");
+      if (!confirm) {
+        return;
+      }
+    }
     if (selectedItems.length > 0) {
       setMessage(null);
       setSubmitting(true);
@@ -127,7 +134,9 @@ const NewPrescriptionForm = ({
         if (result.success) {
           setEntity((prevPrescription) =>
             prevPrescription.map((prescription) =>
-              prescription._id === result.prescription._id ? result.prescription : prescription
+              prescription._id === result.prescription._id
+                ? result.prescription
+                : prescription
             )
           );
           setEditPrescription(null);
@@ -311,6 +320,33 @@ const NewPrescriptionForm = ({
           <option value="UPI">UPI</option>
           <option value="Card">Card</option>
         </select>
+      )}
+
+      <div className="text-blue-800 text-start px-2">
+        <span
+          className="hover:underline underline-offset-2 text-sm cursor-pointer"
+          onClick={() => {
+            setIsAddInfoOpen(!isAddInfoOpen);
+          }}
+        >
+          additional Info
+        </span>
+      </div>
+      {isAddInfoOpen && (
+        <div className="w-full">
+          <label for="createdAt" className="text-gray-200">
+            Created date
+          </label>
+          <input
+            type="datetime-local"
+            name="createdAt"
+            id="createdAt"
+            onChange={(e) => {
+              setValue("createdAt", e.target.value);
+            }}
+            className="px-3 py-1 mx-2 bg-gray-800 text-gray-300 outline-none rounded-lg shadow-sm"
+          />
+        </div>
       )}
 
       {/* Submit Button */}
