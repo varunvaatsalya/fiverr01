@@ -209,6 +209,7 @@ export async function GET(req) {
           totalBoxes: { $ifNull: ["$totalBoxes", 0] },
           medicineType: 1,
           "minimumStockCount.godown": 1,
+          "maximumStockCount.godown": 1,
           stockOrderInfo: 1,
           latestSource: 1,
         },

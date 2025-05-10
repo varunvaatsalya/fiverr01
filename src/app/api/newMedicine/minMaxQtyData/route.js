@@ -37,6 +37,7 @@ export async function GET(req) {
         $match: {
           createdAt: { $gte: startDate, $lte: now },
           isDelivered: { $ne: null },
+          paymentMode: { $ne: "Credit-Others" },
         },
       },
       { $unwind: "$medicines" },

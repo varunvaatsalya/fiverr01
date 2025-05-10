@@ -5,27 +5,61 @@ import { CiCircleRemove } from "react-icons/ci";
 import { formatShortDateTime } from "../utils/date";
 import { FaCircleCheck } from "react-icons/fa6";
 import { RxCrossCircled } from "react-icons/rx";
+import { showError, showSuccess } from "../utils/toast";
 
 function StockOrder({ info, selectedType }) {
   const [selectedManfacturer, setSelectedManfacturer] = useState(null);
   const [contact, setContact] = useState("");
   const [message, setMessage] = useState("");
+  const [stockType, setStockType] = useState("belowMinstockCount");
+  const [vendorId, setVendorId] = useState("");
+  const [orderStatus, setOrderStatus] = useState("yetToBeOrdered");
   const [data, setData] = useState([]);
   const [allData, setAllData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchedMedicines, setSearchedMedicines] = useState([]);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
   const [lowStockManufacturers, setLowStockManufacturers] = useState(new Set());
+  const [availableSources, setAvailableSources] = useState([]);
+  const [updating, setUpdating] = useState(false);
 
-  useEffect(() => {
-    let query = "";
-    // if (selectedType === "manufacturer")
-    //   query = `?id=${selectedManfacturer._id}`;
-    fetch(`/api/orderStock${query}`)
+  async function handleUpdateCountLimit(type) {
+    setUpdating(true);
+    fetch(`/api/newMedicine/updateStockLimit?type=${type}`)
       .then((res) => res.json())
       .then((data) => {
+        if (data.success) {
+          showSuccess(data.message);
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else showError(data.message);
+        setUpdating(false);
+      });
+  }
+
+  useEffect(() => {
+    fetch(`/api/orderStock`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success) {
+          showError(data.message);
+        }
         setAllData(data.medicinesWithStock);
-        console.log(data.medicinesWithStock);
+        let sources = Array.from(
+          data?.medicinesWithStock
+            ?.filter((item) => item.latestSource !== null)
+            .reduce((map, { latestSource }) => {
+              if (!map.has(latestSource.id)) {
+                map.set(latestSource.id, latestSource);
+              }
+              return map;
+            }, new Map())
+            .values()
+        ).sort((a, b) => a.name.localeCompare(b.name));
+
+        setAvailableSources(sources);
+        console.log(data.medicinesWithStock, sources);
         // minimumStockCount?.godown - medicine.totalBoxes
         const lowStockSet = new Set();
         data.medicinesWithStock.forEach((med) => {
@@ -42,39 +76,60 @@ function StockOrder({ info, selectedType }) {
   }, []);
 
   useEffect(() => {
-    setFilteredData(data);
+    // setFilteredData(data);
+    filterData(data);
   }, [data]);
 
-  function filterData(type) {
+  useEffect(() => {
+    filterData();
+  }, [stockType, vendorId, orderStatus]);
+
+  function filterData() {
     let updatedData = data.filter((item) => {
-      if (type === "all") {
-        return true;
-      } else if (type === "belowMinstockCount") {
-        return (
-          item.minimumStockCount?.godown !== undefined &&
-          item.totalBoxes <= item.minimumStockCount.godown
-        );
-      } else if (type === "minStockCountNotSet") {
-        return (
-          !item.minimumStockCount || item.minimumStockCount.godown === undefined
-        );
-      } else if (type === "aboveMinstockCount") {
-        return (
-          item.minimumStockCount?.godown !== undefined &&
+      // Stock Type Filter
+      if (stockType === "belowMinstockCount") {
+        if (
+          item.minimumStockCount?.godown === undefined ||
           item.totalBoxes > item.minimumStockCount.godown
-        );
+        )
+          return false;
+      } else if (stockType === "minStockCountNotSet") {
+        if (item.minimumStockCount?.godown !== undefined) return false;
+      } else if (stockType === "aboveMinstockCount") {
+        if (
+          item.minimumStockCount?.godown === undefined ||
+          item.totalBoxes <= item.minimumStockCount.godown
+        )
+          return false;
       }
-      return false;
+
+      // Vendor Filter
+      if (vendorId === "null") {
+        if (item.latestSource !== null) return false;
+      } else if (vendorId && vendorId !== "") {
+        if (item.latestSource?.id !== vendorId) return false;
+      }
+
+      // Order Info Filter
+      if (orderStatus === "ordered") {
+        if (!item.stockOrderInfo) return false;
+      } else if (orderStatus === "yetToBeOrdered") {
+        if (item.stockOrderInfo) return false;
+      }
+
+      return true;
     });
+
     setFilteredData(updatedData);
   }
+
   function handleSearchMedicine(query) {
     if (query.trim() !== "") {
       const updatedSearchedMedicines = filteredData.filter(
         (medicine) =>
           medicine.latestSource?.name
             ?.toLowerCase()
-            .includes(query.toLowerCase())||
+            .includes(query.toLowerCase()) ||
           medicine.name.toLowerCase().includes(query.toLowerCase())
       );
       setSearchedMedicines(updatedSearchedMedicines);
@@ -89,7 +144,7 @@ function StockOrder({ info, selectedType }) {
   useEffect(() => {
     if (selectedType !== "manufacturer") {
       setData(allData);
-      setFilteredData(allData);
+      // setFilteredData(allData);
     } else {
       setData([]);
       setFilteredData([]);
@@ -245,7 +300,7 @@ Required Quantity: ${medicine.quantity} boxes
     }
   };
   return (
-    <div className="p-2 flex flex-col items-center">
+    <div className="px-2 flex flex-col items-center">
       {message && (
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
@@ -255,6 +310,7 @@ Required Quantity: ${medicine.quantity} boxes
       >
         {"Select " + selectedType}
       </label>
+
       <select
         id="medicine"
         onChange={(e) => {
@@ -263,7 +319,7 @@ Required Quantity: ${medicine.quantity} boxes
           );
           setSelectedManfacturer(Manufacturer);
         }}
-        className="mt-1 block px-4 py-3 text-white w-full md:w-3/4 mx-auto bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+        className="my-1 block px-4 py-3 text-white w-full md:w-3/4 mx-auto bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
       >
         <option value="">{"-- Select a " + selectedType + " --"}</option>
         {info.map((manufacturer, index) => (
@@ -273,29 +329,42 @@ Required Quantity: ${medicine.quantity} boxes
           </option>
         ))}
       </select>
+      <div className="flex justify-center items-center gap-2 w-full md:w-3/4 ">
+        <div className="font-semibold text-sm px-2 text-white">
+          Update Stock Limit Qty
+        </div>
+        <button
+          disabled={updating}
+          onClick={() => handleUpdateCountLimit("min")}
+          className="px-3 py-1 rounded-lg bg-red-500 hover:bg-red-700 disabled:bg-gray-500 font-semibold"
+        >
+          Min
+        </button>
+        <button
+          disabled={updating}
+          onClick={() => handleUpdateCountLimit("max")}
+          className="px-3 py-1 rounded-lg bg-blue-500 hover:bg-blue-700 disabled:bg-gray-500 text-white font-semibold"
+        >
+          Max
+        </button> 
+        <FaRegDotCircle className="size-4 animate-pulse text-red-600 ml-2" />
+        <div>Have to order this</div>
+      </div>
       {data.length > 0 && (
         <>
           <div className="w-full p-2">
-            <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex flex-wrap items-center p-1">
-              <div className="w-[5%] text-center">Sr No.</div>
-              <div className="w-[35%] text-center">Medicine</div>
-              <div className="w-[10%] text-end px-2">Req</div>
-              <div className="w-[5%] text-center">Min Amt</div>
-              <div className="w-[5%] text-center">Avl Amt</div>
-              <div className="w-[10%] text-center">Order Status</div>
-              <div className="w-[30%] text-center">Prev Source</div>
-            </div>
-            <div className="flex gap-2 items-center">
+            <div className="mb-1 flex flex-wrap justify-center gap-2 items-center">
               <input
                 type="text"
                 placeholder="Serch by Medicine or Vendor"
                 onChange={(e) => {
                   handleSearchMedicine(e.target.value);
                 }}
-                className="w-1/2 rounded-full bg-gray-700 outline-none focus:ring-2 focus:ring-gray-600 px-3 py-1"
+                className="w-1/5 rounded-full bg-gray-700 outline-none focus:ring-2 focus:ring-gray-600 px-3 py-1"
               />
               <select
-                onChange={(e) => filterData(e.target.value)}
+                value={stockType}
+                onChange={(e) => setStockType(e.target.value)}
                 className="bg-gray-700 rounded-lg text-white px-2 py-1"
               >
                 <option value="all">All</option>
@@ -308,6 +377,29 @@ Required Quantity: ${medicine.quantity} boxes
                 <option value="aboveMinstockCount">
                   Above Min stock Count
                 </option>
+              </select>
+              <select
+                value={vendorId}
+                onChange={(e) => setVendorId(e.target.value)}
+                className="bg-gray-700 rounded-lg text-white px-2 py-1"
+              >
+                <option value="">All Vendor</option>
+                <option value="null">Vendor Not Available</option>
+                {availableSources.map((vendor, index) => (
+                  <option key={index} value={vendor.id}>
+                    {vendor.type[0] + " | " + vendor.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={orderStatus}
+                onChange={(e) => setOrderStatus(e.target.value)}
+                className="bg-gray-700 rounded-lg text-white px-2 py-1"
+              >
+                <option value="">All type</option>
+                <option value="yetToBeOrdered">Yet to be order</option>
+                <option value="ordered">ordered</option>
               </select>
               <button
                 className="px-3 py-1 border border-gray-500 hover:bg-gray-600 rounded-full flex justify-center items-center gap-2"
@@ -336,6 +428,17 @@ Required Quantity: ${medicine.quantity} boxes
                 </button>
               )}
             </div>
+            <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex flex-wrap items-center p-1">
+              <div className="w-[5%] text-center">Sr No.</div>
+              <div className="w-[35%] text-center">Medicine</div>
+              <div className="w-[10%] text-end px-2">Req</div>
+              <div className="w-[5%] text-center">Min Amt</div>
+              <div className="w-[5%] text-center">Avl Amt</div>
+              <div className="w-[5%] text-center">Max Amt</div>
+              <div className="w-[10%] text-center">Order Status</div>
+              <div className="w-[25%] text-center">Prev Source</div>
+            </div>
+
             <div className="px-2 max-h-[70vh] overflow-y-auto my-2">
               {searchedMedicines.map((details, index) => (
                 <div
@@ -350,9 +453,9 @@ Required Quantity: ${medicine.quantity} boxes
                     {details.name}
                   </div>
                   <div className="w-[10%] flex justify-end gap-2 items-center px-2">
-                    {(!details.minimumStockCount?.godown ||
-                      details.minimumStockCount?.godown - details.totalBoxes >=
-                        0) && (
+                    {(details.minimumStockCount?.godown === undefined ||
+                      details.minimumStockCount?.godown >=
+                        details.totalBoxes) && (
                       <FaRegDotCircle className="size-4 animate-pulse text-red-600" />
                     )}
                     <input
@@ -366,11 +469,16 @@ Required Quantity: ${medicine.quantity} boxes
                     />
                   </div>
                   <div className="w-[5%] text-center">
-                    {details.minimumStockCount?.godown
+                    {details.minimumStockCount?.godown !== undefined
                       ? details.minimumStockCount.godown
                       : "N/A"}
                   </div>
                   <div className="w-[5%] text-center">{details.totalBoxes}</div>
+                  <div className="w-[5%] text-center">
+                    {details.maximumStockCount?.godown !== undefined
+                      ? details.maximumStockCount.godown
+                      : "N/A"}
+                  </div>
                   <div className="w-[10%] text-center">
                     {details.stockOrderInfo ? (
                       <>
@@ -396,7 +504,7 @@ Required Quantity: ${medicine.quantity} boxes
                           details.latestSource?.name
                         : ""
                     }
-                    className="w-[30%] text-nowrap line-clamp-1 text-center"
+                    className="w-[25%] text-nowrap line-clamp-1 text-center"
                   >
                     {details.latestSource ? (
                       <>
@@ -428,7 +536,7 @@ Required Quantity: ${medicine.quantity} boxes
                     <div className="w-[5%] text-center">{index + 1}</div>
                     <div className="w-[50%] text-center">{details.name}</div>
                     <div className="w-[15%] text-center">
-                      {details.minimumStockCount?.godown
+                      {details.minimumStockCount?.godown !== undefined
                         ? details.minimumStockCount.godown
                         : "N/A"}
                     </div>

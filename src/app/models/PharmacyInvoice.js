@@ -101,7 +101,6 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
   price: {
     discount: {
       type: Number,
