@@ -22,6 +22,7 @@ function StockOrder({ info, selectedType }) {
   const [lowStockManufacturers, setLowStockManufacturers] = useState(new Set());
   const [availableSources, setAvailableSources] = useState([]);
   const [updating, setUpdating] = useState(false);
+  const [isRemoveAllZero, setIsRemoveAllZero] = useState(false);
 
   async function handleUpdateCountLimit(type) {
     setUpdating(true);
@@ -82,7 +83,7 @@ function StockOrder({ info, selectedType }) {
 
   useEffect(() => {
     filterData();
-  }, [stockType, vendorId, orderStatus]);
+  }, [stockType, vendorId, orderStatus, isRemoveAllZero]);
 
   function filterData() {
     let updatedData = data.filter((item) => {
@@ -115,6 +116,18 @@ function StockOrder({ info, selectedType }) {
         if (!item.stockOrderInfo) return false;
       } else if (orderStatus === "yetToBeOrdered") {
         if (item.stockOrderInfo) return false;
+      }
+
+      if (isRemoveAllZero) {
+        const min = item.minimumStockCount?.godown;
+        const max = item.maximumStockCount?.godown;
+        const total = item.totalBoxes;
+
+        const isInvalidMin = min === undefined || min === null || min === 0;
+        const isInvalidMax = max === undefined || max === null || max === 0;
+        const isInvalidTotal = total === 0;
+
+        if (isInvalidMin && isInvalidMax && isInvalidTotal) return false;
       }
 
       return true;
@@ -443,6 +456,17 @@ Required Quantity: ${medicine.quantity} boxes
                   <div className="font-semibold">Clear</div>
                 </button>
               )}
+              <input
+                type="checkbox"
+                name="removeAllZero"
+                id="removeAllZero"
+                checked={isRemoveAllZero}
+                onChange={() => {
+                  setIsRemoveAllZero(!isRemoveAllZero);
+                }}
+                className="size-4"
+              />
+              <label htmlFor="removeAllZero">Remove All Zero Med</label>
             </div>
             <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex flex-wrap items-center p-1">
               <div className="w-[5%] text-center">Sr No.</div>
