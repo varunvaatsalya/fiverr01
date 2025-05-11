@@ -185,8 +185,11 @@ function StockOrder({ info, selectedType }) {
           ...medicine,
           quantity:
             medicine.minimumStockCount &&
-            medicine.minimumStockCount?.godown - medicine.totalBoxes >= 0
-              ? medicine.minimumStockCount?.godown - medicine.totalBoxes
+            medicine.maximumStockCount &&
+            medicine.minimumStockCount?.godown >= medicine.totalBoxes &&
+            medicine.maximumStockCount?.godown >=
+              medicine.minimumStockCount?.godown
+              ? medicine.maximumStockCount?.godown - medicine.totalBoxes
               : "",
         },
       ]);
@@ -217,8 +220,10 @@ function StockOrder({ info, selectedType }) {
       ...medicine,
       quantity:
         medicine.minimumStockCount &&
-        medicine.minimumStockCount?.godown - medicine.totalBoxes >= 0
-          ? medicine.minimumStockCount?.godown - medicine.totalBoxes
+        medicine.maximumStockCount &&
+        medicine.minimumStockCount?.godown >= medicine.totalBoxes &&
+        medicine.maximumStockCount?.godown >= medicine.minimumStockCount?.godown
+          ? medicine.maximumStockCount?.godown - medicine.totalBoxes
           : "",
     }));
     setSelectedMedicines(newSelectedMedicines);
@@ -257,6 +262,17 @@ function StockOrder({ info, selectedType }) {
   }
 
   const sendWhatsAppMessage = async () => {
+    if (
+      selectedMedicines.some(
+        (medicine) =>
+          !medicine.quantity ||
+          medicine.quantity === undefined ||
+          medicine.quantity <= 0
+      )
+    ) {
+      showError("Please Select valid quntity");
+      return;
+    }
     let message = `Hello,
 
 Here is the list of medicines and the required quantities:
@@ -432,9 +448,9 @@ Required Quantity: ${medicine.quantity} boxes
               <div className="w-[5%] text-center">Sr No.</div>
               <div className="w-[35%] text-center">Medicine</div>
               <div className="w-[10%] text-end px-2">Req</div>
-              <div className="w-[5%] text-center">Min Amt</div>
-              <div className="w-[5%] text-center">Avl Amt</div>
-              <div className="w-[5%] text-center">Max Amt</div>
+              <div className="w-[5%] text-center">Min Qty</div>
+              <div className="w-[5%] text-center">Avl Qty</div>
+              <div className="w-[5%] text-center">Max Qty</div>
               <div className="w-[10%] text-center">Order Status</div>
               <div className="w-[25%] text-center">Prev Source</div>
             </div>
@@ -535,12 +551,17 @@ Required Quantity: ${medicine.quantity} boxes
                   >
                     <div className="w-[5%] text-center">{index + 1}</div>
                     <div className="w-[50%] text-center">{details.name}</div>
-                    <div className="w-[15%] text-center">
+                    <div className="w-[10%] text-center">
                       {details.minimumStockCount?.godown !== undefined
                         ? details.minimumStockCount.godown
                         : "N/A"}
                     </div>
-                    <div className="w-[15%] text-center">
+                    <div className="w-[10%] text-center">
+                      {details.maximumStockCount?.godown !== undefined
+                        ? details.maximumStockCount.godown
+                        : "N/A"}
+                    </div>
+                    <div className="w-[10%] text-center">
                       {details.totalBoxes}
                     </div>
                     <div className="w-[15%] flex justify-center gap-2 items-center">
