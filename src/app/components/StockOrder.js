@@ -338,15 +338,15 @@ Required Quantity: ${medicine.quantity} boxes
           onClick={() => handleUpdateCountLimit("min")}
           className="px-3 py-1 rounded-lg bg-red-500 hover:bg-red-700 disabled:bg-gray-500 font-semibold"
         >
-          Min
+          {updating ? "Updating..." : "Min"}
         </button>
         <button
           disabled={updating}
           onClick={() => handleUpdateCountLimit("max")}
           className="px-3 py-1 rounded-lg bg-blue-500 hover:bg-blue-700 disabled:bg-gray-500 text-white font-semibold"
         >
-          Max
-        </button> 
+          {updating ? "Updating..." : "Max"}
+        </button>
         <FaRegDotCircle className="size-4 animate-pulse text-red-600 ml-2" />
         <div>Have to order this</div>
       </div>
@@ -398,7 +398,7 @@ Required Quantity: ${medicine.quantity} boxes
                 className="bg-gray-700 rounded-lg text-white px-2 py-1"
               >
                 <option value="">All type</option>
-                <option value="yetToBeOrdered">Yet to be order</option>
+                <option value="yetToBeOrdered">Yet to order</option>
                 <option value="ordered">ordered</option>
               </select>
               <button

@@ -181,7 +181,7 @@ function Page() {
                   className="py-2 px-4 bg-gray-800 rounded-lg shadow-md flex justify-around items-center"
                 >
                   <div>
-                    <p className="font-semibold">{user.role.toUpperCase()}</p>
+                    <p className="font-semibold text-white">{user.role.toUpperCase()}</p>
                     <p className="text-sm text-gray-400">
                       {user.lastUserEmail}
                     </p>

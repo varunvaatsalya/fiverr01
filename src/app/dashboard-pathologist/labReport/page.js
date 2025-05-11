@@ -1,6 +1,6 @@
 "use client";
+import Navbar from "../../components/Navbar";
 import React, { useEffect, useState } from "react";
-
 
 const testFormat = {
   items: [
@@ -122,9 +122,10 @@ function Page() {
   };
 
   return (
-    <div className="bg-slate-950 min-h-screen w-full py-3">
-      <div className="w-[95%] md:w-4/5 lg:w-3/4 mx-auto rounded-xl bg-slate-800">
-        <h1 className="font-bold text-2xl text-center py-3 border-b-2 border-gray-950 text-white">
+    <div className="bg-gray-400 min-h-screen w-full">
+      <Navbar route={["Pathology", "Lab Report"]} />
+      <div className="w-[95%] md:w-4/5 lg:w-3/4 mx-auto rounded-xl bg-slate-800 my-2">
+        <h1 className="font-bold text-2xl text-center py-3 border-b-2 border-gray-400 text-white">
           Upload Lab Results
         </h1>
         {message && (
@@ -200,7 +201,7 @@ function Page() {
                           handleResultChange(index, e.target.value)
                         }
                         placeholder="Enter result"
-                        className="bg-gray-400 text-black px-2"
+                        className="bg-gray-600 text-gray-100 font-medium px-2 rounded outline-none"
                       />
                     </td>
                     <td>{test.range}</td>
@@ -213,13 +214,41 @@ function Page() {
             </tbody>
           </table>
           {selectedTest && (
-            <button
-              type="submit"
-              className="px-3 py-2 mx-auto my-3 flex items-center justify-center gap-2 bg-red-500 rounded-lg font-semibold cursor-pointer text-white"
-              disabled={submitting}
-            >
-              {submitting ? "Submitting..." : "Submit Results"}
-            </button>
+            <>
+              <div className="text-blue-500 text-start px-4">
+                <span
+                  className="hover:underline underline-offset-2 text-sm cursor-pointer"
+                  onClick={() => {
+                    setIsAddInfoOpen(!isAddInfoOpen);
+                  }}
+                >
+                  additional Info
+                </span>
+              </div>
+              {isAddInfoOpen && (
+                <div className="w-full px-4">
+                  <label for="createdAt" className="text-gray-200">
+                    Created date
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="createdAt"
+                    id="createdAt"
+                    onChange={(e) => {
+                      setCreatedAt(e.target.value);
+                    }}
+                    className="px-3 py-1 mx-2 bg-gray-700 text-gray-300 outline-none rounded-lg shadow-sm"
+                  />
+                </div>
+              )}
+              <button
+                type="submit"
+                className="px-3 py-2 mx-auto my-3 flex items-center justify-center gap-2 bg-red-500 rounded-lg font-semibold cursor-pointer text-white"
+                disabled={submitting}
+              >
+                {submitting ? "Submitting..." : "Submit Results"}
+              </button>
+            </>
           )}
         </form>
       </div>

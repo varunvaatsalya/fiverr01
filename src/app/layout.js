@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
+import NetworkWatcher from "./components/NetworkWatcher";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,9 +25,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100`}
       >
-        {/* <div className="fixed top-2 z-50 right-3 py-2 px-4 rounded-full bg-red-600 text-white">
-          Site is going to maintainence
-        </div> */}
+        <NetworkWatcher />
         {children}
         <ToastContainer
           position="top-center"
