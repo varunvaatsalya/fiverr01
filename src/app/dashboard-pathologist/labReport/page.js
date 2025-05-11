@@ -2,13 +2,13 @@
 import Navbar from "../../components/Navbar";
 import React, { useEffect, useState } from "react";
 
-const testFormat = {
-  items: [
-    { name: "hemoglobine", range: "200 - 300", unit: "kg/ml" },
-    { name: "wbc", range: "50 - 100", unit: "mg/ml" },
-    { name: "iron", range: "150 - 300", unit: "g/ml" },
-  ],
-};
+// const testFormat = {
+//   items: [
+//     { name: "hemoglobine", range: "200 - 300", unit: "kg/ml" },
+//     { name: "wbc", range: "50 - 100", unit: "mg/ml" },
+//     { name: "iron", range: "150 - 300", unit: "g/ml" },
+//   ],
+// };
 
 function Page() {
   const [tests, setTests] = useState([]);
@@ -19,6 +19,8 @@ function Page() {
   const [testFormat, setTestFormat] = useState(null);
   const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(null);
+  const [createdAt, setCreatedAt] = useState("");
+  const [isAddInfoOpen, setIsAddInfoOpen] = useState(false);
 
   const [results, setResults] = useState();
 
@@ -53,11 +55,11 @@ function Page() {
 
     // Set the flattened tests with prescription IDs
     setAllTests(alltest);
-    console.log(alltest);
+    // console.log(alltest);
   }, [selectedPatient]);
 
   useEffect(() => {
-    console.log(selectedTest?.test);
+    // console.log(selectedTest?.test);
     async function fetchData() {
       try {
         let result = await fetch(`/api/pathologyLabTest?id=${selectedTest}`);
@@ -70,7 +72,7 @@ function Page() {
         console.log("error: ", err);
       }
     }
-    fetchData();
+    if (selectedTest) fetchData();
   }, [selectedTest]);
 
   const handleResultChange = (index, value) => {
@@ -82,7 +84,12 @@ function Page() {
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (createdAt) {
+      let confirm = window.confirm("Are you sure you want to change the date?");
+      if (!confirm) {
+        return;
+      }
+    }
     // Collecting data to submit
     const testResults = testFormat.items.map((test, index) => ({
       name: test.name,
@@ -101,6 +108,7 @@ function Page() {
           testResults,
           selectedTest,
           selectedPrescription,
+          resultDate: createdAt,
         }),
       });
 
@@ -123,7 +131,7 @@ function Page() {
 
   return (
     <div className="bg-gray-400 min-h-screen w-full">
-      <Navbar route={["Pathology", "Lab Report"]} />
+      <Navbar route={["Pathology", "Lab Report"]}/>
       <div className="w-[95%] md:w-4/5 lg:w-3/4 mx-auto rounded-xl bg-slate-800 my-2">
         <h1 className="font-bold text-2xl text-center py-3 border-b-2 border-gray-400 text-white">
           Upload Lab Results

@@ -55,11 +55,11 @@ function Page() {
 
     // Set the flattened tests with prescription IDs
     setAllTests(alltest);
-    console.log(alltest);
+    // console.log(alltest);
   }, [selectedPatient]);
 
   useEffect(() => {
-    console.log(selectedTest?.test);
+    // console.log(selectedTest?.test);
     async function fetchData() {
       try {
         let result = await fetch(`/api/pathologyLabTest?id=${selectedTest}`);
@@ -72,7 +72,7 @@ function Page() {
         console.log("error: ", err);
       }
     }
-    fetchData();
+    if (selectedTest) fetchData();
   }, [selectedTest]);
 
   const handleResultChange = (index, value) => {
