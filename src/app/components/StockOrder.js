@@ -377,7 +377,7 @@ Required Quantity: ${medicine.quantity} boxes
           {updating ? "Updating..." : "Max"}
         </button>
         <FaRegDotCircle className="size-4 animate-pulse text-red-600 ml-2" />
-        <div>Have to order this</div>
+        <div className="text-white">Have to order this</div>
       </div>
       {data.length > 0 && (
         <>
@@ -466,7 +466,9 @@ Required Quantity: ${medicine.quantity} boxes
                 }}
                 className="size-4"
               />
-              <label htmlFor="removeAllZero">Remove All Zero Med</label>
+              <label htmlFor="removeAllZero" className="text-white">
+                Remove All Zero Med
+              </label>
             </div>
             <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex flex-wrap items-center p-1">
               <div className="w-[5%] text-center">Sr No.</div>
@@ -563,10 +565,20 @@ Required Quantity: ${medicine.quantity} boxes
                 </div>
               ))}
             </div>
-            <div className="rounded-xl p-2 bg-gray-600 my-4">
-              <div className="text-center font-semibold text-gray-400 text-lg">
+            <div className="rounded-xl p-2 bg-gray-700 my-4">
+              <div className="text-center font-semibold text-gray-100 text-lg">
                 Selected Medicines
               </div>
+              {selectedMedicines.length > 0 && (
+                <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex flex-wrap items-center p-1">
+                  <div className="w-[5%] text-center">Sr No.</div>
+                  <div className="w-[50%] text-center">Medicine</div>
+                  <div className="w-[10%] text-center">Min Qty</div>
+                  <div className="w-[10%] text-center">Avl Qty</div>
+                  <div className="w-[10%] text-center">Max Qty</div>
+                  <div className="w-[15%] text-center">Qunatity</div>
+                </div>
+              )}
               <div className="px-2 my-2 max-h-[50vh] overflow-y-auto">
                 {selectedMedicines.map((details, index) => (
                   <div
