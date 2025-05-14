@@ -188,15 +188,30 @@ export async function POST(req) {
     let savedStocks = [];
 
     for (const stock of stocks) {
-      const {
-        medicine,
-        batchName,
-        mfgDate,
-        expiryDate,
-        quantity,
-        purchasePrice,
-        sellingPrice,
-      } = stock;
+      // const {
+      //   medicine,
+      //   batchName,
+      //   mfgDate,
+      //   expiryDate,
+      //   quantity,
+      //   offer,
+      //   sellingPrice,
+      //   purchasePrice,
+      //   discount,
+      //   tax,
+      // } = stock;
+
+      let medicine = stock.medicine || "";
+      let batchName = stock.batchName || "N/A";
+      let mfgDate = stock.mfgDate;
+      let expiryDate = stock.expiryDate;
+      let quantity = parseFloat(stock.quantity || 0);
+      let offer = parseFloat(stock.offer || 0);
+      let sellingPrice = parseFloat(stock.sellingPrice || 0);
+      let purchasePrice = parseFloat(stock.purchasePrice || 0); // purchase rate (raw)
+      let discount = parseFloat(stock.discount || 0);
+      let sgst = parseFloat(stock.sgst || 0);
+      let cgst = parseFloat(stock.cgst || 0);
 
       if (purchasePrice > sellingPrice) {
         savedStocks.push({
@@ -219,27 +234,61 @@ export async function POST(req) {
       let updatedList = medicineData.latestSource || [];
 
       let stripsPerBox = medicineData.packetSize.strips;
-      let boxes = Math.floor(quantity / stripsPerBox);
-      let extra = quantity % stripsPerBox;
+      let totalQuantity = quantity + offer;
+      let boxes = Math.floor(totalQuantity / stripsPerBox);
+      let extra = totalQuantity % stripsPerBox;
+
+      let baseAmount = quantity * purchasePrice;
+
+      // Step 3: Apply discount
+      let discountAmount = baseAmount * (discount / 100);
+      let discountedAmount = baseAmount - discountAmount;
+
+      // Step 4: Apply GST
+      let totalGSTPercent = sgst + cgst;
+      let gstAmount = discountedAmount * (totalGSTPercent / 100);
+      let finalTotalAmount = discountedAmount + gstAmount;
+
+      // Step 5: Net Purchase Rate (includes offer in denominator)
+      let totalUnitsReceived = quantity + offer;
+      let netPurchaseRate =
+        totalUnitsReceived > 0
+          ? parseFloat((finalTotalAmount / totalUnitsReceived).toFixed(2))
+          : 0;
+
+      // Step 6: Cost Price per unit (excluding offer)
+      let costPrice =
+        quantity > 0 ? parseFloat((finalTotalAmount / quantity).toFixed(2)) : 0;
+
+      // Step 7: Total Amount
+      let totalAmount = parseFloat((costPrice * quantity).toFixed(2));
 
       let newMedicineStock = new Stock({
         medicine,
         batchName,
         mfgDate,
         expiryDate,
-        purchasePrice,
+        purchaseRate: purchasePrice,
+        purchasePrice: netPurchaseRate,
+        costPrice,
         sellingPrice,
+        totalAmount,
+        discount,
+        taxes: {
+          cgst,
+          sgst,
+        },
         invoiceId: invoiceNumber,
-        totalAmount: quantity * purchasePrice,
         quantity: {
           boxes,
           extra,
-          totalStrips: quantity,
+          totalStrips: totalQuantity,
         },
         initialQuantity: {
           boxes,
           extra,
-          totalStrips: quantity,
+          offer,
+          totalStrips: totalQuantity,
         },
       });
       invoice.stocks.push({
@@ -325,6 +374,10 @@ export async function PUT(req) {
   } = await req.json();
 
   try {
+    return NextResponse.json(
+      { message: "Service Temporarily unavailable!", success: false },
+      { status: 401 }
+    );
     let medicineStock = await Stock.findById(stockId);
     if (!medicineStock) {
       return NextResponse.json(

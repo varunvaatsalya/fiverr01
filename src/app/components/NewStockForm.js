@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
+import { RxCross1 } from "react-icons/rx";
 import Loading from "./Loading";
 
 function NewStockForm({ medicines, ids }) {
@@ -56,10 +57,9 @@ function NewStockForm({ medicines, ids }) {
       setSubmitting(false);
     }
   }
-
   return (
     <div className="w-full px-2">
-      <div className="flex justify-between items-center gap-2 flex-wrap my-1">
+      <div className="flex justify-between items-center gap-2 flex-wrap my-1 border-b-2 border-gray-400">
         <div
           className="bg-blue-800 cursor-pointer hover:bg-blue-700 text-white rounded-lg px-3 py-1"
           onClick={() =>
@@ -68,14 +68,26 @@ function NewStockForm({ medicines, ids }) {
               batchName: "",
               mfgDate: "",
               expiryDate: "",
-              quantity: "",
-              extra: "",
-              sellingPrice: "",
-              purchasePrice: "",
+              quantity: null,
+              offer: null,
+              sellingPrice: null,
+              purchasePrice: null,
+              sgst: null,
+              cgst: null,
+              discount: null,
             })
           }
         >
           Add New Stock
+        </div>
+        <div className="text-sm">
+          <div className="text-center text-red-500">
+            *If the packetSize details do not match then contact the admin.
+          </div>
+          <div className="text-center text-red-500">
+            *Please carefully set the price of a single unit/pcs/strip/qty of
+            medicines.
+          </div>
         </div>
         <select
           {...register("invoiceNumber", { required: true })}
@@ -120,36 +132,77 @@ function NewStockForm({ medicines, ids }) {
       <form onSubmit={handleSubmit(onSubmit)} className="px-2">
         {fields.length > 0 && (
           <>
-            <div className="text-center text-red-500">
-              *If the packetSize details do not match then contact the admin.
-            </div>
             <div className="flex flex-wrap items-center gap-2 my-2 bg-gray-800 text-white rounded-lg py-1 px-2">
               <div className="flex-1 min-w-28 text-center">Medicine</div>
               <div className="flex-1 min-w-28 text-center">Batch</div>
               <div className="flex-1 min-w-28 text-center">Mfg</div>
               <div className="flex-1 min-w-28 text-center">Expiry</div>
-              <div className="flex-1 min-w-28 text-center">
-                Total Qty or Pcs
-              </div>
-              <div className="flex-1 min-w-28 text-center">Purchase Price</div>
+              <div className="flex-1 min-w-28 text-center">Qty or Pcs</div>
+              <div className="flex-1 min-w-28 text-center">Offer/Extra</div>
               <div className="flex-1 min-w-28 text-center">MRP</div>
-              <div className="px-3">Action</div>
+              <div className="flex-1 min-w-28 text-center">Rate</div>
+              <div className="flex-1 min-w-28 text-center">
+                {"Discount (%)"}
+              </div>
+              <div className="flex-1 min-w-28 text-center">{"GST (%)"}</div>
+              <div className="w-6"></div>
             </div>
           </>
         )}
         {fields.map((field, index) => {
           const medicineId = stocks[index]?.medicine;
-          const medicineQty = stocks[index]?.quantity;
-          const medicinePurchasePrice = stocks[index]?.purchasePrice;
+
+          let quantity = parseFloat(stocks[index]?.quantity || 0);
+          let offer = parseFloat(stocks[index]?.offer || 0);
+          let purchasePrice = parseFloat(stocks[index]?.purchasePrice || 0);
+          let discount = parseFloat(stocks[index]?.discount || 0);
+          let sgst = parseFloat(stocks[index]?.sgst || 0);
+          let cgst = parseFloat(stocks[index]?.cgst || 0);
+
           const medicine = medicines.find((med) => med._id === medicineId);
           const medicineIsTablets = medicine?.isTablets;
           const packetSize = medicine?.packetSize;
+
+          let baseAmount = quantity * purchasePrice;
+
+          // Discount calculation
+          let discountAmount = baseAmount * (discount / 100);
+          let discountedAmount = baseAmount - discountAmount;
+
+          // GST calculation
+          let totalGSTPercent = sgst + cgst;
+          let gstAmount = discountedAmount * (totalGSTPercent / 100);
+
+          // Final amount paid to vendor
+          let filedTotalAmount = discountedAmount + gstAmount;
+
+          // Net Purchase Rate (quantity + offer)
+          let totalUnitsReceived = quantity + offer;
+          let netPurchaseRate =
+            totalUnitsReceived > 0
+              ? parseFloat((filedTotalAmount / totalUnitsReceived).toFixed(2))
+              : 0;
+
+          // Cost Price per strip (excluding offer)
+          let costPriceBeforeTax =
+            quantity > 0 ? discountedAmount / quantity : 0;
+          let costPrice = quantity > 0 ? filedTotalAmount / quantity : 0;
+
+          // Total Amount (based on cost price and quantity)
+          let totalAmountBeforeTax = parseFloat(
+            (costPriceBeforeTax * quantity).toFixed(2)
+          );
+          let totalAmount = parseFloat((costPrice * quantity).toFixed(2));
+
           return (
             <div
               key={field.id}
               className=" my-2 bg-gray-400 text-white rounded-lg py-1 px-2"
             >
-              <div key={field.id} className="flex flex-wrap items-center gap-2">
+              <div
+                key={field.id}
+                className="flex flex-wrap items-center text-sm gap-1"
+              >
                 <select
                   id="medicine"
                   {...register(`stocks.${index}.medicine`, {
@@ -157,7 +210,7 @@ function NewStockForm({ medicines, ids }) {
                   })}
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
                 >
-                  <option value="">-- Select a Medicine --</option>
+                  <option value="">-- Medicine --</option>
                   {medicines.map((medicine, index) => (
                     <option key={index} value={medicine._id}>
                       {medicine.name}
@@ -171,7 +224,7 @@ function NewStockForm({ medicines, ids }) {
                     required: "Batch Name is required",
                   })}
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
-                  placeholder="Enter Batch Name"
+                  placeholder="Batch"
                 />
                 <input
                   type="date"
@@ -198,12 +251,10 @@ function NewStockForm({ medicines, ids }) {
                 />
                 <input
                   type="number"
-                  step="any"
-                  {...register(`stocks.${index}.purchasePrice`, {
-                    required: "Purchase Price is required",
-                  })}
-                  placeholder="Purchase Price"
+                  {...register(`stocks.${index}.offer`)}
+                  placeholder="Offer/Deal"
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  min={0}
                 />
                 <input
                   type="number"
@@ -214,37 +265,85 @@ function NewStockForm({ medicines, ids }) {
                   placeholder="MRP"
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
                 />
-
+                <input
+                  type="number"
+                  step="any"
+                  {...register(`stocks.${index}.purchasePrice`, {
+                    required: "Purchase Price is required",
+                  })}
+                  placeholder="Purchase Rate"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                />
+                <input
+                  type="number"
+                  step="any"
+                  min={0}
+                  max={100}
+                  {...register(`stocks.${index}.discount`)}
+                  placeholder="Discount in %"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                />
+                <div className="flex justify-center gap-1 flex-1 min-w-28">
+                  <input
+                    type="number"
+                    step="any"
+                    min={0}
+                    max={100}
+                    {...register(`stocks.${index}.sgst`)}
+                    placeholder="SGST"
+                    className="w-full px-1 h-8 rounded-lg bg-gray-600"
+                  />
+                  <input
+                    type="number"
+                    step="any"
+                    min={0}
+                    max={100}
+                    {...register(`stocks.${index}.cgst`)}
+                    placeholder="CGST"
+                    className="w-full px-1 h-8 rounded-lg bg-gray-600"
+                  />
+                </div>
                 <button
                   type="button"
                   className="text-red-700 hover:text-red-900"
                   onClick={() => remove(index)}
                 >
-                  Remove
+                  <RxCross1 />
                 </button>
               </div>
-              <div className="flex justify-between px-3">
+              <div className="flex justify-between px-3 pt-1 text-sm font-semibold">
                 <div className="text-red-700">
                   Packet Size: {packetSize?.strips || 0} Qty/Boxes{" "}
                   {medicineIsTablets
                     ? `, ${packetSize?.tabletsPerStrip || 1} Tablets/Strip`
                     : ""}
                 </div>
+                <div className="text-center text-green-700">
+                  {netPurchaseRate + "/- Net Purchase Rate"}
+                </div>
                 <div className="text-center text-red-700">
-                  {medicineQty * medicinePurchasePrice + " Rs COST PRICE"}
+                  {parseFloat(costPrice?.toFixed(2)) + "/- COST PRICE"}
+                </div>
+                <div className="text-center text-red-700">
+                  {"Total: " +
+                    totalAmountBeforeTax +
+                    "  +  GST " +
+                    parseFloat(gstAmount.toFixed(2)) +
+                    "/- " +
+                    " = " +
+                    totalAmount}
                 </div>
                 <div className="text-red-700">
-                  Total: {Math.floor(medicineQty / packetSize?.strips) || 0}{" "}
-                  Boxes {Number(medicineQty % packetSize?.strips) || 0} Extras
+                  Total:{" "}
+                  {Math.floor(totalUnitsReceived / packetSize?.strips) || 0}{" "}
+                  Boxes {Number(totalUnitsReceived % packetSize?.strips) || 0}{" "}
+                  Extras
                 </div>
               </div>
             </div>
           );
         })}
-        <div className="text-center text-red-500">
-          *Please carefully set the price of a single unit/pcs/strip/qty of
-          medicines.
-        </div>
+
         <div className="flex justify-end">
           {fields.length > 0 && (
             <button
