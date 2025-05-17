@@ -188,8 +188,13 @@ export async function POST(req) {
   //   );
   // }
 
-  const { requestedMedicine, selectedPatient, selectedPaymentMode, discount } =
-    await req.json();
+  const {
+    requestedMedicine,
+    selectedPatient,
+    selectedPaymentMode,
+    discount,
+    discountToAllMedicine,
+  } = await req.json();
 
   try {
     const result = [];
@@ -292,13 +297,15 @@ export async function POST(req) {
         let totalprice =
           (stripsAllocated + tabletsAllocated / packetSize.tabletsPerStrip) *
           sellingPrice;
-        // Record allocation
-        if (!sellingPrice || !purchasePrice || sellingPrice < purchasePrice)
-          isDiscountApplicable = false;
 
-        if (isDiscountApplicable) {
-          isDiscountApplicable =
-            ((sellingPrice - purchasePrice) / sellingPrice) * 100 > 10;
+        if (!discountToAllMedicine) {
+          if (!sellingPrice || !purchasePrice || sellingPrice < purchasePrice)
+            isDiscountApplicable = false;
+
+          if (isDiscountApplicable) {
+            isDiscountApplicable =
+              ((sellingPrice - purchasePrice) / sellingPrice) * 100 > 10;
+          }
         }
 
         allocatedQuantities.push({

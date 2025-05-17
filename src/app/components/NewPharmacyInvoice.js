@@ -56,10 +56,12 @@ import { IoIosArrowDropdown, IoIosArrowDropright } from "react-icons/io";
 import { IoAddCircle, IoSearchOutline } from "react-icons/io5";
 import { RxCross2 } from "react-icons/rx";
 import Loading from "./Loading";
+import ToggleSwitch from "./ToggleSwitch";
 import { FaCircleDot } from "react-icons/fa6";
 import { formatDateToIST } from "../utils/date";
 import { showError, showInfo, showSuccess } from "../utils/toast";
 import { RiDiscountPercentFill } from "react-icons/ri";
+import { FaAngleDown, FaAngleRight } from "react-icons/fa";
 
 function NewPharmacyInvoice({
   setNewInvoiceSection,
@@ -85,6 +87,7 @@ function NewPharmacyInvoice({
   const [submitting, setSubmitting] = useState(false);
   const [searchedPatientsList, setSearchedPatientsList] = useState([]);
   const [searchedMedicines, setSearchedMedicines] = useState([]);
+  const [discountToAllMedicine, setDiscountToAllMedicine] = useState(true);
   const [selectedPatientList, setSelectedPatientList] = useState({
     type: "Latest",
     data: patients,
@@ -172,6 +175,7 @@ function NewPharmacyInvoice({
 
   const handleCheckboxChange = (medicine) => {
     setRequestedMedicineDetails(null);
+    setDiscount("");
     if (selectedMedicines.some((m) => m._id === medicine._id)) {
       setSelectedMedicines(
         selectedMedicines.filter((m) => m._id !== medicine._id)
@@ -189,6 +193,7 @@ function NewPharmacyInvoice({
 
   const handleInputChange = (medicineId, field, value) => {
     setRequestedMedicineDetails(null);
+    setDiscount("");
     setSelectedMedicines((prevSelectedMedicines) =>
       prevSelectedMedicines.map((m) =>
         m._id === medicineId
@@ -200,6 +205,7 @@ function NewPharmacyInvoice({
 
   const removeMedicine = (id) => {
     setRequestedMedicineDetails(null);
+    setDiscount("");
     setSelectedMedicines(selectedMedicines.filter((m) => m._id !== id));
   };
 
@@ -233,7 +239,10 @@ function NewPharmacyInvoice({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ requestedMedicine: data }),
+          body: JSON.stringify({
+            requestedMedicine: data,
+            discountToAllMedicine,
+          }),
         });
         result = await result.json();
         if (result.success) {
@@ -286,6 +295,7 @@ function NewPharmacyInvoice({
             selectedPatient: selectedPatient._id,
             selectedPaymentMode,
             discount,
+            discountToAllMedicine,
           }),
         });
         result = await result.json();
@@ -692,21 +702,28 @@ function NewPharmacyInvoice({
                         onClick={() => {
                           setActiveIndex(activeIndex === index ? null : index);
                         }}
-                        className="w-full flex items-center px-2 cursor-pointer hover:bg-gray-800"
+                        className="w-full flex items-center px-2 cursor-pointer hover:bg-gray-900"
                       >
-                        <FaCircleDot
-                          className={`w-[5%] ${
-                            medicine.status === "Fulfilled"
-                              ? "text-green-500"
-                              : medicine.status === "Insufficient Stock"
-                              ? "text-yellow-500"
-                              : "text-red-500"
-                          }`}
-                        />
+                        <div className="w-[5%] flex gap-0.5 items-center">
+                          {activeIndex === index ? (
+                            <FaAngleDown className="size-3 text-gray-500" />
+                          ) : (
+                            <FaAngleRight className="size-3 text-gray-500" />
+                          )}
+                          <FaCircleDot
+                            className={`size-4 ${
+                              medicine.status === "Fulfilled"
+                                ? "text-green-500"
+                                : medicine.status === "Insufficient Stock"
+                                ? "text-yellow-500"
+                                : "text-red-500"
+                            }`}
+                          />
+                        </div>
 
                         <div
                           title={medicineDetails.name}
-                          className="w-[45%] text-start px-1 line-clamp-1"
+                          className="w-[42%] text-start px-1 line-clamp-1"
                         >
                           {medicineDetails.name}
                         </div>
@@ -735,7 +752,7 @@ function NewPharmacyInvoice({
                         </div>
                       </div>
                       {activeIndex === index && (
-                        <div className="bg-gray-800 w-full p-1 text-sm">
+                        <div className="bg-gray-900 w-full p-1 text-sm">
                           {medicine.allocatedQuantities?.length > 0 ? (
                             <>
                               <div className="flex items-center justify-between text-sm font-semibold text-gray-200 border-b border-gray-700">
@@ -775,7 +792,7 @@ function NewPharmacyInvoice({
                                             : ""}
                                         </>
                                       ) : (
-                                        <>{batch.quantity + " Pcs"}</>
+                                        <>{batch.stripsAllocated + " Pcs"}</>
                                       )}
                                     </div>
                                     <div className="text-center w-[10%]">
@@ -818,6 +835,7 @@ function NewPharmacyInvoice({
                   </div>
                   <input
                     type="number"
+                    value={discount}
                     onChange={(e) => {
                       setDiscount(e.target.value);
                     }}
@@ -880,43 +898,60 @@ function NewPharmacyInvoice({
           </div>
         )}
         <hr className="border-t border-slate-900 w-full my-2" />
-        <div className="flex px-4 gap-3 justify-end">
-          <div
-            className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
-            onClick={() => {
-              setNewInvoiceSection((newInvoiceSection) => !newInvoiceSection);
+        <div className="flex justify-between items-center px-2">
+          <ToggleSwitch
+            isToggled={discountToAllMedicine}
+            onToggle={() => {
+              setDiscountToAllMedicine(!discountToAllMedicine);
+              setRequestedMedicineDetails(null);
+              setDiscount("");
             }}
-          >
-            Cancel
-          </div>
-          <button
-            onClick={
-              requestedMedicineDetails && selectedPaymentMode
-                ? handleConfirm
-                : onSubmit
+            label={
+              discountToAllMedicine
+                ? "Toggle to discount on selected medicine"
+                : "Toggle to discount on all medicine"
             }
-            className={
-              "w-20 h-8 py-1 flex items-center justify-center gap-2 rounded-lg font-semibold text-white " +
-              (submitting || selectedMedicines.length === 0 || !selectedPatient
-                ? "bg-gray-500  "
+          />
+          <div className="flex px-4 gap-3 justify-end">
+            <div
+              className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
+              onClick={() => {
+                setNewInvoiceSection((newInvoiceSection) => !newInvoiceSection);
+              }}
+            >
+              Cancel
+            </div>
+            <button
+              onClick={
+                requestedMedicineDetails && selectedPaymentMode
+                  ? handleConfirm
+                  : onSubmit
+              }
+              className={
+                "w-20 h-8 py-1 flex items-center justify-center gap-2 rounded-lg font-semibold text-white " +
+                (submitting ||
+                selectedMedicines.length === 0 ||
+                !selectedPatient
+                  ? "bg-gray-500  "
+                  : requestedMedicineDetails && selectedPaymentMode
+                  ? "bg-green-500"
+                  : "bg-red-500")
+              }
+              disabled={
+                submitting ||
+                selectedMedicines.length === 0 ||
+                !selectedPatient ||
+                (discount && (discount < 1 || discount > 5))
+              }
+            >
+              {submitting ? <Loading size={15} /> : <></>}
+              {submitting
+                ? "Wait..."
                 : requestedMedicineDetails && selectedPaymentMode
-                ? "bg-green-500"
-                : "bg-red-500")
-            }
-            disabled={
-              submitting ||
-              selectedMedicines.length === 0 ||
-              !selectedPatient ||
-              (discount && (discount < 1 || discount > 5))
-            }
-          >
-            {submitting ? <Loading size={15} /> : <></>}
-            {submitting
-              ? "Wait..."
-              : requestedMedicineDetails && selectedPaymentMode
-              ? "Confirm"
-              : "Proceed"}
-          </button>
+                ? "Confirm"
+                : "Proceed"}
+            </button>
+          </div>
         </div>
       </div>
     </>
