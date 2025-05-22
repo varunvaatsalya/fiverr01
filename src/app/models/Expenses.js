@@ -14,6 +14,14 @@ const expenseSchema = new mongoose.Schema({
   quantity: { type: Number },
   validity: { type: String }, // expenseDate
   expenseMessage: { type: String },
+  createdByRole: {
+    type: String,
+    enum: ["admin", "salesman", "dispenser"],
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -92,7 +92,12 @@ export async function POST(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  if (userRole !== "admin" && userRole !== "salesman" && userRole !== "nurse" && userRole !== "stockist") {
+  if (
+    userRole !== "admin" &&
+    userRole !== "salesman" &&
+    userRole !== "nurse" &&
+    userRole !== "stockist"
+  ) {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }
@@ -141,6 +146,7 @@ export async function POST(req) {
       {
         newExpressInvoice: updatedNewExpressInvoice,
         success: true,
+        message: "Pharmacy Express Invoice created successfully",
       },
       { status: 201 }
     );

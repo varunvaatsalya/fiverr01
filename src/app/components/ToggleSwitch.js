@@ -31,8 +31,8 @@ const ToggleSwitch = ({ isToggled, onToggle, label }) => {
       </div>
       <div
         className={
-          "text-sm font-semibold opacity-70 " +
-          (isToggled ? " text-blue-500" : " text-gray-500")
+          "text-xs font-semibold opacity-70 " +
+          (isToggled ? " text-blue-400" : " text-gray-500")
         }
       >
         {label}

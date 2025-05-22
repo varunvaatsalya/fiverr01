@@ -196,6 +196,12 @@ export async function POST(req) {
     discountToAllMedicine,
   } = await req.json();
 
+  if (!requestedMedicine || requestedMedicine.length === 0) {
+    return NextResponse.json(
+      { message: "No medicines requested", success: false },
+      { status: 400 }
+    );
+  }
   try {
     const result = [];
     const requestedMedicineIds = requestedMedicine.map((med) => med.medicineId);
@@ -366,6 +372,20 @@ export async function POST(req) {
         { status: 200 }
       );
     }
+    
+    if (!selectedPatient) {
+      return NextResponse.json(
+        { message: "Please select a patient", success: false },
+        { status: 400 }
+      );
+    }
+    if (!selectedPaymentMode) {
+      return NextResponse.json(
+        { message: "Please select a payment mode", success: false },
+        { status: 400 }
+      );
+    }
+    
     let inid = await generateUID();
     if (selectedPaymentMode === "Credit-Insurance") {
       const admission = await Admission.findOne({

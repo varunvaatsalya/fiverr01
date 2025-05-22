@@ -260,7 +260,8 @@ function NewPharmacyInvoice({
       showError(error.message);
     }
   };
-  const handleConfirm = async () => {
+  const handleConfirm = async (isMakeExpressInvoice = false) => {
+    console.log(isMakeExpressInvoice);
     try {
       let data = selectedMedicines.map((medicine) => {
         const newQuantity = {
@@ -283,20 +284,36 @@ function NewPharmacyInvoice({
         };
       });
 
+      let url = "/api/newPharmacyInvoice";
+      let payload = {
+        requestedMedicine: data,
+        selectedPatient: selectedPatient._id,
+        selectedPaymentMode,
+        discount,
+        discountToAllMedicine,
+      };
+
+      if (isMakeExpressInvoice) {
+        if (expressData) {
+          showError("Already Express Invoice Created");
+          return;
+        } else {
+          url = "/api/newExpressBill";
+          payload = {
+            patientId: selectedPatient._id,
+            medicines: data,
+          };
+        }
+      }
+
       setSubmitting(true);
       try {
-        let result = await fetch("/api/newPharmacyInvoice", {
+        let result = await fetch(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            requestedMedicine: data,
-            selectedPatient: selectedPatient._id,
-            selectedPaymentMode,
-            discount,
-            discountToAllMedicine,
-          }),
+          body: JSON.stringify(payload),
         });
         result = await result.json();
         if (result.success) {
@@ -306,7 +323,7 @@ function NewPharmacyInvoice({
           setSelectedPaymentMode(null);
           setDiscount("");
           setSelectedMedicines([]);
-          if (setInvoices) {
+          if (setInvoices && !isMakeExpressInvoice) {
             setInvoices((invoices) => [result.invoice, ...invoices]);
           }
           if (expressData) {
@@ -866,7 +883,28 @@ function NewPharmacyInvoice({
           </div>
         )}
         {requestedMedicineDetails && getGrandTotal() > 0 && (
-          <div className="p-2">
+          <div className="mt-1 mb-4 mx-auto p-2 flex flex-col-reverse md:flex-row justify-center items-center gap-2 w-4/5">
+            {!expressData && (
+              <div>
+                <button
+                  disabled={
+                    submitting ||
+                    selectedMedicines.length === 0 ||
+                    !selectedPatient ||
+                    expressData
+                  }
+                  onClick={() => {
+                    handleConfirm(true);
+                  }}
+                  className="px-2 py-1 text-nowrap border border-slate-300 text-gray-400 hover:text-gray-100 dark:border-slate-700 rounded-lg text-sm"
+                >
+                  {submitting ? "Generating..." : "Generate Exp Invoice"}
+                </button>
+                <div className="text-gray-400 text-[10px] text-nowrap">
+                  In the case of payment delay
+                </div>
+              </div>
+            )}
             <select
               id="paymentMode"
               value={selectedPaymentMode}
@@ -883,7 +921,7 @@ function NewPharmacyInvoice({
                   }
                 } else setSelectedPaymentMode(value);
               }}
-              className="mt-1 mb-4 block px-4 py-3 text-white md:w-3/4 mx-auto bg-gray-800 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-600 transition duration-150 ease-in-out"
+              className=" px-4 py-3 text-white flex-1 mx-auto bg-gray-800 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-600 transition duration-150 ease-in-out"
             >
               <option value="">-- Payment Mode --</option>
               <option value="Cash">Cash</option>
@@ -924,7 +962,7 @@ function NewPharmacyInvoice({
             <button
               onClick={
                 requestedMedicineDetails && selectedPaymentMode
-                  ? handleConfirm
+                  ? () => handleConfirm()
                   : onSubmit
               }
               className={
