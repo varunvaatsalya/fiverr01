@@ -15,6 +15,26 @@ const ManufacturerSchema = new mongoose.Schema({
       type: Number,
     },
   },
+  bankDetails: [
+    {
+      accountHolderName: {
+        type: String,
+      },
+      bankName: {
+        type: String,
+      },
+      accountNo: {
+        type: String,
+      },
+      ifsc: {
+        type: String,
+      },
+      branch: {
+        type: String,
+      },
+      insertedAt: { type: Date, default: Date.now },
+    },
+  ],
   createdAt: { type: Date, default: Date.now, required: true },
 });
 
@@ -28,20 +48,26 @@ const VendorSchema = new mongoose.Schema({
   contact: {
     type: Number,
   },
-  bankDetails: {
-    bankName: {
-      type: String,
+  bankDetails: [
+    {
+      accountHolderName: {
+        type: String,
+      },
+      bankName: {
+        type: String,
+      },
+      accountNo: {
+        type: String,
+      },
+      ifsc: {
+        type: String,
+      },
+      branch: {
+        type: String,
+      },
+      insertedAt: { type: Date, default: Date.now },
     },
-    accountNo: {
-      type: String,
-    },
-    ifsc: {
-      type: String,
-    },
-    branch: {
-      type: String,
-    },
-  },
+  ],
   address: {
     type: String,
   },

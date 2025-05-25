@@ -20,16 +20,33 @@ const purchaseInvoiceSchema = new mongoose.Schema({
     },
   ],
   grandTotal: { type: Number },
-  discount: { type: Number, default: 0 },
-  taxes: { type: Number, default: 0 },
-  finalAmount: { type: Number },
+  // discount: { type: Number, default: 0 },
+  // taxes: { type: Number, default: 0 },
+  // finalAmount: { type: Number },
   payments: [
     {
-      amount: { type: Number, required: true }, // Kitna amount pay kiya
-      date: { type: Date, required: true }, // Payment ki date
+      amount: { type: Number, required: true },
+      date: { type: Date, required: true },
+      referenceNumber: { type: String },
+      bankDetails: {
+        accountHolderName: {
+          type: String,
+        },
+        bankName: {
+          type: String,
+        },
+        accountNo: {
+          type: String,
+        },
+        ifsc: {
+          type: String,
+        },
+        branch: {
+          type: String,
+        },
+      },
       mode: {
         type: String,
-        enum: ["Cash", "NEFT", "UPI", "RTGS", "OTHERS"],
         required: true,
       },
     },

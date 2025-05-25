@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDateTimeToIST } from "../utils/date";
+import { formatDateToIST } from "../utils/date";
 
 function StockDetails({ stockDetails, setStockDetails }) {
   console.log(stockDetails);
@@ -37,7 +37,7 @@ function StockDetails({ stockDetails, setStockDetails }) {
                       {stock.stockId.batchName}
                     </div>
                     <div className="flex-1 min-w-48">
-                      {formatDateTimeToIST(stock.stockId.expiryDate)}
+                      {formatDateToIST(stock.stockId.expiryDate)}
                     </div>
                     <div className="flex-1 min-w-36">
                       {stock.stockId.initialQuantity.totalStrips}

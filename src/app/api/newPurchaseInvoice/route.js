@@ -5,22 +5,22 @@ import { Manufacturer, Vendor } from "../../models/MedicineMetaData";
 import PurchaseInvoice from "../../models/PurchaseInvoice";
 import { generateUID } from "../../utils/counter";
 
-function getGrandTotal(medicineDetails) {
-  const grandTotal = medicineDetails.reduce((grandTotal, medicine) => {
-    if (
-      medicine.allocatedQuantities &&
-      medicine.allocatedQuantities.length > 0
-    ) {
-      const totalPrice = medicine.allocatedQuantities.reduce(
-        (total, batch) => total + batch.price,
-        0
-      );
-      return grandTotal + totalPrice;
-    }
-    return grandTotal;
-  }, 0);
-  return grandTotal;
-}
+// function getGrandTotal(medicineDetails) {
+//   const grandTotal = medicineDetails.reduce((grandTotal, medicine) => {
+//     if (
+//       medicine.allocatedQuantities &&
+//       medicine.allocatedQuantities.length > 0
+//     ) {
+//       const totalPrice = medicine.allocatedQuantities.reduce(
+//         (total, batch) => total + batch.price,
+//         0
+//       );
+//       return grandTotal + totalPrice;
+//     }
+//     return grandTotal;
+//   }, 0);
+//   return grandTotal;
+// }
 
 function getUID() {
   const prefix = "PI";

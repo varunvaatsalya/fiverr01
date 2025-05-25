@@ -1,12 +1,14 @@
 import React from "react";
 import Navbar from "../../../../components/Navbar";
-import PurchaseHistory from "../../../../components/PurchaseHistory";
+import PurchaseHistory from "../../../../components/PharmacyDueInvoice";
 
 function Page() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-200">
       <Navbar route={["Pharmacy", "Payment Dues"]} />
-      <PurchaseHistory/>
+      <div className="p-2">
+        <PurchaseHistory />
+      </div>
     </div>
   );
 }

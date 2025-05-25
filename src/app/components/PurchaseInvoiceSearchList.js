@@ -8,7 +8,7 @@ import NewPurchaseInvoice from "./NewPurchaseInvoice";
 import StockDetails from "./StockDetails";
 import { formatDateTimeToIST, formatDateToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
-import { FaFileInvoiceDollar } from "react-icons/fa";
+import { FaCheckCircle, FaFileInvoiceDollar } from "react-icons/fa";
 
 function PurchaseInvoiceSearchList({
   page,
@@ -134,7 +134,9 @@ function PurchaseInvoiceSearchList({
                   </h3>
                   <div className="">{invoice.invoiceNumber}</div>
                   <div className="flex justify-center items-center gap-2">
-                    {!invoice.isPaid && (
+                    {invoice.isPaid ? (
+                      <FaCheckCircle className="text-green-600 size-5" />
+                    ) : (
                       <FaFileInvoiceDollar className="text-red-600 size-6" />
                     )}
                     <span className="text-gray-500 w-4 text-center">

@@ -103,7 +103,7 @@ export async function POST(req) {
   try {
     let response;
     if (manufacturer == "1") {
-      response = new Manufacturer({ name, medicalRepresentator });
+      response = new Manufacturer({ name, medicalRepresentator, bankDetails });
     } else if (vendor == "1") {
       response = new Vendor({ name, contact, address, bankDetails });
     } else if (salts == "1") {
@@ -160,21 +160,21 @@ export async function PUT(req) {
     useCase,
   } = await req.json();
 
-  console.log({
-    id,
-    name,
-    medicalRepresentator,
-    contact,
-    address,
-    bankDetails,
-    useCase,
-  });
+  // console.log({
+  //   id,
+  //   name,
+  //   medicalRepresentator,
+  //   contact,
+  //   address,
+  //   bankDetails,
+  //   useCase,
+  // });
   try {
     let response;
     if (manufacturer == "1") {
       response = await Manufacturer.findByIdAndUpdate(
         id,
-        { name, medicalRepresentator },
+        { name, medicalRepresentator, bankDetails },
         { new: true }
       );
     } else if (vendor == "1") {

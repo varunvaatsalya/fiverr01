@@ -100,7 +100,8 @@ stockSchema.post("save", async function (doc) {
 
   const invoice = await PurchaseInvoice.findOne({ "stocks.stockId": doc._id });
   if (invoice) {
-    const stocks = await Stock.find({ _id: { $in: invoice.stocks } });
+    const stockIds = invoice.stocks.map((s) => s.stockId);
+    const stocks = await Stock.find({ _id: { $in: stockIds } });
     const total = stocks.reduce((sum, s) => sum + s.totalAmount, 0);
     invoice.grandTotal = total;
     await invoice.save();
