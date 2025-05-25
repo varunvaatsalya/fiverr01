@@ -63,7 +63,8 @@ export default function PharmacyDueInvoice() {
       },
     },
   });
-
+  // /api/newPurchaseInvoice/dueInvoices/fix
+  // /api/medicineMetaData/fix
   async function fetchData() {
     try {
       let result = await fetch(`/api/newPurchaseInvoice/dueInvoices`);
@@ -222,7 +223,7 @@ export default function PharmacyDueInvoice() {
           <div className="px-3 py-1 bg-white rounded flex items-center gap-1">
             <GrMoney className="size-4" />
             <div>
-              Total Dues: <strong>₹{totalDues}</strong>
+              Total Dues: <strong>₹{parseFloat(totalDues.toFixed())}</strong>
             </div>
           </div>
         </div>
@@ -241,9 +242,9 @@ export default function PharmacyDueInvoice() {
             <div className="flex justify-between items-center bg-black text-white p-3 rounded">
               <div className="font-semibold">{group.source.name}</div>
               <div className="space-x-4 text-sm">
-                <span>Total: ₹{group.totalAmount}</span>
-                <span>Paid: ₹{group.paidAmount}</span>
-                <span>Due: ₹{group.dueAmount}</span>
+                <span>Total: ₹{parseFloat(group.totalAmount.toFixed(2))}</span>
+                <span>Paid: ₹{parseFloat(group.paidAmount.toFixed(2))}</span>
+                <span>Due: ₹{parseFloat(group.dueAmount.toFixed(2))}</span>
               </div>
             </div>
 
@@ -396,12 +397,14 @@ export default function PharmacyDueInvoice() {
                     </div>
 
                     {/* Grand Total */}
-                    <div>₹{invoice.grandTotal}</div>
+                    <div>₹{parseFloat(invoice.grandTotal.toFixed(2))}</div>
 
                     {/* Paid Info */}
-                    <div className="text-right">₹{totalPaid || 0}</div>
+                    <div className="text-right">
+                      ₹{parseFloat(totalPaid.toFixed(2)) || 0}
+                    </div>
                     <div className="text-right text-red-500">
-                      ₹{invoice.grandTotal - totalPaid}
+                      ₹{parseFloat(invoice.grandTotal - totalPaid).toFixed(2)}
                     </div>
 
                     {/* Payment Input Column */}
