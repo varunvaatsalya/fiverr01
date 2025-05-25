@@ -311,9 +311,7 @@ export default function PharmacyDueInvoice() {
                       {group.source.bankDetails?.length > 0 ? (
                         group.source.bankDetails.map((bank) => (
                           <SelectItem key={bank._id} value={bank}>
-                            {bank.accountHolderName
-                              ? `${bank.accountHolderName} - ${bank.bankName} (${bank.branch})`
-                              : `${bank.bankName} - ${bank.accountNo} (${bank.branch})`}
+                            {`${bank.accountNo} - ${bank.bankName} (${bank.branch})`}
                           </SelectItem>
                         ))
                       ) : (

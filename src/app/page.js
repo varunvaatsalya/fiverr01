@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 // NODE_OPTIONS="--max-old-space-size=4096" npm run build -- for build
