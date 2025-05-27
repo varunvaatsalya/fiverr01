@@ -180,14 +180,18 @@ export default function MedicineInvoice() {
                   return (
                     <CommandItem
                       key={m._id}
+                      value={m.name}
                       onSelect={() => {
                         if (!alreadySelected) {
                           setSelectedMedicines((prev) => [...prev, m]);
                         }
                       }}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 px-2 py-1"
                     >
-                      {m.name}
+                      <span className="text-lg">
+                        {medQuery.trim() ? <CiSearch /> : <GrHistory />}
+                      </span>
+                      <span className="truncate">{m.name}</span>
                     </CommandItem>
                   );
                 })}
