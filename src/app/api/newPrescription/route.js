@@ -10,10 +10,15 @@ import { generateUniqueId } from "../../utils/counter";
 import LabTests from "../../models/LabTests";
 import Admission from "../../models/Admissions";
 
-async function generateUID() {
+async function generateUID(createdAt) {
   const prefix = "PR";
-  // const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
-  const uniqueDigit = await generateUniqueId("prescription");
+  let uniqueDigit;
+
+  if (createdAt) {
+    uniqueDigit = await generateUniqueId("prescription", createdAt);
+  } else {
+    uniqueDigit = await generateUniqueId("prescription");
+  }
   const uniqueID = `${prefix}${uniqueDigit}`;
   return uniqueID;
 }
@@ -187,11 +192,18 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { patient, items, doctor, ipdAmount, department, paymentMode, createdAt } =
-    await req.json();
+  const {
+    patient,
+    items,
+    doctor,
+    ipdAmount,
+    department,
+    paymentMode,
+    createdAt,
+  } = await req.json();
 
   try {
-    const pid = await generateUID();
+    const pid = await generateUID(createdAt);
 
     let departmentchk = await Department.findById(department);
     let filteredTests = [];
@@ -373,7 +385,7 @@ export async function PUT(req) {
     existingPrescription.doctor = doctor;
     existingPrescription.items = items;
     existingPrescription.paymentMode = paymentMode;
-    if(createdAt){
+    if (createdAt) {
       existingPrescription.createdAt = new Date(createdAt);
     }
 

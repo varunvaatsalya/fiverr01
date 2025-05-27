@@ -1,14 +1,32 @@
 import Counters from "../models/Counters";
 import dbConnect from "../lib/Mongodb";
+import PharmacyInvoice from "../models/PharmacyInvoice";
+import Prescriptions from "../models/Prescriptions";
 
-export async function generateUniqueId(entityType) {
+export async function generateUniqueId(entityType, anyDate = null) {
   await dbConnect();
-  const now = new Date();
+  const now = new Date(anyDate || Date.now());
   const todayDate = `${now.getFullYear().toString().slice(-2)}${(
     now.getMonth() + 1
   )
     .toString()
     .padStart(2, "0")}${now.getDate().toString().padStart(2, "0")}`;
+
+  if (anyDate) {
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+    let Model = entityType === "prescription" ? Prescriptions : PharmacyInvoice;
+
+    const count = await Model.countDocuments({
+      createdAt: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+    });
+
+    return `${todayDate}${String(count + 1).padStart(3, "0")}`;
+  }
 
   let record = await Counters.findOneAndUpdate(
     {},
@@ -26,6 +44,7 @@ export async function generateUniqueId(entityType) {
   }
 
   let uniqueId;
+
   if (entityType === "prescription") {
     uniqueId = `${record.date}${String(record.prescriptionCounter).padStart(
       3,
@@ -42,11 +61,11 @@ export async function generateUniqueId(entityType) {
     uniqueId = `${record.date}${String(record.reportCounter).padStart(3, "0")}`;
     record.reportCounter += 1;
   } else if (entityType === "ipd") {
-    uniqueId = `${record.date}${String(record.ipdCounter).padStart(2, "0")}`;
+    uniqueId = `${record.date}${String(record.ipdCounter).padStart(3, "0")}`;
     record.ipdCounter += 1;
   } else if (entityType === "pharmacyInvoice") {
     uniqueId = `${record.date}${String(record.pharmacyInvoiceCounter).padStart(
-      2,
+      3,
       "0"
     )}`;
     record.pharmacyInvoiceCounter += 1;
