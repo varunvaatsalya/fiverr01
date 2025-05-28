@@ -38,13 +38,13 @@ function Page() {
     fetchData();
   }, []);
   const Works = [
-    {
-      name: "test",
-      description: "You can see all the prescription",
-      icon: <FaFilePrescription size={50} />,
-      link: "/dashboard-admin/test",
-      color: "bg-pink-700",
-    },
+    // {
+    //   name: "test",
+    //   description: "You can see all the prescription",
+    //   icon: <FaFilePrescription size={50} />,
+    //   link: "/dashboard-admin/test",
+    //   color: "bg-pink-700",
+    // },
     {
       name: "Invoices",
       description: "You can see all the prescription",

@@ -5,9 +5,25 @@ import { HospitalDetails } from "../HospitalDeatils";
 function Invoice({
   printPrescription,
   setPrintPrescription,
-  prescriptionPrinted,
 }) {
   const [IsToken, setIstoken] = useState(false);
+
+
+  async function prescriptionPrinted(id) {
+    if (printPrescription && !printPrescription.isPrint) {
+      let result = await fetch(`/api/print?id=${id}`);
+      result = await result.json();
+      if (result.success) {
+        setPrescriptions((prevPrescriptions) =>
+          prevPrescriptions.map((prescription) =>
+            prescription._id === result.id
+              ? { ...prescription, isPrint: true }
+              : prescription
+          )
+        );
+      }
+    }
+  }
 
   return (
     <>

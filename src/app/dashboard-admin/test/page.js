@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Button } from "@/components/ui/button";
 import { GrHistory } from "react-icons/gr";
 import { CiSearch } from "react-icons/ci";
 
@@ -19,8 +19,9 @@ export default function MedicineInvoice() {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [medicineOptions, setMedicineOptions] = useState([]);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
-  const [isPatientListFocused, setIsPatientListFocused] = useState(false);
   const [isMedicineListFocused, setIsMedicineListFocused] = useState(false);
+  const [recentPatients, setRecentPatients] = useState([]);
+  const [isPatientListFocused, setIsPatientListFocused] = useState(false);
   const [recentMedicines, setRecentMedicine] = useState([]);
 
   useEffect(() => {
@@ -39,13 +40,32 @@ export default function MedicineInvoice() {
         console.error("Error fetching top sold medicines:", err);
       }
     };
+    let recentPatinets = async () => {
+      try {
+        let result = await fetch(`/api/searchPatient`);
+        result = await result.json();
+        if (result.success && result.patients) {
+          setRecentPatients(result.patients);
+          setPatientOptions(result.patients);
+          console.log(result);
+        } else {
+          console.error("Failed to fetch top sold medicines", result.message);
+        }
+      } catch (err) {
+        console.error("Error fetching top sold medicines:", err);
+      }
+    };
     recentSellMedicines();
+    recentPatinets();
   }, []);
 
   // Patient search with debounce
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (!query) return;
+      if (!query) {
+        if (recentPatients.length > 0) setPatientOptions(recentPatients);
+        return;
+      }
       try {
         let result = await fetch(`/api/searchPatient`, {
           method: "POST",
@@ -106,12 +126,12 @@ export default function MedicineInvoice() {
       {!selectedPatient ? (
         <div>
           <p className="font-semibold mb-2">Search Patient</p>
-          <Command className="bg-white border rounded-md">
+          <Command className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
             <CommandInput
               placeholder="Search Patient..."
               onFocus={() => setIsPatientListFocused(true)}
               onBlur={() =>
-                setTimeout(() => setIsPatientListFocused(false), 150)
+                setTimeout(() => setIsPatientListFocused(false), 250)
               }
               onValueChange={(value) => {
                 setQuery(value);
@@ -122,12 +142,16 @@ export default function MedicineInvoice() {
                 {patientOptions.map((p) => (
                   <CommandItem
                     key={p._id}
+                    value={p.name}
                     onSelect={() => {
                       setSelectedPatient(p);
                       setPatientOptions([]);
                     }}
                   >
-                    {p.name}
+                    <span className="text-lg">
+                      {query.trim() ? <CiSearch /> : <GrHistory />}
+                    </span>
+                    <span className="truncate">{p.name}</span>
                   </CommandItem>
                 ))}
               </CommandList>
@@ -163,7 +187,7 @@ export default function MedicineInvoice() {
             placeholder="Search Medicine..."
             onFocus={() => setIsMedicineListFocused(true)}
             onBlur={() =>
-              setTimeout(() => setIsMedicineListFocused(false), 150)
+              setTimeout(() => setIsMedicineListFocused(false), 250)
             }
             onValueChange={(value) => {
               setMedQuery(value);

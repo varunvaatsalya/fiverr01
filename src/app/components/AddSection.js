@@ -3,12 +3,14 @@ function AddSection({
   deleteDataEntry,
   setEntity,
   FormComponent,
-  setInvoiceGenerate,
   prescriptions,
   editPatient,
   setEditPatient,
   editPrescription,
   setEditPrescription,
+  setPrintPrescription,
+  expressData,
+  setExpressData,
   editDoctor,
   setEditDoctor,
   EditReportForm,
@@ -22,13 +24,15 @@ function AddSection({
             setNewUserSection={setNewUserSection}
             deleteDataEntry={deleteDataEntry}
             setEntity={setEntity}
-            setInvoiceGenerate={setInvoiceGenerate}
             prescriptions={prescriptions}
             editPatient={editPatient}
             editReport={editReport}
             EditReportForm={EditReportForm}
+            setPrintPrescription={setPrintPrescription}
             setEditPatient={setEditPatient}
             editPrescription={editPrescription}
+            expressData={expressData}
+            setExpressData={setExpressData}
             setEditPrescription={setEditPrescription}
             editDoctor={editDoctor}
             setEditDoctor={setEditDoctor}

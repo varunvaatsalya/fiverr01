@@ -1,58 +1,80 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import Loading from "./Loading";
+import {
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { GrHistory } from "react-icons/gr";
+import { CiSearch } from "react-icons/ci";
 import { showError, showSuccess } from "../utils/toast";
 
-// const fakedetails = {
-//   patients: [
-//     { _id: "12345", name: "John Doe", uhid: "UH1234" },
-//     { _id: "67890", name: "Jane Smith", uhid: "UH5678" },
-//   ],
-//   doctors: [
-//     { _id: "54321", name: "Dr. Alice", department: "98765" },
-//     { _id: "09876", name: "Dr. Bob", department: "56789" },
-//   ],
-//   departments: [
-//     {
-//       _id: "98765",
-//       name: "Cardiology",
-//       itmes: [
-//         { name: "x-ray", price: 125 },
-//         { name: "x-mas", price: 5412 },
-//       ],
-//     },
-//     {
-//       _id: "56789",
-//       name: "Neurology",
-//       itmes: [
-//         { name: "x-ray", price: 125 },
-//         { name: "x-mas", price: 5412 },
-//       ],
-//     },
-//   ],
-// };
-
-const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
+const NewPrescriptionForm = ({
+  setNewUserSection,
+  setEntity,
+  setPrintPrescription,
+  expressData,
+  deleteDataEntry,
+  setExpressData,
+}) => {
   const [submitting, setSubmitting] = useState(false);
-  // const [message, setMessage] = useState(null);
   const [details, setDetails] = useState(null);
   const [isAddInfoOpen, setIsAddInfoOpen] = useState(false);
 
   const { register, handleSubmit, setValue } = useForm();
+  const [patientOptions, setPatientOptions] = useState([]);
+  const [query, setQuery] = useState("");
 
+  const [isPatientListFocused, setIsPatientListFocused] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState(
+    expressData?.department?._id || null
+  );
   const [availableItems, setAvailableItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [recentPatients, setRecentPatients] = useState([]);
   const [ipdPrice, setIpdPrice] = useState(null);
+
   useEffect(() => {
     setValue("items", selectedItems);
   }, [selectedItems]);
 
+  // useEffect(() => {
+  //   setSelectedItems([]);
+  // }, [selectedDepartment]);
+
   useEffect(() => {
-    setSelectedItems([]);
-  }, [selectedDepartment]);
+    const timer = setTimeout(async () => {
+      if (!query) {
+        if (recentPatients.length > 0) setPatientOptions(recentPatients);
+        return;
+      }
+      try {
+        let result = await fetch(`/api/searchPatient`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query,
+          }),
+        });
+        result = await result.json();
+
+        if (result.success) {
+          setPatientOptions(result.patients);
+        } else {
+          console.error("Failed to fetch patients", result.message);
+        }
+      } catch (err) {
+        console.error("Error fetching patients:", err);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   useEffect(() => {
     if (details?.departments && selectedDepartment) {
@@ -67,8 +89,6 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
     }
   }, [selectedDepartment, details]);
 
-  //   // Handle form submission
-
   useEffect(() => {
     async function fetchData() {
       try {
@@ -76,17 +96,33 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         result = await result.json();
         if (result.success) {
           setDetails({
-            patients: result.patients,
             doctors: result.doctors,
             departments: result.departments,
           });
+          setPatientOptions(result.patients || []);
+          setRecentPatients(result.patients || []);
         }
       } catch (err) {
         console.log("error: ", err);
       }
     }
     fetchData();
+    if (expressData) {
+      setSelectedPatient(expressData.patient);
+      setValue("patient", expressData.patient._id);
+      setValue("department", expressData.department._id);
+      setValue("doctor", expressData.doctor._id);
+      setSelectedItems(expressData.items || []);
+    }
   }, []);
+
+  useEffect(() => {
+    if (selectedDepartment !== expressData?.department?._id) {
+      setSelectedItems([]);
+      setValue("items", []);
+      setValue("doctor", "");
+    }
+  }, [selectedDepartment, expressData]);
 
   const onSubmit = async (data) => {
     if (data.createdAt) {
@@ -111,12 +147,20 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
         result = await result.json();
         // Check if login was successful
         if (result.success) {
-          setEntity((prevPrescription) => [
-            result.newPrescription,
-            ...prevPrescription,
-          ]);
+          if (expressData) {
+            deleteDataEntry(expressData._id);
+            setExpressData(null);
+          } else {
+            setEntity((prevPrescription) => [
+              result.newPrescription,
+              ...prevPrescription,
+            ]);
+          }
+          setPrintPrescription(result.newPrescription);
           setNewUserSection((prev) => !prev);
-          showSuccess("Invoice Created Successfully");
+          showSuccess("Invoice Created Successfully", {
+            position: "top-right",
+          });
         } else {
           showError(result.message);
         }
@@ -151,234 +195,282 @@ const NewPrescriptionForm = ({ setNewUserSection, setEntity }) => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="w-[90%] md:w-4/5 lg:w-3/4 max-h-[80vh] overflow-auto mx-auto px-2 my-2"
+      className="w-[90%] min-h-[50vh] md:w-4/5 max-h-[80vh] flex flex-col items-center overflow-auto mx-auto px-2 my-2"
     >
       {/* Department Selection */}
       <h2 className="font-bold text-2xl text-white">
         New <span className="text-blue-500">Prescription</span>
       </h2>
       <hr className="border border-slate-800 w-full my-2" />
-      {/* {message && (
-        <div className="my-1 text-center text-red-500">{message}</div>
-      )} */}
-      <select
-        id="patient"
-        {...register("patient", { required: "patient is required" })}
-        onChange={(e) => {
-          setSelectedPatient(e.target.value);
-        }}
-        className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-      >
-        <option value="">-- Select Patient --</option>
-        {details.patients.map((patient, index) => (
-          <option key={index} value={patient._id}>
-            {patient.name + ", UHID: " + patient.uhid}
-          </option>
-        ))}
-      </select>
-      {selectedPatient && (
-        <select
-          id="department"
-          {...register("department", { required: "department is required" })}
-          onChange={(e) => {
-            setSelectedDepartment(e.target.value);
-          }}
-          className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        >
-          <option value="">-- Select a Department --</option>
-          {details.departments.map((department, index) => (
-            <option key={index} value={department._id}>
-              {department.name}
-            </option>
-          ))}
-        </select>
-      )}
-
-      {/* Display items if a department is selected */}
-      {selectedDepartment && selectedPatient && (
-        <>
-          <select
-            id="doctor"
-            {...register("doctor", { required: "doctor is required" })}
-            className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-          >
-            <option value="">-- Select a Doctor --</option>
-            {details.doctors
-              .filter((doctor) => doctor.department === selectedDepartment)
-              .map((doctor, index) => (
-                <option key={index} value={doctor._id}>
-                  {doctor.name}
-                </option>
-              ))}
-          </select>
-          {details.departments
-            .find((department) => department._id === selectedDepartment)
-            .name.toLowerCase()
-            .includes("ipd") && (
-            <div className="my-2">
-              <div className="text-center text-white py-1">
-                Advanced/Discharge Amount
-              </div>
-              <div className="flex gap-2">
-                <select
-                  {...register("ipdAmount.name", {
-                    required: "amount type is required",
-                  })}
-                  className="block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-                >
-                  <option value="">-- Select Payment Name --</option>
-                  <option value="Advance">Advance</option>
-                  <option value="Dicharge">Discharge</option>
-                </select>
-                <input
-                  {...register(`ipdAmount.amount`)}
-                  type="number"
-                  min={0}
-                  placeholder="Amount"
-                  onChange={(e) => {
-                    setIpdPrice(e.target.value);
-                  }}
-                  className="px-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
-                />
-              </div>
+      <div className="flex-grow text-white w-full ">
+        {selectedPatient ? (
+          <div className="w-full flex flex-wrap justify-around gap-2 my-2">
+            <div className="font-semibold">
+              Pateint:{" "}
+              <span className="text-blue-500 uppercase">
+                {selectedPatient?.name}
+              </span>
             </div>
-          )}
-
-          <div className="mb-6">
-            {availableItems.length > 0 ? (
-              availableItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center mb-4 justify-center space-x-2"
-                >
-                  <input
-                    type="checkbox"
-                    id={`item-checkbox-${index}`}
-                    checked={selectedItems.some(
-                      (selectedItem) => selectedItem.name === item.name
-                    )} // <-- Corrected: Check if item is selected based on name
-                    onChange={(e) =>
-                      handleItemSelection(item, e.target.checked)
-                    }
-                    className="block size-5 bg-red-600 border-gray-800 rounded focus:ring-blue-800 focus:ring-2"
-                  />
-
-                  {/* Display item name */}
-                  <label
-                    htmlFor={`item-checkbox-${index}`}
-                    className="text-gray-400 bg-gray-700 rounded px-2"
-                  >
-                    {item.name} (Price: {item.price})
-                  </label>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500">
-                No items available for this department.
-              </p>
-            )}
-          </div>
-
-          {/* Render selected items dynamically using useFieldArray */}
-          <div>
-            <h3 className="text-md font-semibold mb-2 text-gray-100">
-              Selected Items:
-            </h3>
-            {selectedItems.map((selectedItem, index) => (
-              <div
-                key={index}
-                className="flex items-center mb-4 space-x-2 lg:space-x-4"
-              >
-                {/* Item Name */}
-                <div className="flex-1">
-                  <input
-                    {...register(`items[${index}].name`)}
-                    type="text"
-                    defaultValue={selectedItem.name}
-                    className="px-4 py-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
-                    readOnly
-                  />
-                </div>
-
-                {/* Item Price */}
-                <div className="w-20">
-                  <input
-                    {...register(`items[${index}].price`)}
-                    type="number"
-                    defaultValue={selectedItem.price}
-                    className="px-2 py-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
-                    readOnly
-                  />
-                </div>
-
-                {/* Delete button to remove the selected item */}
-                <button
-                  type="button"
-                  onClick={() => handleItemSelection(selectedItem, false)} // Uncheck the item
-                  className="text-red-500 font-semibold hover:text-red-700"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-      {(selectedItems.length > 0 || ipdPrice) && (
-        <>
-          <p className="font-semibold text-lg text-gray-100">
-            Grand Total: ₹{" "}
-            {selectedItems?.reduce((sum, item) => sum + item.price, 0) +
-              (parseFloat(ipdPrice) || 0)}
-          </p>
-          <select
-            id="paymentMode"
-            {...register("paymentMode", {
-              required: "Payment Mode is required",
-            })}
-            className="my-1 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-          >
-            <option value="">-- Payment Mode --</option>
-            <option value="Cash">Cash</option>
-            <option value="UPI">UPI</option>
-            <option value="Card">Card</option>
-            {!ipdPrice && <option value="Insurence">Insurence Patient</option>}
-          </select>
-          <div className="text-blue-800 text-start px-2">
-            <span
-              className="hover:underline underline-offset-2 text-sm cursor-pointer"
+            <div className="font-semibold">
+              UHID:{" "}
+              <span className="text-blue-500 uppercase">
+                {selectedPatient?.uhid}
+              </span>
+            </div>
+            <button
+              className="px-2 py-1 text-red-500 hover:text-red-700 text-sm rounded-lg font-semibold"
               onClick={() => {
-                setIsAddInfoOpen(!isAddInfoOpen);
+                setSelectedPatient(null);
               }}
             >
-              additional Info
-            </span>
+              Change Patient
+            </button>
           </div>
-          {isAddInfoOpen && (
-            <div className="w-full">
-              <label for="createdAt" className="text-gray-200">
-                Created date
-              </label>
-              <input
-                type="datetime-local"
-                name="createdAt"
-                id="createdAt"
-                onChange={(e) => {
-                  setValue("createdAt", e.target.value);
+        ) : (
+          <div className="relative w-full">
+            <Command className="mb-2 px-3 py-1 text-white bg-gray-800 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+              <CommandInput
+                placeholder="Search Patient..."
+                autoFocus
+                onFocus={() => {
+                  setIsPatientListFocused(true);
                 }}
-                className="px-3 py-1 mx-2 bg-gray-800 text-gray-300 outline-none rounded-lg shadow-sm"
+                onBlur={() =>
+                  setTimeout(() => setIsPatientListFocused(false), 250)
+                }
+                onValueChange={(value) => {
+                  setQuery(value);
+                }}
               />
-            </div>
-          )}
-        </>
-      )}
+              {isPatientListFocused && (
+                <CommandList className="absolute bg-gray-800 rounded-lg top-12 left-0 my-1 w-full z-50">
+                  {patientOptions.map((p) => (
+                    <CommandItem
+                      key={p._id}
+                      value={`${p.name} (UHID: ${p.uhid})`}
+                      onSelect={() => {
+                        setSelectedPatient(p);
+                        setValue("patient", p._id);
+                      }}
+                    >
+                      <span className="text-lg">
+                        {query.trim() ? <CiSearch /> : <GrHistory />}
+                      </span>
+                      <span className="truncate">{`${p.name} (UHID: ${p.uhid})`}</span>
+                    </CommandItem>
+                  ))}
+                </CommandList>
+              )}
+            </Command>
+          </div>
+        )}
 
+        {selectedPatient && (
+          <select
+            id="department"
+            {...register("department", { required: "department is required" })}
+            onChange={(e) => {
+              setSelectedDepartment(e.target.value);
+            }}
+            className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+          >
+            <option value="">-- Select a Department --</option>
+            {details.departments.map((department, index) => (
+              <option key={index} value={department._id}>
+                {department.name}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* Display items if a department is selected */}
+        {selectedDepartment && selectedPatient && (
+          <>
+            <select
+              id="doctor"
+              {...register("doctor", { required: "doctor is required" })}
+              className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+            >
+              <option value="">-- Select a Doctor --</option>
+              {details.doctors
+                .filter((doctor) => doctor.department === selectedDepartment)
+                .map((doctor, index) => (
+                  <option key={index} value={doctor._id}>
+                    {doctor.name}
+                  </option>
+                ))}
+            </select>
+            {details.departments
+              .find((department) => department._id === selectedDepartment)
+              .name.toLowerCase()
+              .includes("ipd") && (
+              <div className="my-2">
+                <div className="text-center text-white py-1">
+                  Advanced/Discharge Amount
+                </div>
+                <div className="flex gap-2">
+                  <select
+                    {...register("ipdAmount.name", {
+                      required: "amount type is required",
+                    })}
+                    className="block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+                  >
+                    <option value="">-- Select Payment Name --</option>
+                    <option value="Advance">Advance</option>
+                    <option value="Dicharge">Discharge</option>
+                  </select>
+                  <input
+                    {...register(`ipdAmount.amount`)}
+                    type="number"
+                    min={0}
+                    placeholder="Amount"
+                    onChange={(e) => {
+                      setIpdPrice(e.target.value);
+                    }}
+                    className="px-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="mb-6">
+              {availableItems.length > 0 ? (
+                availableItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center mb-4 justify-center space-x-2"
+                  >
+                    <input
+                      type="checkbox"
+                      id={`item-checkbox-${index}`}
+                      checked={selectedItems.some(
+                        (selectedItem) => selectedItem.name === item.name
+                      )} // <-- Corrected: Check if item is selected based on name
+                      onChange={(e) =>
+                        handleItemSelection(item, e.target.checked)
+                      }
+                      className="block size-5 bg-red-600 border-gray-800 rounded focus:ring-blue-800 focus:ring-2"
+                    />
+
+                    {/* Display item name */}
+                    <label
+                      htmlFor={`item-checkbox-${index}`}
+                      className="text-gray-400 bg-gray-700 rounded px-2"
+                    >
+                      {item.name} (Price: {item.price})
+                    </label>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">
+                  No items available for this department.
+                </p>
+              )}
+            </div>
+
+            {/* Render selected items dynamically using useFieldArray */}
+            <div>
+              <h3 className="text-md font-semibold mb-2 text-gray-100">
+                Selected Items:
+              </h3>
+              {selectedItems.map((selectedItem, index) => (
+                <div
+                  key={index}
+                  className="flex items-center mb-4 space-x-2 lg:space-x-4"
+                >
+                  {/* Item Name */}
+                  <div className="flex-1">
+                    <input
+                      {...register(`items[${index}].name`)}
+                      type="text"
+                      defaultValue={selectedItem.name}
+                      className="px-4 py-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
+                      readOnly
+                    />
+                  </div>
+
+                  {/* Item Price */}
+                  <div className="w-20">
+                    <input
+                      {...register(`items[${index}].price`)}
+                      type="number"
+                      defaultValue={selectedItem.price}
+                      className="px-2 py-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
+                      readOnly
+                    />
+                  </div>
+
+                  {/* Delete button to remove the selected item */}
+                  <button
+                    type="button"
+                    onClick={() => handleItemSelection(selectedItem, false)} // Uncheck the item
+                    className="text-red-500 font-semibold hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+        {(selectedItems.length > 0 || ipdPrice) && (
+          <>
+            <p className="font-semibold text-lg text-gray-100">
+              Grand Total: ₹{" "}
+              {selectedItems?.reduce((sum, item) => sum + item.price, 0) +
+                (parseFloat(ipdPrice) || 0)}
+            </p>
+            <select
+              id="paymentMode"
+              {...register("paymentMode", {
+                required: "Payment Mode is required",
+              })}
+              className="my-1 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+            >
+              <option value="">-- Payment Mode --</option>
+              <option value="Cash">Cash</option>
+              <option value="UPI">UPI</option>
+              <option value="Card">Card</option>
+              {!ipdPrice && (
+                <option value="Insurence">Insurence Patient</option>
+              )}
+            </select>
+            <div className="text-blue-800 text-start px-2">
+              <span
+                className="hover:underline underline-offset-2 text-sm cursor-pointer"
+                onClick={() => {
+                  setIsAddInfoOpen(!isAddInfoOpen);
+                }}
+              >
+                additional Info
+              </span>
+            </div>
+            {isAddInfoOpen && (
+              <div className="w-full">
+                <label for="createdAt" className="text-gray-200">
+                  Created date
+                </label>
+                <input
+                  type="datetime-local"
+                  name="createdAt"
+                  id="createdAt"
+                  onChange={(e) => {
+                    setValue("createdAt", e.target.value);
+                  }}
+                  className="px-3 py-1 mx-2 bg-gray-800 text-gray-300 outline-none rounded-lg shadow-sm"
+                />
+              </div>
+            )}
+          </>
+        )}
+      </div>
       {/* Submit Button */}
       <hr className="border border-slate-800 w-full my-2" />
-      <div className="flex px-4 gap-3 justify-end">
+      <div className="w-full flex px-4 gap-3 justify-end">
         <div
           className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
           onClick={() => {
+            if (setExpressData) setExpressData(null);
             setNewUserSection((prev) => !prev);
           }}
         >

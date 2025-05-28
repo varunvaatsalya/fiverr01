@@ -1,36 +1,15 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import Loading from "./Loading";
-
-// const fakedetails = {
-//   patients: [
-//     { _id: "12345", name: "John Doe", uhid: "UH1234" },
-//     { _id: "67890", name: "Jane Smith", uhid: "UH5678" },
-//   ],
-//   doctors: [
-//     { _id: "54321", name: "Dr. Alice", department: "98765" },
-//     { _id: "09876", name: "Dr. Bob", department: "56789" },
-//   ],
-//   departments: [
-//     {
-//       _id: "98765",
-//       name: "Cardiology",
-//       itmes: [
-//         { name: "x-ray", price: 125 },
-//         { name: "x-mas", price: 5412 },
-//       ],
-//     },
-//     {
-//       _id: "56789",
-//       name: "Neurology",
-//       itmes: [
-//         { name: "x-ray", price: 125 },
-//         { name: "x-mas", price: 5412 },
-//       ],
-//     },
-//   ],
-// };
+import {
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { GrHistory } from "react-icons/gr";
+import { CiSearch } from "react-icons/ci";
 
 const NewPrescriptionForm = ({
   setNewUserSection,
@@ -46,13 +25,21 @@ const NewPrescriptionForm = ({
   const { register, handleSubmit, setValue } = useForm();
 
   const [selectedDepartment, setSelectedDepartment] = useState(
-    editPrescription.department._id
+    editPrescription.department._id || null
   );
   const [availableItems, setAvailableItems] = useState([]);
   // details.departments.find(
   //   (department) => department._id === editPrescription.department._id
   // ).items;
   const [selectedItems, setSelectedItems] = useState(editPrescription.items);
+
+  const [patientOptions, setPatientOptions] = useState([]);
+  const [query, setQuery] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState(
+    editPrescription.patient
+  );
+  const [isPatientListFocused, setIsPatientListFocused] = useState(false);
+  const [recentPatients, setRecentPatients] = useState([]);
 
   useEffect(() => {
     setValue("_id", editPrescription._id);
@@ -69,11 +56,12 @@ const NewPrescriptionForm = ({
   }, [selectedItems]);
 
   useEffect(() => {
-    // if (selectedDepartment !== editPrescription.department._id) {
-    setSelectedItems([]);
-    setValue("doctor", "");
-    // }
-  }, [selectedDepartment]);
+    if (selectedDepartment !== editPrescription?.department?._id) {
+      setSelectedItems([]);
+      setValue("items", []);
+      setValue("doctor", "");
+    }
+  }, [selectedDepartment, editPrescription]);
 
   useEffect(() => {
     if (details?.departments) {
@@ -88,7 +76,35 @@ const NewPrescriptionForm = ({
     }
   }, [selectedDepartment, details]);
 
-  //   // Handle form submission
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (!query) {
+        if (recentPatients.length > 0) setPatientOptions(recentPatients);
+        return;
+      }
+      try {
+        let result = await fetch(`/api/searchPatient`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query,
+          }),
+        });
+        result = await result.json();
+
+        if (result.success) {
+          setPatientOptions(result.patients);
+        } else {
+          console.error("Failed to fetch patients", result.message);
+        }
+      } catch (err) {
+        console.error("Error fetching patients:", err);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   useEffect(() => {
     async function fetchData() {
@@ -97,10 +113,11 @@ const NewPrescriptionForm = ({
         result = await result.json();
         if (result.success) {
           setDetails({
-            patients: result.patients,
             doctors: result.doctors,
             departments: result.departments,
           });
+          setPatientOptions(result.patients || []);
+          setRecentPatients(result.patients || []);
         }
       } catch (err) {
         console.log("error: ", err);
@@ -110,7 +127,7 @@ const NewPrescriptionForm = ({
   }, []);
 
   const onSubmit = async (data) => {
-    if (data.createdAt) {
+    if (data.createdAt!== editPrescription.createdAt) {
       let confirm = window.confirm("Are you sure you want to change the date?");
       if (!confirm) {
         return;
@@ -185,18 +202,67 @@ const NewPrescriptionForm = ({
       {message && (
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
-      <select
-        id="patient"
-        {...register("patient", { required: "patient is required" })}
-        className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-      >
-        <option value="">-- Select Patient --</option>
-        {details.patients.map((patient, index) => (
-          <option key={index} value={patient._id}>
-            {patient.name + ", UHID: " + patient.uhid}
-          </option>
-        ))}
-      </select>
+      {selectedPatient ? (
+        <div className="w-full flex flex-wrap justify-around gap-2 my-2">
+          <div className="font-semibold">
+            Pateint:{" "}
+            <span className="text-blue-500 uppercase">
+              {selectedPatient?.name}
+            </span>
+          </div>
+          <div className="font-semibold">
+            UHID:{" "}
+            <span className="text-blue-500 uppercase">
+              {selectedPatient?.uhid}
+            </span>
+          </div>
+          <button
+            className="px-2 py-1 text-red-500 hover:text-red-700 text-sm rounded-lg font-semibold"
+            onClick={() => {
+              setSelectedPatient(null);
+            }}
+          >
+            Change Patient
+          </button>
+        </div>
+      ) : (
+        <div className="relative w-full">
+          <Command className="mb-2 px-3 py-1 text-white bg-gray-800 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+            <CommandInput
+              placeholder="Search Patient..."
+              autoFocus
+              onFocus={() => {
+                setIsPatientListFocused(true);
+              }}
+              onBlur={() =>
+                setTimeout(() => setIsPatientListFocused(false), 250)
+              }
+              onValueChange={(value) => {
+                setQuery(value);
+              }}
+            />
+            {isPatientListFocused && (
+              <CommandList className="absolute bg-gray-800 rounded-lg top-12 left-0 my-1 w-full z-50">
+                {patientOptions.map((p) => (
+                  <CommandItem
+                    key={p._id}
+                    value={`${p.name} (UHID: ${p.uhid})`}
+                    onSelect={() => {
+                      setSelectedPatient(p);
+                      setValue("patient", p._id);
+                    }}
+                  >
+                    <span className="text-lg">
+                      {query.trim() ? <CiSearch /> : <GrHistory />}
+                    </span>
+                    <span className="truncate">{`${p.name} (UHID: ${p.uhid})`}</span>
+                  </CommandItem>
+                ))}
+              </CommandList>
+            )}
+          </Command>
+        </div>
+      )}
       <select
         id="department"
         {...register("department", { required: "department is required" })}

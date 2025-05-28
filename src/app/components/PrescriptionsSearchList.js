@@ -66,21 +66,6 @@ function PrescriptionsSearchList({
     }
   };
 
-  async function prescriptionPrinted(id) {
-    if (printPrescription && !printPrescription.isPrint) {
-      let result = await fetch(`/api/print?id=${id}`);
-      result = await result.json();
-      if (result.success) {
-        setPrescriptions((prevPrescriptions) =>
-          prevPrescriptions.map((prescription) =>
-            prescription._id === result.id
-              ? { ...prescription, isPrint: true }
-              : prescription
-          )
-        );
-      }
-    }
-  }
 
   const hasOPDItem = (items) => {
     return items.some((item) => item.name.toLowerCase().includes("opd"));
@@ -113,7 +98,6 @@ function PrescriptionsSearchList({
           <Invoice
             printPrescription={printPrescription}
             setPrintPrescription={setPrintPrescription}
-            prescriptionPrinted={prescriptionPrinted}
           />
         </div>
       </>
@@ -141,6 +125,7 @@ function PrescriptionsSearchList({
       {newUserSection ? (
         <AddSection
           setNewUserSection={setNewUserSection}
+          setPrintPrescription={setPrintPrescription}
           setEntity={setPrescriptions}
           FormComponent={
             editPrescription ? EditPrescriptionForm : NewPrescriptionForm

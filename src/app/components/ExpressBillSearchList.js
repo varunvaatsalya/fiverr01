@@ -7,6 +7,7 @@ import NewPharmacyExpressInvoice from "./NewPharmacyExpressInvoice";
 import { formatDateTimeToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import NewPharmacyInvoice from "./NewPharmacyInvoice";
+import InvoicePharmacy from "./InvoicePharmacy";
 
 function ExpressBillSearchList({
   page,
@@ -25,6 +26,7 @@ function ExpressBillSearchList({
   const [isDeleteing, setIsDeleting] = useState(false);
   const [createInvoiceSection, setCreateInvoiceSection] = useState(false);
   const [expressData, setExpressData] = useState(null);
+  const [printInvoice, setPrintInvoice] = useState(null);
 
   useEffect(() => {
     setResData(expressBills);
@@ -79,6 +81,19 @@ function ExpressBillSearchList({
     );
   }
 
+  if (printInvoice) {
+    return (
+      <>
+        <div className="bg-white h-full">
+          <InvoicePharmacy
+            printInvoice={printInvoice}
+            setPrintInvoice={setPrintInvoice}
+          />
+        </div>
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       {newInvoiceSection && (
@@ -95,6 +110,7 @@ function ExpressBillSearchList({
           setNewInvoiceSection={setCreateInvoiceSection}
           setExpressBills={setExpressBills}
           FormComponent={NewPharmacyInvoice}
+          setPrintInvoice={setPrintInvoice}
           expressData={expressData}
           setExpressData={setExpressData}
         />

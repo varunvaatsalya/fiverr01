@@ -5,7 +5,7 @@ import { TbClockExclamation } from "react-icons/tb";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Link from "next/link";
-import { IoBagAddSharp, IoLogOut } from "react-icons/io5";
+import { IoBagAddSharp, IoCreate, IoLogOut } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 import { BsReceipt } from "react-icons/bs";
 
@@ -18,6 +18,13 @@ function Page() {
       icon: <FaHandHoldingMedical size={50} />,
       link: "/dashboard-dispenser/works",
       color: "bg-blue-800",
+    },
+    {
+      name: "Create Invoices",
+      description: "You can Create pharmacy Invoices here",
+      icon: <IoCreate size={50} />,
+      link: "/dashboard-dispenser/newInvoices",
+      color: "bg-gray-800",
     },
     {
       name: "Invoices",

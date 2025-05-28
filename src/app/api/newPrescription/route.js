@@ -75,6 +75,7 @@ export async function GET(req) {
       // const prescriptions = await Prescription.find({ patient });
       const patients = await Patient.find({}, "_id name uhid")
         .sort({ _id: -1 })
+        .limit(60)
         .exec();
 
       // Fetch all doctors with only _id, name, and associated department ID

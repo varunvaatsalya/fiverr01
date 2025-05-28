@@ -121,6 +121,7 @@ function PharmacyInvoiceSearchList({
       {newInvoiceSection ? (
         <PharmacySectionComponent
           setNewInvoiceSection={setNewInvoiceSection}
+          setPrintInvoice={setPrintInvoice}
           setInvoices={setInvoices}
           FormComponent={editInvoice ? EditPharmacyInvoice : NewPharmacyInvoice}
           editInvoice={editInvoice}
@@ -372,7 +373,6 @@ function PharmacyInvoiceSearchList({
                         <button
                           className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
                           onClick={() => {
-                            console.log(invoice);
                             setPrintInvoice(invoice);
                           }}
                         >

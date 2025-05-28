@@ -8,6 +8,13 @@ import PharmacyInvoice from "../../models/PharmacyInvoice";
 import Admission from "../../models/Admissions";
 import { generateUniqueId } from "../../utils/counter";
 
+let cache = {
+  data: null,
+  timestamp: 0,
+};
+
+const CACHE_DURATION = 5 * 60 * 1000;
+
 function getGrandTotal(medicineDetails) {
   const grandTotal = medicineDetails.reduce((grandTotal, medicine) => {
     if (
@@ -89,10 +96,35 @@ export async function GET(req) {
     if (info === "1") {
       let patientsList = await Patient.find({}, "_id name uhid")
         .sort({ _id: -1 })
-        .limit(200)
+        .limit(80)
         .exec();
 
-      const medicinesList = await Medicine.find()
+      const now = Date.now();
+
+      if (cache.data && now - cache.timestamp < CACHE_DURATION) {
+        console.log(cache.data);
+        return NextResponse.json(
+          { patientsList, medicinesList: cache.data, success: true },
+          { status: 200 }
+        );
+      }
+
+      const recentMedicines = await PharmacyInvoice.aggregate([
+        { $sort: { createdAt: -1 } },
+        { $unwind: "$medicines" },
+        {
+          $group: {
+            _id: "$medicines.medicineId",
+            latestSoldAt: { $first: "$createdAt" },
+          },
+        },
+        { $sort: { latestSoldAt: -1 } },
+        { $limit: 50 },
+      ]);
+
+      const medicineIds = recentMedicines.map((m) => m._id);
+
+      const medicines = await Medicine.find({ _id: { $in: medicineIds } })
         .select("name _id packetSize isTablets")
         .populate({
           path: "salts",
@@ -100,8 +132,12 @@ export async function GET(req) {
         })
         .sort({ name: 1 })
         .exec();
+
+      cache.data = medicines;
+      cache.timestamp = now;
+
       return NextResponse.json(
-        { patientsList, medicinesList, success: true },
+        { patientsList, medicinesList: medicines, success: true },
         { status: 200 }
       );
     }
@@ -219,9 +255,14 @@ export async function POST(req) {
         continue;
       }
 
-      let remainingQuantity = isTablets
+      let initialQuantity = isTablets
         ? { strips: quantity.strips, tablets: quantity.tablets }
         : { strips: quantity.normalQuantity, tablets: 0 };
+
+      let remainingQuantity = {
+        strips: initialQuantity.strips,
+        tablets: initialQuantity.tablets,
+      };
 
       let updatedStocks = [...stock.stocks].sort(
         (a, b) => new Date(a.expiryDate) - new Date(b.expiryDate)
@@ -333,7 +374,18 @@ export async function POST(req) {
       //   (batch) => batch.quantity.totalStrips > 0 || batch.quantity.tablets > 0
       // );
 
-      if (remainingQuantity.strips > 0 || remainingQuantity.tablets > 0) {
+      if (
+        remainingQuantity.strips === initialQuantity.strips &&
+        remainingQuantity.tablets === initialQuantity.tablets
+      ) {
+        result.push({
+          medicineId,
+          status: "Out of Stock",
+        });
+      } else if (
+        remainingQuantity.strips > 0 ||
+        remainingQuantity.tablets > 0
+      ) {
         result.push({
           medicineId,
           isDiscountApplicable,
@@ -372,7 +424,7 @@ export async function POST(req) {
         { status: 200 }
       );
     }
-    
+
     if (!selectedPatient) {
       return NextResponse.json(
         { message: "Please select a patient", success: false },
@@ -385,7 +437,7 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-    
+
     let inid = await generateUID();
     if (selectedPaymentMode === "Credit-Insurance") {
       const admission = await Admission.findOne({

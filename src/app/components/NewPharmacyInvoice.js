@@ -1,97 +1,51 @@
-// daily sale details
-// auto efresh
-// new page medcine
-// desk entery name
-// rack details
-// manufactreur wise sorting in godoon stock
-// many vendors for a medicine and handle their all request - vendor unlink
-// order krne wale medicines lists reatils godwn
-// filter with salt and manfacturer
-// down kitna kitna purchase kis vendor se purchase history
-// medicine doses
-// expiry alert
-// user role
-// purchase stock ka payment track
-// pp not graeter than mrp
-// margin module
-// stock add krte time total purchqase price show
-// styock order page
-// medicine page show all medicne and stock me type ikhana hai
-// pagination in expense module
-// stock edit section
-// red cirle me out of stock meidicine
-// invoice id change yyyymm001
-// invoice id time method
-// stock order me outofstock medicines filter krna
-// stock order me selected medicines ko clear krna jab type chnage ho rha ho to
-// last three purchase price dikhna new stock add krte time
-// phhrmcy inlytiics
-// xepense module pagination advanced serch
-// expense type
-// pathology adv search
-// required stock order limit
-// last 3 purchase vendors with pur Prices
-// analytics for salts order with pru price & profit comparision
-
-// --- DONE ---
-
-// medcine edit section
-// bulk request
-// dispute section
-// retails in production
-// full screen invoice in large screen
-// search wit salts in invoice creayion
-// mfg
-// mr mail field and godown mail option snd whatsapp option
-// new medicine form sevendor ko hata routes se bhi
-// vendor payment
-// vendor adrees contact bank
-// whatsapp vendor change to all medicine select
-// minimum recommended stocjk count godown reatiler ---imp
-// rename bulk strock upload
-
 "use client";
 import React, { useEffect, useState } from "react";
-import { IoIosArrowDropdown, IoIosArrowDropright } from "react-icons/io";
-import { IoAddCircle, IoSearchOutline } from "react-icons/io5";
+import { IoAddCircle } from "react-icons/io5";
 import { RxCross2 } from "react-icons/rx";
 import Loading from "./Loading";
 import ToggleSwitch from "./ToggleSwitch";
 import { FaCircleDot } from "react-icons/fa6";
 import { formatDateToIST } from "../utils/date";
-import { showError, showInfo, showSuccess } from "../utils/toast";
+import { showError, showSuccess } from "../utils/toast";
 import { RiDiscountPercentFill } from "react-icons/ri";
-import { FaAngleDown, FaAngleRight } from "react-icons/fa";
+import { FaAngleDown, FaAngleRight, FaCheckCircle } from "react-icons/fa";
+import {
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { GrHistory } from "react-icons/gr";
+import { CiSearch } from "react-icons/ci";
 
 function NewPharmacyInvoice({
   setNewInvoiceSection,
   // editInvoice,
   // setEditInvoice,
+  setPrintInvoice,
   setInvoices,
   expressData,
-  setExpressData,
   setExpressBills,
 }) {
-  const [patients, setPatients] = useState([]);
-  const [medicines, setMedicines] = useState([]);
+  const [patientOptions, setPatientOptions] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
   const [requestedMedicineDetails, setRequestedMedicineDetails] =
     useState(null);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
-  const [finding, setFinding] = useState(false);
-  const [query, setQuery] = useState("");
   const [selectedPaymentMode, setSelectedPaymentMode] = useState("");
-  const [discount, setDiscount] = useState("");
-  const [dropDown, setDropDown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [searchedPatientsList, setSearchedPatientsList] = useState([]);
-  const [searchedMedicines, setSearchedMedicines] = useState([]);
   const [discountToAllMedicine, setDiscountToAllMedicine] = useState(true);
-  const [selectedPatientList, setSelectedPatientList] = useState({
-    type: "Latest",
-    data: patients,
-  });
+  const [discount, setDiscount] = useState("");
+
+  const [query, setQuery] = useState("");
+  const [medQuery, setMedQuery] = useState("");
+
+  const [isPatientListFocused, setIsPatientListFocused] = useState(false);
+  const [medicineOptions, setMedicineOptions] = useState([]);
+  const [recentPatients, setRecentPatients] = useState([]);
+  const [recentMedicines, setRecentMedicine] = useState([]);
+  const [isMedicineListFocused, setIsMedicineListFocused] = useState(false);
 
   useEffect(() => {
     if (expressData) {
@@ -100,19 +54,14 @@ function NewPharmacyInvoice({
         _id: item.medicineId._id,
         name: item.medicineId.name,
         isTablets: item.medicineId.isTablets,
+        salts: { name: item.medicineId.salts.name },
         packetSize: item.medicineId.packetSize,
         quantity: item.quantity,
       }));
+      console.log(expressData);
       setSelectedMedicines(outputArray);
     }
   }, [expressData]);
-
-  useEffect(() => {
-    setSelectedPatientList({
-      type: "Latest",
-      data: patients,
-    });
-  }, [patients]);
 
   useEffect(() => {
     async function fetchData() {
@@ -120,9 +69,10 @@ function NewPharmacyInvoice({
         let result = await fetch(`/api/newPharmacyInvoice?info=1`);
         result = await result.json();
         if (result.success) {
-          setPatients(result.patientsList);
-          setMedicines(result.medicinesList);
-          setSearchedMedicines(result.medicinesList);
+          setPatientOptions(result.patientsList);
+          setRecentPatients(result.patientsList);
+          setRecentMedicine(result.medicinesList);
+          setMedicineOptions(result.medicinesList);
         } else {
           showError(result.message);
         }
@@ -133,22 +83,13 @@ function NewPharmacyInvoice({
     fetchData();
   }, []);
 
-  const handleSearchMedicine = (query) => {
-    let filteredMedicines = [];
-    if (medicines) {
-      filteredMedicines = medicines.filter(
-        (medicine) =>
-          medicine.name.toLowerCase().includes(query.toLowerCase()) ||
-          medicine.salts.name.toLowerCase().includes(query.toLowerCase())
-      );
-    }
-    setSearchedMedicines(filteredMedicines);
-  };
-
-  const handleSearchPatient = async () => {
-    if (query) {
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (!query) {
+        if (recentPatients.length > 0) setPatientOptions(recentPatients);
+        return;
+      }
       try {
-        setFinding(true);
         let result = await fetch(`/api/searchPatient`, {
           method: "POST",
           headers: {
@@ -161,17 +102,45 @@ function NewPharmacyInvoice({
         result = await result.json();
 
         if (result.success) {
-          setSearchedPatientsList(result.patients);
-          setSelectedPatientList({ type: "Searched", data: result.patients });
+          setPatientOptions(result.patients);
+          console.log(result.patients);
+        } else {
+          console.error("Failed to fetch patients", result.message);
         }
-        showInfo(result.message);
-      } catch (error) {
-        console.error("Error submitting application:", error);
-      } finally {
-        setFinding(false);
+      } catch (err) {
+        console.error("Error fetching patients:", err);
       }
-    }
-  };
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    const medTimer = setTimeout(async () => {
+      if (!medQuery) {
+        if (recentMedicines.length > 0) setMedicineOptions(recentMedicines);
+        console.log(recentMedicines);
+        return;
+      }
+      try {
+        let result = await fetch(`/api/searchMedicine`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: medQuery,
+          }),
+        });
+        result = await result.json();
+        if (result.success) {
+          setMedicineOptions(result.medicines);
+        }
+      } catch (err) {
+        console.error("Error fetching medicines:", err);
+      }
+    }, 350);
+    return () => clearTimeout(medTimer);
+  }, [medQuery]);
 
   const handleCheckboxChange = (medicine) => {
     setRequestedMedicineDetails(null);
@@ -317,7 +286,7 @@ function NewPharmacyInvoice({
         });
         result = await result.json();
         if (result.success) {
-          showSuccess(result.message);
+          showSuccess(result.message, { position: "top-right" });
           setRequestedMedicineDetails(null);
           setSelectedPatient(null);
           setSelectedPaymentMode(null);
@@ -343,6 +312,7 @@ function NewPharmacyInvoice({
               );
             }
           }
+          setPrintInvoice(result.invoice);
           setTimeout(() => {
             if (setNewInvoiceSection) {
               setNewInvoiceSection(false);
@@ -411,9 +381,13 @@ function NewPharmacyInvoice({
         <div className="text-center py-2 rounded-t-lg bg-slate-900 text-xl text-white font-semibold">
           New Invoice
         </div>
-        <div className="p-2">
+        {/* checked={selectedMedicines.some(
+                        (m) => m._id === medicine._id
+                      )}
+                      onChange={() => handleCheckboxChange(medicine)} */}
+        <div className="p-2 flex flex-col items-center text-white">
           {selectedPatient ? (
-            <div className="flex flex-wrap justify-around text-white">
+            <div className="w-full flex flex-wrap justify-around gap-2 my-1">
               <div className="font-semibold">
                 Pateint:{" "}
                 <span className="text-blue-500 uppercase">
@@ -432,145 +406,97 @@ function NewPharmacyInvoice({
                   setSelectedPatient(null);
                 }}
               >
-                Remove
+                Change Patient
               </button>
             </div>
           ) : (
-            <div className="relative">
-              <form className="flex justify-center gap-2 items-center my-1">
-                <div
-                  onClick={() => {
-                    setDropDown(!dropDown);
+            <div className="relative w-full md:w-4/5 lg:w-3/5">
+              <Command className="mb-2 px-3 py-1 text-white bg-gray-900 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                <CommandInput
+                  placeholder="Search Patient..."
+                  onFocus={() => setIsPatientListFocused(true)}
+                  onBlur={() =>
+                    setTimeout(() => setIsPatientListFocused(false), 250)
+                  }
+                  onValueChange={(value) => {
+                    setQuery(value);
                   }}
-                  className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 cursor-pointer text-gray-100 text-2xl"
-                >
-                  {dropDown ? <IoIosArrowDropdown /> : <IoIosArrowDropright />}
-                </div>
-                <input
-                  type="text"
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                  }}
-                  onFocus={() => setDropDown(true)}
-                  placeholder="Select or Search the Patient"
-                  className=" block px-4 py-3 w-full text-gray-100 bg-gray-700  rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
                 />
-                <button
-                  disabled={finding || !query}
-                  onClick={handleSearchPatient}
-                  className="p-2 rounded-lg hover:bg-gray-600 bg-gray-700 text-gray-100 text-2xl"
-                >
-                  {finding ? <Loading size={20} /> : <IoSearchOutline />}
-                </button>
-              </form>
-              {dropDown && (
-                <div className="absolute top-12 left-12 my-1 rounded-lg p-2 bg-gray-700 border-2 border-gray-500">
-                  <div className="p-2 flex items-center gap-2">
-                    <div
-                      onClick={() => {
-                        setSelectedPatientList({
-                          type: "Latest",
-                          data: patients,
-                        });
-                      }}
-                      className={
-                        "py-1 px-2 cursor-pointer rounded border border-gray-200 font-semibold " +
-                        (selectedPatientList.type === "Latest"
-                          ? "bg-gray-200 text-gray-800"
-                          : "text-gray-50")
-                      }
-                    >
-                      Latest
-                    </div>
-                    <div
-                      onClick={() => {
-                        setSelectedPatientList({
-                          type: "Searched",
-                          data: searchedPatientsList,
-                        });
-                      }}
-                      className={
-                        "py-1 px-2 cursor-pointer rounded border border-gray-200 font-semibold " +
-                        (selectedPatientList.type === "Searched"
-                          ? "bg-gray-200 text-gray-800"
-                          : "text-gray-50")
-                      }
-                    >
-                      Searched
-                    </div>
-                  </div>
-                  <div className="max-h-52 overflow-y-auto">
-                    {selectedPatientList.data.length > 0 ? (
-                      selectedPatientList.data.map((patient) => (
-                        <div
-                          key={patient._id}
-                          onClick={() => {
-                            setSelectedPatient(patient);
-                            setDropDown(!dropDown);
-                          }}
-                          className="p-1 cursor-pointer border-b border-gray-600 hover:rounded-lg hover:bg-gray-600 px-6 text-white"
-                        >
-                          {patient.name + ", UHID: " + patient.uhid}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-gray-400 font-semibold">
-                        No Patient
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                {isPatientListFocused && (
+                  <CommandList className="absolute bg-gray-800 rounded-lg top-12 left-0 my-1 w-full z-50">
+                    {patientOptions.map((p) => (
+                      <CommandItem
+                        key={p._id}
+                        value={p.name}
+                        onSelect={() => {
+                          setSelectedPatient(p);
+                          setPatientOptions([]);
+                        }}
+                      >
+                        <span className="text-lg">
+                          {query.trim() ? <CiSearch /> : <GrHistory />}
+                        </span>
+                        <span className="truncate">{p.name}</span>
+                      </CommandItem>
+                    ))}
+                  </CommandList>
+                )}
+              </Command>
             </div>
           )}
-        </div>
-        <div className="flex flex-col lg:flex-row justify-center items-center gap-2">
-          <div className="flex flex-col justify-center items-center p-2 rounded-lg border border-gray-700">
-            <input
-              type="text"
-              placeholder="Serch Medicine"
-              onChange={(e) => {
-                handleSearchMedicine(e.target.value);
-              }}
-              className="rounded-full bg-gray-700 text-white outline-none focus:ring-2 focus:ring-gray-600 px-3 py-1"
-            />
-            <div className="max-h-64 overflow-y-auto bg-gray-700 py-2 px-3 rounded-xl my-2">
-              {searchedMedicines.length > 0 ? (
-                searchedMedicines.map((medicine, index) => (
-                  <div
-                    className="flex gap-2 items-center my-1 w-full"
-                    key={index}
-                  >
-                    <input
-                      type="checkbox"
-                      className="size-5 cursor-pointer"
-                      checked={selectedMedicines.some(
-                        (m) => m._id === medicine._id
-                      )}
-                      onChange={() => handleCheckboxChange(medicine)}
-                      id={index}
-                    />
-                    <label
-                      htmlFor={index}
-                      className="bg-gray-800 hover:bg-gray-900 text-white font-semibold text-sm px-2 py-1 rounded-lg cursor-pointer"
-                    >
-                      {medicine.salts.name.length > 30
-                        ? medicine.name +
-                          " - " +
-                          medicine.salts.name.substring(0, 30) +
-                          "..."
-                        : medicine.name + " - " + medicine.salts.name}
-                    </label>
-                  </div>
-                ))
-              ) : (
-                <div className="text-gray-400 text-sm">No Medicine</div>
+          <div className="relative w-full md:w-4/5 lg:w-3/4">
+            <Command className="mb-2 px-3 py-1 text-white w-full bg-gray-900 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+              <CommandInput
+                placeholder="Search Medicine..."
+                onFocus={() => setIsMedicineListFocused(true)}
+                onBlur={() =>
+                  setTimeout(() => setIsMedicineListFocused(false), 250)
+                }
+                onValueChange={(value) => {
+                  setMedQuery(value);
+                }}
+              />
+              {isMedicineListFocused && (
+                <CommandList className="absolute bg-gray-600 rounded-lg top-12 left-0 my-1 w-full z-50">
+                  {medicineOptions.map((m) => {
+                    const alreadySelected = selectedMedicines.some(
+                      (med) => med._id === m._id
+                    );
+                    let medName =
+                      m.salts.name.length > 30
+                        ? m.name + " - " + m.salts.name.substring(0, 30) + "..."
+                        : m.name + " - " + m.salts.name;
+
+                    return (
+                      <CommandItem
+                        key={m._id}
+                        value={medName}
+                        onSelect={() => {
+                          if (!alreadySelected) {
+                            handleCheckboxChange(m);
+                          }
+                        }}
+                        className="flex items-center justify-between gap-2 px-2 py-1"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">
+                            {medQuery.trim() ? <CiSearch /> : <GrHistory />}
+                          </span>
+                          <span className="truncate">{medName}</span>
+                        </div>
+                        {alreadySelected && (
+                          <FaCheckCircle className="size-4" />
+                        )}
+                      </CommandItem>
+                    );
+                  })}
+                </CommandList>
               )}
-            </div>
+            </Command>
           </div>
-          <div className="border border-gray-700 p-2 rounded-lg text-white">
+          <div className=" w-full md:w-4/5 border border-gray-700 p-2 rounded-lg text-white">
             <div>Selected Medicines</div>
-            <hr className="border-1 border-gray-700 my-1" />
+            <hr className="border-1 border-gray-700" />
             <div className="max-h-64 overflow-y-auto p-2">
               {selectedMedicines.length > 0 ? (
                 selectedMedicines.map((medicine) => (
@@ -578,7 +504,7 @@ function NewPharmacyInvoice({
                     key={medicine._id}
                     className="lg:flex items-center gap-1 text-white"
                   >
-                    <div className="bg-gray-800 my-1 w-full text-sm font-semibold px-2 py-1 rounded-lg">
+                    <div className="bg-gray-800 my-1 w-full text-sm text-start font-semibold px-2 py-1 rounded-lg">
                       {medicine.name + " - " + medicine.salts?.name}
                     </div>
                     <div className="flex items-center justify-center gap-1">
@@ -684,7 +610,7 @@ function NewPharmacyInvoice({
               </div>
               <div className="py-1 text-white">
                 {requestedMedicineDetails.map((medicine, index) => {
-                  let medicineDetails = medicines.find(
+                  let medicineDetails = selectedMedicines?.find(
                     (m) => m._id === medicine.medicineId
                   );
                   const totalStripsAllocated = medicine.allocatedQuantities
@@ -739,13 +665,13 @@ function NewPharmacyInvoice({
                         </div>
 
                         <div
-                          title={medicineDetails.name}
+                          title={medicineDetails?.name}
                           className="w-[42%] text-start px-1 line-clamp-1"
                         >
-                          {medicineDetails.name}
+                          {medicineDetails?.name}
                         </div>
                         <div className="w-[25%] text-sm text-start text-gray-300">
-                          {medicineDetails.isTablets ? (
+                          {medicineDetails?.isTablets ? (
                             <>
                               {totalStripsAllocated > 0 &&
                                 totalStripsAllocated + " Strips"}
@@ -796,7 +722,7 @@ function NewPharmacyInvoice({
                                       {formatDateToIST(batch.expiryDate)}
                                     </div>
                                     <div className="w-[25%] text-start text-gray-300">
-                                      {medicineDetails.isTablets ? (
+                                      {medicineDetails?.isTablets ? (
                                         <>
                                           {batch.stripsAllocated > 0 &&
                                             batch.stripsAllocated + " Strips"}
@@ -951,14 +877,18 @@ function NewPharmacyInvoice({
             }
           />
           <div className="flex px-4 gap-3 justify-end">
-            <div
-              className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
-              onClick={() => {
-                setNewInvoiceSection((newInvoiceSection) => !newInvoiceSection);
-              }}
-            >
-              Cancel
-            </div>
+            {setNewInvoiceSection && (
+              <div
+                className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
+                onClick={() => {
+                  setNewInvoiceSection(
+                    (newInvoiceSection) => !newInvoiceSection
+                  );
+                }}
+              >
+                Cancel
+              </div>
+            )}
             <button
               onClick={
                 requestedMedicineDetails && selectedPaymentMode

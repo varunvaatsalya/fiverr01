@@ -2,12 +2,14 @@
 import React, { useEffect, useState } from "react";
 import AddSection from "./AddSection";
 import NewDataEntryForm from "./NewDataEntryForm";
-import ExpressInvoice from "./ExpressInvoice";
+// import ExpressInvoice from "./ExpressInvoice";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { IoPersonAdd } from "react-icons/io5";
 import { formatDateTimeToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import Invoice from "./Invoice";
+import NewPrescriptionForm from "./NewPrescriptionForm";
 
 function DataEntrySearchList({
   dataEntrys,
@@ -20,6 +22,7 @@ function DataEntrySearchList({
   const [resData, setResData] = useState([]);
   const [invoiceGenerate, setInvoiceGenerate] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
+  const [printPrescription, setPrintPrescription] = useState(null);
 
   const handleNextPage = () => {
     if (dataEntrys.length >= 50) {
@@ -75,15 +78,30 @@ function DataEntrySearchList({
     updatedata("");
   }, [dataEntrys]);
 
+  if (printPrescription) {
+    return (
+      <>
+        <div className="bg-white h-full">
+          <Invoice
+            printPrescription={printPrescription}
+            setPrintPrescription={setPrintPrescription}
+          />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       {newUserSection ? (
         <AddSection
           setNewUserSection={setNewUserSection}
-          setEntity={invoiceGenerate ? invoiceGenerate : setDataEntrys}
-          FormComponent={invoiceGenerate ? ExpressInvoice : NewDataEntryForm}
+          setEntity={setDataEntrys}
+          expressData={invoiceGenerate}
+          setPrintPrescription={setPrintPrescription}
+          FormComponent={invoiceGenerate ? NewPrescriptionForm : NewDataEntryForm}
           deleteDataEntry={deleteDataEntry}
-          setInvoiceGenerate={setInvoiceGenerate}
+          setExpressData={setInvoiceGenerate}
         />
       ) : (
         <></>
@@ -116,7 +134,7 @@ function DataEntrySearchList({
             <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 md:w-4/5 lg:w-3/4 mx-auto bg-black text-white">
               List of all the Desk Entry
             </div>
-            <div className="flex flex-wrap justify-center items-center mx-auto py-4">
+            <div className="flex flex-wrap justify-center items-center mx-auto py-1">
               {resData.map((dataEntry, index) => (
                 <div
                   key={index}
