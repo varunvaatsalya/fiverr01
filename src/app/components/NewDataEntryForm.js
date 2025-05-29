@@ -152,7 +152,7 @@ const NewDataEntryForm = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="w-[90%] min-h-[50vh] md:w-4/5 max-h-[80vh] flex flex-col items-center overflow-auto mx-auto px-2 my-2"
+      className="w-[90%] min-h-[60vh] md:w-4/5 max-h-[80vh] flex flex-col items-center overflow-auto mx-auto px-2 my-2"
     >
       {/* Department Selection */}
       <h2 className="font-bold text-2xl text-white">
@@ -198,7 +198,7 @@ const NewDataEntryForm = ({
                 }}
               />
               {isPatientListFocused && (
-                <CommandList className="absolute bg-gray-800 rounded-lg top-12 left-0 my-1 w-full z-50">
+                <CommandList className="absolute bg-gray-800 rounded-lg max-h-48 top-12 left-0 my-1 w-full z-50">
                   {patientOptions.map((p) => (
                     <CommandItem
                       key={p._id}

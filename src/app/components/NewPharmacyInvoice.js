@@ -392,14 +392,11 @@ function NewPharmacyInvoice({
 
   return (
     <>
-      <div className="w-[95%] md:w-4/5 text-center border border-slate-900 rounded-xl mx-auto my-2 pb-2">
+      <div className="w-[95%] md:w-[86%] min-h-[70vh] flex flex-col text-center border border-slate-900 rounded-xl mx-auto my-2 pb-2">
         <div className="text-center py-2 rounded-t-lg bg-slate-900 text-xl text-white font-semibold">
           New Invoice
         </div>
-        {/* checked={selectedMedicines.some(
-                        (m) => m._id === medicine._id
-                      )}
-                      onChange={() => handleCheckboxChange(medicine)} */}
+        <div className="flex-grow">
         <div className="p-2 flex flex-col items-center text-white">
           {selectedPatient ? (
             <div className="w-full flex flex-wrap justify-around gap-2 my-1">
@@ -439,7 +436,7 @@ function NewPharmacyInvoice({
                   }}
                 />
                 {isPatientListFocused && (
-                  <CommandList className="absolute bg-gray-800 rounded-lg top-12 left-0 my-1 w-full z-50">
+                  <CommandList className="absolute bg-gray-800 rounded-lg max-h-48 top-12 left-0 my-1 w-full z-50">
                     {patientOptions.map((p) => (
                       <CommandItem
                         key={p._id}
@@ -473,7 +470,7 @@ function NewPharmacyInvoice({
                 }}
               />
               {isMedicineListFocused && (
-                <CommandList className="absolute bg-gray-600 rounded-lg top-12 left-0 my-1 w-full z-50">
+                <CommandList className="absolute bg-gray-600 rounded-lg max-h-52 top-12 left-0 my-1 w-full z-50">
                   {medicineOptions.map((m) => {
                     const alreadySelected = selectedMedicines.some(
                       (med) => med._id === m._id
@@ -901,7 +898,7 @@ function NewPharmacyInvoice({
               {/*!ipdPrice && <option value="Insurence">Insurence Patient</option>*/}
             </select>
           </div>
-        )}
+        )}</div>
         <hr className="border-t border-slate-900 w-full my-2" />
         <div className="flex justify-between items-center px-2">
           <ToggleSwitch
