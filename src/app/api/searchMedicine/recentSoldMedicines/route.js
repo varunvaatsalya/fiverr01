@@ -9,7 +9,7 @@ let cache = {
   timestamp: 0,
 };
 
-const CACHE_DURATION = 5 * 60 * 1000;
+const CACHE_DURATION = 2 * 60 * 60 * 1000;
 
 export async function GET(req) {
   try {

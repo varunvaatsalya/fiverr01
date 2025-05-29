@@ -13,7 +13,7 @@ export async function POST(req) {
       { status: 401 }
     );
   }
-  
+
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
   if (!decoded || !userRole) {
@@ -28,11 +28,14 @@ export async function POST(req) {
   const { query } = await req.json();
 
   try {
-
-    const searchedMedicine = await Medicine.find(
-      { name: { $regex: query, $options: "i" } },
-      "_id name"
-    )
+    const searchedMedicine = await Medicine.find({
+      name: { $regex: query, $options: "i" },
+    })
+      .select("name _id packetSize isTablets")
+      .populate({
+        path: "salts",
+        select: "name _id",
+      })
       .sort({ _id: -1 })
       .exec();
     return NextResponse.json(

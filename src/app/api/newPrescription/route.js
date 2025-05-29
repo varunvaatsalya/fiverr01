@@ -251,10 +251,20 @@ export async function POST(req) {
     }
 
     if (paymentMode === "Insurence") {
-      const admission = await Admission.findOne({
+      const query = {
         patientId: patient,
         isCompleted: false,
-      });
+      };
+
+      if (createdAt) {
+        query.admissionDate = { $lte: new Date(createdAt) };
+        query.$or = [
+          { dischargeDate: { $gte: new Date(createdAt) } },
+          { dischargeDate: null },
+        ];
+      }
+
+      const admission = await Admission.findOne(query);
       if (!admission) {
         return NextResponse.json(
           {

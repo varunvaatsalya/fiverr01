@@ -13,7 +13,7 @@ let cache = {
   timestamp: 0,
 };
 
-const CACHE_DURATION = 5 * 60 * 1000;
+const CACHE_DURATION = 2* 60 * 60 * 1000;
 
 function getGrandTotal(medicineDetails) {
   const grandTotal = medicineDetails.reduce((grandTotal, medicine) => {
@@ -102,7 +102,6 @@ export async function GET(req) {
       const now = Date.now();
 
       if (cache.data && now - cache.timestamp < CACHE_DURATION) {
-        console.log(cache.data);
         return NextResponse.json(
           { patientsList, medicinesList: cache.data, success: true },
           { status: 200 }
@@ -148,7 +147,7 @@ export async function GET(req) {
     if (pending === "1") {
       query = { isDelivered: { $exists: false } };
     }
-    let userOrderQuery = pending === "1" ? {} : { _id: -1 };
+    let userOrderQuery = pending === "1" ? {} : { createdAt: -1 };
     if (isReturn === "1") {
       query.returns = { $exists: true, $not: { $size: 0 } };
     }

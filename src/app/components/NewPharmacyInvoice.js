@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/command";
 import { GrHistory } from "react-icons/gr";
 import { CiSearch } from "react-icons/ci";
+import NewPharmacyInvoiceBackDate from "./NewPharmacyInvoiceBackDate";
 
 function NewPharmacyInvoice({
   setNewInvoiceSection,
@@ -46,6 +47,7 @@ function NewPharmacyInvoice({
   const [recentPatients, setRecentPatients] = useState([]);
   const [recentMedicines, setRecentMedicine] = useState([]);
   const [isMedicineListFocused, setIsMedicineListFocused] = useState(false);
+  const [isAddInfoOpen, setIsAddInfoOpen] = useState(null);
 
   useEffect(() => {
     if (expressData) {
@@ -178,28 +180,51 @@ function NewPharmacyInvoice({
     setSelectedMedicines(selectedMedicines.filter((m) => m._id !== id));
   };
 
-  const onSubmit = async () => {
+  function parseData() {
     try {
-      let data = selectedMedicines.map((medicine) => {
+      const parsed = selectedMedicines.map((medicine) => {
         const newQuantity = {
           strips: Number(medicine.quantity.strips) || 0,
           tablets: Number(medicine.quantity.tablets) || 0,
           normalQuantity: Number(medicine.quantity.normalQuantity) || 0,
         };
-        if (
-          (medicine.isTablets &&
-            newQuantity.strips <= 0 &&
-            newQuantity.tablets <= 0) ||
-          (!medicine.isTablets && newQuantity.normalQuantity <= 0)
-        ) {
+
+        const isTabletInvalid =
+          medicine.isTablets &&
+          newQuantity.strips <= 0 &&
+          newQuantity.tablets <= 0;
+
+        const isNormalInvalid =
+          !medicine.isTablets && newQuantity.normalQuantity <= 0;
+
+        if (isTabletInvalid || isNormalInvalid) {
           throw new Error(`Set the correct quantity in : ${medicine.name}`);
         }
+
         return {
-          medicineId: medicine._id,
-          isTablets: medicine.isTablets,
+          medicine,
           quantity: newQuantity,
         };
       });
+
+      return { parsedData: parsed, error: null };
+    } catch (error) {
+      return { parsedData: null, error: error.message };
+    }
+  }
+
+  const onSubmit = async () => {
+    try {
+      const { parsedData, error } = parseData();
+      if (error) {
+        showError(error);
+        return;
+      }
+      let data = parsedData.map((med) => ({
+        medicineId: med.medicine._id,
+        isTablets: med.medicine.isTablets,
+        quantity: med.quantity,
+      }));
 
       setSubmitting(true);
       try {
@@ -215,7 +240,7 @@ function NewPharmacyInvoice({
         });
         result = await result.json();
         if (result.success) {
-          // console.log(result.requestResults, result.updatedRetailStock, 11);
+          console.log(result.requestResults);
           setRequestedMedicineDetails(result.requestResults);
         } else {
           showError(result.message);
@@ -229,29 +254,19 @@ function NewPharmacyInvoice({
       showError(error.message);
     }
   };
+
   const handleConfirm = async (isMakeExpressInvoice = false) => {
-    console.log(isMakeExpressInvoice);
     try {
-      let data = selectedMedicines.map((medicine) => {
-        const newQuantity = {
-          strips: Number(medicine.quantity.strips) || 0,
-          tablets: Number(medicine.quantity.tablets) || 0,
-          normalQuantity: Number(medicine.quantity.normalQuantity) || 0,
-        };
-        if (
-          (medicine.isTablets &&
-            newQuantity.strips <= 0 &&
-            newQuantity.tablets <= 0) ||
-          (!medicine.isTablets && newQuantity.normalQuantity <= 0)
-        ) {
-          throw new Error(`Set the correct quantity in : ${medicine.name}`);
-        }
-        return {
-          medicineId: medicine._id,
-          isTablets: medicine.isTablets,
-          quantity: newQuantity,
-        };
-      });
+      const { parsedData, error } = parseData();
+      if (error) {
+        showError(error);
+        return;
+      }
+      let data = parsedData.map((med) => ({
+        medicineId: med.medicine._id,
+        isTablets: med.medicine.isTablets,
+        quantity: med.quantity,
+      }));
 
       let url = "/api/newPharmacyInvoice";
       let payload = {
@@ -414,6 +429,7 @@ function NewPharmacyInvoice({
               <Command className="mb-2 px-3 py-1 text-white bg-gray-900 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
                 <CommandInput
                   placeholder="Search Patient..."
+                  autoFocus
                   onFocus={() => setIsPatientListFocused(true)}
                   onBlur={() =>
                     setTimeout(() => setIsPatientListFocused(false), 250)
@@ -575,6 +591,31 @@ function NewPharmacyInvoice({
             </div>
           </div>
         </div>
+        <div className="w-full flex ">
+          <button
+            disabled={!selectedPatient || selectedMedicines.length <= 0}
+            onClick={() => {
+              let { parsedData, error } = parseData();
+              if (error) {
+                showError(error);
+                return;
+              }
+              setIsAddInfoOpen(parsedData);
+            }}
+            className="text-blue-800 disabled:text-gray-400 px-2 disabled:no-underline hover:underline underline-offset-2 text-sm"
+          >
+            additional Info
+          </button>
+        </div>
+        {isAddInfoOpen !== null && (
+          <NewPharmacyInvoiceBackDate
+            selectedPatient={selectedPatient}
+            isAddInfoOpen={isAddInfoOpen}
+            setIsAddInfoOpen={setIsAddInfoOpen}
+            setNewInvoiceSection={setNewInvoiceSection}
+            setPrintInvoice={setPrintInvoice}
+          />
+        )}
         {requestedMedicineDetails && (
           <div className="px-2">
             <div className="md:w-3/4 mx-auto my-2 border rounded-lg border-gray-700">
