@@ -61,7 +61,7 @@ export async function generateUniqueId(entityType, anyDate = null) {
     uniqueId = `${record.date}${String(record.reportCounter).padStart(3, "0")}`;
     record.reportCounter += 1;
   } else if (entityType === "ipd") {
-    uniqueId = `${record.date}${String(record.ipdCounter).padStart(3, "0")}`;
+    uniqueId = `${record.date}${String(record.ipdCounter).padStart(2, "0")}`;
     record.ipdCounter += 1;
   } else if (entityType === "pharmacyInvoice") {
     uniqueId = `${record.date}${String(record.pharmacyInvoiceCounter).padStart(
