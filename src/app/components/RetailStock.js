@@ -260,10 +260,7 @@ function RetailStock({
                 </div>
                 {medicine.minimumStockCount &&
                   medicine.retailStocks.length > 0 &&
-                  medicine.retailStocks[0].stocks.reduce(
-                    (acc, stock) => acc + stock.quantity.boxes,
-                    0
-                  ) < medicine.minimumStockCount.retails && (
+                  totalStrips < medicine.minimumStockCount.retails && (
                     <TiWarning className="text-red-900 size-6 animate-pulse" />
                   )}
                 {medicine.requests.length ? (

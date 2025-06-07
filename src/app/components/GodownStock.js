@@ -175,10 +175,7 @@ function GodownStock({ medicineStock, query }) {
                     : "--"}
                 </div>
                 {medicine.minimumStockCount?.godown !== undefined ? (
-                  medicine.stocks.reduce(
-                    (acc, stock) => acc + stock.quantity.boxes,
-                    0
-                  ) < medicine.minimumStockCount?.godown && (
+                  totalStrips < medicine.minimumStockCount?.godown && (
                     <TiWarning className="text-red-900 size-6 animate-pulse" />
                   )
                 ) : (
