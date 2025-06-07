@@ -28,8 +28,7 @@ function Page() {
   const updateData = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/newMedicine/minMaxQtyData");
-
+      const response = await fetch("/api/newMedicine/avgMonthlySale");
       const data = await response.json();
       if (data.success) {
         showSuccess(data.message);

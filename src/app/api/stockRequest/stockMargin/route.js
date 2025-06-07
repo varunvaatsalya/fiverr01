@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../../utils/jwt";
 import Medicine from "../../../models/Medicine";
-import Stock from "../../../models/Stock";
+import { Stock } from "../../../models/Stock";
 import mongoose from "mongoose";
 
 export async function POST(req) {

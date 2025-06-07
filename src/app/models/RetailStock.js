@@ -60,5 +60,16 @@ const retailStockSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.models.RetailStock ||
-  mongoose.model("RetailStock", retailStockSchema);
+// export default mongoose.models.RetailStock ||
+//   mongoose.model("RetailStock", retailStockSchema);
+
+const RetailStock =
+  mongoose.models.RetailStock || mongoose.model("RetailStock", retailStockSchema);
+
+const HospitalRetailStock =
+  mongoose.models.HospitalRetailStock ||
+  mongoose.model("HospitalRetailStock", retailStockSchema);
+
+export default RetailStock;
+
+export { HospitalRetailStock };

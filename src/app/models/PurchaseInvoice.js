@@ -65,5 +65,14 @@ purchaseInvoiceSchema.path("vendor").validate(function (value) {
   return this.manufacturer || value; // manufacturer ho ya vendor, ek to hona chahiye
 }, "Either vendor or manufacturer is required.");
 
-export default mongoose.models.PurchaseInvoice ||
+const PurchaseInvoice =
+  mongoose.models.PurchaseInvoice ||
   mongoose.model("PurchaseInvoice", purchaseInvoiceSchema);
+
+const HospitalPurchaseInvoice =
+  mongoose.models.HospitalPurchaseInvoice ||
+  mongoose.model("HospitalPurchaseInvoice", purchaseInvoiceSchema);
+
+export default PurchaseInvoice;
+
+export { HospitalPurchaseInvoice };

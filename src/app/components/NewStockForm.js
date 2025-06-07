@@ -3,12 +3,15 @@ import React, { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { RxCross1 } from "react-icons/rx";
 import Loading from "./Loading";
+import { useStockType } from "../context/StockTypeContext";
 
 function NewStockForm({ medicines, ids }) {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   // const [data, setData] = useState();
   const [result, setResult] = useState(null);
+
+  const sectionType = useStockType();
 
   const { register, handleSubmit, control, watch, reset } = useForm({
     defaultValues: {
@@ -26,13 +29,7 @@ function NewStockForm({ medicines, ids }) {
     console.log("Updated Stocks:", stocks);
   }, [stocks]);
 
-  function onSubmit(data) {
-    console.log(data);
-    handleSave(data);
-    // setData(data);
-    // setMedicineDetailsSection(true);
-  }
-  async function handleSave(data) {
+  async function onSubmit(data) {
     setSubmitting(true);
     try {
       let result = await fetch("/api/newStock", {
@@ -40,7 +37,7 @@ function NewStockForm({ medicines, ids }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, sectionType }),
       });
       result = await result.json();
       setMessage(result.message);

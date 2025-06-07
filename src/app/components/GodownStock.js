@@ -6,6 +6,7 @@ import { TiWarning } from "react-icons/ti";
 import { FaSquarePen } from "react-icons/fa6";
 import { IoIosRemoveCircle } from "react-icons/io";
 import { showError } from "../utils/toast";
+import { useStockType } from "../context/StockTypeContext";
 
 function GodownStock({ medicineStock, query }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -16,6 +17,8 @@ function GodownStock({ medicineStock, query }) {
   const [filteredMedicines, setFilteredMedicines] = useState(
     medicineStock?.medicines
   );
+
+  const sectionType = useStockType();
 
   useEffect(() => {
     setFilteredMedicines(medicineStock?.medicines);
@@ -54,7 +57,11 @@ function GodownStock({ medicineStock, query }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id, godownMaxQty: maxQty }),
+        body: JSON.stringify({
+          id,
+          godownMaxQty: maxQty,
+          sectionType,
+        }),
       });
       result = await result.json();
       if (result.success) {
@@ -87,7 +94,11 @@ function GodownStock({ medicineStock, query }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id, godownMinQty: minQty }),
+        body: JSON.stringify({
+          id,
+          godownMinQty: minQty,
+          sectionType,
+        }),
       });
       result = await result.json();
       if (result.success) {
@@ -163,11 +174,11 @@ function GodownStock({ medicineStock, query }) {
                       totalExtra
                     : "--"}
                 </div>
-                {medicine.minimumStockCount?.godown !== null ? (
+                {medicine.minimumStockCount?.godown !== undefined ? (
                   medicine.stocks.reduce(
                     (acc, stock) => acc + stock.quantity.boxes,
                     0
-                  ) < medicine.minimumStockCount.godown && (
+                  ) < medicine.minimumStockCount?.godown && (
                     <TiWarning className="text-red-900 size-6 animate-pulse" />
                   )
                 ) : (

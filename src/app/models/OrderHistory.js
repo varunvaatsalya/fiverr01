@@ -13,7 +13,17 @@ const orderHistorySchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.models.OrderHistory ||
+// export default mongoose.models.OrderHistory ||
+//   mongoose.model("OrderHistory", orderHistorySchema);
+
+const OrderHistory =
+  mongoose.models.OrderHistory ||
   mongoose.model("OrderHistory", orderHistorySchema);
 
-// export default Patient;
+const HospitalOrderHistory =
+  mongoose.models.HospitalOrderHistory ||
+  mongoose.model("HospitalOrderHistory", orderHistorySchema);
+
+export default OrderHistory;
+
+export { HospitalOrderHistory };

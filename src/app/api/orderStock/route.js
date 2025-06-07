@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
-import OrderHistory from "../../models/OrderHistory";
+import OrderHistory, { HospitalOrderHistory } from "../../models/OrderHistory";
 import Medicine from "../../models/Medicine";
 
 export async function GET(req) {
@@ -9,6 +9,7 @@ export async function GET(req) {
 
   let info = req.nextUrl.searchParams.get("info");
   let page = req.nextUrl.searchParams.get("page");
+  let sectionType = req.nextUrl.searchParams.get("sectionType");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -28,16 +29,25 @@ export async function GET(req) {
     );
   }
 
+  let OrderHistoryModel =
+    sectionType === "hospital" ? HospitalOrderHistory : OrderHistory;
+  const stockCollection =
+    sectionType === "hospital" ? "hospitalstocks" : "stocks";
+  const purchaseInvoiceCollection =
+    sectionType === "hospital"
+      ? "hospitalpurchaseinvoices"
+      : "purchaseinvoices";
+
   try {
     if (info === "1" && page) {
       page = parseInt(page) || 1;
       const limit = 50;
       const skip = (page - 1) * limit;
-      const orderHistory = await OrderHistory.find()
+      const orderHistory = await OrderHistoryModel.find()
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
-      const totalOrderHistory = await OrderHistory.countDocuments();
+      const totalOrderHistory = await OrderHistoryModel.countDocuments();
       return NextResponse.json(
         {
           orderHistory,
@@ -48,68 +58,34 @@ export async function GET(req) {
       );
     }
 
-    // const medicinesWithStock = await Medicine.aggregate([
-    //   // {
-    //   //   $match: { _id: new mongoose.Types.ObjectId(id) },
-    //   // },
-    //   {
-    //     $lookup: {
-    //       from: "stocks",
-    //       localField: "_id",
-    //       foreignField: "medicine",
-    //       as: "stocks",
-    //     },
-    //   },
-    //   {
-    //     $addFields: {
-    //       totalBoxes: {
-    //         $sum: "$stocks.quantity.boxes",
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 1,
-    //       name: 1,
-    //       manufacturer: 1,
-    //       medicineType: 1,
-    //       "minimumStockCount.godown": 1,
-    //       totalBoxes: 1,
-    //       stockOrderInfo: 1,
-    //     },
-    //   },
-    //   {
-    //     $sort: { name: 1 },
-    //   },
-    // ]);
-
     const medicinesWithStock = await Medicine.aggregate([
       {
         // Lookup all stocks of this medicine
         $lookup: {
-          from: "stocks",
+          from: stockCollection,
           localField: "_id",
           foreignField: "medicine",
           as: "stockDocs",
         },
       },
       {
-        // Calculate totalBoxes
+        // Calculate totalStrips
         $addFields: {
-          totalBoxes: {
-            $sum: "$stockDocs.quantity.boxes",
+          totalStrips: {
+            $sum: "$stockDocs.quantity.totalStrips",
+            // $sum: "$stockDocs.quantity.boxes",
           },
         },
       },
       {
         $lookup: {
-          from: "purchaseinvoices",
+          from: purchaseInvoiceCollection,
           let: { medicineId: "$_id" },
           pipeline: [
             { $unwind: "$stocks" },
             {
               $lookup: {
-                from: "stocks",
+                from: stockCollection,
                 localField: "stocks.stockId",
                 foreignField: "_id",
                 as: "stockDoc",
@@ -163,7 +139,6 @@ export async function GET(req) {
         },
       },
       {
-        // Determine the latest source and its type
         $addFields: {
           latestSource: {
             $cond: {
@@ -200,13 +175,30 @@ export async function GET(req) {
         },
       },
       {
-        // Final output format
+        $addFields: {
+          minimumStockCount: {
+            $cond: [
+              { $eq: [sectionType, "hospital"] },
+              "$minimumHospitalStockCount",
+              "$minimumStockCount",
+            ],
+          },
+          maximumStockCount: {
+            $cond: [
+              { $eq: [sectionType, "hospital"] },
+              "$maximumHospitalStockCount",
+              "$maximumStockCount",
+            ],
+          },
+        },
+      },
+      {
         $project: {
           _id: 1,
           name: 1,
           manufacturer: 1,
           salts: 1,
-          totalBoxes: { $ifNull: ["$totalBoxes", 0] },
+          totalBoxes: { $ifNull: ["$totalStrips", 0] },
           medicineType: 1,
           "minimumStockCount.godown": 1,
           "maximumStockCount.godown": 1,
@@ -266,10 +258,10 @@ export async function POST(req) {
   //     { status: 403 }
   //   );
   // }
-  const { to, mrName, contact, medicines } = await req.json();
+  const { to, mrName, contact, medicines, sectionType } = await req.json();
 
   try {
-    console.log(to, mrName, contact, medicines);
+    console.log(to, mrName, contact, medicines, sectionType);
     if (!to || !contact) {
       return NextResponse.json(
         {
@@ -294,8 +286,11 @@ export async function POST(req) {
       );
     }
 
+    let OrderHistoryModel =
+      sectionType === "hospital" ? HospitalOrderHistory : OrderHistory;
+
     // Create new user
-    const newHistory = new OrderHistory({
+    const newHistory = new OrderHistoryModel({
       to,
       mrName,
       contact,
@@ -308,8 +303,13 @@ export async function POST(req) {
     for (const med of medicines) {
       if (!med.medicineId || !med.quantity) continue;
 
+      const updateField =
+        sectionType === "hospital"
+          ? "stockHospitalOrderInfo"
+          : "stockOrderInfo";
+
       await Medicine.findByIdAndUpdate(med.medicineId, {
-        stockOrderInfo: {
+        [updateField]: {
           quantity: med.quantity,
           orderedAt: new Date(),
         },

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { RiLoader2Line } from "react-icons/ri";
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
+import { useStockType } from "../context/StockTypeContext";
 
 function NewPurchaseInvoice({
   setNewPurchaseInvoiceSection,
@@ -16,10 +17,14 @@ function NewPurchaseInvoice({
 
   const { register, handleSubmit, setValue } = useForm();
 
+  const sectionType = useStockType();
+
   useEffect(() => {
     async function fetchData() {
       try {
-        let result = await fetch(`/api/newPurchaseInvoice?info=${type}`);
+        let result = await fetch(`/api/newPurchaseInvoice?info=${type}${
+            sectionType === "hospital" ? "&sectionType=hospital" : ""
+          }`);
         result = await result.json();
         if (result.success) {
           setLists(result.lists);
@@ -36,7 +41,6 @@ function NewPurchaseInvoice({
   }, [type]);
 
   const onSubmit = async (data) => {
-    console.log("object");
     setMessage("");
     setSubmitting(true);
     try {
@@ -45,7 +49,7 @@ function NewPurchaseInvoice({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({...data, sectionType}),
       });
       result = await result.json();
       if (result.success) {

@@ -1,39 +1,44 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../../../lib/Mongodb";
-import PurchaseInvoice from "../../../../models/PurchaseInvoice";
-import Stock from "../../../../models/Stock";
+import PurchaseInvoice, { HospitalPurchaseInvoice } from "../../../../models/PurchaseInvoice";
+import { Stock, HospitalStock } from "../../../../models/Stock";
 
 export async function GET(req) {
   await dbConnect();
 
   try {
-    const invoices = await PurchaseInvoice.find({}).lean();
+    async function updateInvoiceAmounts(InvoiceModel, StockModel) {
+      const invoices = await InvoiceModel.find({}).lean();
 
-    for (const invoice of invoices) {
-      const stockIds = invoice.stocks.map((s) => s.stockId);
+      for (const invoice of invoices) {
+        const stockIds = invoice.stocks.map((s) => s.stockId);
 
-      const stocks = await Stock.find({ _id: { $in: stockIds } });
+        const stocks = await StockModel.find({ _id: { $in: stockIds } });
 
-      const grandTotal = stocks.reduce(
-        (sum, s) => sum + (s.totalAmount || 0),
-        0
-      );
+        const grandTotal = stocks.reduce(
+          (sum, s) => sum + (s.totalAmount || 0),
+          0
+        );
 
-      // Apply discount and taxes if needed
-      const discount = invoice.discount || 0;
-      const taxes = invoice.taxes || 0;
-      const finalAmount = grandTotal - discount + taxes;
+        const discount = invoice.discount || 0;
+        const taxes = invoice.taxes || 0;
+        const finalAmount = grandTotal - discount + taxes;
 
-      await PurchaseInvoice.updateOne(
-        { _id: invoice._id },
-        {
-          $set: {
-            grandTotal,
-            finalAmount,
-          },
-        }
-      );
+        await InvoiceModel.updateOne(
+          { _id: invoice._id },
+          {
+            $set: {
+              grandTotal,
+              finalAmount,
+            },
+          }
+        );
+      }
     }
+
+    // Call for both models
+    await updateInvoiceAmounts(PurchaseInvoice, Stock);
+    await updateInvoiceAmounts(HospitalPurchaseInvoice, HospitalStock);
 
     return NextResponse.json(
       { success: true, message: "All invoices updated." },

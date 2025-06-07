@@ -7,7 +7,16 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandEmpty,
+  CommandGroup,
 } from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CheckIcon } from "lucide-react";
 import { GrHistory } from "react-icons/gr";
 import { CiSearch } from "react-icons/ci";
 import { showError, showSuccess } from "../utils/toast";
@@ -37,6 +46,10 @@ const NewPrescriptionForm = ({
   const [selectedItems, setSelectedItems] = useState([]);
   const [recentPatients, setRecentPatients] = useState([]);
   const [ipdPrice, setIpdPrice] = useState(null);
+  const [deptOpen, setDeptOpen] = useState(true);
+  const [docOpen, setDocOpen] = useState(true);
+  const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [itemsOpen, setItemsOpen] = useState(false);
 
   useEffect(() => {
     setValue("items", selectedItems);
@@ -112,6 +125,7 @@ const NewPrescriptionForm = ({
       setValue("patient", expressData.patient._id);
       setValue("department", expressData.department._id);
       setValue("doctor", expressData.doctor._id);
+      setSelectedDoctor(expressData.doctor._id);
       setSelectedItems(expressData.items || []);
     }
   }, []);
@@ -131,46 +145,53 @@ const NewPrescriptionForm = ({
         return;
       }
     }
-    if (selectedItems.length > 0 || ipdPrice) {
-      setSubmitting(true);
-      try {
-        console.log(data, selectedItems.length);
-        let result = await fetch("/api/newPrescription", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json", // Set the header for JSON
-          },
-          body: JSON.stringify(data), // Properly stringify the data
-        });
+    if (
+      (selectedItems.length <= 0 && !ipdPrice) ||
+      !selectedPatient ||
+      !selectedDepartment ||
+      !selectedDoctor ||
+      !data.paymentMode
+    ) {
+      showError("fill the details properly");
+      return;
+    }
 
-        // Parsing the response as JSON
-        result = await result.json();
-        // Check if login was successful
-        if (result.success) {
-          if (expressData) {
-            deleteDataEntry(expressData._id);
-            setExpressData(null);
-          } else {
-            setEntity((prevPrescription) => [
-              result.newPrescription,
-              ...prevPrescription,
-            ]);
-          }
-          setPrintPrescription(result.newPrescription);
-          setNewUserSection((prev) => !prev);
-          showSuccess("Invoice Created Successfully", {
-            position: "top-right",
-          });
+    setSubmitting(true);
+    try {
+      console.log(data, selectedItems.length);
+      let result = await fetch("/api/newPrescription", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // Set the header for JSON
+        },
+        body: JSON.stringify(data), // Properly stringify the data
+      });
+
+      // Parsing the response as JSON
+      result = await result.json();
+      // Check if login was successful
+      if (result.success) {
+        if (expressData) {
+          deleteDataEntry(expressData._id);
+          setExpressData(null);
         } else {
-          showError(result.message);
+          setEntity((prevPrescription) => [
+            result.newPrescription,
+            ...prevPrescription,
+          ]);
         }
-      } catch (error) {
-        console.error("Error submitting application:", error);
-      } finally {
-        setSubmitting(false);
+        setPrintPrescription(result.newPrescription);
+        setNewUserSection((prev) => !prev);
+        showSuccess("Invoice Created Successfully", {
+          position: "top-right",
+        });
+      } else {
+        showError(result.message);
       }
-    } else {
-      showError("choose atleast one items");
+    } catch (error) {
+      console.error("Error submitting application:", error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -191,6 +212,10 @@ const NewPrescriptionForm = ({
         <Loading size={50} />
       </div>
     );
+
+  const filteredDoctors = details.doctors.filter(
+    (doctor) => doctor.department === selectedDepartment
+  );
 
   return (
     <form
@@ -265,7 +290,7 @@ const NewPrescriptionForm = ({
           </div>
         )}
 
-        {selectedPatient && (
+        {/* {selectedPatient && (
           <select
             id="department"
             {...register("department", { required: "department is required" })}
@@ -281,12 +306,75 @@ const NewPrescriptionForm = ({
               </option>
             ))}
           </select>
+        )} */}
+
+        {selectedPatient && (
+          <Popover open={deptOpen} onOpenChange={setDeptOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  "w-full mt-1 mb-2 px-4 py-3 text-left bg-gray-700 text-white rounded-xl shadow-sm",
+                  !selectedDepartment && "text-gray-400"
+                )}
+              >
+                {selectedDepartment
+                  ? details.departments.find(
+                      (department) => department._id === selectedDepartment
+                    )?.name
+                  : "Select department..."}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0 bg-gray-700 border-gray-500" side="bottom" align="start">
+              <Command className="bg-gray-700 text-white">
+                <CommandInput placeholder="Search department..." />
+                <CommandList>
+                  <CommandEmpty>No department found.</CommandEmpty>
+                  <CommandGroup>
+                    {details.departments.map((department) => (
+                      <CommandItem
+                        className="text-white"
+                        key={department._id}
+                        value={department.name}
+                        onSelect={() => {
+                          setValue(
+                            "department",
+                            department._id === selectedDepartment
+                              ? ""
+                              : department._id
+                          );
+                          setSelectedDepartment(
+                            department._id === selectedDepartment
+                              ? ""
+                              : department._id
+                          );
+                          setValue("doctor", "");
+                          setSelectedDoctor("");
+                          setDeptOpen(false);
+                        }}
+                      >
+                        <CheckIcon
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedDepartment === department._id
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {department.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         )}
 
         {/* Display items if a department is selected */}
         {selectedDepartment && selectedPatient && (
           <>
-            <select
+            {/* <select
               id="doctor"
               {...register("doctor", { required: "doctor is required" })}
               className="mt-1 mb-4 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
@@ -299,7 +387,66 @@ const NewPrescriptionForm = ({
                     {doctor.name}
                   </option>
                 ))}
-            </select>
+            </select> */}
+
+            <div className="mb-2">
+              <Popover open={docOpen} onOpenChange={setDocOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "w-full px-4 py-3 text-left bg-gray-700 text-white rounded-xl shadow-sm",
+                      !selectedDoctor && "text-gray-400"
+                    )}
+                  >
+                    {selectedDoctor
+                      ? filteredDoctors.find(
+                          (doc) => doc._id === selectedDoctor
+                        )?.name
+                      : "-- Select a Doctor --"}
+                  </button>
+                </PopoverTrigger>
+
+                <PopoverContent className="p-0 bg-gray-700 border-gray-500" side="bottom" align="start">
+                  <Command className="bg-gray-700 text-white">
+                    <CommandInput placeholder="Search doctor..." />
+                    <CommandList>
+                      <CommandEmpty>No doctor found.</CommandEmpty>
+                      <CommandGroup>
+                        {filteredDoctors.map((doctor) => (
+                          <CommandItem
+                            className="text-white"
+                            key={doctor._id}
+                            value={doctor._id}
+                            onSelect={(currentValue) => {
+                              setSelectedDoctor(
+                                currentValue === selectedDoctor
+                                  ? ""
+                                  : currentValue
+                              );
+                              setValue("doctor", currentValue);
+                              setDocOpen(false);
+                              setItemsOpen(true);
+                            }}
+                          >
+                            <CheckIcon
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedDoctor === doctor._id
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {doctor.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
             {details.departments
               .find((department) => department._id === selectedDepartment)
               .name.toLowerCase()
@@ -333,7 +480,7 @@ const NewPrescriptionForm = ({
               </div>
             )}
 
-            <div className="mb-6">
+            {/* <div className="mb-6">
               {availableItems.length > 0 ? (
                 availableItems.map((item, index) => (
                   <div
@@ -345,14 +492,13 @@ const NewPrescriptionForm = ({
                       id={`item-checkbox-${index}`}
                       checked={selectedItems.some(
                         (selectedItem) => selectedItem.name === item.name
-                      )} // <-- Corrected: Check if item is selected based on name
+                      )}
                       onChange={(e) =>
                         handleItemSelection(item, e.target.checked)
                       }
                       className="block size-5 bg-red-600 border-gray-800 rounded focus:ring-blue-800 focus:ring-2"
                     />
 
-                    {/* Display item name */}
                     <label
                       htmlFor={`item-checkbox-${index}`}
                       className="text-gray-400 bg-gray-700 rounded px-2"
@@ -366,7 +512,72 @@ const NewPrescriptionForm = ({
                   No items available for this department.
                 </p>
               )}
-            </div>
+            </div> */}
+
+            <Popover open={itemsOpen} onOpenChange={setItemsOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "w-full px-4 py-3 text-left bg-gray-700 text-white rounded-xl shadow-sm",
+                    selectedItems.length === 0 && "text-gray-400"
+                  )}
+                >
+                  {selectedItems.length > 0
+                    ? `${selectedItems.length} item(s) selected`
+                    : "Select items..."}
+                </button>
+              </PopoverTrigger>
+
+              <PopoverContent
+                className="p-0 max-h-[300px] overflow-auto bg-gray-700 border-gray-500"
+                side="bottom"
+                align="start"
+              >
+                {availableItems.length > 0 ? (
+                  <Command className="bg-gray-700 text-white">
+                    <CommandInput placeholder="Search items..." />
+                    <CommandList>
+                      <CommandEmpty>No items found.</CommandEmpty>
+                      <CommandGroup>
+                        {availableItems.map((item, index) => {
+                          const isSelected = selectedItems.some(
+                            (selectedItem) => selectedItem.name === item.name
+                          );
+
+                          return (
+                            <CommandItem
+                              key={index}
+                              value={item.name}
+                              onSelect={() =>
+                                handleItemSelection(item, !isSelected)
+                              }
+                              className="text-white flex items-center space-x-2"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  readOnly
+                                  className="size-4 rounded "
+                                />
+                                <span>
+                                  {item.name} (Price: {item.price})
+                                </span>
+                              </div>
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                ) : (
+                  <div className="p-4 text-gray-500">
+                    No items available for this department.
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
 
             {/* Render selected items dynamically using useFieldArray */}
             <div>

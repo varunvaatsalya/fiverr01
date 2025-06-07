@@ -6,6 +6,8 @@ import Medicine from "../../models/Medicine";
 export async function GET(req) {
   await dbConnect();
 
+  let sectionType = req.nextUrl.searchParams.get("sectionType");
+
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -26,11 +28,16 @@ export async function GET(req) {
     return res;
   }
 
+  const retailstockCollection =
+    sectionType === "hospital" ? "hospitalretailstocks" : "retailstocks";
+  const requestCollection =
+    sectionType === "hospital" ? "hospitalrequests" : "requests";
+
   try {
     const retailStockData = await Medicine.aggregate([
       {
         $lookup: {
-          from: "retailstocks", // Changed to retailstocks collection
+          from: retailstockCollection, // Changed to retailstocks collection
           localField: "_id",
           foreignField: "medicine",
           as: "retailStocks", // Alias for retail stocks
@@ -38,7 +45,7 @@ export async function GET(req) {
       },
       {
         $lookup: {
-          from: "requests",
+          from: requestCollection,
           localField: "_id",
           foreignField: "medicine",
           as: "requests",
@@ -66,7 +73,26 @@ export async function GET(req) {
             $filter: {
               input: "$requests",
               as: "request",
-              cond: { $or: [{ $eq: ["$$request.status", "Pending"] }, { $eq: ["$$request.status", "Approved"] }] },
+              cond: {
+                $or: [
+                  { $eq: ["$$request.status", "Pending"] },
+                  { $eq: ["$$request.status", "Approved"] },
+                ],
+              },
+            },
+          },
+          minimumStockCount: {
+            $cond: {
+              if: { $eq: [sectionType, "hospital"] },
+              then: "$minimumHospitalStockCount",
+              else: "$minimumStockCount",
+            },
+          },
+          maximumStockCount: {
+            $cond: {
+              if: { $eq: [sectionType, "hospital"] },
+              then: "$maximumHospitalStockCount",
+              else: "$maximumStockCount",
             },
           },
         },

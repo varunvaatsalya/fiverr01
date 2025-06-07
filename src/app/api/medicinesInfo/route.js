@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
-import Stock from "../../models/Stock";
+import { Stock } from "../../models/Stock";
 import RetailStock from "../../models/RetailStock";
 
 export async function GET(req) {
@@ -87,8 +87,10 @@ export async function GET(req) {
       })
     );
 
+    console.log(medicines.length)
+
     return NextResponse.json(
-      { message: "Successfully fetched", success: true, result },
+      { message: "Successfully fetched", success: true, info: result },
       { status: 200 }
     );
   } catch (error) {

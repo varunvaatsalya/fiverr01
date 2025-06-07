@@ -440,7 +440,7 @@ function NewPharmacyInvoice({
                     {patientOptions.map((p) => (
                       <CommandItem
                         key={p._id}
-                        value={p.name}
+                        value={`${p.name} (UHID: ${p.uhid})`}
                         onSelect={() => {
                           setSelectedPatient(p);
                           setPatientOptions([]);
@@ -449,7 +449,7 @@ function NewPharmacyInvoice({
                         <span className="text-lg">
                           {query.trim() ? <CiSearch /> : <GrHistory />}
                         </span>
-                        <span className="truncate">{p.name}</span>
+                        <span className="truncate">{`${p.name} (UHID: ${p.uhid})`}</span>
                       </CommandItem>
                     ))}
                   </CommandList>

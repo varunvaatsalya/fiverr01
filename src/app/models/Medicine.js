@@ -48,6 +48,22 @@ const medicineSchema = new mongoose.Schema({
       type: Number,
     },
   },
+  minimumHospitalStockCount: {
+    godown: {
+      type: Number,
+    },
+    retails: {
+      type: Number,
+    },
+  },
+  maximumHospitalStockCount: {
+    godown: {
+      type: Number,
+    },
+    retails: {
+      type: Number,
+    },
+  },
   avgMonthlyBoxes: {
     type: new mongoose.Schema(
       {
@@ -90,6 +106,10 @@ const medicineSchema = new mongoose.Schema({
     },
   ],
   stockOrderInfo: {
+    quantity: Number,
+    orderedAt: Date,
+  },
+  stockHospitalOrderInfo: {
     quantity: Number,
     orderedAt: Date,
   },

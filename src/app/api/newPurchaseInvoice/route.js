@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import { Manufacturer, Vendor } from "../../models/MedicineMetaData";
-import PurchaseInvoice from "../../models/PurchaseInvoice";
+import PurchaseInvoice, {
+  HospitalPurchaseInvoice,
+} from "../../models/PurchaseInvoice";
 import { generateUID } from "../../utils/counter";
 
 // function getGrandTotal(medicineDetails) {
@@ -22,12 +24,9 @@ import { generateUID } from "../../utils/counter";
 //   return grandTotal;
 // }
 
-function getUID() {
-  const prefix = "PI";
-  let uniqueDigit = generateUID();
-
-  const uniqueID = `${prefix}${uniqueDigit}`;
-  return uniqueID;
+function getModel(typesectionType) {
+  if (typesectionType === "hospital") return HospitalPurchaseInvoice;
+  return PurchaseInvoice;
 }
 
 export async function GET(req) {
@@ -36,6 +35,9 @@ export async function GET(req) {
   let info = req.nextUrl.searchParams.get("info");
   let page = req.nextUrl.searchParams.get("page");
   let pending = req.nextUrl.searchParams.get("pending");
+  let sectionType = req.nextUrl.searchParams.get("sectionType");
+
+  const Model = getModel(sectionType);
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -68,7 +70,11 @@ export async function GET(req) {
       } else if (info === "vendor") {
         lists = await Vendor.find({}, "_id name").sort({ _id: -1 }).exec();
       }
-      let uniqueID = getUID();
+
+      const prefix = sectionType === "hospital" ? "HI" : "PI";
+      let uniqueDigit = generateUID();
+
+      const uniqueID = `${prefix}${uniqueDigit}`;
 
       return NextResponse.json(
         { lists, uniqueID, success: true },
@@ -82,7 +88,10 @@ export async function GET(req) {
     if (pending === "1") {
       query = { isPaid: { $exists: false } };
     }
-    const allPurchaseInvoices = await PurchaseInvoice.find(query)
+
+    const STOCK_MODEL = sectionType === "hospital" ? "HospitalStock" : "Stock";
+
+    const allPurchaseInvoices = await Model.find(query)
       .sort({ _id: -1 })
       .skip(skip)
       .limit(limit)
@@ -94,13 +103,15 @@ export async function GET(req) {
       })
       .populate({
         path: "stocks.stockId",
+        model: STOCK_MODEL,
         populate: {
           path: "medicine",
           select: "name",
         },
       });
 
-    const totalPurchaseInvoices = await PurchaseInvoice.countDocuments();
+    const totalPurchaseInvoices = await Model.countDocuments();
+    console.log("Total Purchase Invoices:", totalPurchaseInvoices);
 
     return NextResponse.json(
       {
@@ -148,9 +159,10 @@ export async function POST(req) {
     );
   }
 
-  const { invoiceNumber, type, name, invoiceDate, receivedDate } =
+  const { invoiceNumber, type, name, invoiceDate, receivedDate, sectionType } =
     await req.json();
 
+  const Model = getModel(sectionType);
   try {
     let manufacturer;
     let vendor;
@@ -158,7 +170,7 @@ export async function POST(req) {
     if (type === "manufacturer") manufacturer = name;
     else if (type === "vendor") vendor = name;
 
-    const newPurchaseInvoice = new PurchaseInvoice({
+    const newPurchaseInvoice = new Model({
       invoiceNumber,
       manufacturer,
       vendor,
@@ -169,6 +181,7 @@ export async function POST(req) {
     // // Save user to the database
     await newPurchaseInvoice.save();
 
+    console.log("New Purchase Invoice created:", newPurchaseInvoice);
     // Send response with UID
     return NextResponse.json(
       {
@@ -216,10 +229,17 @@ export async function DELETE(req) {
     );
   }
 
-  const { id } = await req.json();
+  const { id, sectionType } = await req.json();
 
+  const Model = getModel(sectionType);
+  if (!id) {
+    return NextResponse.json(
+      { message: "PurchaseInvoice ID is required", success: false },
+      { status: 400 }
+    );
+  }
   try {
-    const deletedPurchaseInvoice = await PurchaseInvoice.findByIdAndDelete(id);
+    const deletedPurchaseInvoice = await Model.findByIdAndDelete(id);
     if (!deletedPurchaseInvoice) {
       return NextResponse.json(
         { message: "PurchaseInvoice not found", success: false },

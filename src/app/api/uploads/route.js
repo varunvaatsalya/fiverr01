@@ -3,7 +3,7 @@ import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import { Manufacturer, Salt, Vendor } from "../../models/MedicineMetaData";
 import Medicine from "../../models/Medicine";
-import Stock from "../../models/Stock";
+import { Stock } from "../../models/Stock";
 import RetailStock from "../../models/RetailStock";
 
 export async function POST(req) {

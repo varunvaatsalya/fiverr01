@@ -25,6 +25,7 @@ import { IoReceiptOutline } from "react-icons/io5";
 import { FaTruckMedical } from "react-icons/fa6";
 import { GrMoney } from "react-icons/gr";
 import { ToWords } from "to-words";
+import { useStockType } from "../context/StockTypeContext";
 
 export default function PharmacyDueInvoice() {
   const router = useRouter();
@@ -43,6 +44,8 @@ export default function PharmacyDueInvoice() {
   const [isValidPaymentEntry, setIsValidPaymentEntry] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const sectionType = useStockType();
 
   const toWords = new ToWords({
     localeCode: "en-IN",
@@ -67,7 +70,7 @@ export default function PharmacyDueInvoice() {
   // /api/medicineMetaData/fix
   async function fetchData() {
     try {
-      let result = await fetch(`/api/newPurchaseInvoice/dueInvoices`);
+      let result = await fetch(`/api/newPurchaseInvoice/dueInvoices?sectionType=${sectionType}`);
       result = await result.json();
       if (result.success) {
         setInvoices(result.dueInvoices);
@@ -149,6 +152,7 @@ export default function PharmacyDueInvoice() {
       body: JSON.stringify({
         selectedInvoices,
         sharedPaymentInfo,
+        sectionType,
       }),
     });
 
@@ -199,7 +203,7 @@ export default function PharmacyDueInvoice() {
     (inv) => inv.amount && inv.amount > 0
   );
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 text-black">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <Input
           placeholder="Search by source name..."
@@ -470,7 +474,7 @@ export default function PharmacyDueInvoice() {
             )}
 
             <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-              <DialogContent>
+              <DialogContent className="text-black">
                 <DialogHeader>
                   <DialogTitle>Confirm Payment</DialogTitle>
                 </DialogHeader>

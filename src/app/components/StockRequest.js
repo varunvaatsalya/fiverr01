@@ -1,11 +1,12 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import { MdClearAll } from "react-icons/md";
 import { formatDateTimeToIST } from "../utils/date";
 import Loading from "./Loading";
 import { FaCircleCheck } from "react-icons/fa6";
 import { RxCrossCircled } from "react-icons/rx";
+import { useStockType } from "../context/StockTypeContext";
 
 function StockRequest({ stockRequest, setStockRequests }) {
   const [activeIndex, setActiveIndex] = useState(null);
@@ -17,6 +18,8 @@ function StockRequest({ stockRequest, setStockRequests }) {
   const [stockPendingRequests, setStockPendingRequests] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [waiting, setWaiting] = useState(false);
+
+  const sectionType = useStockType();
 
   useEffect(() => {
     setStockPendingRequests(
@@ -30,7 +33,9 @@ function StockRequest({ stockRequest, setStockRequests }) {
 
     for (const id of selectedIds) {
       try {
-        let result = await fetch(`/api/stockRequest?id=${id}`);
+        let result = await fetch(
+          `/api/stockRequest?id=${id}&sectionType=${sectionType}`
+        );
         result = await result.json();
 
         if (result.success) {
@@ -79,7 +84,9 @@ function StockRequest({ stockRequest, setStockRequests }) {
   async function handleViewDetails(id) {
     setIsOpenDetailsSection(true);
     try {
-      let result = await fetch(`/api/stockRequest?id=${id}`);
+      let result = await fetch(
+        `/api/stockRequest?id=${id}&sectionType=${sectionType}`
+      );
       result = await result.json();
 
       if (result.success) {
@@ -99,9 +106,12 @@ function StockRequest({ stockRequest, setStockRequests }) {
 
   async function handleRemoveRequest(id) {
     try {
-      let result = await fetch(`/api/stockRequest?id=${id}`, {
-        method: "DELETE",
-      });
+      let result = await fetch(
+        `/api/stockRequest?id=${id}&sectionType=${sectionType}`,
+        {
+          method: "DELETE",
+        }
+      );
       result = await result.json();
       setMessage(result.message);
       const filteredRequests = stockRequest.filter((obj) => obj._id !== id);
@@ -125,7 +135,10 @@ function StockRequest({ stockRequest, setStockRequests }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ requestId: stockDetails.request._id }), // Send requestId in the body
+        body: JSON.stringify({
+          requestId: stockDetails.request._id,
+          sectionType,
+        }), // Send requestId in the body
       });
 
       // Parse the JSON response
@@ -163,9 +176,7 @@ function StockRequest({ stockRequest, setStockRequests }) {
             selectedIds.length === stockPendingRequests.length
           }
           onClick={() => {
-            setSelectedIds(
-              stockPendingRequests.map((request) => request._id)
-            );
+            setSelectedIds(stockPendingRequests.map((request) => request._id));
           }}
         >
           <div className="flex justify-center items-center outline outline-1 outline-offset-1 outline-gray-800 w-5 h-5 rounded-full">

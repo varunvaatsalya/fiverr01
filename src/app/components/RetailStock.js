@@ -5,7 +5,8 @@ import { BiInjection } from "react-icons/bi";
 import { TiWarning } from "react-icons/ti";
 import Loading from "./Loading";
 import { IoIosRemoveCircle } from "react-icons/io";
-import { showError } from "../utils/toast";
+import { showError, showSuccess } from "../utils/toast";
+import { useStockType } from "../context/StockTypeContext";
 
 function RetailStock({
   medicineStock,
@@ -22,9 +23,13 @@ function RetailStock({
   const [message, setMessage] = useState("");
   const [responseMessage, setResponseMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [isReceiving, setIsReceiving] = useState(false);
   const [filteredMedicines, setFilteredMedicines] = useState(
     medicineStock?.medicines
   );
+
+  const sectionType = useStockType();
+
   useEffect(() => {
     setFilteredMedicines(medicineStock?.medicines);
   }, [medicineStock]);
@@ -56,6 +61,7 @@ function RetailStock({
               enteredRemainingQuantity,
             },
           ],
+          sectionType,
         }),
       });
 
@@ -106,7 +112,7 @@ function RetailStock({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id, retailsMaxQty: maxQty }),
+        body: JSON.stringify({ id, retailsMaxQty: maxQty, sectionType }),
       });
       result = await result.json();
       if (result.success) {
@@ -139,7 +145,7 @@ function RetailStock({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id, retailsMinQty: minQty }),
+        body: JSON.stringify({ id, retailsMinQty: minQty, sectionType }),
       });
       result = await result.json();
       if (result.success) {
@@ -161,6 +167,48 @@ function RetailStock({
       console.error("Error submitting application:", error);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleResolveRequest(status, id, medId) {
+    setIsReceiving(true);
+    try {
+      // Make a POST request to the API with the request ID
+      const response = await fetch(
+        `/api/stockRequest/receivedStock?status=${status}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ requestId: id, sectionType }), // Send requestId in the body
+        }
+      );
+
+      // Parse the JSON response
+      const result = await response.json();
+      showSuccess(result.message);
+      if (result.success) {
+        setMedicineStock((prevStock) => ({
+          ...prevStock,
+          [selectedLetter]: {
+            ...prevStock[selectedLetter], // Existing data preserve
+            medicines: prevStock[selectedLetter].medicines.map((medicine) =>
+              medicine._id === medId
+                ? {
+                    ...medicine,
+                    requests: [],
+                  }
+                : medicine
+            ),
+          },
+        }));
+      }
+    } catch (error) {
+      console.error("Error resolving the request:", error);
+      showError("An error occurred while resolving the request.");
+    } finally {
+      setIsReceiving(false);
     }
   }
 
@@ -389,6 +437,38 @@ function RetailStock({
                       <div className="px-2 py-1 rounded-lg bg-yellow-400 text-yellow-800 text-sm font-semibold">
                         {request.status}
                       </div>
+                      {request.status === "Approved" && (
+                        <div className="flex justify-around items-center gap-2">
+                          <button
+                            className="px-3 py-1 font-semibold text-white my-2 bg-red-500 disabled:bg-gray-600 rounded-lg"
+                            disabled={isReceiving}
+                            onClick={() => {
+                              handleResolveRequest(
+                                "rejected",
+                                request._id,
+                                medicine._id
+                              );
+                            }}
+                          >
+                            {isReceiving ? "Processing..." : "Reject"}
+                          </button>
+                          <button
+                            className="px-3 py-1 font-semibold text-white my-2 bg-violet-500 disabled:bg-gray-600 rounded-lg"
+                            disabled={isReceiving}
+                            onClick={() => {
+                              handleResolveRequest(
+                                "received",
+                                request._id,
+                                medicine._id
+                              );
+                            }}
+                          >
+                            {isReceiving
+                              ? "Processing..."
+                              : "Confirm Receiving"}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                   {medicine.retailStocks[0]?.stocks?.map((stock, index1) => (

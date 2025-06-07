@@ -7,6 +7,7 @@ export async function GET(req) {
   await dbConnect();
   let letter = req.nextUrl.searchParams.get("letter");
   let approved = req.nextUrl.searchParams.get("approved");
+  let sectionType = req.nextUrl.searchParams.get("sectionType");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -27,6 +28,12 @@ export async function GET(req) {
   }
 
   let onlyApproved = approved === "1" ? true : false;
+
+  const retailstockCollection =
+    sectionType === "hospital" ? "hospitalretailstocks" : "retailstocks";
+  const requestCollection =
+    sectionType === "hospital" ? "hospitalrequests" : "requests";
+
   try {
     const retailOutOfStockData = await Medicine.aggregate([
       {
@@ -39,7 +46,7 @@ export async function GET(req) {
       },
       {
         $lookup: {
-          from: "requests",
+          from: requestCollection,
           localField: "_id",
           foreignField: "medicine",
           as: "requests",
@@ -63,7 +70,7 @@ export async function GET(req) {
       },
       {
         $lookup: {
-          from: "retailstocks",
+          from: retailstockCollection,
           localField: "_id",
           foreignField: "medicine",
           as: "retailStock",
@@ -99,6 +106,14 @@ export async function GET(req) {
         $unwind: {
           path: "$retailStock.stocks",
           preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          minimumStockCount:
+            sectionType === "hospital"
+              ? "$minimumHospitalStockCount"
+              : "$minimumStockCount",
         },
       },
       {

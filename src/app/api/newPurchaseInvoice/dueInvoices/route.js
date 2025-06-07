@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/app/lib/Mongodb";
 import { verifyTokenWithLogout } from "@/app/utils/jwt";
-import PurchaseInvoice from "@/app/models/PurchaseInvoice";
+import PurchaseInvoice, {
+  HospitalPurchaseInvoice,
+} from "@/app/models/PurchaseInvoice";
 
 export async function GET(req) {
   await dbConnect();
+
+  let sectionType = req.nextUrl.searchParams.get("sectionType");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -26,8 +30,11 @@ export async function GET(req) {
     return res;
   }
 
+  const Model =
+    sectionType === "hospital" ? HospitalPurchaseInvoice : PurchaseInvoice;
+
   try {
-    const dueInvoices = await PurchaseInvoice.aggregate([
+    const dueInvoices = await Model.aggregate([
       {
         $match: { isPaid: false },
       },
@@ -194,7 +201,7 @@ export async function POST(req) {
     return res;
   }
 
-  const { selectedInvoices, sharedPaymentInfo } = await req.json();
+  const { selectedInvoices, sharedPaymentInfo, sectionType } = await req.json();
 
   try {
     if (
@@ -236,7 +243,10 @@ export async function POST(req) {
         );
       }
 
-      const invoice = await PurchaseInvoice.findById(invoiceId);
+      const Model =
+        sectionType === "hospital" ? HospitalPurchaseInvoice : PurchaseInvoice;
+
+      const invoice = await Model.findById(invoiceId);
 
       if (!invoice) {
         return NextResponse.json(

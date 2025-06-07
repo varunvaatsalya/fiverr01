@@ -9,6 +9,7 @@ import StockDetails from "./StockDetails";
 import { formatDateTimeToIST, formatDateToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import { FaCheckCircle, FaFileInvoiceDollar } from "react-icons/fa";
+import { useStockType } from "../context/StockTypeContext";
 
 function PurchaseInvoiceSearchList({
   page,
@@ -24,6 +25,8 @@ function PurchaseInvoiceSearchList({
   const [activeIndex, setActiveIndex] = useState(null);
   const [stockDetails, setStockDetails] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const sectionType = useStockType();
 
   useEffect(() => {
     setResData(purchaseInvoices);
@@ -52,7 +55,7 @@ function PurchaseInvoiceSearchList({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, sectionType }),
       });
 
       const result = await response.json();

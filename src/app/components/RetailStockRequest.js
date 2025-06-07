@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { BiInjection } from "react-icons/bi";
 import Loading from "./Loading";
 import { FaCheckCircle } from "react-icons/fa";
+import { useStockType } from "../context/StockTypeContext";
 
 function RetailStockRequest({ medicineStock, setMedicineStock, query }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -13,6 +14,8 @@ function RetailStockRequest({ medicineStock, setMedicineStock, query }) {
   const [submitting, setSubmitting] = useState(false);
   const [isReceiving, setIsReceiving] = useState(false);
   const [filteredMedicines, setFilteredMedicines] = useState(medicineStock);
+
+  const sectionType = useStockType();
 
   useEffect(() => {
     setFilteredMedicines(medicineStock);
@@ -47,6 +50,7 @@ function RetailStockRequest({ medicineStock, setMedicineStock, query }) {
             requestedQuantity: med.requestedQuantity,
             enteredRemainingQuantity: med.enteredRemainingQuantity,
           })),
+          sectionType,
         }),
       });
 
@@ -96,7 +100,7 @@ function RetailStockRequest({ medicineStock, setMedicineStock, query }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ requestId: id }), // Send requestId in the body
+          body: JSON.stringify({ requestId: id, sectionType }), // Send requestId in the body
         }
       );
 
@@ -349,7 +353,10 @@ function RetailStockRequest({ medicineStock, setMedicineStock, query }) {
                         </p>
                       ))
                     : selectedMedicine.map((requestedMedicine, index) => (
-                        <div key={index+requestedMedicine.name} className="w-full lg:w-3/4 bg-gray-800 rounded-xl font-semibold p-1">
+                        <div
+                          key={index + requestedMedicine.name}
+                          className="w-full lg:w-3/4 bg-gray-800 rounded-xl font-semibold p-1"
+                        >
                           <div className="px-4 text-gray-50 text-start">
                             Medicine Name:{" "}
                             <span className="text-blue-500 font-semibold">

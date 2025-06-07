@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { formatDateTimeToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { useStockType } from "../context/StockTypeContext";
 
 function StockOrderHistory() {
   const [orderHistories, setOrderHistories] = useState([]);
@@ -10,8 +11,9 @@ function StockOrderHistory() {
   const [resData, setResData] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
 
+  const sectionType = useStockType();
   useEffect(() => {
-    fetch(`/api/orderStock${"?info=1"}&page=${page}`)
+    fetch(`/api/orderStock${"?info=1"}&page=${page}&sectionType=${sectionType}`)
       .then((res) => res.json())
       .then((data) => {
         setOrderHistories(data.orderHistory);

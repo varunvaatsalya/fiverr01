@@ -2,16 +2,17 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
-import Stock from "../../models/Stock";
-import Request from "../../models/Request";
+import { Stock, HospitalStock } from "../../models/Stock";
+import Request, { HospitalRequest } from "../../models/Request";
 import { Manufacturer } from "../../models/MedicineMetaData";
-import RetailStock from "../../models/RetailStock";
+import RetailStock, { HospitalRetailStock } from "../../models/RetailStock";
 
 export async function GET(req) {
   await dbConnect();
   let id = req.nextUrl.searchParams.get("id");
   let pending = req.nextUrl.searchParams.get("pending");
   let page = req.nextUrl.searchParams.get("page");
+  let sectionType = req.nextUrl.searchParams.get("sectionType");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -21,6 +22,10 @@ export async function GET(req) {
       { status: 401 }
     );
   }
+
+  const RequestModel = sectionType === "hospital" ? HospitalRequest : Request;
+
+  const StockModel = sectionType === "hospital" ? HospitalStock : Stock;
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
@@ -36,7 +41,7 @@ export async function GET(req) {
   try {
     if (id) {
       // Step 1: Fetch the request details
-      const request = await Request.findById(id).populate({
+      const request = await RequestModel.findById(id).populate({
         path: "medicine",
         populate: { path: "salts", select: "name" },
       });
@@ -57,7 +62,7 @@ export async function GET(req) {
       const totalRequestedStrips = requestedQuantity * packetSize;
 
       // Step 2: Fetch all stocks for the given medicine, sorted by oldest first (FIFO)
-      const stocks = await Stock.find({
+      const stocks = await StockModel.find({
         medicine: medicine._id,
         "quantity.totalStrips": { $gt: 0 },
       })
@@ -125,7 +130,7 @@ export async function GET(req) {
     if (pending === "1") {
       let query = { status: { $in: ["Pending", "Approved"] } };
 
-      let requests = await Request.find(query).populate({
+      let requests = await RequestModel.find(query).populate({
         path: "medicine",
         select: "name _id",
         populate: {
@@ -144,10 +149,10 @@ export async function GET(req) {
     }
 
     page = parseInt(page) || 1;
-    const limit = 50; // Number of prescriptions per page
+    const limit = 50;
     const skip = (page - 1) * limit;
 
-    let requests = await Request.find()
+    let requests = await RequestModel.find()
       .sort({ _id: -1 })
       .skip(skip)
       .limit(limit)
@@ -160,7 +165,7 @@ export async function GET(req) {
         },
       });
 
-    const totalRequests = await Request.countDocuments();
+    const totalRequests = await RequestModel.countDocuments();
 
     return NextResponse.json(
       {
@@ -210,7 +215,7 @@ export async function POST(req) {
     );
   }
 
-  const { requests } = await req.json();
+  const { requests, sectionType } = await req.json();
 
   try {
     if (!Array.isArray(requests) || requests.length === 0) {
@@ -242,6 +247,7 @@ export async function POST(req) {
       }
 
       let medicineData = await Medicine.findById(medicine);
+      console.log(medicine, medicineData);
       if (!medicineData) {
         responses.push({
           medicine,
@@ -252,7 +258,9 @@ export async function POST(req) {
         continue;
       }
 
-      const stocks = await Stock.find({ medicine });
+      const StockModel = sectionType === "hospital" ? HospitalStock : Stock;
+
+      const stocks = await StockModel.find({ medicine });
 
       if (!stocks || stocks.length === 0) {
         responses.push({
@@ -278,7 +286,9 @@ export async function POST(req) {
         continue;
       }
 
-      const retailStocks = await RetailStock.find({ medicine });
+      const RetailStockModel = sectionType === "hospital" ? HospitalRetailStock : RetailStock;
+
+      const retailStocks = await RetailStockModel.find({ medicine });
       const totalRetailBoxes = retailStocks.reduce((total, retailStock) => {
         return (
           total +
@@ -293,7 +303,10 @@ export async function POST(req) {
       let isDisputed = Number(enteredRemainingQuantity) != totalRetailBoxes;
       let status = isDisputed ? "Disputed" : "Pending";
 
-      let newMedicineStockRequest = new Request({
+      const RequestModel =
+        sectionType === "hospital" ? HospitalRequest : Request;
+
+      let newMedicineStockRequest = new RequestModel({
         medicine,
         enteredRemainingQuantity,
         actualRemainingQuantity: totalRetailBoxes,
@@ -327,6 +340,14 @@ export async function POST(req) {
 
 export async function DELETE(req) {
   let id = req.nextUrl.searchParams.get("id");
+  let sectionType = req.nextUrl.searchParams.get("sectionType");
+
+  if (!sectionType) {
+    return NextResponse.json(
+      { message: "Invalid Params.", success: false },
+      { status: 404 }
+    );
+  }
 
   await dbConnect();
 
@@ -349,10 +370,10 @@ export async function DELETE(req) {
     res.cookies.delete("authToken");
     return res;
   }
-
+  const RequestModel = sectionType === "hospital" ? HospitalRequest : Request;
   try {
     if (id) {
-      let request = await Request.findByIdAndUpdate(
+      let request = await RequestModel.findByIdAndUpdate(
         id,
         { status: "Rejected" },
         { new: true } // Return the updated document

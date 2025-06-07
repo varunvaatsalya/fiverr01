@@ -12,7 +12,7 @@ import {
   FaUserDoctor,
   FaUsersGear,
 } from "react-icons/fa6";
-import { GiMedicines } from "react-icons/gi";
+import { GiMedicinePills, GiMedicines } from "react-icons/gi";
 import { IoMdAnalytics } from "react-icons/io";
 import { TbReportMedical } from "react-icons/tb";
 import { GrTest } from "react-icons/gr";
@@ -93,6 +93,13 @@ function Page() {
       icon: <TbReportMedical size={50} />,
       link: "/dashboard-admin/reports",
       color: "bg-cyan-900",
+    },
+    {
+      name: "Hospital Pharmacy",
+      description: "You can see all Hospital Parmacy logs here",
+      icon: <GiMedicinePills size={50} />,
+      link: "/dashboard-admin/hospitalPharmacy",
+      color: "bg-teal-900",
     },
     {
       name: "Pharmacy",

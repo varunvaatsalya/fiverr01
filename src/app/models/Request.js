@@ -98,5 +98,16 @@ const requestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.Request ||
-  mongoose.model("Request", requestSchema);
+// export default mongoose.models.Request ||
+//   mongoose.model("Request", requestSchema);
+
+const Request =
+  mongoose.models.Request || mongoose.model("Request", requestSchema);
+
+const HospitalRequest =
+  mongoose.models.HospitalRequest ||
+  mongoose.model("HospitalRequest", requestSchema);
+
+export default Request;
+
+export { HospitalRequest };

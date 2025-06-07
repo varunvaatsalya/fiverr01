@@ -6,6 +6,8 @@ import { formatShortDateTime } from "../utils/date";
 import { FaCircleCheck } from "react-icons/fa6";
 import { RxCrossCircled } from "react-icons/rx";
 import { showError, showSuccess } from "../utils/toast";
+import { useStockType } from "../context/StockTypeContext";
+import { PharmacyDetails } from "../HospitalDeatils";
 
 function StockOrder({ info, selectedType }) {
   const [selectedManfacturer, setSelectedManfacturer] = useState(null);
@@ -24,9 +26,11 @@ function StockOrder({ info, selectedType }) {
   const [updating, setUpdating] = useState(false);
   const [isRemoveAllZero, setIsRemoveAllZero] = useState(false);
 
-  async function handleUpdateCountLimit(type) {
+  const sectionType = useStockType();
+
+  async function handleUpdateCountLimit() {
     setUpdating(true);
-    fetch(`/api/newMedicine/updateStockLimit?type=${type}`)
+    fetch(`/api/newMedicine/updateStockLimit?sectionType=${sectionType}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -40,7 +44,7 @@ function StockOrder({ info, selectedType }) {
   }
 
   useEffect(() => {
-    fetch(`/api/orderStock`)
+    fetch(`/api/orderStock?sectionType=${sectionType}`)
       .then((res) => res.json())
       .then((data) => {
         if (!data.success) {
@@ -199,10 +203,12 @@ function StockOrder({ info, selectedType }) {
           quantity:
             medicine.minimumStockCount &&
             medicine.maximumStockCount &&
-            medicine.minimumStockCount?.godown >= medicine.totalBoxes &&
+            medicine.maximumStockCount?.godown >= medicine.totalBoxes &&
             medicine.maximumStockCount?.godown >=
               medicine.minimumStockCount?.godown
-              ? medicine.maximumStockCount?.godown - medicine.totalBoxes
+              ? parseInt(
+                  medicine.maximumStockCount?.godown - medicine.totalBoxes
+                )
               : "",
         },
       ]);
@@ -263,7 +269,7 @@ function StockOrder({ info, selectedType }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, sectionType }),
       });
       result = await result.json();
       alert(result.message);
@@ -293,13 +299,20 @@ Here is the list of medicines and the required quantities:
 `;
 
     selectedMedicines.forEach((medicine) => {
-      message += `Medicine Name: ${medicine.name}
-Required Quantity: ${medicine.quantity} boxes
+      message += `Medicine Name: *${medicine.name}*
+Required Quantity: *${medicine.quantity}* units
 
 `;
     });
 
-    message += `Thank you`;
+    message += `Thanks & Regards\n`;
+    message += `Billing Entity: `;
+
+    message +=
+      sectionType === "hospital"
+        ? ` *ShivamAkshayvat Hospital (Naini)* \nGST No.: `
+        : ` *Upasna Medical Store* \nGST No.: ${PharmacyDetails.gst}
+ - (ShivamAkshayvat Hospital, Naini)\n`;
 
     const encodedMessage = encodeURIComponent(message);
 
@@ -359,23 +372,20 @@ Required Quantity: ${medicine.quantity} boxes
         ))}
       </select>
       <div className="flex justify-center items-center gap-2 w-full md:w-3/4 ">
-        <div className="font-semibold text-sm px-2 text-white">
-          Update Stock Limit Qty
-        </div>
-        <button
-          disabled={updating}
-          onClick={() => handleUpdateCountLimit("min")}
-          className="px-3 py-1 rounded-lg bg-red-500 hover:bg-red-700 disabled:bg-gray-500 font-semibold"
-        >
-          {updating ? "Updating..." : "Min"}
-        </button>
-        <button
-          disabled={updating}
-          onClick={() => handleUpdateCountLimit("max")}
-          className="px-3 py-1 rounded-lg bg-blue-500 hover:bg-blue-700 disabled:bg-gray-500 text-white font-semibold"
-        >
-          {updating ? "Updating..." : "Max"}
-        </button>
+        {sectionType !== "hospital" && (
+          <>
+            <div className="font-semibold text-sm px-2 text-white">
+              Update Stock Limit Qty
+            </div>
+            <button
+              disabled={updating}
+              onClick={() => handleUpdateCountLimit("min")}
+              className="px-3 py-1 rounded-lg bg-blue-500 hover:bg-blue-700 disabled:bg-gray-500 font-semibold"
+            >
+              {updating ? "Updating..." : "Update"}
+            </button>
+          </>
+        )}
         <FaRegDotCircle className="size-4 animate-pulse text-red-600 ml-2" />
         <div className="text-white">Have to order this</div>
       </div>
@@ -574,8 +584,8 @@ Required Quantity: ${medicine.quantity} boxes
                   <div className="w-[5%] text-center">Sr No.</div>
                   <div className="w-[50%] text-center">Medicine</div>
                   <div className="w-[10%] text-center">Min Qty</div>
-                  <div className="w-[10%] text-center">Avl Qty</div>
                   <div className="w-[10%] text-center">Max Qty</div>
+                  <div className="w-[10%] text-center">Avl Qty</div>
                   <div className="w-[15%] text-center">Qunatity</div>
                 </div>
               )}

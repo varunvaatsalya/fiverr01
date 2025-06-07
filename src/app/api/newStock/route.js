@@ -2,13 +2,27 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
-import Stock from "../../models/Stock";
-import PurchaseInvoice from "../../models/PurchaseInvoice";
+import { Stock, HospitalStock } from "../../models/Stock";
+import PurchaseInvoice, {
+  HospitalPurchaseInvoice,
+} from "../../models/PurchaseInvoice";
+
+function getInvoiceModel(typesectionType) {
+  if (typesectionType === "hospital") return HospitalPurchaseInvoice;
+  return PurchaseInvoice;
+}
+
+function getStockModel(typesectionType) {
+  if (typesectionType === "hospital") return HospitalStock;
+  return Stock;
+}
 
 export async function GET(req) {
   await dbConnect();
   let batchInfo = req.nextUrl.searchParams.get("batchInfo");
+  let sectionType = req.nextUrl.searchParams.get("sectionType");
 
+  const Model = sectionType === "hospital" ? HospitalStock : Stock;
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -31,7 +45,7 @@ export async function GET(req) {
 
   try {
     if (batchInfo) {
-      const stocks = await Stock.find({ medicine: batchInfo }).sort({
+      const stocks = await Model.find({ medicine: batchInfo }).sort({
         createdAt: -1,
       });
       return NextResponse.json(
@@ -43,10 +57,15 @@ export async function GET(req) {
       );
     }
 
+    const stockCollection =
+      sectionType === "hospital" ? "hospitalstocks" : "stocks";
+    const requestCollection =
+      sectionType === "hospital" ? "hospitalrequests" : "requests";
+
     const medicineStock = await Medicine.aggregate([
       {
         $lookup: {
-          from: "stocks",
+          from: stockCollection,
           localField: "_id",
           foreignField: "medicine",
           as: "stocks",
@@ -54,7 +73,7 @@ export async function GET(req) {
       },
       {
         $lookup: {
-          from: "requests",
+          from: requestCollection,
           localField: "_id",
           foreignField: "medicine",
           as: "requests",
@@ -89,6 +108,20 @@ export async function GET(req) {
               input: "$requests",
               as: "request",
               cond: { $eq: ["$$request.status", "Pending"] },
+            },
+          },
+          minimumStockCount: {
+            $cond: {
+              if: { $eq: [sectionType, "hospital"] },
+              then: "$minimumHospitalStockCount",
+              else: "$minimumStockCount",
+            },
+          },
+          maximumStockCount: {
+            $cond: {
+              if: { $eq: [sectionType, "hospital"] },
+              then: "$maximumHospitalStockCount",
+              else: "$maximumStockCount",
             },
           },
         },
@@ -172,10 +205,14 @@ export async function POST(req) {
   //     { status: 403 }
   //   );
   // }
-  const { stocks, invoiceNumber } = await req.json();
+
+  const { stocks, invoiceNumber, sectionType } = await req.json();
+
+  const StockModel = getStockModel(sectionType);
+  const PurchaseInvoiceModel = getInvoiceModel(sectionType);
 
   try {
-    const invoice = await PurchaseInvoice.findOne({ invoiceNumber });
+    const invoice = await PurchaseInvoiceModel.findOne({ invoiceNumber });
     if (!invoice) {
       return NextResponse.json(
         { message: "Invoice ID not found!", success: false },
@@ -188,19 +225,6 @@ export async function POST(req) {
     let savedStocks = [];
 
     for (const stock of stocks) {
-      // const {
-      //   medicine,
-      //   batchName,
-      //   mfgDate,
-      //   expiryDate,
-      //   quantity,
-      //   offer,
-      //   sellingPrice,
-      //   purchasePrice,
-      //   discount,
-      //   tax,
-      // } = stock;
-
       let medicine = stock.medicine || "";
       let batchName = stock.batchName || "N/A";
       let mfgDate = stock.mfgDate;
@@ -263,10 +287,11 @@ export async function POST(req) {
       // Step 7: Total Amount
       let totalAmount = parseFloat((costPrice * quantity).toFixed(2));
 
-      let newMedicineStock = new Stock({
+      let newMedicineStock = new StockModel({
         medicine,
         batchName,
         mfgDate,
+        packetSize: medicineData.packetSize,
         expiryDate,
         purchaseRate: purchasePrice,
         purchasePrice: netPurchaseRate,
@@ -306,7 +331,9 @@ export async function POST(req) {
       updatedList.unshift({ sourceId, sourceType });
 
       medicineData.latestSource = updatedList.slice(0, 3);
-      medicineData.stockOrderInfo = undefined;
+      if (sectionType === "hospital")
+        medicineData.stockHospitalOrderInfo = undefined;
+      else medicineData.stockOrderInfo = undefined;
 
       // 4. Save final medicineData update
       await medicineData.save();

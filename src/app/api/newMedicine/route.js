@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
-import PurchaseInvoice from "../../models/PurchaseInvoice";
+import PurchaseInvoice, {
+  HospitalPurchaseInvoice,
+} from "../../models/PurchaseInvoice";
 
 export async function GET(req) {
   await dbConnect();
@@ -10,6 +12,7 @@ export async function GET(req) {
   let sellRecord = req.nextUrl.searchParams.get("sellRecord");
   let ids = req.nextUrl.searchParams.get("ids");
   let id = req.nextUrl.searchParams.get("id");
+  let sectionType = req.nextUrl.searchParams.get("sectionType");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -43,7 +46,9 @@ export async function GET(req) {
           path: "salts",
         });
 
-      let ids = await PurchaseInvoice.find(
+      let InvoiceModel =
+        sectionType === "hospital" ? HospitalPurchaseInvoice : PurchaseInvoice;
+      let ids = await InvoiceModel.find(
         { isPaid: false },
         "_id invoiceNumber manufacturer vendor"
       )
@@ -227,7 +232,7 @@ export async function PUT(req) {
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
-  const userEditPermission = decoded?.editPermission;
+  // const userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -249,6 +254,7 @@ export async function PUT(req) {
     godownMaxQty,
     retailsMinQty,
     retailsMaxQty,
+    sectionType,
     medicines,
   } = await req.json();
 
@@ -309,6 +315,8 @@ export async function PUT(req) {
       const existingMedicine = await Medicine.findById(id).select({
         minimumStockCount: 1,
         maximumStockCount: 1,
+        minimumHospitalStockCount: 1,
+        maximumHospitalStockCount: 1,
       });
 
       if (!existingMedicine) {
@@ -320,9 +328,14 @@ export async function PUT(req) {
 
       // Validation: retails
       const existingRetailMin =
-        existingMedicine.minimumStockCount?.retails ?? 0;
+        sectionType === "hospital"
+          ? existingMedicine.minimumHospitalStockCount?.retails ?? 0
+          : existingMedicine.minimumStockCount?.retails ?? 0;
+
       const existingRetailMax =
-        existingMedicine.maximumStockCount?.retails ?? 0;
+        sectionType === "hospital"
+          ? existingMedicine.maximumHospitalStockCount?.retails ?? 0
+          : existingMedicine.maximumStockCount?.retails ?? 0;
 
       const newRetailMin = retailsMinQty ?? existingRetailMin;
       const newRetailMax = retailsMaxQty ?? existingRetailMax;
@@ -342,8 +355,15 @@ export async function PUT(req) {
       }
 
       // Validation: godown
-      const existingGodownMin = existingMedicine.minimumStockCount?.godown ?? 0;
-      const existingGodownMax = existingMedicine.maximumStockCount?.godown ?? 0;
+      const existingGodownMin =
+        sectionType === "hospital"
+          ? existingMedicine.minimumHospitalStockCount?.godown ?? 0
+          : existingMedicine.minimumStockCount?.godown ?? 0;
+
+      const existingGodownMax =
+        sectionType === "hospital"
+          ? existingMedicine.maximumHospitalStockCount?.godown ?? 0
+          : existingMedicine.maximumStockCount?.godown ?? 0;
 
       const newGodownMin = godownMinQty ?? existingGodownMin;
       const newGodownMax = godownMaxQty ?? existingGodownMax;
@@ -364,20 +384,29 @@ export async function PUT(req) {
 
       let updateFields = {};
 
+      const minPrefix =
+        sectionType === "hospital"
+          ? "minimumHospitalStockCount"
+          : "minimumStockCount";
+      const maxPrefix =
+        sectionType === "hospital"
+          ? "maximumHospitalStockCount"
+          : "maximumStockCount";
+
       if (retailsMinQty !== undefined) {
-        updateFields["minimumStockCount.retails"] = retailsMinQty;
+        updateFields[`${minPrefix}.retails`] = retailsMinQty;
       }
 
       if (godownMinQty !== undefined) {
-        updateFields["minimumStockCount.godown"] = godownMinQty;
+        updateFields[`${minPrefix}.godown`] = godownMinQty;
       }
 
       if (retailsMaxQty !== undefined) {
-        updateFields["maximumStockCount.retails"] = retailsMaxQty;
+        updateFields[`${maxPrefix}.retails`] = retailsMaxQty;
       }
 
       if (godownMaxQty !== undefined) {
-        updateFields["maximumStockCount.godown"] = godownMaxQty;
+        updateFields[`${maxPrefix}.godown`] = godownMaxQty;
       }
 
       const updatedMedicine = await Medicine.findOneAndUpdate(

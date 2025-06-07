@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../../utils/jwt";
-import Stock from "../../../models/Stock";
-import Request from "../../../models/Request";
-import RetailStock from "../../../models/RetailStock";
+import { Stock, HospitalStock } from "../../../models/Stock";
+import Request, { HospitalRequest } from "../../../models/Request";
+import RetailStock, { HospitalRetailStock } from "../../../models/RetailStock";
 
 export async function POST(req) {
   let status = req.nextUrl.searchParams.get("status");
@@ -36,7 +36,12 @@ export async function POST(req) {
     );
   }
 
-  const { requestId } = await req.json();
+  const { requestId, sectionType } = await req.json();
+
+  const StockModel = sectionType === "hospital" ? HospitalStock : Stock;
+  const RequestModel = sectionType === "hospital" ? HospitalRequest : Request;
+  const RetailStockModel =
+    sectionType === "hospital" ? HospitalRetailStock : RetailStock;
 
   try {
     if (!requestId) {
@@ -50,7 +55,7 @@ export async function POST(req) {
     }
 
     // Find the request by ID
-    const request = await Request.findById(requestId).populate("medicine");
+    const request = await RequestModel.findById(requestId).populate("medicine");
     if (!request) {
       return NextResponse.json(
         {
@@ -83,10 +88,10 @@ export async function POST(req) {
       );
     }
     if (status === "received") {
-      let retailStock = await RetailStock.findOne({ medicine });
+      let retailStock = await RetailStockModel.findOne({ medicine });
 
       if (!retailStock) {
-        retailStock = new RetailStock({
+        retailStock = new RetailStockModel({
           medicine,
           stocks: approvedQuantity,
         });
@@ -123,7 +128,7 @@ export async function POST(req) {
       );
     } else if (status === "rejected") {
       for (const stock of approvedQuantity) {
-        await Stock.findByIdAndUpdate(stock.stockId, {
+        await StockModel.findByIdAndUpdate(stock.stockId, {
           $inc: {
             "quantity.boxes": stock.quantity.boxes,
             "quantity.extra": stock.quantity.extra || 0,

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../../utils/jwt";
-import Stock from "../../../models/Stock";
-import Request from "../../../models/Request";
-import RetailStock from "../../../models/RetailStock";
-import Medicine from "../../..//models/Medicine";
+import { Stock, HospitalStock } from "../../../models/Stock";
+import Request, { HospitalRequest } from "../../../models/Request";
+// import RetailStock from "../../../models/RetailStock";
+// import Medicine from "../../..//models/Medicine";
 
 export async function POST(req) {
   // let manufacturer = req.nextUrl.searchParams.get("manufacturer");
@@ -37,7 +37,10 @@ export async function POST(req) {
   //   );
   // }
 
-  const { requestId } = await req.json();
+  const { requestId, sectionType } = await req.json();
+
+  const RequestModel = sectionType === "hospital" ? HospitalRequest : Request;
+  const StockModel = sectionType === "hospital" ? HospitalStock : Stock;
 
   try {
     if (!requestId) {
@@ -51,7 +54,7 @@ export async function POST(req) {
     }
 
     // Find the request by ID
-    const request = await Request.findById(requestId).populate("medicine");
+    const request = await RequestModel.findById(requestId).populate("medicine");
     if (!request) {
       return NextResponse.json(
         {
@@ -75,7 +78,7 @@ export async function POST(req) {
     const { medicine, requestedQuantity } = request;
 
     // Fetch available godown stock for the requested medicine, sorted by expiryDate
-    let stocks = await Stock.find({ medicine }).sort({ expiryDate: 1 });
+    let stocks = await StockModel.find({ medicine }).sort({ expiryDate: 1 });
     const packetSize = medicine.packetSize;
 
     // let approvedBoxes = 0;
@@ -95,7 +98,6 @@ export async function POST(req) {
       if (availableQuantity > 0) {
         let transferQuantity = Math.min(remainingQuantity, availableQuantity);
 
-        
         transferredStocks.push({
           stockId: stock._id,
           batchName: stock.batchName,
@@ -117,9 +119,11 @@ export async function POST(req) {
         remainingQuantity -= transferQuantity;
 
         // Update stock in godown
-        stock.quantity.boxes -= Math.floor(transferQuantity / packetSize.strips),
-        stock.quantity.extra -= transferQuantity % packetSize.strips,
-        stock.quantity.totalStrips -= transferQuantity;
+        (stock.quantity.boxes -= Math.floor(
+          transferQuantity / packetSize.strips
+        )),
+          (stock.quantity.extra -= transferQuantity % packetSize.strips),
+          (stock.quantity.totalStrips -= transferQuantity);
 
         await stock.save();
       }
