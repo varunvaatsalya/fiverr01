@@ -1,0 +1,29 @@
+name: Deploy to DigitalOcean VM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Setup SSH key
+      uses: webfactory/ssh-agent@v0.8.1
+      with:
+        ssh-private-key: ${{ secrets.DO_PRIVATE_KEY }}
+
+    - name: Deploy on server
+      run: |
+        ssh -o StrictHostKeyChecking=no root@143.110.254.157 << 'EOF'
+          cd fiverr01
+          git pull origin main
+          npm install
+          NODE_OPTIONS="--max-old-space-size=4096" npm run build
+          pm2 restart fiverr01-app
+        EOF
