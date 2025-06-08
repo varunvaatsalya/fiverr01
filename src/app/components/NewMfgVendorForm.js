@@ -113,7 +113,7 @@ export default function NewMfgVendorForm({
       <DialogTrigger asChild>
         <Button variant="outline">{triggerLabel}</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto text-black">
         <DialogTitle className="text-2xl font-semibold">
           {isEdit ? "Edit" : "Add"} {type}
         </DialogTitle>
@@ -131,8 +131,12 @@ export default function NewMfgVendorForm({
               <p className="text-red-500 text-sm">Name is required</p>
             )}
 
-            <Label>Contact</Label>
-            <Input type="number" {...register("contact")} />
+            {type === "vendor" && (
+              <>
+                <Label>Contact</Label>
+                <Input type="number" {...register("contact")} />
+              </>
+            )}
 
             {type === "vendor" && (
               <>

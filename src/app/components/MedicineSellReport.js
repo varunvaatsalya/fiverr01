@@ -139,7 +139,9 @@ function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
                 <td className="py-2 px-4">
                   ₹{parseFloat(med.netRevenue.toFixed(2))}
                 </td>
-                <td className="py-2 px-4">{med.netStripsSold}</td>
+                <td className="py-2 px-4">
+                  {parseFloat(med.netStripsSold?.toFixed(2))}
+                </td>
               </tr>
             ))}
           </tbody>

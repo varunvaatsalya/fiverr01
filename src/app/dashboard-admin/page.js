@@ -95,19 +95,20 @@ function Page() {
       color: "bg-cyan-900",
     },
     {
-      name: "Hospital Pharmacy",
-      description: "You can see all Hospital Parmacy logs here",
-      icon: <GiMedicinePills size={50} />,
-      link: "/dashboard-admin/hospitalPharmacy",
-      color: "bg-teal-900",
-    },
-    {
       name: "Pharmacy",
       description: "You can see all Parmacy logs here",
       icon: <GiMedicines size={50} />,
       link: "/dashboard-admin/pharmacy",
       color: "bg-red-900",
     },
+    {
+      name: "Hospital Pharmacy",
+      description: "You can see all Hospital Parmacy logs here",
+      icon: <GiMedicinePills size={50} />,
+      link: "/dashboard-admin/hospitalPharmacy",
+      color: "bg-teal-900",
+    },
+
     {
       name: "Expenses",
       description: "You can show & add the all the Expenses.",
@@ -195,7 +196,9 @@ function Page() {
                   className="py-2 px-4 bg-gray-800 rounded-lg shadow-md flex justify-around items-center"
                 >
                   <div>
-                    <p className="font-semibold text-white">{user.role.toUpperCase()}</p>
+                    <p className="font-semibold text-white">
+                      {user.role.toUpperCase()}
+                    </p>
                     <p className="text-sm text-gray-400">
                       {user.lastUserEmail}
                     </p>

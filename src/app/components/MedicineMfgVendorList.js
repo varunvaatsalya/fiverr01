@@ -11,9 +11,8 @@ function MedicineMfgVendorList({ type, info }) {
     setData(info);
   }, [type]);
 
-
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4">
+    <div className="max-w-4xl mx-auto py-6 px-4 text-black">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-semibold capitalize">{type}s</h2>
         <NewMfgVendorForm type={type} setData={setData} />
@@ -30,16 +29,20 @@ function MedicineMfgVendorList({ type, info }) {
                   <div className="flex justify-between items-start gap-4">
                     <div>
                       <h3 className="font-semibold text-lg">{item.name}</h3>
-                      <p className="text-muted-foreground text-sm">
-                        Contact: {item.contact}
-                      </p>
-                      {type === "vendor" && item.address && (
-                        <p className="text-sm">Address: {item.address}</p>
+                      {type === "vendor" && (
+                        <>
+                          <p className="text-muted-foreground text-sm">
+                            Contact: {item.contact}
+                          </p>
+                          {item.address && (
+                            <p className="text-sm">Address: {item.address}</p>
+                          )}
+                        </>
                       )}
                       {type === "manufacturer" &&
                         item.medicalRepresentator?.name && (
                           <p className="text-sm">
-                            Rep: {item.medicalRepresentator.name} (
+                            MR: {item.medicalRepresentator.name} (
                             {item.medicalRepresentator.contact})
                           </p>
                         )}
