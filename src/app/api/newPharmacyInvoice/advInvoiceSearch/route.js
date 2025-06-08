@@ -89,7 +89,7 @@ export async function POST(req) {
     // Fetch data with filters
     const invoices = await PharmacyInvoice.find(query)
       .sort({ _id: -1 })
-      .limit(Object.keys(query).length === 0 ? 200 : undefined)
+      .limit(Object.keys(query).length === 0 ? 200 : 30)
       .populate({
         path: "patientId",
         select: "name uhid address age gender mobileNumber",
@@ -159,7 +159,7 @@ export async function POST(req) {
           });
         }
       }
-      console.log("medicineStats: ", medicineStats);
+      console.log("result: ", invoices, medicineStats);
 
     // Send response with UID
     return NextResponse.json(
