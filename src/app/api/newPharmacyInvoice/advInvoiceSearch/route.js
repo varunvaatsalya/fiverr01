@@ -152,14 +152,14 @@ export async function POST(req) {
       for (const stat of statsMap.values()) {
         const totalEquivalentStrips =
           stat.totalStrips + stat.totalTablets / stat.tabletsPerStrip;
-        console.log("totalEquivalentStrips: ", totalEquivalentStrips);
-        medicineStats.push({
-          medicineId: stat.medicineId,
-          name: stat.name,
-          totalEquivalentStrips: parseFloat(totalEquivalentStrips.toFixed(2)),
-        });
+          medicineStats.push({
+            medicineId: stat.medicineId,
+            name: stat.name,
+            totalEquivalentStrips: parseFloat(totalEquivalentStrips.toFixed(2)),
+          });
+        }
       }
-    }
+      console.log("medicineStats: ", medicineStats);
 
     // Send response with UID
     return NextResponse.json(

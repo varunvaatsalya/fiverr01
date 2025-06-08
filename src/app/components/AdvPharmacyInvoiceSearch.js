@@ -52,6 +52,7 @@ function AdvPharmacyInvoiceSearch({ setSearchedInvoices }) {
         setSearchedInvoices(result.invoices);
         setSearchedLength(result.invoices.length);
         setMedicineStats(result.medicineStats);
+        console.log(result);
       } else {
         setMessage(result.message);
         setTimeout(() => {
