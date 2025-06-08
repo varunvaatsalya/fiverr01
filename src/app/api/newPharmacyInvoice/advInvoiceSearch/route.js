@@ -3,6 +3,7 @@ import dbConnect from "../../../lib/Mongodb";
 import PharmacyInvoice from "../../../models/PharmacyInvoice";
 import { verifyTokenWithLogout } from "../../../utils/jwt";
 import Patients from "../../../models/Patients";
+import { Medicine } from "@/app/models";
 
 export async function POST(req) {
   await dbConnect();
@@ -16,7 +17,6 @@ export async function POST(req) {
   }
 
   const decoded = await verifyTokenWithLogout(token.value);
-  console.log(decoded);
   const userRole = decoded?.role;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
@@ -27,8 +27,17 @@ export async function POST(req) {
     return res;
   }
 
-  const { patientName, uhid, startDate, endDate, inid, paymentMode, isReturn } =
-    await req.json();
+  const {
+    patientName,
+    uhid,
+    startDate,
+    endDate,
+    inid,
+    paymentMode,
+    isReturn,
+    selected,
+    logic,
+  } = await req.json();
 
   try {
     const query = {};
@@ -68,6 +77,15 @@ export async function POST(req) {
       }
     }
 
+    if (selected.length) {
+      const ids = selected.map((m) => m._id);
+      if (logic === "AND") {
+        query["medicines.medicineId"] = { $all: ids };
+      } else {
+        query["medicines.medicineId"] = { $in: ids };
+      }
+    }
+
     // Fetch data with filters
     const invoices = await PharmacyInvoice.find(query)
       .sort({ _id: -1 })
@@ -89,8 +107,65 @@ export async function POST(req) {
         select: "name email",
       });
 
+    const medicineStats = [];
+
+    if (selected.length > 0) {
+      const medicinesInfo = await Medicine.find({
+        _id: { $in: selected },
+      }).select("name packetSize.tabletsPerStrip");
+
+      const medicineMap = new Map();
+      for (const med of medicinesInfo) {
+        medicineMap.set(med._id.toString(), {
+          name: med.name,
+          tabletsPerStrip: med.packetSize?.tabletsPerStrip || 1,
+        });
+      }
+
+      // 2. Loop invoices and compute totals
+      const statsMap = new Map();
+
+      for (const invoice of invoices) {
+        for (const med of invoice.medicines) {
+          const medId = med.medicineId._id.toString();
+          if (!selected.some((med) => med._id === medId)) continue;
+
+          if (!statsMap.has(medId)) {
+            statsMap.set(medId, {
+              medicineId: medId,
+              name: medicineMap.get(medId)?.name || "",
+              totalStrips: 0,
+              totalTablets: 0,
+              tabletsPerStrip: medicineMap.get(medId)?.tabletsPerStrip || 1,
+            });
+          }
+
+          const entry = statsMap.get(medId);
+
+          for (const stock of med.allocatedStock) {
+            entry.totalStrips += stock.quantity?.strips || 0;
+            entry.totalTablets += stock.quantity?.tablets || 0;
+          }
+        }
+      }
+
+      for (const stat of statsMap.values()) {
+        const totalEquivalentStrips =
+          stat.totalStrips + stat.totalTablets / stat.tabletsPerStrip;
+        console.log("totalEquivalentStrips: ", totalEquivalentStrips);
+        medicineStats.push({
+          medicineId: stat.medicineId,
+          name: stat.name,
+          totalEquivalentStrips: parseFloat(totalEquivalentStrips.toFixed(2)),
+        });
+      }
+    }
+
     // Send response with UID
-    return NextResponse.json({ invoices, success: true }, { status: 201 });
+    return NextResponse.json(
+      { invoices, medicineStats, success: true },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(

@@ -196,6 +196,7 @@ export async function GET(req) {
         $project: {
           _id: 1,
           name: 1,
+          packetSize: 1,
           manufacturer: 1,
           salts: 1,
           totalBoxes: { $ifNull: ["$totalStrips", 0] },

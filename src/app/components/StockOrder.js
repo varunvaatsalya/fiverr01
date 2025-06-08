@@ -64,7 +64,7 @@ function StockOrder({ info, selectedType }) {
         ).sort((a, b) => a.name.localeCompare(b.name));
 
         setAvailableSources(sources);
-        console.log(data.medicinesWithStock, sources);
+        // console.log(data.medicinesWithStock, sources);
         // minimumStockCount?.godown - medicine.totalBoxes
         const lowStockSet = new Set();
         data.medicinesWithStock.forEach((med) => {
@@ -482,12 +482,14 @@ Required Quantity: *${medicine.quantity}* units
             </div>
             <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex flex-wrap items-center p-1">
               <div className="w-[5%] text-center">Sr No.</div>
-              <div className="w-[35%] text-center">Medicine</div>
+              <div className="w-[30%] text-center">Medicine</div>
               <div className="w-[10%] text-end px-2">Req</div>
               <div className="w-[5%] text-center">Min Qty</div>
               <div className="w-[5%] text-center">Avl Qty</div>
               <div className="w-[5%] text-center">Max Qty</div>
-              <div className="w-[10%] text-center">Order Status</div>
+              <div className="w-[15%] text-center">
+                Order Status <span className="text-red-500 text-xs">{"(Box)"}</span>
+              </div>
               <div className="w-[25%] text-center">Prev Source</div>
             </div>
 
@@ -499,7 +501,7 @@ Required Quantity: *${medicine.quantity}* units
                 >
                   <div className="w-[5%] text-center">{index + 1}</div>
                   <div
-                    className="w-[35%] min-w-24 line-clamp-1 text-center"
+                    className="w-[30%] min-w-24 line-clamp-1 text-center"
                     title={details.name}
                   >
                     {details.name}
@@ -531,7 +533,7 @@ Required Quantity: *${medicine.quantity}* units
                       ? details.maximumStockCount.godown
                       : "N/A"}
                   </div>
-                  <div className="w-[10%] text-center">
+                  <div className="w-[15%] text-center">
                     {details.stockOrderInfo ? (
                       <>
                         <span className="italic font-normal">
@@ -584,8 +586,8 @@ Required Quantity: *${medicine.quantity}* units
                   <div className="w-[5%] text-center">Sr No.</div>
                   <div className="w-[50%] text-center">Medicine</div>
                   <div className="w-[10%] text-center">Min Qty</div>
-                  <div className="w-[10%] text-center">Max Qty</div>
                   <div className="w-[10%] text-center">Avl Qty</div>
+                  <div className="w-[10%] text-center">Max Qty</div>
                   <div className="w-[15%] text-center">Qunatity</div>
                 </div>
               )}
@@ -603,13 +605,14 @@ Required Quantity: *${medicine.quantity}* units
                         : "N/A"}
                     </div>
                     <div className="w-[10%] text-center">
+                      {details.totalBoxes}
+                    </div>
+                    <div className="w-[10%] text-center">
                       {details.maximumStockCount?.godown !== undefined
                         ? details.maximumStockCount.godown
                         : "N/A"}
                     </div>
-                    <div className="w-[10%] text-center">
-                      {details.totalBoxes}
-                    </div>
+
                     <div className="w-[15%] flex justify-center gap-2 items-center">
                       <input
                         type="number"
