@@ -89,7 +89,7 @@ export async function POST(req) {
     // Fetch data with filters
     const invoices = await PharmacyInvoice.find(query)
       .sort({ _id: -1 })
-      .limit(Object.keys(query).length === 0 ? 200 : 30)
+      .limit(Object.keys(query).length === 0 ? 200 : undefined)
       .populate({
         path: "patientId",
         select: "name uhid address age gender mobileNumber",
