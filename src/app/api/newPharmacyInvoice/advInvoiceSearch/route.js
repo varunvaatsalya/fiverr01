@@ -70,7 +70,7 @@ export async function POST(req) {
     if (startDate || endDate) {
       query.createdAt = {};
       if (startDate) {
-        query.createdAt.$lte = new Date(startDate);
+        query.createdAt.$gte = new Date(startDate);
       }
       if (endDate) {
         query.createdAt.$lte = new Date(endDate);
