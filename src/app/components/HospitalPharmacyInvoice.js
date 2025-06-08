@@ -4,10 +4,6 @@ import NurseManager from "./NurseManager";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { RxCross2 } from "react-icons/rx";
-import { IoArrowForward } from "react-icons/io5";
-import { GrHistory } from "react-icons/gr";
-import { CiSearch } from "react-icons/ci";
 import { showError } from "../utils/toast";
 import {
   Dialog,
@@ -37,8 +33,8 @@ import {
 
 function HospitalPharmacyInvoice() {
   const [open, setOpen] = useState(false);
+  const [openPatientBox, setOpenPatientBox] = useState(false);
   const [date, setDate] = useState("");
-  const [rows, setRows] = useState([{ patient: null, medicines: [] }]);
   const [nurses, setNurses] = useState([]);
   const [isOpenNurseSection, setIsOpenNurseSection] = useState(false);
   const [medicines, setMedicines] = useState([]);
@@ -47,7 +43,6 @@ function HospitalPharmacyInvoice() {
 
   const [recentPatients, setRecentPatients] = useState([]);
   const [patients, setPatientOptions] = useState([]);
-  const [openPatient, setOpenPatient] = useState(false);
   const [selectedNurse, setSelectedNurse] = useState("");
   const [selectedMode, setSelectedMode] = useState("opd");
 
@@ -143,32 +138,32 @@ function HospitalPharmacyInvoice() {
   };
 
   const handleSubmit = () => {
-  //   try {
-  //     if (!date) throw new Error("Set the Invoice date!");
-  //     const payload = rows.map((row) => {
-  //       if (
-  //         !row.patient._id ||
-  //         !row.time ||
-  //         !row.nurse ||
-  //         row.medicines.length === 0
-  //       ) {
-  //         throw new Error("Fill all the fields properly!");
-  //       }
-  //       return {
-  //         ...row,
-  //         patient: row.patient._id,
-  //         date,
-  //       };
-  //     });
-  //     console.log("Submitting:", payload);
-  //     // send payload to API here
-  //     setOpen(false);
-  //     setRows([{ patient: null, medicines: [] }]);
-  //     setDate("");
-  //   } catch (error) {
-  //     showError(error.message);
-  //     return;
-  //   }
+    //   try {
+    //     if (!date) throw new Error("Set the Invoice date!");
+    //     const payload = rows.map((row) => {
+    //       if (
+    //         !row.patient._id ||
+    //         !row.time ||
+    //         !row.nurse ||
+    //         row.medicines.length === 0
+    //       ) {
+    //         throw new Error("Fill all the fields properly!");
+    //       }
+    //       return {
+    //         ...row,
+    //         patient: row.patient._id,
+    //         date,
+    //       };
+    //     });
+    //     console.log("Submitting:", payload);
+    //     // send payload to API here
+    //     setOpen(false);
+    //     setRows([{ patient: null, medicines: [] }]);
+    //     setDate("");
+    //   } catch (error) {
+    //     showError(error.message);
+    //     return;
+    //   }
   };
 
   return (
@@ -234,15 +229,18 @@ function HospitalPharmacyInvoice() {
           </div>
 
           {/* Table Style Input Section */}
-          <div className="overflow-y-auto border rounded-md">
-            <div className="space-y-4">
+          <div className="overflow-y-auto border rounded-md p-1">
+            <div className="space-y-1">
               {medicines.map((medicine) => (
                 <div
                   key={medicine._id}
-                  className="flex justify-between items-center border p-4 rounded-md"
+                  className="flex justify-between items-center border py-1 px-2 rounded-md"
                 >
                   <div>{medicine.name}</div>
-                  <Dialog>
+                  <Dialog
+                    open={openPatientBox}
+                    onOpenChange={setOpenPatientBox}
+                  >
                     <DialogTrigger asChild>
                       <Button
                         variant="outline"
@@ -254,15 +252,14 @@ function HospitalPharmacyInvoice() {
                         Give to Patients
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="text-gray-900">
                       <DialogHeader>
                         <DialogTitle>Give {medicine.name}</DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-4">
+                      <div className="space-y-1">
                         {tempEntries.map((entry, index) => (
                           <div key={index} className="flex gap-2 items-end">
                             <div className="flex-1">
-                              <Label>Patient</Label>
                               <Select
                                 onValueChange={(val) =>
                                   handleChange(index, "patientId", val)
@@ -274,7 +271,7 @@ function HospitalPharmacyInvoice() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   {patients.map((p) => (
-                                    <SelectItem key={p.id} value={p.id}>
+                                    <SelectItem key={p._id} value={p._id}>
                                       {p.name}
                                     </SelectItem>
                                   ))}
@@ -282,9 +279,9 @@ function HospitalPharmacyInvoice() {
                               </Select>
                             </div>
                             <div>
-                              <Label>Qty</Label>
                               <Input
                                 type="number"
+                                placeholder="Qty..."
                                 value={entry.quantity}
                                 onChange={(e) =>
                                   handleChange(
@@ -297,12 +294,19 @@ function HospitalPharmacyInvoice() {
                             </div>
                           </div>
                         ))}
-                        <Button variant="outline" onClick={handleAddEntry}>
-                          + Add Patient
-                        </Button>
-                        <Button onClick={handleSubmitEntries}>
-                          Submit All
-                        </Button>
+                        <div className="flex justify-between">
+                          <Button variant="outline" onClick={handleAddEntry}>
+                            + Add Patient
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setOpenPatientBox(false);
+                              handleSubmitEntries();
+                            }}
+                          >
+                            Submit All
+                          </Button>
+                        </div>
                       </div>
                     </DialogContent>
                   </Dialog>

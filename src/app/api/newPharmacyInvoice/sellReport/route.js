@@ -64,18 +64,178 @@ export async function POST(req) {
       },
     };
 
+    // const pipeline = [
+    //   {
+    //     $match: {
+    //       ...matchStage,
+    //       isDelivered: { $ne: null },
+    //       paymentMode: { $ne: "Credit-Others" },
+    //     },
+    //   },
+
+    //   { $unwind: "$medicines" },
+    //   { $unwind: "$medicines.allocatedStock" },
+
+    //   {
+    //     $lookup: {
+    //       from: "medicines",
+    //       localField: "medicines.medicineId",
+    //       foreignField: "_id",
+    //       as: "medicineDetails",
+    //     },
+    //   },
+    //   { $unwind: "$medicineDetails" },
+    //   {
+    //     $lookup: {
+    //       from: "manufacturers",
+    //       localField: "medicineDetails.manufacturer",
+    //       foreignField: "_id",
+    //       as: "manufacturerDetails",
+    //     },
+    //   },
+    //   {
+    //     $unwind: {
+    //       path: "$manufacturerDetails",
+    //       preserveNullAndEmptyArrays: true,
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "salts",
+    //       localField: "medicineDetails.salts",
+    //       foreignField: "_id",
+    //       as: "saltDetails",
+    //     },
+    //   },
+
+    //   ...(manufacturerId
+    //     ? [
+    //         {
+    //           $match: {
+    //             "medicineDetails.manufacturer": new mongoose.Types.ObjectId(
+    //               manufacturerId
+    //             ),
+    //           },
+    //         },
+    //       ]
+    //     : []),
+    //   ...(saltId
+    //     ? [
+    //         {
+    //           $match: {
+    //             "medicineDetails.salts": new mongoose.Types.ObjectId(saltId),
+    //           },
+    //         },
+    //       ]
+    //     : []),
+
+    //   {
+    //     $group: {
+    //       _id: "$medicines.medicineId",
+    //       medId: { $first: "$medicineDetails._id" },
+    //       name: { $first: "$medicineDetails.name" },
+    //       manufacturer: { $first: "$manufacturerDetails.name" },
+    //       salts: { $first: "$saltDetails.name" },
+    //       totalStripsSold: {
+    //         $sum: "$medicines.allocatedStock.quantity.strips",
+    //       },
+    //       totalRevenue: {
+    //         $sum: {
+    //           $multiply: [
+    //             "$medicines.allocatedStock.sellingPrice",
+    //             "$medicines.allocatedStock.quantity.strips",
+    //           ],
+    //         },
+    //       },
+    //     },
+    //   },
+
+    //   // Returns adjustment
+    //   {
+    //     $lookup: {
+    //       from: "pharmacyinvoices",
+    //       let: { medicineId: "$_id" },
+    //       pipeline: [
+    //         { $unwind: "$returns" },
+    //         { $unwind: "$returns.medicines" },
+    //         {
+    //           $match: {
+    //             $expr: {
+    //               $eq: ["$returns.medicines.medicineId", "$$medicineId"],
+    //             },
+    //           },
+    //         },
+    //         { $unwind: "$returns.medicines.returnStock" },
+    //         {
+    //           $group: {
+    //             _id: null,
+    //             totalReturnRevenue: {
+    //               $sum: {
+    //                 $multiply: [
+    //                   "$returns.medicines.returnStock.sellingPrice",
+    //                   "$returns.medicines.returnStock.quantity.strips",
+    //                 ],
+    //               },
+    //             },
+    //             totalReturnStrips: {
+    //               $sum: "$returns.medicines.returnStock.quantity.strips",
+    //             },
+    //           },
+    //         },
+    //       ],
+    //       as: "returnsInfo",
+    //     },
+    //   },
+
+    //   {
+    //     $addFields: {
+    //       totalReturnRevenue: {
+    //         $ifNull: [
+    //           { $arrayElemAt: ["$returnsInfo.totalReturnRevenue", 0] },
+    //           0,
+    //         ],
+    //       },
+    //       totalReturnStrips: {
+    //         $ifNull: [
+    //           { $arrayElemAt: ["$returnsInfo.totalReturnStrips", 0] },
+    //           0,
+    //         ],
+    //       },
+    //     },
+    //   },
+
+    //   {
+    //     $addFields: {
+    //       netRevenue: { $subtract: ["$totalRevenue", "$totalReturnRevenue"] },
+    //       netStripsSold: {
+    //         $subtract: ["$totalStripsSold", "$totalReturnStrips"],
+    //       },
+    //     },
+    //   },
+
+    //   {
+    //     $project: {
+    //       _id: 1,
+    //       medId: 1,
+    //       name: 1,
+    //       manufacturer: 1,
+    //       salts: 1,
+    //       netRevenue: 1,
+    //       netStripsSold: 1,
+    //     },
+    //   },
+    // ];
+
     const pipeline = [
       {
         $match: {
           ...matchStage,
-          isDelivered: { $ne: null },
+          // isDelivered: { $ne: null },
           paymentMode: { $ne: "Credit-Others" },
         },
       },
-
       { $unwind: "$medicines" },
       { $unwind: "$medicines.allocatedStock" },
-
       {
         $lookup: {
           from: "medicines",
@@ -108,6 +268,7 @@ export async function POST(req) {
         },
       },
 
+      // Optional filtering
       ...(manufacturerId
         ? [
             {
@@ -129,6 +290,43 @@ export async function POST(req) {
           ]
         : []),
 
+      // Calculate equivalent strips & revenue
+      {
+        $addFields: {
+          strips: "$medicines.allocatedStock.quantity.strips",
+          tablets: "$medicines.allocatedStock.quantity.tablets",
+          tabletsPerStrip:
+            "$medicines.allocatedStock.packetSize.tabletsPerStrip",
+          sellingPrice: "$medicines.allocatedStock.sellingPrice",
+        },
+      },
+      {
+        $addFields: {
+          equivalentStrips: {
+            $add: [
+              { $ifNull: ["$strips", 0] },
+              {
+                $cond: [
+                  { $gt: ["$tabletsPerStrip", 0] },
+                  {
+                    $divide: [{ $ifNull: ["$tablets", 0] }, "$tabletsPerStrip"],
+                  },
+                  0,
+                ],
+              },
+            ],
+          },
+        },
+      },
+      {
+        $addFields: {
+          revenue: {
+            $multiply: ["$equivalentStrips", "$sellingPrice"],
+          },
+        },
+      },
+
+      // Group by medicine
       {
         $group: {
           _id: "$medicines.medicineId",
@@ -136,83 +334,12 @@ export async function POST(req) {
           name: { $first: "$medicineDetails.name" },
           manufacturer: { $first: "$manufacturerDetails.name" },
           salts: { $first: "$saltDetails.name" },
-          totalStripsSold: {
-            $sum: "$medicines.allocatedStock.quantity.strips",
-          },
-          totalRevenue: {
-            $sum: {
-              $multiply: [
-                "$medicines.allocatedStock.sellingPrice",
-                "$medicines.allocatedStock.quantity.strips",
-              ],
-            },
-          },
+          netStripsSold: { $sum: "$equivalentStrips" },
+          netRevenue: { $sum: "$revenue" },
         },
       },
 
-      // Returns adjustment
-      {
-        $lookup: {
-          from: "pharmacyinvoices",
-          let: { medicineId: "$_id" },
-          pipeline: [
-            { $unwind: "$returns" },
-            { $unwind: "$returns.medicines" },
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$returns.medicines.medicineId", "$$medicineId"],
-                },
-              },
-            },
-            { $unwind: "$returns.medicines.returnStock" },
-            {
-              $group: {
-                _id: null,
-                totalReturnRevenue: {
-                  $sum: {
-                    $multiply: [
-                      "$returns.medicines.returnStock.sellingPrice",
-                      "$returns.medicines.returnStock.quantity.strips",
-                    ],
-                  },
-                },
-                totalReturnStrips: {
-                  $sum: "$returns.medicines.returnStock.quantity.strips",
-                },
-              },
-            },
-          ],
-          as: "returnsInfo",
-        },
-      },
-
-      {
-        $addFields: {
-          totalReturnRevenue: {
-            $ifNull: [
-              { $arrayElemAt: ["$returnsInfo.totalReturnRevenue", 0] },
-              0,
-            ],
-          },
-          totalReturnStrips: {
-            $ifNull: [
-              { $arrayElemAt: ["$returnsInfo.totalReturnStrips", 0] },
-              0,
-            ],
-          },
-        },
-      },
-
-      {
-        $addFields: {
-          netRevenue: { $subtract: ["$totalRevenue", "$totalReturnRevenue"] },
-          netStripsSold: {
-            $subtract: ["$totalStripsSold", "$totalReturnStrips"],
-          },
-        },
-      },
-
+      // Final projection
       {
         $project: {
           _id: 1,
