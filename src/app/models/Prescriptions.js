@@ -20,9 +20,7 @@ const prescriptionSchema = new mongoose.Schema({
   price: {
     subtotal: {
       type: Number,
-      default: function () {
-        return this.items?.reduce((sum, item) => sum + (item.price || 0), 0);
-      },
+      default: 0,
     },
     discount: {
       type: Number,
@@ -30,9 +28,7 @@ const prescriptionSchema = new mongoose.Schema({
     },
     total: {
       type: Number,
-      default: function () {
-        return this.price.subtotal - this.price.discount;
-      },
+      default: 0,
     },
   },
   paymentMode: {
@@ -76,6 +72,16 @@ const prescriptionSchema = new mongoose.Schema({
     ref: "User",
   },
   createdAt: { type: Date, default: Date.now, required: true },
+});
+
+prescriptionSchema.pre("save", function (next) {
+  this.price.subtotal = this.items?.reduce(
+    (sum, item) => sum + (item.price || 0),
+    0
+  );
+  this.price.total = this.price.subtotal - this.price.discount;
+
+  next();
 });
 
 export default mongoose.models.Prescription ||

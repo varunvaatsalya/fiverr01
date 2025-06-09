@@ -66,8 +66,6 @@ export async function GET(req) {
     const departments = await Department.find({}, "_id name").exec();
 
     let { startUTC, endUTC } = getDates();
-    console.log("Start UTC:", startUTC);
-    console.log("End UTC:", endUTC);
 
     const expenses = await Expense.find({
       createdAt: {
@@ -161,15 +159,12 @@ export async function POST(req) {
 
     let end = endDateTime ? getUTCDateTime(endDateTime) : endUTC;
 
-    console.log("Start:", startDateTime, start);
-    console.log("End:", endDateTime, end);
     let dateQuery = {
       createdAt: {
         $gte: start,
         $lt: end,
       },
     };
-    console.log("Date query:", dateQuery);
     const prescriptions = await Prescription.find(dateQuery)
       .select("-patient -tests")
       .populate({
