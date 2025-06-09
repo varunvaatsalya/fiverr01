@@ -159,7 +159,6 @@ export async function POST(req) {
         });
       }
     }
-    console.log("result: ", invoices, medicineStats);
 
     // Send response with UID
     return NextResponse.json(

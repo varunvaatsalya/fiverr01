@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -96,7 +96,7 @@ function AdvPrescSearch({ setSearchedPrescription }) {
         </label>
         <input
           id="sdate"
-          type="date"
+          type="datetime-local"
           {...register("startDate")}
           className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />
@@ -110,36 +110,8 @@ function AdvPrescSearch({ setSearchedPrescription }) {
         </label>
         <input
           id="edate"
-          type="date"
+          type="datetime-local"
           {...register("endDate")}
-          className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        />
-      </div>
-      <div className="flex flex-col lg:flex-row justify-center items-center gap-x-2">
-        <label
-          htmlFor="sdate"
-          className=" text-sm lg:text-base font-medium text-gray-100"
-        >
-          Start Time
-        </label>
-        <input
-          id="startTime"
-          type="time"
-          {...register("startTime")}
-          className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        />
-      </div>
-      <div className="flex flex-col lg:flex-row justify-center items-center gap-x-2">
-        <label
-          htmlFor="edate"
-          className=" text-sm lg:text-base font-medium text-gray-100"
-        >
-          End Time
-        </label>
-        <input
-          id="endTime"
-          type="time"
-          {...register("endTime")}
           className="block text-white w-40 md:w-44 lg:w-48 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />
       </div>
@@ -171,7 +143,7 @@ function AdvPrescSearch({ setSearchedPrescription }) {
         type="submit"
         className="px-3 py-1 flex items-center justify-center gap-2 bg-blue-500 rounded-lg font-semibold cursor-pointer text-white"
       >
-        {submitting?'Searching...':'Search'}
+        {submitting ? "Searching..." : "Search"}
       </button>
       <div className="w-full text-center text-red-500">
         If you are searching by date then you must provide both start date and

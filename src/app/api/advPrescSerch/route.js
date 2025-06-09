@@ -31,32 +31,12 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const {
-    department,
-    doctor,
-    endDate,
-    endTime,
-    patientName,
-    pid,
-    startDate,
-    startTime,
-    uhid,
-  } = await req.json();
+  const { department, doctor, endDate, patientName, pid, startDate, uhid } =
+    await req.json();
 
   try {
     const query = {};
     const pateintQuery = {};
-    console.log({
-      department,
-      doctor,
-      endDate,
-      endTime,
-      patientName,
-      pid,
-      startDate,
-      startTime,
-      uhid,
-    });
 
     // Add filters dynamically
     if (uhid) {
@@ -84,21 +64,14 @@ export async function POST(req) {
     }
 
     // Date range filter
-    if (startDate && endDate) {
-      query.createdAt = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      };
-    }
-
-    // If only time is provided, use today's date with the given time range
-    if (!startDate && !endDate && (startTime || endTime)) {
-      const today = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
-
-      query.createdAt = {
-        $gte: new Date(`${today}T${startTime || "00:00"}`),
-        $lte: new Date(`${today}T${endTime || "23:59"}`),
-      };
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) {
+        query.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        query.createdAt.$lte = new Date(endDate);
+      }
     }
 
     // Fetch data with filters
