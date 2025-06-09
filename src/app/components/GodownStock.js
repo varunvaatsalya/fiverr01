@@ -202,7 +202,7 @@ function GodownStock({ medicineStock, query }) {
                       </span>
                     </div>
                     <div className="py-1 px-4 ">
-                      Strips:{" "}
+                      Pack:{" "}
                       <span className="text-blue-500 font-semibold">
                         {medicine.packetSize?.strips}
                       </span>

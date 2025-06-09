@@ -77,7 +77,7 @@ export async function POST(req) {
       }
     }
 
-    if (selected.length) {
+    if (selected?.length > 0) {
       const ids = selected.map((m) => m._id);
       if (logic === "AND") {
         query["medicines.medicineId"] = { $all: ids };
@@ -89,7 +89,7 @@ export async function POST(req) {
     // Fetch data with filters
     const invoices = await PharmacyInvoice.find(query)
       .sort({ _id: -1 })
-      .limit(Object.keys(query).length === 0 ? 200 : undefined)
+      .limit(Object.keys(query)?.length === 0 ? 200 : undefined)
       .populate({
         path: "patientId",
         select: "name uhid address age gender mobileNumber",
@@ -109,7 +109,7 @@ export async function POST(req) {
 
     const medicineStats = [];
 
-    if (selected.length > 0) {
+    if (selected?.length > 0) {
       const medicinesInfo = await Medicine.find({
         _id: { $in: selected },
       }).select("name packetSize.tabletsPerStrip");
@@ -152,14 +152,14 @@ export async function POST(req) {
       for (const stat of statsMap.values()) {
         const totalEquivalentStrips =
           stat.totalStrips + stat.totalTablets / stat.tabletsPerStrip;
-          medicineStats.push({
-            medicineId: stat.medicineId,
-            name: stat.name,
-            totalEquivalentStrips: parseFloat(totalEquivalentStrips.toFixed(2)),
-          });
-        }
+        medicineStats.push({
+          medicineId: stat.medicineId,
+          name: stat.name,
+          totalEquivalentStrips: parseFloat(totalEquivalentStrips.toFixed(2)),
+        });
       }
-      console.log("result: ", invoices, medicineStats);
+    }
+    console.log("result: ", invoices, medicineStats);
 
     // Send response with UID
     return NextResponse.json(
