@@ -194,7 +194,7 @@ function PharmacyInvoiceSearchList({
                     {!invoice.isDelivered && (
                       <AiFillMedicineBox className="text-yellow-600 size-6" />
                     )}
-                    <span className="text-gray-500 w-4 text-center">
+                    <span className="text-gray-500">
                       {activeIndex === index ? "-" : "+"}
                     </span>
                   </div>

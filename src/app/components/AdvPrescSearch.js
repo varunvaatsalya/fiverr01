@@ -8,7 +8,7 @@ function AdvPrescSearch({ setSearchedPrescription }) {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
 
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, watch } = useForm();
 
   useEffect(() => {
     async function fetchData() {
@@ -139,6 +139,21 @@ function AdvPrescSearch({ setSearchedPrescription }) {
           </option>
         ))}
       </select>
+      <div className="flex flex-col lg:flex-row justify-center items-center gap-x-2">
+        <label
+          htmlFor="edited"
+          className=" text-sm lg:text-base font-medium text-gray-100"
+        >
+          Edited Invoices
+        </label>
+        <input
+          id="edited"
+          type="checkbox"
+          checked={watch("edited")}
+          {...register(`edited`)}
+          className="size-6"
+        />
+      </div>
       <button
         type="submit"
         className="px-3 py-1 flex items-center justify-center gap-2 bg-blue-500 rounded-lg font-semibold cursor-pointer text-white"

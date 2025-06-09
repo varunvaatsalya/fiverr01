@@ -31,8 +31,16 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { department, doctor, endDate, patientName, pid, startDate, uhid } =
-    await req.json();
+  const {
+    department,
+    doctor,
+    edited,
+    endDate,
+    patientName,
+    pid,
+    startDate,
+    uhid,
+  } = await req.json();
 
   try {
     const query = {};
@@ -57,6 +65,9 @@ export async function POST(req) {
 
     if (department) {
       query["department"] = department;
+    }
+    if (edited === true) {
+      query["__v"] = { $gt: 0 };
     }
 
     if (pid) {

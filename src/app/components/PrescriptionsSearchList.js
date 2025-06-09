@@ -66,7 +66,6 @@ function PrescriptionsSearchList({
     }
   };
 
-
   const hasOPDItem = (items) => {
     return items.some((item) => item.name.toLowerCase().includes("opd"));
   };
@@ -183,7 +182,14 @@ function PrescriptionsSearchList({
                       {prescription.patient?.name}
                     </h3>
                     <div className="">{prescription.pid}</div>
-                    <span className="text-gray-500">
+                    <span className="text-gray-500 flex gap-1 items-center">
+                      {(accessInfo?.accessRole === "admin" ||
+                        accessInfo?.accessRole === "owner") &&
+                        prescription.__v > 0 && (
+                          <div className="rounded-full py-1 px-2 text-xs font-semibold bg-gray-300 text-gray-900">
+                            Edited
+                          </div>
+                        )}
                       {activeIndex === index ? "-" : "+"}
                     </span>
                   </div>
