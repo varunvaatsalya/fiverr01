@@ -21,7 +21,7 @@ export default function Home() {
           setSuccess(result.success);
           setRoute(result.route);
         }
-        router.push(result.route);
+        // router.push(result.route);
       } catch (err) {
         console.log("error: ", err);
       }

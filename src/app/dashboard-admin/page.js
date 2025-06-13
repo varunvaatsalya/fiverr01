@@ -19,6 +19,7 @@ import { GrTest } from "react-icons/gr";
 import { IoLogOut } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { MdOutlineQueuePlayNext, MdOutlineSecurity } from "react-icons/md";
+import { AiOutlineAudit } from "react-icons/ai";
 
 function Page() {
   const router = useRouter();
@@ -152,6 +153,13 @@ function Page() {
       icon: <MdOutlineSecurity size={40} />,
       link: "/dashboard-admin/security",
       color: "bg-cyan-700",
+    },
+    {
+      name: "Audit Trails",
+      description: "You can see audit trails here",
+      icon: <AiOutlineAudit size={40} />,
+      link: "/dashboard-admin/auditTrails",
+      color: "bg-fuchsia-700",
     },
   ];
   return (

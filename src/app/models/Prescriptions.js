@@ -63,6 +63,12 @@ const prescriptionSchema = new mongoose.Schema({
       isCompleted: { type: Boolean, default: false },
     },
   ],
+  updates: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AuditTrail",
+    },
+  ],
   createdByRole: {
     type: String,
     enum: ["admin", "salesman", "nurse"],

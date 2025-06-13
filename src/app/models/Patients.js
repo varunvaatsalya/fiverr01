@@ -9,6 +9,12 @@ const patientSchema = new mongoose.Schema({
   mobileNumber: { type: Number, required: true },
   aadharNumber: { type: Number },
   address: { type: String, required: true },
+  updates: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AuditTrail",
+    },
+  ],
   createdByRole: {
     type: String,
     enum: ["admin", "salesman", "nurse"],

@@ -7,13 +7,14 @@ import RetailStock from "../../models/RetailStock";
 import PharmacyInvoice from "../../models/PharmacyInvoice";
 import Admission from "../../models/Admissions";
 import { generateUniqueId } from "../../utils/counter";
+import AuditTrail from "@/app/models/AuditTrail";
 
 let cache = {
   data: null,
   timestamp: 0,
 };
 
-const CACHE_DURATION = 2* 60 * 60 * 1000;
+const CACHE_DURATION = 2 * 60 * 60 * 1000;
 
 function getGrandTotal(medicineDetails) {
   const grandTotal = medicineDetails.reduce((grandTotal, medicine) => {
@@ -579,6 +580,7 @@ export async function PUT(req) {
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
+  const userId = decoded._id;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -598,7 +600,7 @@ export async function PUT(req) {
     );
   }
 
-  const { id, paymentMode } = await req.json();
+  const { id, paymentMode, reason } = await req.json();
 
   try {
     const invoice = await PharmacyInvoice.findById(id);
@@ -617,7 +619,23 @@ export async function PUT(req) {
       }
       invoice.isDelivered = new Date();
     }
+
+    const previousData = invoice.toObject();
     if (paymentMode) invoice.paymentMode = paymentMode;
+
+    const audit = await AuditTrail.create({
+      resourceType: "PharmacyInvoice",
+      resourceId: invoice._id,
+      editedByRole: userRole,
+      editedBy: userRole === "admin" || !userId ? null : userId,
+      changes: {
+        before: previousData,
+        after: invoice.toObject(),
+      },
+      remarks: reason,
+    });
+
+    invoice.updates.push(audit._id);
     await invoice.save();
 
     const populatedInvoice = await PharmacyInvoice.findById(invoice._id)

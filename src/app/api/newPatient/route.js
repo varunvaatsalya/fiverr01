@@ -3,6 +3,7 @@ import dbConnect from "../../lib/Mongodb";
 import Patient from "../../models/Patients";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import { generateUniqueId } from "../../utils/counter";
+import AuditTrail from "@/app/models/AuditTrail";
 
 async function generateUID() {
   const prefix = "PT";
@@ -176,6 +177,7 @@ export async function PUT(req) {
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
+  const userId = decoded._id;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -191,7 +193,7 @@ export async function PUT(req) {
     );
   }
 
-  const { _id, name, age, gender, mobileNumber, aadharNumber, address } =
+  const { _id, name, age, gender, mobileNumber, aadharNumber, address, reason } =
     await req.json();
 
   try {
@@ -206,6 +208,7 @@ export async function PUT(req) {
         { status: 404 }
       );
     }
+    const previousData = existingPatient.toObject();
 
     // Update patient details
     existingPatient.name = name;
@@ -216,6 +219,20 @@ export async function PUT(req) {
     existingPatient.address = address;
 
     // Save updated patient to the database
+    const audit = await AuditTrail.create({
+      resourceType: "Patient",
+      resourceId: existingPatient._id,
+      editedByRole: userRole,
+      editedBy: userRole === "admin" || !userId ? null : userId,
+      changes: {
+        before: previousData,
+        after: existingPatient.toObject(),
+      },
+      remarks: reason,
+    });
+
+    // Push audit record _id into prescription's updates
+    existingPatient.updates.push(audit._id);
     await existingPatient.save();
 
     // Send response with updated patient details

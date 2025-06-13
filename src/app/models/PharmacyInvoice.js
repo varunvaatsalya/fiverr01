@@ -117,6 +117,12 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
   isDelivered: {
     type: Date,
   },
+  updates: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AuditTrail",
+    },
+  ],
   createdByRole: {
     type: String,
     enum: ["admin", "salesman", "dispenser"],

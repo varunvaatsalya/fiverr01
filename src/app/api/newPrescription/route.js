@@ -9,6 +9,7 @@ import { verifyTokenWithLogout } from "../../utils/jwt";
 import { generateUniqueId } from "../../utils/counter";
 import LabTests from "../../models/LabTests";
 import Admission from "../../models/Admissions";
+import AuditTrail from "@/app/models/AuditTrail";
 
 async function generateUID(createdAt) {
   const prefix = "PR";
@@ -361,6 +362,7 @@ export async function PUT(req) {
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
+  const userId = decoded._id;
   const userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
@@ -377,8 +379,16 @@ export async function PUT(req) {
     );
   }
 
-  const { _id, patient, department, doctor, items, paymentMode, createdAt } =
-    await req.json();
+  const {
+    _id,
+    patient,
+    department,
+    doctor,
+    items,
+    paymentMode,
+    createdAt,
+    reason,
+  } = await req.json();
 
   try {
     // Check if patient exists
@@ -389,6 +399,7 @@ export async function PUT(req) {
         { status: 404 }
       );
     }
+    const previousData = existingPrescription.toObject();
 
     // Update patient details
     existingPrescription.patient = patient;
@@ -401,6 +412,20 @@ export async function PUT(req) {
     }
 
     // Save updated patient to the database
+    const audit = await AuditTrail.create({
+      resourceType: "Prescription",
+      resourceId: existingPrescription._id,
+      editedByRole: userRole,
+      editedBy: userRole === "admin" || !userId ? null : userId,
+      changes: {
+        before: previousData,
+        after: existingPrescription.toObject(),
+      },
+      remarks: reason,
+    });
+
+    // Push audit record _id into prescription's updates
+    existingPrescription.updates.push(audit._id);
     await existingPrescription.save();
 
     const updatedPrescription = await Prescription.findById(

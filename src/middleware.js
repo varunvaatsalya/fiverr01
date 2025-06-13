@@ -11,125 +11,42 @@ const roleRoutes = {
   dispenser: "/dashboard-dispenser",
 };
 
-
 export async function middleware(req) {
-  const pathname = req.nextUrl.pathname;
-
-  // if (pathname.startsWith("/api/auth")) {
-  //   return NextResponse.next();
-  // }
+  const { pathname } = req.nextUrl;
 
   try {
     const token = req.cookies.get("authToken");
 
     if (!token) {
-      const response = NextResponse.redirect(new URL("/login", req.url));
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate"
-      );
-      return response;
+      return NextResponse.redirect(new URL("/login", req.url));
     }
 
     const decoded = await verifyToken(token.value);
-
     const userRole = decoded?.role;
-    // const userId = decoded._id;
+    const dashboardPath = roleRoutes[userRole];
 
-    // Check if the user has the correct role for the requested route
-    if (userRole === "admin" && pathname.startsWith(roleRoutes.admin)) {
-      const response = NextResponse.next();
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate"
-      );
-      return response;
-    } else if (userRole === "owner" && pathname.startsWith(roleRoutes.owner)) {
-      const response = NextResponse.next();
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate"
-      );
-      return response;
-    } else if (
-      userRole === "salesman" &&
-      pathname.startsWith(roleRoutes.salesman)
-    ) {
-      const response = NextResponse.next();
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate"
-      );
-      return response;
-    } else if (
-      userRole === "pathologist" &&
-      pathname.startsWith(roleRoutes.pathologist)
-    ) {
-      const response = NextResponse.next();
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate"
-      );
-      return response;
-    } else if (userRole === "nurse" && pathname.startsWith(roleRoutes.nurse)) {
-      const response = NextResponse.next();
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate"
-      );
-      return response;
-    } else if (
-      userRole === "dispenser" &&
-      pathname.startsWith(roleRoutes.dispenser)
-    ) {
-      const response = NextResponse.next();
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate"
-      );
-      return response;
-    } else if (
-      userRole === "stockist" &&
-      pathname.startsWith(roleRoutes.stockist)
-    ) {
-      const response = NextResponse.next();
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate"
-      );
-      return response;
-      // } else if (pathname.startsWith("/api")) {
-      //   const requestHeaders = new Headers(req.headers);
-      //   requestHeaders.set("x-user-role", userRole);
-      //   requestHeaders.set("x-user-id", userId);
-
-      //   return NextResponse.next({
-      //     request: {
-      //       headers: requestHeaders,
-      //     },
-      //   });
-    } else {
-      console.log("User role mismatch. Redirecting to 403.");
-      const response = NextResponse.redirect(new URL("/403", req.url));
-      response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate"
-      );
-      return response;
+    if (!dashboardPath) {
+      return NextResponse.redirect(new URL("/403", req.url));
     }
+
+    if (pathname === "/") {
+      return NextResponse.redirect(new URL(dashboardPath, req.url));
+    }
+
+    if (pathname.startsWith(dashboardPath)) {
+      return NextResponse.next();
+    }
+
+    return NextResponse.redirect(new URL("/403", req.url));
   } catch (error) {
     console.error("Token verification failed:", error.message);
-    const response = NextResponse.redirect(new URL("/login", req.url));
-    response.headers.set(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate"
-    );
-    return response;
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 }
 
 export const config = {
   matcher: [
+    "/",
     "/dashboard-admin/:path*",
     "/dashboard-owner/:path*",
     "/dashboard-salesman/:path*",
