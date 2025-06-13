@@ -13,6 +13,7 @@ import {
 import { IoMdAnalytics } from "react-icons/io";
 import { IoLogOut } from "react-icons/io5";
 import { GiMedicines } from "react-icons/gi";
+import { AiOutlineAudit } from "react-icons/ai";
 
 function Page() {
   const router = useRouter();
