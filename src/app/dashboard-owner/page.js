@@ -75,6 +75,13 @@ function Page() {
       link: "/dashboard-owner/doctors",
       color: "bg-green-700",
     },
+    {
+      name: "Audit Trails",
+      description: "You can see audit trails here",
+      icon: <AiOutlineAudit size={40} />,
+      link: "/dashboard-admin/auditTrails",
+      color: "bg-fuchsia-700",
+    },
   ];
   return (
     <>

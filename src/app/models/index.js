@@ -3,6 +3,8 @@ import Department from "./Departments";
 import Doctor from "./Doctors";
 import Medicine from "./Medicine";
 import Patients from "./Patients";
+import Prescriptions from "./Prescriptions";
+import PharmacyInvoice from "./PharmacyInvoice";
 import { Stock } from "./Stock";
 import Users from "./Users";
 import Units from "./Units";
@@ -14,6 +16,8 @@ export {
   Doctor,
   Medicine,
   Patients,
+  Prescriptions,
+  PharmacyInvoice,
   Stock,
   Users,
   Manufacturer,

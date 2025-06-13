@@ -12,7 +12,7 @@ import {
   FaWhatsapp,
 } from "react-icons/fa";
 import { BsCashCoin } from "react-icons/bs";
-import { BiSolidReport } from "react-icons/bi";
+import { BiSolidOffer, BiSolidReport } from "react-icons/bi";
 
 function Page() {
   const Works = [
@@ -80,6 +80,13 @@ function Page() {
       icon: <TbClockExclamation size={50} />,
       link: "/dashboard-admin/pharmacy/godown/stockExpiring",
       color: "bg-amber-700",
+    },
+    {
+      name: "Stock Offers",
+      description: "You can view medcines stock's scheme/offer here",
+      icon: <BiSolidOffer size={50} />,
+      link: "/dashboard-admin/pharmacy/godown/offers",
+      color: "bg-fuchsia-700",
     },
     {
       name: "Stock Order",

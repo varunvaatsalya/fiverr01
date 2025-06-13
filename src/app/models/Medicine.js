@@ -91,6 +91,13 @@ const medicineSchema = new mongoose.Schema({
   currentSellingPrice: {
     type: Number,
   },
+  offers: [
+    {
+      buyingQty: { type: Number },
+      offerQty: { type: Number },
+      createdAt: { type: Date },
+    },
+  ],
   latestSource: [
     {
       sourceId: {

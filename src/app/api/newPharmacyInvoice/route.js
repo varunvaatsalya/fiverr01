@@ -620,22 +620,26 @@ export async function PUT(req) {
       invoice.isDelivered = new Date();
     }
 
-    const previousData = invoice.toObject();
-    if (paymentMode) invoice.paymentMode = paymentMode;
+    if (paymentMode) {
+      const previousData = invoice.toObject();
 
-    const audit = await AuditTrail.create({
-      resourceType: "PharmacyInvoice",
-      resourceId: invoice._id,
-      editedByRole: userRole,
-      editedBy: userRole === "admin" || !userId ? null : userId,
-      changes: {
-        before: previousData,
-        after: invoice.toObject(),
-      },
-      remarks: reason,
-    });
+      invoice.paymentMode = paymentMode;
+      
+      const audit = await AuditTrail.create({
+        resourceType: "PharmacyInvoice",
+        resourceId: invoice._id,
+        editedByRole: userRole,
+        editedBy: userRole === "admin" || !userId ? null : userId,
+        changes: {
+          before: previousData,
+          after: invoice.toObject(),
+        },
+        remarks: reason,
+      });
 
-    invoice.updates.push(audit._id);
+      invoice.updates.push(audit._id);
+    }
+
     await invoice.save();
 
     const populatedInvoice = await PharmacyInvoice.findById(invoice._id)

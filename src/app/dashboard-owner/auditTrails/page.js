@@ -4,7 +4,7 @@ import AuditTrails from "@/app/components/AuditTrails";
 
 function Page() {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col">
       <Navbar route={["Audit Traills"]} />
       <AuditTrails />
     </div>
