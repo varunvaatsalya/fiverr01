@@ -75,7 +75,12 @@ export async function POST(req) {
 
   try {
     await Medicine.findByIdAndUpdate(medId, {
-      $push: { offers: { buyingQty, offerQty, createdAt: new Date() } },
+      $push: {
+        offers: {
+          $each: [{ buyingQty, offerQty, createdAt: new Date() }],
+          $position: 0,
+        },
+      },
     });
     const newOffer = await Medicine.findById(medId).select("name offers");
 

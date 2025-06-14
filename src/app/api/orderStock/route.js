@@ -193,6 +193,17 @@ export async function GET(req) {
         },
       },
       {
+        $addFields: {
+          latestOffer: {
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$offers", []] } }, 0] },
+              then: { $arrayElemAt: ["$offers", 0] },
+              else: null,
+            },
+          },
+        },
+      },
+      {
         $project: {
           _id: 1,
           name: 1,
@@ -205,6 +216,7 @@ export async function GET(req) {
           "maximumStockCount.godown": 1,
           stockOrderInfo: 1,
           latestSource: 1,
+          latestOffer: 1,
         },
       },
       {

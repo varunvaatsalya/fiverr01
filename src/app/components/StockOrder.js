@@ -185,7 +185,7 @@ function StockOrder({ info, selectedType }) {
           (medicine) => medicine.manufacturer === selectedManfacturer._id
         );
         setData(data);
-        console.log(data, selectedManfacturer);
+        // console.log(data, selectedManfacturer);
       }
     }
   }, [selectedManfacturer]);
@@ -488,7 +488,8 @@ Required Quantity: *${medicine.quantity}* units
               <div className="w-[5%] text-center">Avl Qty</div>
               <div className="w-[5%] text-center">Max Qty</div>
               <div className="w-[15%] text-center">
-                Order Status <span className="text-red-500 text-xs">{"(Box)"}</span>
+                Order Status{" "}
+                <span className="text-red-500 text-xs">{"(Box)"}</span>
               </div>
               <div className="w-[25%] text-center">Prev Source</div>
             </div>
@@ -585,9 +586,10 @@ Required Quantity: *${medicine.quantity}* units
                 <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex flex-wrap items-center p-1">
                   <div className="w-[5%] text-center">Sr No.</div>
                   <div className="w-[50%] text-center">Medicine</div>
-                  <div className="w-[10%] text-center">Min Qty</div>
-                  <div className="w-[10%] text-center">Avl Qty</div>
-                  <div className="w-[10%] text-center">Max Qty</div>
+                  <div className="w-[5%] text-center">Min Qty</div>
+                  <div className="w-[5%] text-center">Avl Qty</div>
+                  <div className="w-[5%] text-center">Max Qty</div>
+                  <div className="w-[15%] text-center">Offers</div>
                   <div className="w-[15%] text-center">Qunatity</div>
                 </div>
               )}
@@ -599,20 +601,30 @@ Required Quantity: *${medicine.quantity}* units
                   >
                     <div className="w-[5%] text-center">{index + 1}</div>
                     <div className="w-[50%] text-center">{details.name}</div>
-                    <div className="w-[10%] text-center">
+                    <div className="w-[5%] text-center">
                       {details.minimumStockCount?.godown !== undefined
                         ? details.minimumStockCount.godown
                         : "N/A"}
                     </div>
-                    <div className="w-[10%] text-center">
+                    <div className="w-[5%] text-center">
                       {details.totalBoxes}
                     </div>
-                    <div className="w-[10%] text-center">
+                    <div className="w-[5%] text-center">
                       {details.maximumStockCount?.godown !== undefined
                         ? details.maximumStockCount.godown
                         : "N/A"}
                     </div>
-
+                    <div className="w-[15%] p-1 flex justify-center">
+                      {details.latestOffer ? (
+                        <div className="rounded px-2 bg-blue-600 text-white font-semibold">
+                          {details.latestOffer.buyingQty +
+                            "+" +
+                            details.latestOffer.offerQty}{" "}
+                        </div>
+                      ) : (
+                        "--"
+                      )}
+                    </div>
                     <div className="w-[15%] flex justify-center gap-2 items-center">
                       <input
                         type="number"
