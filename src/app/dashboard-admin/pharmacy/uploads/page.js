@@ -1,7 +1,7 @@
 "use client";
 
 import * as XLSX from "xlsx";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FaCheckCircle, FaCloudUploadAlt } from "react-icons/fa";
 import { BsFiletypeXlsx } from "react-icons/bs";
 import Navbar from "../../../components/Navbar";

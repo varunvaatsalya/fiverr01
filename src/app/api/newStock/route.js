@@ -44,10 +44,52 @@ export async function GET(req) {
   }
 
   try {
-    if (batchInfo) {
-      const stocks = await Model.find({ medicine: batchInfo }).sort({
-        createdAt: -1,
-      });
+    if (batchInfo === "1") {
+      const stocks = await Model.aggregate([
+        {
+          $lookup: {
+            from: "medicines",
+            localField: "medicine",
+            foreignField: "_id",
+            as: "medicineDetails",
+          },
+        },
+        { $unwind: "$medicineDetails" },
+        {
+          $group: {
+            _id: {
+              medicineId: "$medicineDetails._id",
+              medicine: "$medicineDetails.name",
+              packetSize: "$medicineDetails.packetSize",
+              isTablets: "$medicineDetails.isTablets",
+            },
+            stocks: {
+              $push: {
+                _id: "$_id",
+                batchName: "$batchName",
+                expiryDate: "$expiryDate",
+                quantity: "$quantity",
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            medicine: "$_id.medicine",
+            packetSize: "$_id.packetSize",
+            medicineId: "$_id.medicineId",
+            isTablets: "$_id.isTablets",
+            stocks: 1,
+          },
+        },
+        {
+          $sort: {
+            medicine: 1,
+          },
+        },
+      ]);
+
       return NextResponse.json(
         {
           stocks,
@@ -388,79 +430,57 @@ export async function PUT(req) {
       { status: 403 }
     );
   }
-  const {
-    stockId, // Added stockId for identifying the stock to update
-    medicine,
-    batchName,
-    mfgDate,
-    expiryDate,
-    extra,
-    purchasePrice,
-    quantity,
-    sellingPrice,
-  } = await req.json();
+  const { stocks, sectionType } = await req.json();
+
+  const Model = sectionType === "hospital" ? HospitalStock : Stock;
 
   try {
+    const failedMedicineNames = [];
+
+    for (const { stockId, totalStrips } of stocks) {
+      try {
+        const stock = await Model.findById(stockId).populate({
+          path: "medicine",
+          select: "name packetSize",
+        });
+
+        if (!stock || !stock.medicine) {
+          failedMedicineNames.push(stock?.medicine?.name || "Unknown Medicine");
+          continue;
+        }
+
+        const stripsPerBox = stock.medicine.packetSize?.strips;
+
+        if (!stripsPerBox || stripsPerBox <= 0) {
+          failedMedicineNames.push(stock.medicine.name);
+          continue;
+        }
+
+        const boxes = Math.floor(totalStrips / stripsPerBox);
+        const extra = totalStrips % stripsPerBox;
+
+        stock.quantity = {
+          ...stock.quantity,
+          totalStrips,
+          boxes,
+          extra,
+        };
+
+        await stock.save();
+      } catch (err) {
+        // If even stock or medicine fetching throws error
+        failedMedicineNames.push("Unknown Medicine");
+      }
+    }
+
+    if (failedMedicineNames.length > 0) {
+      const uniqueNames = [...new Set(failedMedicineNames)];
+      const message = `Failed to update stock for: ${uniqueNames.join(", ")}`;
+      return NextResponse.json({ message, success: false }, { status: 207 });
+    }
+
     return NextResponse.json(
-      { message: "Service Temporarily unavailable!", success: false },
-      { status: 401 }
-    );
-    let medicineStock = await Stock.findById(stockId);
-    if (!medicineStock) {
-      return NextResponse.json(
-        { message: "Stock not found", success: false },
-        { status: 404 }
-      );
-    }
-
-    let medicineData = await Medicine.findById(medicine);
-    if (!medicineData) {
-      return NextResponse.json(
-        { message: "Medicine not found", success: false },
-        { status: 404 }
-      );
-    }
-
-    let stripsPerBox = medicineData.packetSize.strips;
-    let totalStrips = quantity * stripsPerBox + extra;
-
-    // Update the necessary fields
-    if (medicine) {
-      medicineStock.medicine = medicine;
-    }
-    if (batchName) {
-      medicineStock.batchName = batchName;
-    }
-    if (mfgDate) {
-      medicineStock.mfgDate = mfgDate;
-    }
-    if (expiryDate) {
-      medicineStock.expiryDate = expiryDate;
-    }
-    if (purchasePrice) {
-      medicineStock.purchasePrice = purchasePrice;
-    }
-    if (sellingPrice) {
-      medicineStock.sellingPrice = sellingPrice;
-    }
-    if (quantity) {
-      medicineStock.quantity.boxes = quantity;
-      medicineStock.quantity.extra = extra;
-      medicineStock.quantity.totalStrips = totalStrips;
-      // medicineStock.initialQuantity.boxes = quantity;
-      // medicineStock.initialQuantity.extra = extra;
-      // medicineStock.initialQuantity.totalStrips = totalStrips;
-    }
-
-    if (purchasePrice || quantity) {
-      const strips = medicineStock.quantity.totalStrips;
-      const price = medicineStock.purchasePrice;
-      medicineStock.totalAmount = strips * price;
-    }
-
-    await medicineStock.save();
-    return NextResponse.json(
-      { medicineStock, message: "Stock Updated Successfully!", success: true },
+      { message: "All stocks updated successfully!", success: true },
       { status: 200 }
     );
   } catch (error) {
