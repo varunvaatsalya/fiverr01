@@ -92,6 +92,12 @@ export default function EditStockForm() {
 
   return (
     <div className="p-4 space-y-2">
+      <Button
+        onClick={handleUpdate}
+        disabled={submitting || changedStocks.length === 0}
+      >
+        {submitting ? "Wait..." : "Update"}
+      </Button>
       {stocks.map((med) => (
         <Card key={med.medicineId} className="p-4 space-y-2 border">
           <div className="flex items-center justify-start px-4 gap-4">
@@ -121,7 +127,7 @@ export default function EditStockForm() {
                 <div>{stock.batchName}</div>
                 <div>{formatDateToIST(stock.expiryDate)}</div>
 
-                <div>
+                <div className="flex justify-between items-center gap-2">
                   <Input
                     type="number"
                     className="w-full"
@@ -135,6 +141,13 @@ export default function EditStockForm() {
                       )
                     }
                   />
+                  {changedStocks.some(
+                    (stk) => stk.stockId === stock._id
+                  ) && (
+                    <div className="rounded px-2 text-sm bg-red-200 text-red-800 font-semibold">
+                      Edited
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-sm text-gray-800">
@@ -145,12 +158,6 @@ export default function EditStockForm() {
           </div>
         </Card>
       ))}
-      <Button
-        onClick={handleUpdate}
-        disabled={submitting || changedStocks.length === 0}
-      >
-        {submitting ? "Wait..." : "Update"}
-      </Button>
     </div>
   );
 }
