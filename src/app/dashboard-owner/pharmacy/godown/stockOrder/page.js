@@ -1,54 +1,40 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Navbar from "../../../../components/Navbar";
-import StockOrder from "../../../../components/StockOrder";
+import Navbar from "@/app/components/Navbar";
+import StockOrder from "@/app/components/StockOrder";
+import Loading from "@/app/components/Loading";
 
 function Page() {
-  const [info, setInfo] = useState([]);
-  const [selectedType, setSelectedType] = useState("manufacturer");
+  const [loading, setLoading] = useState(true);
+  const [manufacturers, setManufacturers] = useState([]);
+  const [vendors, setVendors] = useState([]);
 
   useEffect(() => {
-    fetch(`/api/medicineMetaData?${selectedType}=1`)
+    setLoading(true);
+    fetch(`/api/medicineMetaData?manufacturer=1&vendor=1`)
       .then((res) => res.json())
       .then((data) => {
-        setInfo(selectedType === "manufacturer"?data.response.manufacturers:data.response.vendors);
-        console.log(selectedType === "manufacturer"?data.response.manufacturers:data.response.vendors);
+        setManufacturers(data.response.manufacturers);
+        setVendors(data.response.vendors);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching metadata:", error);
+        setLoading(false);
       });
-  }, [selectedType]);
+  }, []);
+
   return (
     <div className="bg-slate-800 min-h-screen w-full">
       <Navbar route={["Pharmacy", "Stock Order"]} />
-      <div className="flex justify-center items-center gap-3 p-2">
-        <button
-          onClick={() => {
-            setSelectedType("manufacturer");
-            
-          }}
-          className={
-            "px-3 py-2 text-lg text-white font-semibold rounded-full border-slate-900 " +
-            (selectedType === "manufacturer"
-              ? "bg-sky-700"
-              : "text-slate-900 border")
-          }
-        >
-          Manufacturer
-        </button>
-        <button
-          onClick={() => {
-            setSelectedType("vendor");
-            
-          }}
-          className={
-            "px-3 py-2 text-lg text-white font-semibold rounded-full border-slate-900 " +
-            (selectedType === "vendor"
-              ? "bg-sky-700"
-              : "text-slate-900 border")
-          }
-        >
-          Vendor
-        </button>
-      </div>
-      <StockOrder info={info} selectedType={selectedType} />
+      {loading ? (
+        <div className="py-8 flex flex-col items-center justify-center gap-2">
+          <Loading size={50} />
+          <div className="text-lg font-semibold">Loading... Meta Data</div>
+        </div>
+      ) : (
+        <StockOrder manufacturers={manufacturers} vendors={vendors} />
+      )}
     </div>
   );
 }

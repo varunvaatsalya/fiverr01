@@ -1,13 +1,15 @@
 "use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Loading from "../components/Loading";
 
 function Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
   const {
     register,
     handleSubmit,
@@ -26,7 +28,7 @@ function Page() {
         headers: {
           "Content-Type": "application/json", // Set the header for JSON
         },
-        body: JSON.stringify(data), // Properly stringify the data
+        body: JSON.stringify({ ...data, redirect }), // Properly stringify the data
       });
 
       // Parsing the response as JSON
@@ -35,9 +37,9 @@ function Page() {
       // Check if login was successful
       if (result.success) {
         console.log("Login successful, redirecting...", result.route);
-        router.push(result.route);
+        router.replace(result.route);
       } else {
-        setMessage(result.message)
+        setMessage(result.message);
         console.error("Login failed:", result.message);
       }
     } catch (error) {
@@ -64,7 +66,9 @@ function Page() {
             onSubmit={handleSubmit(onSubmit)}
             className="max-w-2xl mx-auto space-y-4 bg-white px-8 py-6 rounded-lg shadow-lg"
           >
-            {message && (<div className="text-red-500 text-sm text-center">{message}</div>)}
+            {message && (
+              <div className="text-red-500 text-sm text-center">{message}</div>
+            )}
             <div>
               <label
                 htmlFor="email"

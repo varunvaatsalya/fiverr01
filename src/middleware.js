@@ -18,7 +18,10 @@ export async function middleware(req) {
     const token = req.cookies.get("authToken");
 
     if (!token) {
-      return NextResponse.redirect(new URL("/login", req.url));
+      // return NextResponse.redirect(new URL("/login", req.url));
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
     }
 
     const decoded = await verifyToken(token.value);
@@ -40,7 +43,10 @@ export async function middleware(req) {
     return NextResponse.redirect(new URL("/403", req.url));
   } catch (error) {
     console.error("Token verification failed:", error.message);
-    return NextResponse.redirect(new URL("/login", req.url));
+    // return NextResponse.redirect(new URL("/login", req.url));
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 }
 

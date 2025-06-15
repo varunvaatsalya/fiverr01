@@ -82,9 +82,7 @@ export async function POST(req) {
 
   // Replace with a strong secret
 
-  const { email, password, role } = await req.json(); // Get email, password, role from request body
-
-  // Find user in the mock database
+  const { email, password, role, redirect } = await req.json();
 
   try {
     if (role === "admin") {
@@ -126,7 +124,7 @@ export async function POST(req) {
 
       return NextResponse.json({
         messages: "Login successful",
-        route: userRole.admin,
+        route: redirect || userRole.admin,
         editPermission: true,
         role,
         success: true,
@@ -172,7 +170,7 @@ export async function POST(req) {
         message: "Login successful",
         role: user.role,
         editPermission: user.editPermission,
-        route: userRole[user.role],
+        route: redirect || userRole[user.role],
         success: true,
       },
       { status: 200 }
