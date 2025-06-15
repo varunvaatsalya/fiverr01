@@ -12,7 +12,7 @@ const roleRoutes = {
 };
 
 export async function middleware(req) {
-  const { pathname } = req.nextUrl;
+  let { pathname } = req.nextUrl;
 
   try {
     const token = req.cookies.get("authToken");
@@ -20,7 +20,7 @@ export async function middleware(req) {
     if (!token) {
       // return NextResponse.redirect(new URL("/login", req.url));
       const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set("redirect", pathname);
+      if (pathname !== "/") loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
 
@@ -45,7 +45,7 @@ export async function middleware(req) {
     console.error("Token verification failed:", error.message);
     // return NextResponse.redirect(new URL("/login", req.url));
     const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("redirect", pathname);
+    if (pathname !== "/") loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 }
