@@ -17,27 +17,12 @@ import { IoMdAnalytics } from "react-icons/io";
 import { TbReportMedical } from "react-icons/tb";
 import { GrTest } from "react-icons/gr";
 import { IoLogOut } from "react-icons/io5";
-import { useEffect, useState } from "react";
 import { MdOutlineQueuePlayNext, MdOutlineSecurity } from "react-icons/md";
 import { AiOutlineAudit } from "react-icons/ai";
 
 function Page() {
   const router = useRouter();
-  const [roleDetails, setRoleDetails] = useState([]);
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        let result = await fetch("/api/admin?loginInfo=1");
-        result = await result.json();
-        if (result.success) {
-          setRoleDetails(result.loginInfos);
-        }
-      } catch (err) {
-        console.log("error: ", err);
-      }
-    }
-    fetchData();
-  }, []);
+  
   const Works = [
     // {
     //   name: "test",
@@ -192,33 +177,6 @@ function Page() {
             <div className="font-bold text-xl">Logout</div>
           </button>
         </div>
-        {roleDetails.length > 0 && (
-          <>
-            <div className="text-xl font-semibold mb-2 text-center text-red-600">
-              Latest Logins
-            </div>
-            <ul className="space-y-1 w-full md:w-3/4 lg:w-1/2 mx-auto">
-              {roleDetails.map((user) => (
-                <li
-                  key={user._id}
-                  className="py-2 px-4 bg-gray-800 rounded-lg shadow-md flex justify-around items-center"
-                >
-                  <div>
-                    <p className="font-semibold text-white">
-                      {user.role.toUpperCase()}
-                    </p>
-                    <p className="text-sm text-gray-400">
-                      {user.lastUserEmail}
-                    </p>
-                  </div>
-                  <p className="text-sm text-gray-300">
-                    {new Date(user.lastLogin).toLocaleString()}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
         <Footer />
       </div>
     </>

@@ -6,38 +6,8 @@ import { generateToken, verifyTokenWithLogout } from "../../utils/jwt";
 import User from "../../models/Users";
 import Admin from "../../models/Admins";
 import { credentials } from "../../credentials";
-import LoginInfo from "../../models/LoginInfo";
-
-const storeRoleLatestLogin = async (userEmail, role, req) => {
-  try {
-    const ip = req.headers.get("x-forwarded-for") || "Unknown IP";
-    const userAgent = req.headers.get("user-agent") || "Unknown User-Agent"; // Get browser details
-
-    const loginData = {
-      lastUserEmail: userEmail || "unknown@example.com",
-      deviceType:
-        userAgent !== "Unknown User-Agent" && userAgent.includes("Mobile")
-          ? "Mobile"
-          : "Unknown",
-      ipAddress: ip,
-      userAgent,
-      lastLogin: new Date(),
-    };
-
-    const existingRole = await LoginInfo.findOne({ role });
-
-    if (existingRole) {
-      // Update existing role's latest login
-      await LoginInfo.updateOne({ role }, loginData);
-      console.log(`Updated latest login for role '${role}'`);
-    } else {
-      await LoginInfo.create({ role, ...loginData });
-      console.log(`Created latest login for role '${role}'`);
-    }
-  } catch (error) {
-    console.error("Error storing login details:", error);
-  }
-};
+import LoginHistory from "@/app/models/LoginHistory";
+// import LoginInfo from "../../models/LoginInfo";
 
 export async function GET(req) {
   await dbConnect();
@@ -51,7 +21,7 @@ export async function GET(req) {
   }
 
   const decoded = await verifyTokenWithLogout(token.value);
-  console.log(decoded)
+  console.log(decoded);
   // const decoded = null;
   const userRole = decoded?.role;
   if (!decoded || !userRole) {
@@ -60,7 +30,6 @@ export async function GET(req) {
       { status: 403 }
     );
   }
-  await storeRoleLatestLogin(decoded.email, decoded.role, req);
 
   return NextResponse.json(
     { route: `/dashboard-${userRole}`, success: true },
@@ -84,6 +53,24 @@ export async function POST(req) {
 
   const { email, password, role, redirect } = await req.json();
 
+  const logLoginAttempt = async (status) => {
+
+    const ip = req.headers.get("x-forwarded-for") || "Unknown IP";
+    const userAgent = req.headers.get("user-agent") || "Unknown User-Agent";
+
+    try {
+      await LoginHistory.create({
+        attemptedUserEmail: email || "Invalid",
+        role: role || null,
+        ipAddress: ip,
+        userAgent,
+        status,
+      });
+    } catch (err) {
+      console.error("Failed to save login history:", err);
+    }
+  };
+
   try {
     if (role === "admin") {
       let admin;
@@ -92,6 +79,7 @@ export async function POST(req) {
       } else {
         admin = await Admin.findOne({ email });
         if (!admin) {
+          await logLoginAttempt("failed");
           return NextResponse.json(
             { message: "User not found", success: false },
             { status: 404 }
@@ -99,6 +87,7 @@ export async function POST(req) {
         }
       }
       if (admin.password !== password) {
+        await logLoginAttempt("failed");
         return NextResponse.json(
           { message: "Invalid password", success: false },
           { status: 401 }
@@ -113,8 +102,6 @@ export async function POST(req) {
         editPermission: true,
       });
 
-      await storeRoleLatestLogin(email, role, req);
-
       cookies().set({
         name: "authToken",
         value: token,
@@ -122,6 +109,7 @@ export async function POST(req) {
         maxAge: 2 * 24 * 60 * 60,
       });
 
+      await logLoginAttempt("success");
       return NextResponse.json({
         messages: "Login successful",
         route: redirect || userRole.admin,
@@ -133,6 +121,7 @@ export async function POST(req) {
     // Find the user by email
     const user = await User.findOne({ email });
     if (!user) {
+      await logLoginAttempt("failed");
       return NextResponse.json(
         { message: "User not found", success: false },
         { status: 404 }
@@ -141,6 +130,7 @@ export async function POST(req) {
 
     // Check if the role matches
     if (user.role !== role) {
+      await logLoginAttempt("failed");
       return NextResponse.json(
         { message: "Role mismatch", success: false },
         { status: 403 }
@@ -149,6 +139,7 @@ export async function POST(req) {
 
     // Check if the password matches
     if (user.password !== password) {
+      await logLoginAttempt("failed");
       return NextResponse.json(
         { message: "Invalid password", success: false },
         { status: 401 }
@@ -156,7 +147,6 @@ export async function POST(req) {
     }
 
     const token = await generateToken(user);
-    await storeRoleLatestLogin(user.email, user.role, req);
 
     cookies().set({
       name: "authToken",
@@ -165,6 +155,7 @@ export async function POST(req) {
       maxAge: 2 * 24 * 60 * 60,
     });
     // If everything matches, return success
+    await logLoginAttempt("success");
     return NextResponse.json(
       {
         message: "Login successful",
