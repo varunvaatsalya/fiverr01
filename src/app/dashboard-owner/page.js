@@ -80,7 +80,7 @@ function Page() {
       name: "Audit Trails",
       description: "You can see audit trails here",
       icon: <AiOutlineAudit size={40} />,
-      link: "/dashboard-admin/auditTrails",
+      link: "/dashboard-owner/auditTrails",
       color: "bg-fuchsia-700",
     },
   ];

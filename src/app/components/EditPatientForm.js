@@ -82,6 +82,17 @@ function EditPatientForm({
         <div className=" py-1 text-sm text-red-500 text-start px-2">
           {errors.name ? "* " + errors.name.message : ""}
         </div>
+        <input
+          id="fathersName"
+          type="text"
+          placeholder={"Enter the Patient's fathersName"}
+          onInput={(e) => (e.target.value = e.target.value.toUpperCase())}
+          {...register("fathersName", { required: "Fathers Name is required" })}
+          className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+        />
+        <div className=" py-1 text-sm text-red-500 text-start px-2">
+          {errors.fathersName ? "* " + errors.fathersName.message : ""}
+        </div>
         <div className="w-full mt-1 flex justify-between gap-2">
           <input
             id="age"

@@ -193,7 +193,7 @@ export async function PUT(req) {
     );
   }
 
-  const { _id, name, age, gender, mobileNumber, aadharNumber, address, reason } =
+  const { _id, name, fathersName, age, gender, mobileNumber, aadharNumber, address, reason } =
     await req.json();
 
   try {
@@ -212,6 +212,7 @@ export async function PUT(req) {
 
     // Update patient details
     existingPatient.name = name;
+    existingPatient.fathersName = fathersName;
     existingPatient.age = age;
     existingPatient.gender = gender;
     existingPatient.mobileNumber = mobileNumber;
