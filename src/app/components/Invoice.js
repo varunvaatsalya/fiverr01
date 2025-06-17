@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { formatDateTimeToIST } from "../utils/date";
 import { HospitalDetails } from "../HospitalDeatils";
+import Logo from "@/assets/ShivamAkshayvatLogo.png";
+import Image from "next/image";
 
-function Invoice({
-  printPrescription,
-  setPrintPrescription,
-}) {
+function Invoice({ printPrescription, setPrintPrescription }) {
   const [IsToken, setIstoken] = useState(false);
-
 
   async function prescriptionPrinted(id) {
     if (printPrescription && !printPrescription.isPrint) {
@@ -86,6 +84,16 @@ function Invoice({
             </div>
           </div>
           <div>
+            <Image
+              width={500}
+              height={500}
+              src={Logo}
+              alt={"logo"}
+              className={
+                "filter grayscale absolute z-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-25 " +
+                (IsToken ? "w-1/3" : "w-1/6")
+              }
+            />
             <div className={"mb-6 " + (IsToken ? "text-start" : "text-center")}>
               <h1 className="text-3xl font-bold uppercase">
                 {HospitalDetails?.name}
