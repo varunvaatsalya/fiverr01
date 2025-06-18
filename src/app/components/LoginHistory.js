@@ -187,6 +187,11 @@ export default function LoginHistory() {
                 <strong>Attempted Email Id:</strong>{" "}
                 {selectedLoginHistory.attemptedUserEmail}
               </p>
+              {selectedLoginHistory.reason && (
+                <p>
+                  <strong>Reason:</strong> {selectedLoginHistory.reason}
+                </p>
+              )}
               <p>
                 <strong>IP Address:</strong> {selectedLoginHistory.ipAddress}
               </p>

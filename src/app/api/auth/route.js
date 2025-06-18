@@ -53,8 +53,7 @@ export async function POST(req) {
 
   const { email, password, role, redirect } = await req.json();
 
-  const logLoginAttempt = async (status) => {
-
+  const logLoginAttempt = async (status, reason) => {
     const ip = req.headers.get("x-forwarded-for") || "Unknown IP";
     const userAgent = req.headers.get("user-agent") || "Unknown User-Agent";
 
@@ -63,6 +62,7 @@ export async function POST(req) {
         attemptedUserEmail: email || "Invalid",
         role: role || null,
         ipAddress: ip,
+        reason,
         userAgent,
         status,
       });
@@ -79,7 +79,7 @@ export async function POST(req) {
       } else {
         admin = await Admin.findOne({ email });
         if (!admin) {
-          await logLoginAttempt("failed");
+          await logLoginAttempt("failed", `Incorrect email: ${email}`);
           return NextResponse.json(
             { message: "User not found", success: false },
             { status: 404 }
@@ -87,7 +87,7 @@ export async function POST(req) {
         }
       }
       if (admin.password !== password) {
-        await logLoginAttempt("failed");
+        await logLoginAttempt("failed", "Wrong Password");
         return NextResponse.json(
           { message: "Invalid password", success: false },
           { status: 401 }
@@ -121,7 +121,7 @@ export async function POST(req) {
     // Find the user by email
     const user = await User.findOne({ email });
     if (!user) {
-      await logLoginAttempt("failed");
+      await logLoginAttempt("failed", `Incorrect Email: ${email}`);
       return NextResponse.json(
         { message: "User not found", success: false },
         { status: 404 }
@@ -139,7 +139,7 @@ export async function POST(req) {
 
     // Check if the password matches
     if (user.password !== password) {
-      await logLoginAttempt("failed");
+      await logLoginAttempt("failed", "Wrong Password");
       return NextResponse.json(
         { message: "Invalid password", success: false },
         { status: 401 }

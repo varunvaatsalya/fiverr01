@@ -23,6 +23,7 @@ const loginHistorySchema = new mongoose.Schema({
     enum: ["success", "failed"],
     required: true,
   },
+  reason: { type: String },
   ipAddress: { type: String },
   userAgent: { type: String },
   loginTime: {

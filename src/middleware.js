@@ -26,6 +26,11 @@ export async function middleware(req) {
 
     const decoded = await verifyToken(token.value);
     const userRole = decoded?.role;
+    if (!decoded || !userRole) {
+      const loginUrl = new URL("/login", req.url);
+      if (pathname !== "/") loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
     const dashboardPath = roleRoutes[userRole];
 
     if (!dashboardPath) {
