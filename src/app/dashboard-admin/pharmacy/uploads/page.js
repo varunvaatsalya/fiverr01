@@ -20,6 +20,7 @@ export default function Page() {
     "Salts",
     "Medicine",
     "Stocks",
+    "StocksQty",
     "RetailStocks",
   ];
   const warnings = {
@@ -30,6 +31,8 @@ export default function Page() {
       "Company, Vendor, Salts, Medicine, isTablets, medicineType, packetSize, rackPlace Column should be in the sheet",
     Stocks:
       "Medicine, batchName, mfgDate (MM-DD-YYYY), expiryDate (MM-DD-YYYY), purchasePrice, sellingPrice, stock should be in the sheet",
+    StocksQty:
+      "Name, Batch, Qty, Expiry (MM-DD-YYYY) should be in the sheet",
     RetailStocks:
       "Medicine, batchName, Unit, expiryDate (MM-DD-YYYY), purchasePrice(), sellingPrice, stock should be in the sheet",
   };
@@ -122,6 +125,14 @@ export default function Page() {
       Batch: data.Batch,
     }));
 
+  const stockQtyData = () =>
+    jsonData.map((data) => ({
+      Name: data.Name,
+      Batch: data.Batch,
+      Qty: data.Qty,
+      Expiry: data.Expiry,
+    }));
+
   const retailStocksData = () =>
     jsonData.map((data) => ({
       Name: data.Name,
@@ -142,6 +153,7 @@ export default function Page() {
     else if (selectedType === "Salts") data = uniqueSalts();
     else if (selectedType === "Medicine") data = MedicinesData();
     else if (selectedType === "Stocks") data = stockData();
+    else if (selectedType === "StocksQty") data = stockQtyData();
     else if (selectedType === "RetailStocks") data = retailStocksData();
     try {
       let result = await fetch(`/api/uploads?type=${selectedType}`, {
@@ -155,6 +167,7 @@ export default function Page() {
       if (result.success) {
         setResult(result.result);
       }
+      console.log(result);
       setMessage(result.message);
     } catch (error) {
       setMessage("Error in submitting application");

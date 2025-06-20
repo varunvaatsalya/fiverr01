@@ -320,6 +320,102 @@ export async function POST(req) {
           console.error(`Error processing ${stock.Name}: ${error}`);
         }
       }
+    } else if (type === "StocksQty") {
+      const processedMedicineIds = new Set();
+
+      for (let stock of data) {
+        if (!stock.Name) continue;
+        try {
+          const medicine = await Medicine.findOne({ name: stock.Name });
+
+          if (!medicine) {
+            resultMessage.push({
+              info: `${stock.Name} Not found`,
+              success: false,
+            });
+            continue;
+          }
+
+          processedMedicineIds.add(medicine._id.toString());
+
+          const allStocks = await Stock.find({ medicine: medicine._id });
+
+          if (!allStocks || allStocks.length === 0) {
+            resultMessage.push({
+              info: `No stock entries found for ${stock.Name}`,
+              success: false,
+            });
+            continue;
+          }
+
+          const matchedBatch = allStocks.find(
+            (entry) => entry.batchName === stock.Batch
+          );
+
+          if (!matchedBatch) {
+            resultMessage.push({
+              info: `Batch ${stock.Batch} not found for ${stock.Name}`,
+              success: false,
+            });
+            continue;
+          }
+
+          const boxes = stock.Qty || 0;
+          const totalStrips = boxes * (medicine.packetSize.strips || 1);
+          const extra = 0;
+
+          // Update matched batch
+          matchedBatch.quantity.totalStrips = totalStrips;
+          matchedBatch.quantity.boxes = boxes;
+          matchedBatch.quantity.extra = extra;
+          await matchedBatch.save();
+
+          // Zero out other batches of this medicine
+          for (let otherStock of allStocks) {
+            if (otherStock._id.toString() !== matchedBatch._id.toString()) {
+              otherStock.quantity.totalStrips = 0;
+              otherStock.quantity.boxes = 0;
+              otherStock.quantity.extra = 0;
+              await otherStock.save();
+            }
+          }
+
+          resultMessage.push({
+            info: `Updated stock quantity for ${stock.Name}, Batch: ${stock.Batch}`,
+            success: true,
+          });
+        } catch (error) {
+          resultMessage.push({
+            info: `Error processing ${stock.Name}`,
+            success: false,
+          });
+          console.error(`Error processing ${stock.Name}: ${error}`);
+        }
+      }
+
+      // ❗ Now handle the rest — stocks whose medicine not in incoming data
+      try {
+        const allStocks = await Stock.find({});
+        for (let stock of allStocks) {
+          const medId = stock.medicine.toString();
+          if (!processedMedicineIds.has(medId)) {
+            stock.quantity.totalStrips = 0;
+            stock.quantity.boxes = 0;
+            stock.quantity.extra = 0;
+            await stock.save();
+          }
+        }
+        resultMessage.push({
+          info: `Zeroed out stocks for medicines not in input`,
+          success: true,
+        });
+      } catch (error) {
+        resultMessage.push({
+          info: `Error zeroing unmatched stocks`,
+          success: false,
+        });
+        console.error("Error zeroing unmatched stocks:", error);
+      }
     }
 
     return NextResponse.json(
