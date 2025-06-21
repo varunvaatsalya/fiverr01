@@ -1,6 +1,11 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { FaRegDotCircle, FaWhatsapp } from "react-icons/fa";
+import {
+  FaChevronDown,
+  FaChevronRight,
+  FaRegDotCircle,
+  FaWhatsapp,
+} from "react-icons/fa";
 import { CiCircleRemove } from "react-icons/ci";
 import { formatShortDateTime } from "../utils/date";
 import { FaCircleCheck } from "react-icons/fa6";
@@ -36,6 +41,7 @@ function StockOrder({ manufacturers, vendors }) {
   const [loading, setLoading] = useState(false);
   const [isManualMode, setIsManualMode] = useState(false);
   const [selectedSource, setSelectedSource] = useState(null);
+  const [collapsedSources, setCollapsedSources] = useState({});
 
   const sectionType = useStockType();
 
@@ -240,6 +246,13 @@ function StockOrder({ manufacturers, vendors }) {
     }, {});
   }, [selectedMedicines, isManualMode]);
 
+  const toggleCollapse = (sourceId) => {
+    setCollapsedSources((prev) => ({
+      ...prev,
+      [sourceId]: !prev[sourceId],
+    }));
+  };
+
   const handleQuantityChange = (id, newQuantity) => {
     setSelectedMedicines((prev) =>
       prev.map((m) => (m._id === id ? { ...m, quantity: newQuantity } : m))
@@ -283,7 +296,7 @@ function StockOrder({ manufacturers, vendors }) {
           ? manufacturers.find((mfg) => mfg._id === group.sourceId)
               ?.medicalRepresentator?.name || ""
           : "",
-      contact :handleGetContact(group),
+      contact: handleGetContact(group),
       medicines: medicinesWithNameAndQuantity,
     };
     try {
@@ -617,19 +630,40 @@ Required Quantity: *${medicine.quantity}* units
                   let contact = handleGetContact(group);
 
                   return (
-                    <div key={key} className="space-y-1">
-                      <div className="flex justify-between items-center gap-4 px-3">
-                        <div
-                          className={
-                            "px-3 rounded-lg font-semibold text-white " +
-                            (key === "0"
-                              ? "bg-red-600"
-                              : key === "1"
-                              ? "bg-green-500"
-                              : "")
-                          }
-                        >
-                          {group.sourceName}
+                    <div
+                      key={key}
+                      className="space-y-1 bg-gray-800 p-2 rounded-lg"
+                    >
+                      <div
+                        onClick={() => toggleCollapse(key)}
+                        title={
+                          collapsedSources[key]
+                            ? "Click to Expand"
+                            : "Click to Collapse"
+                        }
+                        className="flex justify-between items-center gap-4 px-1 cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3">
+                          {collapsedSources[key] ? (
+                            <FaChevronRight className="size-4" />
+                          ) : (
+                            <FaChevronDown className="size-4" />
+                          )}
+                          <div
+                            className={
+                              "px-3 rounded-lg font-semibold text-white " +
+                              (key === "0"
+                                ? "bg-red-600"
+                                : key === "1"
+                                ? "bg-green-500"
+                                : "")
+                            }
+                          >
+                            {group.sourceName}
+                          </div>
+                          {collapsedSources[key] && (
+                            <div className="italic font-semibold text-sm">{`${group.items.length} Medicines`}</div>
+                          )}
                         </div>
                         {key === "1" && (
                           <>
@@ -709,60 +743,62 @@ Required Quantity: *${medicine.quantity}* units
                           </>
                         )}
                       </div>
-                      {group.items.map((details, index) => (
-                        <div
-                          key={index}
-                          className="border-b border-gray-900 text-gray-100 bg-gray-800 font-semibold text-sm rounded-lg p-1 flex items-center"
-                        >
-                          <div className="w-[5%] text-center">{index + 1}</div>
-                          <div className="w-[50%] text-center">
-                            {details.name}
+                      {!collapsedSources[key] &&
+                        group.items.map((details, index) => (
+                          <div
+                            key={index}
+                            className="text-gray-100 bg-gray-700 font-semibold text-sm rounded-lg p-1 flex items-center"
+                          >
+                            <div className="w-[5%] text-center">
+                              {index + 1}
+                            </div>
+                            <div className="w-[50%] text-center">
+                              {details.name}
+                            </div>
+                            <div className="w-[5%] text-center">
+                              {details.minimumStockCount?.godown !== undefined
+                                ? details.minimumStockCount.godown
+                                : "N/A"}
+                            </div>
+                            <div className="w-[5%] text-center">
+                              {details.totalBoxes}
+                            </div>
+                            <div className="w-[5%] text-center">
+                              {details.maximumStockCount?.godown !== undefined
+                                ? details.maximumStockCount.godown
+                                : "N/A"}
+                            </div>
+                            <div className="w-[15%] p-1 flex justify-center">
+                              {details.latestOffer ? (
+                                <div className="rounded px-2 bg-blue-600 text-white font-semibold">
+                                  {details.latestOffer.buyingQty +
+                                    "+" +
+                                    details.latestOffer.offerQty}{" "}
+                                </div>
+                              ) : (
+                                "--"
+                              )}
+                            </div>
+                            <div className="w-[15%] flex justify-center gap-2 items-center">
+                              <input
+                                type="number"
+                                value={details.quantity}
+                                placeholder="Qty"
+                                onChange={(e) =>
+                                  handleQuantityChange(
+                                    details._id,
+                                    e.target.value
+                                  )
+                                }
+                                className="w-20 text-sm text-gray-100 bg-gray-900 outline-none focus:ring-1 ring-gray-700 rounded-lg py-1 px-2"
+                              />
+                              <CiCircleRemove
+                                onClick={() => removeMedicine(details._id)}
+                                className="text-red-600 hover:text-red-500 size-5"
+                              />
+                            </div>
                           </div>
-                          <div className="w-[5%] text-center">
-                            {details.minimumStockCount?.godown !== undefined
-                              ? details.minimumStockCount.godown
-                              : "N/A"}
-                          </div>
-                          <div className="w-[5%] text-center">
-                            {details.totalBoxes}
-                          </div>
-                          <div className="w-[5%] text-center">
-                            {details.maximumStockCount?.godown !== undefined
-                              ? details.maximumStockCount.godown
-                              : "N/A"}
-                          </div>
-                          <div className="w-[15%] p-1 flex justify-center">
-                            {details.latestOffer ? (
-                              <div className="rounded px-2 bg-blue-600 text-white font-semibold">
-                                {details.latestOffer.buyingQty +
-                                  "+" +
-                                  details.latestOffer.offerQty}{" "}
-                              </div>
-                            ) : (
-                              "--"
-                            )}
-                          </div>
-                          <div className="w-[15%] flex justify-center gap-2 items-center">
-                            <input
-                              type="number"
-                              value={details.quantity}
-                              placeholder="Qty"
-                              onChange={(e) =>
-                                handleQuantityChange(
-                                  details._id,
-                                  e.target.value
-                                )
-                              }
-                              className="w-20 text-sm text-gray-100 bg-gray-600 outline-none focus:ring-1 ring-gray-700 rounded-lg py-1 px-2"
-                            />
-                            <CiCircleRemove
-                              onClick={() => removeMedicine(details._id)}
-                              className="text-red-400 hover:text-red-500 size-5"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                      <hr className="border border-gray-500" />
+                        ))}
                     </div>
                   );
                 })}

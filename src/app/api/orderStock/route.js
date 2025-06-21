@@ -204,16 +204,56 @@ export async function GET(req) {
         },
       },
       {
+        $addFields: {
+          packetStrips: "$packetSize.strips",
+        },
+      },
+      {
+        $addFields: {
+          totalBoxes: {
+            $round: {
+              $cond: [
+                { $gt: ["$packetStrips", 0] },
+                { $divide: ["$totalStrips", "$packetStrips"] },
+                0,
+              ],
+            },
+          },
+          minimumBoxes: {
+            $ceil: {
+              $cond: [
+                { $gt: ["$packetStrips", 0] },
+                { $divide: ["$minimumStockCount.godown", "$packetStrips"] },
+                0,
+              ],
+            },
+          },
+          maximumBoxes: {
+            $ceil: {
+              $cond: [
+                { $gt: ["$packetStrips", 0] },
+                { $divide: ["$maximumStockCount.godown", "$packetStrips"] },
+                0,
+              ],
+            },
+          },
+        },
+      },
+      {
         $project: {
           _id: 1,
           name: 1,
           packetSize: 1,
           manufacturer: 1,
           salts: 1,
-          totalBoxes: { $ifNull: ["$totalStrips", 0] },
+          totalBoxes: 1,
           medicineType: 1,
-          "minimumStockCount.godown": 1,
-          "maximumStockCount.godown": 1,
+          minimumStockCount: {
+            godown: "$minimumBoxes",
+          },
+          maximumStockCount: {
+            godown: "$maximumBoxes",
+          },
           stockOrderInfo: 1,
           latestSource: 1,
           latestOffer: 1,

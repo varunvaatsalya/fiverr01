@@ -248,6 +248,31 @@ export async function PUT(req) {
 
 export async function DELETE(req) {
   await dbConnect();
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
+  if (!decoded || !userRole) {
+    let res = NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+    res.cookies.delete("authToken");
+    return res;
+  }
+  if (userRole !== "admin" && userRole !== "nurse" && userRole !== "stockist") {
+    return NextResponse.json(
+      { message: "Access denied. admins only.", success: false },
+      { status: 403 }
+    );
+  }
   const { id } = await req.json();
 
   try {

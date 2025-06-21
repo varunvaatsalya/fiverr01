@@ -321,105 +321,87 @@ export async function POST(req) {
         }
       }
     } else if (type === "StocksQty") {
-      const processedMedicineIds = new Set();
+      // Step 1: Prepare input map for quick access
+      const inputMap = new Map();
+      for (const stock of data) {
+        if (stock.Name && stock.Batch) {
+          inputMap.set(`${stock.Name}|${stock.Batch}`, {
+            ...stock,
+            processed: false,
+          });
+        }
+      }
 
-      for (let stock of data) {
-        if (!stock.Name) continue;
-        try {
-          const medicine = await Medicine.findOne({ name: stock.Name });
+      // Step 2: Get all stocks and populate medicine
+      const allStocks = await Stock.find({}).populate("medicine");
 
-          if (!medicine) {
-            resultMessage.push({
-              info: `${stock.Name} Not found`,
-              success: false,
-            });
-            continue;
-          }
+      // Step 3: Process & build bulk update ops
+      const bulkOps = [];
 
-          processedMedicineIds.add(medicine._id.toString());
+      for (const stock of allStocks) {
+        if (!stock.medicine || !stock.medicine.name) continue;
 
-          const allStocks = await Stock.find({ medicine: medicine._id });
+        const key = `${stock.medicine.name}|${stock.batchName}`;
+        const matched = inputMap.get(key);
 
-          if (!allStocks || allStocks.length === 0) {
-            resultMessage.push({
-              info: `No stock entries found for ${stock.Name}`,
-              success: false,
-            });
-            continue;
-          }
+        if (matched) {
+          // Calculate new quantities
+          const totalStrips = matched.Qty || 0;
+          const stripsPerBox = stock.medicine.packetSize?.strips || 1;
+          const boxes = Math.floor(totalStrips / stripsPerBox);
+          const extra = totalStrips % stripsPerBox;
 
-          const matchedBatch = allStocks.find(
-            (entry) => entry.batchName === stock.Batch
-          );
-
-          if (!matchedBatch) {
-            resultMessage.push({
-              info: `Batch ${stock.Batch} not found for ${stock.Name}`,
-              success: false,
-            });
-            continue;
-          }
-
-          // const boxes = stock.Qty || 0;
-          // const totalStrips = boxes * (medicine.packetSize.strips || 1);
-          // const extra = 0;
-          const totalStrips = stock.Qty || 0;
-          const stripsPerBox = medicine.packetSize.strips || 1;
-          const boxes = Math.floor(totalStrips / stripsPerBox) || 0;
-          const extra = totalStrips % stripsPerBox || 0;
-
-          // Update matched batch
-          matchedBatch.quantity.totalStrips = totalStrips;
-          matchedBatch.quantity.boxes = boxes;
-          matchedBatch.quantity.extra = extra;
-          await matchedBatch.save();
-
-          // Zero out other batches of this medicine
-          for (let otherStock of allStocks) {
-            if (otherStock._id.toString() !== matchedBatch._id.toString()) {
-              otherStock.quantity.totalStrips = 0;
-              otherStock.quantity.boxes = 0;
-              otherStock.quantity.extra = 0;
-              await otherStock.save();
-            }
-          }
+          bulkOps.push({
+            updateOne: {
+              filter: { _id: stock._id },
+              update: {
+                $set: {
+                  "quantity.totalStrips": totalStrips,
+                  "quantity.boxes": boxes,
+                  "quantity.extra": extra,
+                },
+              },
+            },
+          });
 
           resultMessage.push({
-            info: `Updated stock quantity for ${stock.Name}, Batch: ${stock.Batch}`,
+            info: `Updated stock for ${matched.Name}, Batch ${matched.Batch}`,
             success: true,
           });
-        } catch (error) {
-          resultMessage.push({
-            info: `Error processing ${stock.Name}`,
-            success: false,
+
+          matched.processed = true;
+        } else {
+          // Zero out unmatched stocks
+          bulkOps.push({
+            updateOne: {
+              filter: { _id: stock._id },
+              update: {
+                $set: {
+                  "quantity.totalStrips": 0,
+                  "quantity.boxes": 0,
+                  "quantity.extra": 0,
+                },
+              },
+            },
           });
-          console.error(`Error processing ${stock.Name}: ${error}`);
         }
       }
 
-      // ❗ Now handle the rest — stocks whose medicine not in incoming data
-      try {
-        const allStocks = await Stock.find({});
-        for (let stock of allStocks) {
-          const medId = stock.medicine.toString();
-          if (!processedMedicineIds.has(medId)) {
-            stock.quantity.totalStrips = 0;
-            stock.quantity.boxes = 0;
-            stock.quantity.extra = 0;
-            await stock.save();
-          }
-        }
-        resultMessage.push({
-          info: `Zeroed out stocks for medicines not in input`,
-          success: true,
-        });
-      } catch (error) {
-        resultMessage.push({
-          info: `Error zeroing unmatched stocks`,
-          success: false,
-        });
-        console.error("Error zeroing unmatched stocks:", error);
+      // Step 4: Apply all updates in bulk
+      if (bulkOps.length > 0) {
+        await Stock.bulkWrite(bulkOps);
       }
+
+      // Step 5: Log unmatched input entries
+      for (const [key, entry] of inputMap.entries()) {
+        if (!entry.processed) {
+          resultMessage.push({
+            info: `Medicine or Batch not found for ${entry.Name}, Batch ${entry.Batch}`,
+            success: false,
+          });
+        }
+      }
+
     }
 
     return NextResponse.json(

@@ -6,8 +6,10 @@ import { IoCreate } from "react-icons/io5";
 import NewPharmacyExpressInvoice from "./NewPharmacyExpressInvoice";
 import { formatDateTimeToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
+import { MdDeleteSweep } from "react-icons/md";
 import NewPharmacyInvoice from "./NewPharmacyInvoice";
 import InvoicePharmacy from "./InvoicePharmacy";
+import { showError, showSuccess } from "../utils/toast";
 
 function ExpressBillSearchList({
   page,
@@ -64,6 +66,27 @@ function ExpressBillSearchList({
         setActiveIndex(null);
       } else {
         setMessage(result1.message);
+      }
+    } catch (err) {
+      console.log("error: ", err);
+    }
+    setIsDeleting(false);
+  }
+  async function handleDeleteAllExpressInv() {
+    setIsDeleting(true);
+    if (!window.confirm("Are you sure you want to delete all express bills?")) {
+      setIsDeleting(false);
+      return;
+    }
+    try {
+      let result = await fetch("/api/newExpressBill/removeAll");
+      result = await result.json();
+      if (result.success) {
+        setExpressBills([]);
+        setActiveIndex(null);
+        showSuccess(result.message);
+      } else {
+        showError(result.message);
       }
     } catch (err) {
       console.log("error: ", err);
@@ -139,8 +162,21 @@ function ExpressBillSearchList({
             </button>
           )}
         </div>
-        <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 mx-auto bg-black text-white">
-          List of all the Pharmacy Express Invoices
+        <div className="flex items-center gap-2">
+          {role === "admin" && (
+            <button className="p-2 rounded-full bg-red-600 text-white text-sm flex items-center gap-1">
+              <MdDeleteSweep className="size-6" />
+              <span
+                onClick={handleDeleteAllExpressInv}
+                className="font-semibold"
+              >
+                {isDeleteing?"Deleteing...":"Delete All"}
+              </span>
+            </button>
+          )}
+          <div className="h-12 flex justify-center items-center text-xl rounded-full flex-1 px-2 mx-auto bg-black text-white">
+            List of all the Pharmacy Express Invoices
+          </div>
         </div>
         <div className="flex flex-wrap justify-center items-center mx-auto">
           {resData.length > 0 ? (
