@@ -360,9 +360,13 @@ export async function POST(req) {
             continue;
           }
 
-          const boxes = stock.Qty || 0;
-          const totalStrips = boxes * (medicine.packetSize.strips || 1);
-          const extra = 0;
+          // const boxes = stock.Qty || 0;
+          // const totalStrips = boxes * (medicine.packetSize.strips || 1);
+          // const extra = 0;
+          const totalStrips = stock.Qty || 0;
+          const stripsPerBox = medicine.packetSize.strips || 1;
+          const boxes = Math.floor(totalStrips / stripsPerBox) || 0;
+          const extra = totalStrips % stripsPerBox || 0;
 
           // Update matched batch
           matchedBatch.quantity.totalStrips = totalStrips;
