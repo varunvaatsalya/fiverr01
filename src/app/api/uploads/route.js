@@ -346,8 +346,17 @@ export async function POST(req) {
 
         if (matched) {
           // Calculate new quantities
-          const totalStrips = matched.Qty || 0;
+          const totalStrips = Number(matched.Qty);
           const stripsPerBox = stock.medicine.packetSize?.strips || 1;
+
+          if (isNaN(totalStrips)) {
+            resultMessage.push({
+              info: `Invalid Qty for ${matched.Name}, Batch ${matched.Batch}`,
+              success: false,
+            });
+            continue;
+          }
+
           const boxes = Math.floor(totalStrips / stripsPerBox);
           const extra = totalStrips % stripsPerBox;
 
@@ -401,7 +410,6 @@ export async function POST(req) {
           });
         }
       }
-
     }
 
     return NextResponse.json(
