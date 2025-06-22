@@ -57,9 +57,9 @@ function Page({ params }) {
         <NewIpdPatient patientsList={patientsList} bed={bed} setBed={setBed} />
       ) : (
         <div className="flex-1 min-h-0 flex flex-col md:flex-row">
-          <div className="bg-gray-800 md:h-full w-full md:w-1/5 flex flex-col relative z-50">
+          <div className="bg-gray-800 md:h-full w-full md:w-1/5 flex flex-col">
             <div
-              className="flex justify-between items-center p-2 text-white z-50"
+              className="flex justify-between items-center p-2 text-white"
               onClick={() => setIsOpen((prev) => !prev)}
             >
               <div className="font-bold">IPD Works</div>

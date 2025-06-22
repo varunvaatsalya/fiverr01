@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { formatDateTimeToIST, timeDifference } from "@/app/utils/date";
 import { showError, showInfo } from "@/app/utils/toast";
 import { useRouter } from "next/navigation";
+import { PiSealWarningBold } from "react-icons/pi";
 
 function IpdAdmissionForm({ bed, setBed, selectedSection, section }) {
   const sections = [
@@ -1282,8 +1283,8 @@ function BalanceDetails({ bed }) {
             </div>
             {takeConfirmDischarge && (
               <div className="absolute top-0 left-0">
-                <div className="fixed w-screen h-screen bg-gray-700 text-gray-100/[.5] z-30 flex justify-center items-center">
-                  <div className="w-4/5 md:w-3/4 lg:w-3/5 py-4 text-center bg-slate-950 px-4 rounded-xl">
+                <div className="fixed w-screen h-screen bg-gray-950/[.6] text-gray-100 z-30 flex justify-center items-center">
+                  <div className="w-4/5 md:w-3/4 lg:w-3/5 py-4 text-center bg-gray-800 px-4 rounded-xl">
                     <div className="h-10 w-10 mx-auto my-3 rounded-full bg-red-200 flex justify-center items-center">
                       <PiSealWarningBold className="text-red-500 text-2xl" />
                     </div>
@@ -1300,11 +1301,6 @@ function BalanceDetails({ bed }) {
                     <div className="text-center">
                       Are you sure you want to Discharge this Patient?
                     </div>
-                    {message && (
-                      <div className="my-1 px-4 text-center text-red-400">
-                        {message}
-                      </div>
-                    )}
                     <hr className="border border-gray-200 w-full my-3" />
                     <div className="flex justify-end gap-2">
                       <button
