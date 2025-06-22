@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
 import {
@@ -20,6 +20,8 @@ import { CheckIcon } from "lucide-react";
 import { GrHistory } from "react-icons/gr";
 import { CiSearch } from "react-icons/ci";
 import { showError, showSuccess } from "../utils/toast";
+import { ToWords } from "to-words";
+import { BiLoaderCircle } from "react-icons/bi";
 
 const NewPrescriptionForm = ({
   setNewUserSection,
@@ -33,7 +35,7 @@ const NewPrescriptionForm = ({
   const [details, setDetails] = useState(null);
   const [isAddInfoOpen, setIsAddInfoOpen] = useState(false);
 
-  const { register, handleSubmit, setValue } = useForm();
+  const { register, handleSubmit, setValue, watch } = useForm();
   const [patientOptions, setPatientOptions] = useState([]);
   const [query, setQuery] = useState("");
 
@@ -45,19 +47,47 @@ const NewPrescriptionForm = ({
   const [availableItems, setAvailableItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [recentPatients, setRecentPatients] = useState([]);
-  const [ipdPrice, setIpdPrice] = useState(null);
   const [deptOpen, setDeptOpen] = useState(true);
   const [docOpen, setDocOpen] = useState(true);
   const [selectedDoctor, setSelectedDoctor] = useState("");
   const [itemsOpen, setItemsOpen] = useState(false);
+  const [isIPD, setIsIPD] = useState(false);
+  const [chargeBalenceDetails, setChargeBalenceDetails] = useState(null);
+  const [fetchingBalenceDetails, setFetchingBalenceDetails] = useState(false);
+  const [fetchedBalenceDetailsMessage, setFetchedBalenceDetailsMessage] =
+    useState("");
+
+  const ipdPrice = watch("ipdAmount.amount");
+
+  const toWords = new ToWords({
+    localeCode: "en-IN",
+    converterOptions: {
+      currency: true,
+      ignoreDecimal: false,
+      ignoreZeroCurrency: false,
+      doNotAddOnly: false,
+      currencyOptions: {
+        name: "Rupee",
+        plural: "Rupees",
+        symbol: "₹",
+        fractionalUnit: {
+          name: "Paisa",
+          plural: "Paise",
+          symbol: "",
+        },
+      },
+    },
+  });
 
   useEffect(() => {
     setValue("items", selectedItems);
   }, [selectedItems]);
 
-  // useEffect(() => {
-  //   setSelectedItems([]);
-  // }, [selectedDepartment]);
+  useEffect(() => {
+    if (isIPD && selectedPatient) {
+      handleGetIpdBalenceAmount();
+    }
+  }, [selectedPatient]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -89,8 +119,34 @@ const NewPrescriptionForm = ({
     return () => clearTimeout(timer);
   }, [query]);
 
+  const handleGetIpdBalenceAmount = async () => {
+    if (!selectedPatient?._id) {
+      showError("Please select a patient first");
+      return;
+    }
+    setFetchingBalenceDetails(true);
+    setChargeBalenceDetails(null);
+    setFetchedBalenceDetailsMessage("");
+    try {
+      let result = await fetch(
+        `/api/admissionWorks?patientId=${selectedPatient._id}&paymentSummery=1`
+      );
+      result = await result.json();
+      if (result.success) {
+        setChargeBalenceDetails(result.paymentDetails);
+      } else setFetchedBalenceDetailsMessage(result.message);
+    } catch (err) {
+      console.log("error: ", err);
+    } finally {
+      setFetchingBalenceDetails(false);
+    }
+  };
+
   useEffect(() => {
     if (details?.departments && selectedDepartment) {
+      setValue("ipdAmount", null);
+      setChargeBalenceDetails(null);
+      setFetchedBalenceDetailsMessage("");      
       const department = details.departments.find(
         (department) => department._id === selectedDepartment
       );
@@ -98,6 +154,15 @@ const NewPrescriptionForm = ({
         setAvailableItems(
           department.items.sort((a, b) => a.name.localeCompare(b.name))
         );
+        let ipdis = department?.name?.toLowerCase().includes("ipd") || false;
+        setIsIPD(ipdis);
+        if (ipdis) {
+          handleGetIpdBalenceAmount();
+          // const timeout = setTimeout(() => {
+          //   handleGetIpdBalenceAmount();
+          // }, 700);
+          // return () => clearTimeout(timeout);
+        }
       }
     }
   }, [selectedDepartment, details]);
@@ -217,6 +282,10 @@ const NewPrescriptionForm = ({
     (doctor) => doctor.department === selectedDepartment
   );
 
+  let grandTotal =
+    selectedItems?.reduce((sum, item) => sum + item.price, 0) +
+    (parseFloat(ipdPrice) || 0);
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -325,7 +394,11 @@ const NewPrescriptionForm = ({
                   : "Select department..."}
               </button>
             </PopoverTrigger>
-            <PopoverContent className="p-0 bg-gray-700 border-gray-500" side="bottom" align="start">
+            <PopoverContent
+              className="p-0 bg-gray-700 border-gray-500"
+              side="bottom"
+              align="start"
+            >
               <Command className="bg-gray-700 text-white">
                 <CommandInput placeholder="Search department..." />
                 <CommandList>
@@ -407,7 +480,11 @@ const NewPrescriptionForm = ({
                   </button>
                 </PopoverTrigger>
 
-                <PopoverContent className="p-0 bg-gray-700 border-gray-500" side="bottom" align="start">
+                <PopoverContent
+                  className="p-0 bg-gray-700 border-gray-500"
+                  side="bottom"
+                  align="start"
+                >
                   <Command className="bg-gray-700 text-white">
                     <CommandInput placeholder="Search doctor..." />
                     <CommandList>
@@ -447,10 +524,7 @@ const NewPrescriptionForm = ({
               </Popover>
             </div>
 
-            {details.departments
-              .find((department) => department._id === selectedDepartment)
-              .name.toLowerCase()
-              .includes("ipd") && (
+            {isIPD ? (
               <div className="my-2">
                 <div className="text-center text-white py-1">
                   Advanced/Discharge Amount
@@ -471,13 +545,140 @@ const NewPrescriptionForm = ({
                     type="number"
                     min={0}
                     placeholder="Amount"
-                    onChange={(e) => {
-                      setIpdPrice(e.target.value);
-                    }}
                     className="px-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
                   />
                 </div>
+                {fetchingBalenceDetails ? (
+                  <div className="text-center text-white py-1">
+                    <BiLoaderCircle className="size-5 animate-spin mx-auto" />
+                    <span className="">Fetching Details...</span>
+                  </div>
+                ) : (
+                  <div className=" text-lg">
+                    {chargeBalenceDetails ? (
+                      <div>
+                        Remaining IPD Balence: {chargeBalenceDetails.balance}
+                      </div>
+                    ) : (
+                      <div className="text-red-600">
+                        {fetchedBalenceDetailsMessage || "No Balence Details"}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
+            ) : (
+              <>
+                <Popover open={itemsOpen} onOpenChange={setItemsOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        "w-full px-4 py-3 text-left bg-gray-700 text-white rounded-xl shadow-sm",
+                        selectedItems.length === 0 && "text-gray-400"
+                      )}
+                    >
+                      {selectedItems.length > 0
+                        ? `${selectedItems.length} item(s) selected`
+                        : "Select items..."}
+                    </button>
+                  </PopoverTrigger>
+
+                  <PopoverContent
+                    className="p-0 max-h-[300px] overflow-auto bg-gray-700 border-gray-500"
+                    side="bottom"
+                    align="start"
+                  >
+                    {availableItems.length > 0 ? (
+                      <Command className="bg-gray-700 text-white">
+                        <CommandInput placeholder="Search items..." />
+                        <CommandList>
+                          <CommandEmpty>No items found.</CommandEmpty>
+                          <CommandGroup>
+                            {availableItems.map((item, index) => {
+                              const isSelected = selectedItems.some(
+                                (selectedItem) =>
+                                  selectedItem.name === item.name
+                              );
+
+                              return (
+                                <CommandItem
+                                  key={index}
+                                  value={item.name}
+                                  onSelect={() =>
+                                    handleItemSelection(item, !isSelected)
+                                  }
+                                  className="text-white flex items-center space-x-2"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      readOnly
+                                      className="size-4 rounded "
+                                    />
+                                    <span>
+                                      {item.name} (Price: {item.price})
+                                    </span>
+                                  </div>
+                                </CommandItem>
+                              );
+                            })}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    ) : (
+                      <div className="p-4 text-gray-500">
+                        No items available for this department.
+                      </div>
+                    )}
+                  </PopoverContent>
+                </Popover>
+
+                {/* Render selected items dynamically using useFieldArray */}
+                <div>
+                  <h3 className="text-md font-semibold mb-2 text-gray-100">
+                    Selected Items:
+                  </h3>
+                  {selectedItems.map((selectedItem, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center mb-4 space-x-2 lg:space-x-4"
+                    >
+                      {/* Item Name */}
+                      <div className="flex-1">
+                        <input
+                          {...register(`items[${index}].name`)}
+                          type="text"
+                          defaultValue={selectedItem.name}
+                          className="px-4 py-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
+                          readOnly
+                        />
+                      </div>
+
+                      {/* Item Price */}
+                      <div className="w-20">
+                        <input
+                          {...register(`items[${index}].price`)}
+                          type="number"
+                          defaultValue={selectedItem.price}
+                          className="px-2 py-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
+                          readOnly
+                        />
+                      </div>
+
+                      {/* Delete button to remove the selected item */}
+                      <button
+                        type="button"
+                        onClick={() => handleItemSelection(selectedItem, false)} // Uncheck the item
+                        className="text-red-500 font-semibold hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
 
             {/* <div className="mb-6">
@@ -513,123 +714,15 @@ const NewPrescriptionForm = ({
                 </p>
               )}
             </div> */}
-
-            <Popover open={itemsOpen} onOpenChange={setItemsOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    "w-full px-4 py-3 text-left bg-gray-700 text-white rounded-xl shadow-sm",
-                    selectedItems.length === 0 && "text-gray-400"
-                  )}
-                >
-                  {selectedItems.length > 0
-                    ? `${selectedItems.length} item(s) selected`
-                    : "Select items..."}
-                </button>
-              </PopoverTrigger>
-
-              <PopoverContent
-                className="p-0 max-h-[300px] overflow-auto bg-gray-700 border-gray-500"
-                side="bottom"
-                align="start"
-              >
-                {availableItems.length > 0 ? (
-                  <Command className="bg-gray-700 text-white">
-                    <CommandInput placeholder="Search items..." />
-                    <CommandList>
-                      <CommandEmpty>No items found.</CommandEmpty>
-                      <CommandGroup>
-                        {availableItems.map((item, index) => {
-                          const isSelected = selectedItems.some(
-                            (selectedItem) => selectedItem.name === item.name
-                          );
-
-                          return (
-                            <CommandItem
-                              key={index}
-                              value={item.name}
-                              onSelect={() =>
-                                handleItemSelection(item, !isSelected)
-                              }
-                              className="text-white flex items-center space-x-2"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  readOnly
-                                  className="size-4 rounded "
-                                />
-                                <span>
-                                  {item.name} (Price: {item.price})
-                                </span>
-                              </div>
-                            </CommandItem>
-                          );
-                        })}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                ) : (
-                  <div className="p-4 text-gray-500">
-                    No items available for this department.
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
-
-            {/* Render selected items dynamically using useFieldArray */}
-            <div>
-              <h3 className="text-md font-semibold mb-2 text-gray-100">
-                Selected Items:
-              </h3>
-              {selectedItems.map((selectedItem, index) => (
-                <div
-                  key={index}
-                  className="flex items-center mb-4 space-x-2 lg:space-x-4"
-                >
-                  {/* Item Name */}
-                  <div className="flex-1">
-                    <input
-                      {...register(`items[${index}].name`)}
-                      type="text"
-                      defaultValue={selectedItem.name}
-                      className="px-4 py-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
-                      readOnly
-                    />
-                  </div>
-
-                  {/* Item Price */}
-                  <div className="w-20">
-                    <input
-                      {...register(`items[${index}].price`)}
-                      type="number"
-                      defaultValue={selectedItem.price}
-                      className="px-2 py-2 bg-gray-700 text-gray-300 outline-none w-full rounded-lg shadow-sm"
-                      readOnly
-                    />
-                  </div>
-
-                  {/* Delete button to remove the selected item */}
-                  <button
-                    type="button"
-                    onClick={() => handleItemSelection(selectedItem, false)} // Uncheck the item
-                    className="text-red-500 font-semibold hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
           </>
         )}
         {(selectedItems.length > 0 || ipdPrice) && (
           <>
             <p className="font-semibold text-lg text-gray-100">
-              Grand Total: ₹{" "}
-              {selectedItems?.reduce((sum, item) => sum + item.price, 0) +
-                (parseFloat(ipdPrice) || 0)}
+              Grand Total: ₹ <span className="text-blue-600">{grandTotal}</span>{" "}
+              <span className="text-sm italic">
+                ({toWords.convert(grandTotal)})
+              </span>
             </p>
             <select
               id="paymentMode"

@@ -49,6 +49,7 @@ function AdmissionForm({ bed, setBed }) {
   const [bedHistory, setBedHistory] = useState(null);
   const [chargeBalenceDetails, setChargeBalenceDetails] = useState(null);
   const [changeingBedId, setChangeingBedId] = useState(null);
+  const [changeingBedDate, setChangeingBedDate] = useState(null);
   const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(null);
   const [takeConfirmDischarge, setTakeConfirmDischarge] = useState(false);
@@ -66,6 +67,7 @@ function AdmissionForm({ bed, setBed }) {
   const [othServices, setOthServices] = useState({
     name: "",
     amount: "",
+    date: "",
   });
 
   useEffect(() => {}, [bedHistory, availableBeds]);
@@ -90,30 +92,52 @@ function AdmissionForm({ bed, setBed }) {
   }, []);
 
   const handleSurgeryChange = (surgery) => {
-    if (selectedSurgeries.includes(surgery._id)) {
-      setSelectedSurgeries(selectedSurgeries.filter((s) => s !== surgery._id));
+    const exists = selectedSurgeries.find((s) => s.id === surgery._id);
+    if (exists) {
+      setSelectedSurgeries(
+        selectedSurgeries.filter((s) => s.id !== surgery._id)
+      );
     } else {
-      setSelectedSurgeries([...selectedSurgeries, surgery._id]);
+      setSelectedSurgeries([
+        ...selectedSurgeries,
+        { id: surgery._id, datetime: "" },
+      ]);
     }
   };
   const handleDoctorVisiting = (doctor) => {
-    if (selectedDoctorVisiting.includes(doctor._id)) {
+    const exists = selectedDoctorVisiting.find((d) => d.id === doctor._id);
+    if (exists) {
       setSelectedDoctorVisiting(
-        selectedDoctorVisiting.filter((s) => s !== doctor._id)
+        selectedDoctorVisiting.filter((d) => d.id !== doctor._id)
       );
     } else {
-      setSelectedDoctorVisiting([...selectedDoctorVisiting, doctor._id]);
+      setSelectedDoctorVisiting([
+        ...selectedDoctorVisiting,
+        { id: doctor._id, datetime: "" },
+      ]);
     }
   };
   const handlePackage = (Package) => {
-    if (selectedPackage.includes(Package._id)) {
-      setSelectedPackage(selectedPackage.filter((s) => s !== Package._id));
+    const exists = selectedPackage.find((p) => p.id === Package._id);
+    if (exists) {
+      setSelectedPackage(selectedPackage.filter((p) => p.id !== Package._id));
     } else {
-      setSelectedPackage([...selectedPackage, Package._id]);
+      setSelectedPackage([
+        ...selectedPackage,
+        { id: Package._id, datetime: "" },
+      ]);
     }
   };
 
   async function handleAddOns() {
+    const missingSurgeryDate = selectedSurgeries.some((s) => !s.datetime);
+    const missingDoctorDate = selectedDoctorVisiting.some((d) => !d.datetime);
+    const missingPackageDate = selectedPackage.some((p) => !p.datetime);
+
+    if (missingSurgeryDate || missingDoctorDate || missingPackageDate) {
+      setMessage("Please select date & time for all selected items.");
+      return;
+    }
     try {
       setMessage(null);
       setSubmitting(true);
@@ -145,6 +169,9 @@ function AdmissionForm({ bed, setBed }) {
             },
           },
         }));
+        setSelectedSurgeries([]);
+        setSelectedDoctorVisiting([]);
+        setSelectedPackage([]);
         setChargeBalenceDetails(null);
       }
       setMessage(result.message);
@@ -198,44 +225,49 @@ function AdmissionForm({ bed, setBed }) {
   }
 
   async function onOthServiceSubmit() {
-    if (othServices.amount && othServices.name) {
-      try {
-        setMessage(null);
-        setSubmitting(true);
-        let result = await fetch(`/api/admissionWorks?othServiceInfo=1`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json", // Set the header for JSON
-          },
-          body: JSON.stringify({
-            id: bed.occupancy.admissionId,
-            othServices,
-          }),
-        });
-        result = await result.json();
-
-        if (result.success) {
-          setBed((prevBed) => ({
-            ...prevBed,
-            occupancy: {
-              ...prevBed.occupancy,
-              admissionId: {
-                ...prevBed.occupancy.admissionId,
-                otherServices: result.otherServices,
-              },
-            },
-          }));
-          setOthServices({ amount: "", name: "" });
-          setChargeBalenceDetails(null);
-        }
-        setMessage(result.message);
-      } catch (error) {
-        console.error("Error submitting application:", error);
-      } finally {
-        setSubmitting(false);
-      }
-    } else {
+    if (
+      !othServices ||
+      !othServices.amount ||
+      !othServices.name ||
+      !othServices.date
+    ) {
       setMessage("fill the details correctly");
+      return;
+    }
+    try {
+      setMessage(null);
+      setSubmitting(true);
+      let result = await fetch(`/api/admissionWorks?othServiceInfo=1`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // Set the header for JSON
+        },
+        body: JSON.stringify({
+          id: bed.occupancy.admissionId,
+          othServices,
+        }),
+      });
+      result = await result.json();
+
+      if (result.success) {
+        setBed((prevBed) => ({
+          ...prevBed,
+          occupancy: {
+            ...prevBed.occupancy,
+            admissionId: {
+              ...prevBed.occupancy.admissionId,
+              otherServices: result.otherServices,
+            },
+          },
+        }));
+        setOthServices({ amount: "", name: "", date: "" });
+        setChargeBalenceDetails(null);
+      }
+      setMessage(result.message);
+    } catch (error) {
+      console.error("Error submitting application:", error);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -264,34 +296,35 @@ function AdmissionForm({ bed, setBed }) {
 
   async function handleBedChange() {
     try {
-      if (changeingBedId) {
-        setMessage(null);
-        setSubmitting(true);
-        let result = await fetch(`/api/admission?id=1`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json", // Set the header for JSON
-          },
-          body: JSON.stringify({
-            patientId: bed.occupancy.patientId._id,
-            newBedId: changeingBedId,
-          }),
-        });
-        result = await result.json();
-
-        if (result.success) {
-          const currentUrl = window.location.href;
-          const updatedUrl = currentUrl.replace(
-            /works\/[^/]+$/,
-            `works/${result.newBedId}`
-          );
-          console.log(updatedUrl);
-          router.push(updatedUrl);
-        }
-        setMessage(result.message);
-      } else {
-        setMessage("Select the bed");
+      if (!changeingBedId || !changeingBedDate) {
+        setMessage("Select the bed and date");
+        return;
       }
+      setMessage(null);
+      setSubmitting(true);
+      let result = await fetch(`/api/admission?id=1`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // Set the header for JSON
+        },
+        body: JSON.stringify({
+          patientId: bed.occupancy.patientId._id,
+          newBedId: changeingBedId,
+          admissionDate: changeingBedDate,
+        }),
+      });
+      result = await result.json();
+
+      if (result.success) {
+        const currentUrl = window.location.href;
+        const updatedUrl = currentUrl.replace(
+          /works\/[^/]+$/,
+          `works/${result.newBedId}`
+        );
+        console.log(updatedUrl);
+        router.push(updatedUrl);
+      }
+      setMessage(result.message);
     } catch (error) {
       console.error("Error submitting application:", error);
     } finally {
@@ -393,9 +426,9 @@ function AdmissionForm({ bed, setBed }) {
             </span>
           </div>
           <div className="px-2">
-            CreatedAt:{" "}
+            Admission Date:{" "}
             <span className="text-blue-300 font-semibold uppercase">
-              {formatDateTimeToIST(bed.occupancy.admissionId.createdAt)}
+              {formatDateTimeToIST(bed.occupancy.admissionId.admissionDate)}
             </span>
           </div>
         </div>
@@ -466,7 +499,9 @@ function AdmissionForm({ bed, setBed }) {
                       <input
                         type="checkbox"
                         className="size-4 cursor-pointer"
-                        checked={selectedSurgeries.includes(Surgery._id)}
+                        checked={selectedSurgeries.some(
+                          (s) => s.id === Surgery._id
+                        )}
                         onChange={() => handleSurgeryChange(Surgery)}
                       />
                       <div>
@@ -481,17 +516,27 @@ function AdmissionForm({ bed, setBed }) {
                   Selected Items
                 </div>
               )}
-              {selectedSurgeries.map((surgeryId, index) => {
-                const surgery = data.surgerys.find(
-                  (surgery) => surgery._id === surgeryId
-                );
+              {selectedSurgeries.map((item, index) => {
+                const surgery = data.surgerys.find((s) => s._id === item.id);
                 return (
                   <div
                     key={index}
-                    className="w-1/2 py-1 px-3 border-b border-gray-600 mx-auto flex justify-between items-center text-sm"
+                    className="w-3/4 py-1 px-3 border-b border-gray-600 mx-auto flex justify-between items-center text-sm"
                   >
-                    <div className="w-2/5">{surgery.name}</div>
+                    <div>{surgery.name}</div>
                     <div>{surgery.price}</div>
+                    <input
+                      type="datetime-local"
+                      className="bg-gray-700 text-xs border rounded px-1"
+                      value={item.datetime}
+                      onChange={(e) => {
+                        const newVal = e.target.value;
+                        const updated = selectedSurgeries.map((s) =>
+                          s.id === item.id ? { ...s, datetime: newVal } : s
+                        );
+                        setSelectedSurgeries(updated);
+                      }}
+                    />
                   </div>
                 );
               })}
@@ -553,7 +598,9 @@ function AdmissionForm({ bed, setBed }) {
                       <input
                         type="checkbox"
                         className="size-4 cursor-pointer"
-                        checked={selectedDoctorVisiting.includes(Doctor._id)}
+                        checked={selectedDoctorVisiting.some(
+                          (d) => d.id === Doctor._id
+                        )}
                         onChange={() => handleDoctorVisiting(Doctor)}
                       />
                       <div>
@@ -569,17 +616,27 @@ function AdmissionForm({ bed, setBed }) {
                 </div>
               )}
 
-              {selectedDoctorVisiting.map((DoctorId, index) => {
-                const Doctor = data.doctors.find(
-                  (doctor) => doctor._id === DoctorId
-                );
+              {selectedDoctorVisiting.map((item, index) => {
+                const Doctor = data.doctors.find((d) => d._id === item.id);
                 return (
                   <div
                     key={index}
-                    className="w-1/2 p-1 border-b border-gray-600 mx-auto flex justify-between items-center text-sm"
+                    className="w-3/4 p-1 border-b border-gray-600 mx-auto flex justify-between items-center text-sm"
                   >
-                    <div className="w-2/5">{Doctor.name}</div>
+                    <div>{Doctor.name}</div>
                     <div>{Doctor.charge}</div>
+                    <input
+                      type="datetime-local"
+                      className="bg-gray-700 text-xs border rounded px-1"
+                      value={item.datetime}
+                      onChange={(e) => {
+                        const newVal = e.target.value;
+                        const updated = selectedDoctorVisiting.map((d) =>
+                          d.id === item.id ? { ...d, datetime: newVal } : d
+                        );
+                        setSelectedDoctorVisiting(updated);
+                      }}
+                    />
                   </div>
                 );
               })}
@@ -641,7 +698,9 @@ function AdmissionForm({ bed, setBed }) {
                       <input
                         type="checkbox"
                         className="size-4 cursor-pointer"
-                        checked={selectedPackage.includes(Package._id)}
+                        checked={selectedPackage.some(
+                          (p) => p.id === Package._id
+                        )}
                         onChange={() => handlePackage(Package)}
                       />
                       <div>
@@ -655,17 +714,27 @@ function AdmissionForm({ bed, setBed }) {
                 <div className="my-1 text-center">Selected Items</div>
               )}
 
-              {selectedPackage.map((PackageId, index) => {
-                const Package = data.packages.find(
-                  (Package) => Package._id === PackageId
-                );
+              {selectedPackage.map((item, index) => {
+                const Package = data.packages.find((p) => p._id === item.id);
                 return (
                   <div
                     key={index}
-                    className="w-1/2 p-1 border-b border-gray-600 mx-auto flex justify-between items-center text-sm"
+                    className="w-3/4 p-1 border-b border-gray-600 mx-auto flex justify-between items-center text-sm"
                   >
-                    <div className="w-2/5">{Package.name}</div>
+                    <div>{Package.name}</div>
                     <div>{Package.price}</div>
+                    <input
+                      type="datetime-local"
+                      className="bg-gray-700 text-xs border rounded px-1"
+                      value={item.datetime}
+                      onChange={(e) => {
+                        const newVal = e.target.value;
+                        const updated = selectedPackage.map((p) =>
+                          p.id === item.id ? { ...p, datetime: newVal } : p
+                        );
+                        setSelectedPackage(updated);
+                      }}
+                    />
                   </div>
                 );
               })}
@@ -686,6 +755,7 @@ function AdmissionForm({ bed, setBed }) {
         {activeReason && (
           <div className="w-full flex justify-center">
             <textarea
+              placeholder="Reason for Admission"
               className="rounded-lg p-3 my-2 w-3/4 mx-auto bg-slate-900 outline outline-gray-600"
               onChange={(e) => {
                 setReason(e.target.value);
@@ -886,8 +956,25 @@ function AdmissionForm({ bed, setBed }) {
                         </option>
                       ))}
                     </select>
+                    {changeingBedId && (
+                      <>
+                        <label htmlFor="changeingBedDate" className="text-sm">
+                          changeing Date
+                        </label>
+                        <input
+                          id="changeingBedDate"
+                          type="datetime-local"
+                          value={changeingBedDate}
+                          onChange={(e) => setChangeingBedDate(e.target.value)}
+                          className="bg-gray-800 p-2 rounded-lg"
+                        />
+                      </>
+                    )}
                     <button
-                      className="bg-red-500 hover:bg-red-700 px-4 py-1 rounded-lg"
+                      className="bg-red-500 hover:bg-red-700 disabled:bg-gray-500 px-4 py-1 rounded-lg"
+                      disabled={
+                        !changeingBedId || !changeingBedDate || submitting
+                      }
                       onClick={handleBedChange}
                     >
                       {submitting ? "Submiting..." : "Submit"}
@@ -1001,7 +1088,7 @@ function AdmissionForm({ bed, setBed }) {
                   name="name"
                   value={othServices.name}
                   onChange={handleOthInfo}
-                  className="py-1 px-2 w-2/5 bg-gray-800 rounded-lg"
+                  className="py-1 px-2 flex-1 min-w-32 bg-gray-800 rounded-lg"
                   required
                 />
                 <input
@@ -1011,12 +1098,26 @@ function AdmissionForm({ bed, setBed }) {
                   name="amount"
                   value={othServices.amount}
                   onChange={handleOthInfo}
-                  className="py-1 px-2 w-2/5 bg-gray-800 rounded-lg"
+                  className="py-1 px-2 flex-1 min-w-32 bg-gray-800 rounded-lg"
+                  required
+                />
+                <input
+                  type="datetime-local"
+                  name="date"
+                  value={othServices.date}
+                  onChange={handleOthInfo}
+                  className="py-1 px-2 flex-1 min-w-32 bg-gray-800 rounded-lg"
                   required
                 />
                 <button
                   onClick={onOthServiceSubmit}
-                  className="bg-red-500 hover:bg-red-700 px-4 py-1 rounded-lg"
+                  disabled={
+                    !othServices.name ||
+                    !othServices.amount ||
+                    !othServices.date ||
+                    submitting
+                  }
+                  className="bg-red-500 hover:bg-red-700 disabled:bg-gray-500 px-4 py-1 rounded-lg"
                 >
                   {submitting ? "Submiting..." : "Submit"}
                 </button>

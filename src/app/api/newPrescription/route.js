@@ -246,7 +246,7 @@ export async function POST(req) {
       admission.ipdPayments.push({
         name: ipdAmount.name,
         amount: ipdAmount.amount,
-        date: Date.now(),
+        date: new Date(createdAt || Date.now()),
       });
       await admission.save();
     }
@@ -288,7 +288,7 @@ export async function POST(req) {
         admission.supplementaryService.push({
           name: item.name,
           amount: item.price,
-          date: new Date(),
+          date: new Date(createdAt || Date.now()),
         });
       });
       await admission.save();

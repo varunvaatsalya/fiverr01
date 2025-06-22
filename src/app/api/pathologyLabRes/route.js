@@ -6,10 +6,10 @@ import Prescription from "../../models/Prescriptions";
 import Department from "../../models/Departments";
 import { generateUniqueId } from "../../utils/counter";
 
-async function generateLTRID() {
+async function generateLTRID(resultDate) {
   const prefix = "LTR";
   // const timestamp = Math.floor(Date.now() / 1000).toString();
-  const uniqueDigit = await generateUniqueId("report");
+  const uniqueDigit = await generateUniqueId("report", resultDate);
   const uniqueID = `${prefix}${uniqueDigit}`;
   return uniqueID;
 }
@@ -144,7 +144,7 @@ export async function POST(req) {
 
     let ltridUpdate = {};
     if (testIndex !== -1 && !prescription.tests[testIndex].ltrid) {
-      const ltrid = await generateLTRID();
+      const ltrid = await generateLTRID(resultDate);
       ltridUpdate = { "tests.$.ltrid": ltrid };
     }
 

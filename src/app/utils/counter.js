@@ -2,10 +2,51 @@ import Counters from "../models/Counters";
 import dbConnect from "../lib/Mongodb";
 import PharmacyInvoice from "../models/PharmacyInvoice";
 import Prescriptions from "../models/Prescriptions";
+import Admissions from "../models/Admissions";
+import { Patients } from "../models";
+
+const ENTITY_CONFIG = {
+  prescription: {
+    model: Prescriptions,
+    counterField: "prescriptionCounter",
+    padLength: 3,
+  },
+  pharmacyInvoice: {
+    model: PharmacyInvoice,
+    counterField: "pharmacyInvoiceCounter",
+    padLength: 3,
+  },
+  ipd: {
+    model: Admissions,
+    counterField: "ipdCounter",
+    padLength: 2,
+  },
+  patient: {
+    model: Patients,
+    counterField: "patientCounter",
+    padLength: 3,
+  },
+  report: {
+    model: Prescriptions,
+    counterField: "reportCounter",
+    padLength: 3,
+  },
+};
 
 export async function generateUniqueId(entityType, anyDate = null) {
   await dbConnect();
+
+  const config = ENTITY_CONFIG[entityType];
+  if (!config) {
+    throw new Error(
+      `Invalid entityType. Must be one of: ${Object.keys(ENTITY_CONFIG).join(
+        ", "
+      )}`
+    );
+  }
+
   const now = new Date(anyDate || Date.now());
+
   const todayDate = `${now.getFullYear().toString().slice(-2)}${(
     now.getMonth() + 1
   )
@@ -16,16 +57,21 @@ export async function generateUniqueId(entityType, anyDate = null) {
     const startOfDay = new Date(now.setHours(0, 0, 0, 0));
     const endOfDay = new Date(now.setHours(23, 59, 59, 999));
 
-    let Model = entityType === "prescription" ? Prescriptions : PharmacyInvoice;
+    let query = {
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+    };
 
-    const count = await Model.countDocuments({
-      createdAt: {
-        $gte: startOfDay,
-        $lte: endOfDay,
-      },
-    });
+    if (entityType === "report") {
+      query.tests = {
+        $elemMatch: {
+          isCompleted: true,
+        },
+      };
+    }
 
-    return `${todayDate}${String(count + 1).padStart(3, "0")}`;
+    const count = await config.model.countDocuments(query);
+
+    return `${todayDate}${String(count + 1).padStart(config.padLength, "0")}`;
   }
 
   let record = await Counters.findOneAndUpdate(
@@ -36,45 +82,21 @@ export async function generateUniqueId(entityType, anyDate = null) {
 
   if (record.date !== todayDate) {
     record.date = todayDate;
-    record.prescriptionCounter = 1;
-    record.patientCounter = 1;
-    record.reportCounter = 1;
-    record.ipdCounter = 1;
-    record.pharmacyInvoiceCounter = 1;
+    // reset all counters on new day
+    for (const key in ENTITY_CONFIG) {
+      const field = ENTITY_CONFIG[key].counterField;
+      record[field] = 1;
+    }
   }
 
-  let uniqueId;
+  const counterValue = record[config.counterField] || 1;
 
-  if (entityType === "prescription") {
-    uniqueId = `${record.date}${String(record.prescriptionCounter).padStart(
-      3,
-      "0"
-    )}`;
-    record.prescriptionCounter += 1;
-  } else if (entityType === "patient") {
-    uniqueId = `${record.date}${String(record.patientCounter).padStart(
-      3,
-      "0"
-    )}`;
-    record.patientCounter += 1;
-  } else if (entityType === "report") {
-    uniqueId = `${record.date}${String(record.reportCounter).padStart(3, "0")}`;
-    record.reportCounter += 1;
-  } else if (entityType === "ipd") {
-    uniqueId = `${record.date}${String(record.ipdCounter).padStart(2, "0")}`;
-    record.ipdCounter += 1;
-  } else if (entityType === "pharmacyInvoice") {
-    uniqueId = `${record.date}${String(record.pharmacyInvoiceCounter).padStart(
-      3,
-      "0"
-    )}`;
-    record.pharmacyInvoiceCounter += 1;
-  } else {
-    throw new Error(
-      "Invalid entityType. Must be 'prescription', 'patient', or 'report'."
-    );
-  }
+  const uniqueId = `${record.date}${String(counterValue).padStart(
+    config.padLength,
+    "0"
+  )}`;
 
+  record[config.counterField] = counterValue + 1;
   await record.save();
 
   return uniqueId;

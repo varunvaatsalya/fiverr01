@@ -8,10 +8,10 @@ import { generateUniqueId } from "../../utils/counter";
 import Admission from "../../models/Admissions";
 import Doctor from "../../models/Doctors";
 
-async function generateUID() {
+async function generateUID(admissionDate) {
   const prefix = "IPD";
   // const timestamp = Math.floor(Date.now() / 1000).toString(); // Current timestamp in seconds
-  const uniqueDigit = await generateUniqueId("ipd");
+  const uniqueDigit = await generateUniqueId("ipd", admissionDate);
   const uniqueID = `${prefix}${uniqueDigit}`;
   return uniqueID;
 }
@@ -121,7 +121,7 @@ export async function POST(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  const { patientId, newBedId, reason } = await req.json();
+  const { patientId, admissionDate, newBedId, reason } = await req.json();
 
   try {
     // Find if the patient is currently occupying a bed
@@ -153,31 +153,31 @@ export async function POST(req) {
       //   startDate: admission.currentBed.startDate,
       //   endDate: new Date(), // Mark end date
       // });
-
+      let chnageDate = new Date(admissionDate);      
       const lastHistory = admission.bedHistory[admission.bedHistory.length - 1];
       if (
         lastHistory &&
         lastHistory.bed.toString() === currentBed._id.toString()
       ) {
         // Update endDate for the last history entry
-        lastHistory.endDate = new Date();
+        lastHistory.endDate = chnageDate;
       } else {
         // Push a new entry if not already present
         admission.bedHistory.push({
           bed: currentBed._id,
           startDate: admission.currentBed.startDate,
-          endDate: new Date(),
+          endDate: chnageDate,
         });
       }
       admission.bedHistory.push({
         bed: newBedId,
-        startDate: new Date(),
+        startDate: chnageDate,
       });
 
       // Update currentBed in admission
       admission.currentBed = {
         bed: newBedId,
-        startDate: new Date(), // New start date
+        startDate: chnageDate, // New start date
       };
       await admission.save();
 
@@ -199,7 +199,7 @@ export async function POST(req) {
           occupancy: {
             patientId,
             admissionId,
-            startDate: new Date(),
+            startDate: chnageDate,
           },
         },
         { new: true }
@@ -212,7 +212,7 @@ export async function POST(req) {
       if (id == "1") {
         return NextResponse.json(
           {
-            newBedId:updatedBed._id,
+            newBedId: updatedBed._id,
             message: "Bed updated for the patient.",
             success: true,
           },
@@ -225,22 +225,23 @@ export async function POST(req) {
       );
     } else {
       // Case 2: Patient does not have an assigned bed - New Admission
-      let adid =  await generateUID();
+      let adid = await generateUID(admissionDate);
+      let admissionDateTime = new Date(admissionDate);
       const newAdmission = await Admission.create({
         patientId,
         reason,
         adid,
         currentBed: {
           bed: newBedId,
-          startDate: new Date(),
+          startDate: admissionDateTime,
         },
         bedHistory: [
           {
             bed: newBedId,
-            startDate: new Date(),
+            startDate: admissionDateTime,
           },
         ],
-        admissionDate: new Date(),
+        admissionDate: admissionDateTime,
       });
 
       // Mark the new bed as occupied
@@ -251,7 +252,7 @@ export async function POST(req) {
           occupancy: {
             patientId,
             admissionId: newAdmission._id,
-            startDate: new Date(),
+            startDate: admissionDateTime,
           },
         },
         { new: true }

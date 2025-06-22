@@ -5,6 +5,7 @@ import Navbar from "../../../../components/Navbar";
 import { FaCircleLeft } from "react-icons/fa6";
 import NewIpdPatient from "../../../../components/NewIpdPatient";
 import AdmissionForm from "../../../../components/AdmissionForm";
+import Link from "next/link";
 
 let details = {
   ward: { name: "icu" },
@@ -51,27 +52,17 @@ function Page({ params }) {
   return (
     <div>
       <Navbar route={["IPD", "Works"]} />
-      <div className="flex justify-between items-center px-2 md:px-4">
-        <a href="./"><div className="bg-slate-800 text-gray-100 hover:bg-slate-950 py-3 px-5 rounded-full">
-          <FaCircleLeft className="size-8" />
-        </div></a>
-        <div className="bg-slate-800 text-gray-100 my-2 flex justify-center gap-4 py-3 w-full font-bold text-2xl rounded-full mx-auto md:w-3/4 lg:w-1/2">
-          <div className="">
-            Ward: <span className="text-blue-500">{bed.ward.name}</span>
-          </div>
-          <div className="">
-            Bed: <span className="text-blue-500">{bed.bedName}</span>
-          </div>
-        </div>
-        <div className="px-5 md:px-10"></div>
-      </div>
-      {!bed.isOccupied ? (
-        <NewIpdPatient patientsList={patientsList} bed={bed} setBed={setBed} />
-      ) : (
-        <>
-          <AdmissionForm bed={bed} setBed={setBed} />
-        </>
-      )}
+        {!bed.isOccupied ? (
+          <NewIpdPatient
+            patientsList={patientsList}
+            bed={bed}
+            setBed={setBed}
+          />
+        ) : (
+          <>
+            <AdmissionForm bed={bed} setBed={setBed} />
+          </>
+        )}
     </div>
   );
 }

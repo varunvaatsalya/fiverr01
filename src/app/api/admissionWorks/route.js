@@ -121,6 +121,7 @@ export async function GET(req) {
 
   let id = req.nextUrl.searchParams.get("id");
   let paymentSummery = req.nextUrl.searchParams.get("paymentSummery");
+  let patientId = req.nextUrl.searchParams.get("patientId");
   let discharge = req.nextUrl.searchParams.get("discharge");
 
   const token = req.cookies.get("authToken");
@@ -146,7 +147,15 @@ export async function GET(req) {
 
   try {
     if (paymentSummery == "1") {
-      const admission = await Admission.findById(id)
+      let query = {};
+      
+      if (id) {
+        query._id = id;
+      } else if (patientId) {
+        query.patientId = patientId;
+        query.isCompleted = false;
+      }
+      const admission = await Admission.findOne(query)
         .populate("bedHistory.bed", "price")
         .populate("doctor.doctor", "charge")
         .populate("surgery.surgery", "price")
@@ -192,7 +201,10 @@ export async function GET(req) {
       }
 
       let paymentDetails = getBalance(admission);
-      if (!admission.insuranceInfo?.providerName && paymentDetails.balance>0) {
+      if (
+        !admission.insuranceInfo?.providerName &&
+        paymentDetails.balance > 0
+      ) {
         return NextResponse.json(
           {
             message: "Dues not cleared.",
@@ -201,7 +213,7 @@ export async function GET(req) {
           { status: 401 }
         );
       }
-      console.log(admission)
+      console.log(admission);
 
       const lastHistory = admission.bedHistory[admission.bedHistory.length - 1];
       if (
@@ -227,20 +239,19 @@ export async function GET(req) {
           startDate: null,
         },
       });
-      
+
       // Update currentBed in admission
       admission.currentBed = null;
       admission.dischargeDate = new Date();
-      if(paymentDetails.balance<=0){
-        admission.isCompleted=true
+      if (paymentDetails.balance <= 0) {
+        admission.isCompleted = true;
       }
-      await admission.save();      
+      await admission.save();
 
       return NextResponse.json(
         { message: "Bed updated for the patient.", success: true },
         { status: 201 }
       );
-
     }
     const admission = await Admission.findById(id)
       .populate({
@@ -357,7 +368,6 @@ export async function POST(req) {
           { status: 404 }
         );
       }
-      othServices.date = Date.now();
       admission.otherServices.push(othServices);
       await admission.save();
       const updatedAdmission = await Admission.findById(id);
@@ -379,19 +389,19 @@ export async function POST(req) {
         { status: 404 }
       );
     }
-    if (doctors.length > 0) {
-      doctors.forEach((doctorId) => {
-        admission.doctor.push({ doctor: doctorId, visitingDate: Date.now() });
+    if (doctors && doctors.length > 0) {
+      doctors.forEach(({ id, datetime }) => {
+        admission.doctor.push({ doctor: id, visitingDate: new Date(datetime) });
       });
     }
-    if (surgerys.length > 0) {
-      surgerys.forEach((surgeryId) => {
-        admission.surgery.push({ surgery: surgeryId, date: Date.now() });
+    if (surgerys && surgerys.length > 0) {
+      surgerys.forEach(({ id, datetime }) => {
+        admission.surgery.push({ surgery: id, date: new Date(datetime) });
       });
     }
-    if (packages.length > 0) {
-      packages.forEach((packageId) => {
-        admission.package.push({ package: packageId, date: Date.now() });
+    if (packages && packages.length > 0) {
+      packages.forEach(({ id, datetime }) => {
+        admission.package.push({ package: id, date: new Date(datetime) });
       });
     }
     if (reason) {

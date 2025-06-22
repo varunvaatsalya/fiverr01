@@ -1,0 +1,245 @@
+Logs
+1. Updated stock for ABCA-O 1*15, Batch P407901A
+2. Updated stock for ABIWAYS 1*15, Batch A2JNW032
+3. Updated stock for ACIMAX P TAB. 1*10, Batch AT2412041
+4. Updated stock for ACIVIR IV 250MG 1*1, Batch 4S60204
+5. Updated stock for AF-150 TAB 1*1, Batch HA0140724
+6. Updated stock for ALDEVIT-GOLD 1*10, Batch 0191024F
+7. Updated stock for AL-PRIDE 2ML 1*1, Batch A23L-05N
+8. Updated stock for AMINOFULL IV 1*1, Batch A4K003
+9. Updated stock for AMINOFULL TAB 1*10, Batch AST.241144
+10. Updated stock for ANLOXA-OZ 1*10, Batch GT2408012A
+11. Updated stock for ATLODOL P 1*15, Batch GENT9453D
+12. Updated stock for ATLOVIT-Q10 1*10, Batch FP.1147
+13. Updated stock for AZEE 500MG INJ 1*1, Batch 2504336
+14. Updated stock for B-29 1*15, Batch 2240608
+15. Updated stock for BETHADOXIN-12 SYP 1*1, Batch BTH24060
+16. Updated stock for BIOCART-MSM 1*10, Batch GH.0477
+17. Updated stock for BONESTAT CAP 1*15, Batch 23510643
+18. Updated stock for BRUTAFLAM-MR 4 1*10, Batch B7HPX028
+19. Updated stock for CALYSOLAR 1*10, Batch CYS.18
+20. Updated stock for CAREDIC OIL 1*1, Batch A24-3741
+21. Updated stock for CCPRO TAB 1*10, Batch UGT.241010B
+22. Updated stock for CEFROBACTUM 1.5GM 1*1, Batch R25004A
+23. Updated stock for CHYMOTIS-ABR 1*10, Batch SPT240224B
+24. Updated stock for CINMIN-SR 1*10, Batch AC24-0120
+25. Updated stock for CLINMED-C 300 1*10, Batch TGC055
+26. Updated stock for CLOT+ 1*10, Batch ST24243A
+27. Updated stock for COMPOD-CV 1*6, Batch CT0883A
+28. Updated stock for CORTISANZ-6 1*10, Batch GT4654
+29. Updated stock for CRUSH SYP. 1X1, Batch CRS-700
+30. Updated stock for DAILYSHINE 60K 1*8, Batch 84724056
+31. Updated stock for DOXICIP INJ 1*1, Batch B1240190A
+32. Updated stock for ECTEL-40 1*10, Batch T24D700B
+33. Updated stock for ENCIN-500 1*1, Batch SP240061A
+34. Updated stock for ENCLEX-60 1*1, Batch ENSH03024
+35. Updated stock for ESL 40MG 1*1, Batch D24AM006K
+36. Updated stock for ETOCAL SYP 1*1, Batch MPL-24236
+37. Updated stock for ETORN-ER 1*10, Batch LGN07/031/02
+38. Updated stock for EVI-LC 1*10, Batch 102744
+39. Updated stock for F2-XT SYP 1*1, Batch RH-240015
+40. Updated stock for FLORABIC SYP 1*1, Batch CCP24072
+41. Updated stock for FLURISH 150 1*1, Batch FH240901
+42. Updated stock for FORCAN 100ML 1*1, Batch 4A40327
+43. Updated stock for FUZOXIN 1GM 1*1, Batch HICX24006A
+44. Updated stock for GALROL 60K 1*12, Batch GG240805
+45. Updated stock for G-FOLVIN-LB 1*10, Batch FSD24008
+46. Updated stock for GRAMOTUF-500 1*6, Batch PM.18066
+47. Updated stock for HELIBETA-50 1*10, Batch T24CO624
+48. Updated stock for IBUGESIC RTU 1*1, Batch CZVBM47
+49. Updated stock for IBUKAP-P SYP 1*1, Batch SP241258
+50. Updated stock for ICEFLAM-PLUS 1*15, Batch ST24081A
+51. Updated stock for JJAZ-T 1*10, Batch JAZT24001
+52. Updated stock for KAPNAC MR TAB 1*10, Batch LRQB24002
+53. Updated stock for LEVOFLOX 500MG TAB 1*10, Batch 45B0079
+54. Updated stock for LEVOFLOX INJ 1*100ML, Batch 4A40256
+55. Updated stock for LINID 600MG 1*10, Batch 1404882
+56. Updated stock for LINOKEM I.V 1*1, Batch R2405010
+57. Updated stock for LIVOMYN SYP 200ML 1*1, Batch SLI890
+58. Updated stock for M2 TONE SYP. 1X200ML, Batch SMT095
+59. Updated stock for MEDINEM-ER 25 1*10, Batch HSN-385
+60. Updated stock for MEDINEM-ER 50 1*10, Batch HSM-435
+61. Updated stock for MENOPASSIT-C 1*10, Batch UFT-24027
+62. Updated stock for ME-PXL 1*15, Batch MP2411
+63. Updated stock for MEXATE 7.5MG 1*10, Batch CWZ1148
+64. Updated stock for MOBYL OINT 1X1, Batch 2402
+65. Updated stock for MOXICIP 400 1*10, Batch 4SA0251
+66. Updated stock for MOXICIP IV 1*1, Batch RS49157
+67. Updated stock for MOXIFLOX-400 1*5, Batch 45A1606
+68. Updated stock for MOXIKIND CV-625 1*10, Batch B6AEX162
+69. Updated stock for MOXIKIND CV KID 1*10, Batch B9AEW066
+70. Updated stock for M-SYS OINT. 1*1, Batch MOE09
+71. Updated stock for MUCINAC 2ML 1*1, Batch 4R30035
+72. Updated stock for MUCOCOAT-O 1*1, Batch A19385A
+73. Updated stock for MYOTOP-150 1*10, Batch Z05BJ24007
+74. Updated stock for NAVPROX TAB 1*10, Batch SPT.37617
+75. Updated stock for NILE-SP 1*10, Batch NT.24137
+76. Updated stock for NORTIPAN-DM 1*10, Batch MC240548
+77. Updated stock for NRVMATE-NT 1*10, Batch T24G742B
+78. Updated stock for NUTRAGESIC OIL 1*1, Batch ZPO-3110
+79. Updated stock for OFLOMAC IV 100ML 1*1, Batch MC234502
+80. Updated stock for OMNACORTIL 5MG 1*10, Batch 13241246A
+81. Updated stock for ORASEP GEL LA 15ML 1VIAL, Batch OA2410
+82. Updated stock for ORASEP MOUTH WASH 1X1, Batch OMW2403
+83. Updated stock for OXUM SPRAY 1*1, Batch OSP24018VB
+84. Updated stock for PANSOL-D 1*10, Batch SPD-11
+85. Updated stock for PANTAKIND-FLUX 1*10, Batch G6HSW024
+86. Updated stock for PAVONAK-40(PANTOP) 1*10, Batch UT-2416171
+87. Updated stock for PENEM-500MG 1*1, Batch P502406
+88. Updated stock for PIPZO-4.5 1*1, Batch 24440456
+89. Updated stock for PROTEGE K POWDER 1*1, Batch P-2463
+90. Updated stock for QUREFAST SKIN CREAM 1*1, Batch SE2425C
+91. Updated stock for RABSOL-D 1*10, Batch SC-14
+92. Updated stock for RELIFE-CF 1*1, Batch LSL241147
+93. Invalid Qty for RIBOGESIC-FORTE 1*10, Batch SPT-01624
+94. Updated stock for RINIFOL CAP 1*15, Batch RFC4J057
+95. Updated stock for ROBINAXOL D TAB 1*10, Batch UTGRA230
+96. Updated stock for ROZLO SACHET 1*1, Batch 2414
+97. Updated stock for SANCLIN 2ML 1*1, Batch SNCL22401
+98. Updated stock for SGLTD-S 10/100 1*10, Batch H2HQX004
+99. Updated stock for SILOFAST -8 1*15, Batch BREO3091A
+100. Updated stock for SOL-D3 1*4, Batch D2412204
+101. Updated stock for SOLGESIC SP 1*10, Batch SS.15
+102. Updated stock for SUMOL IV 100ML 1*1, Batch 24444107
+103. Updated stock for TAPAL ER-50MG 1*15, Batch 6RA09031A
+104. Updated stock for TAXIM 1GM INJ 1*1, Batch 24461281
+105. Updated stock for TETRAHEAL TAB 1*10, Batch 2452GTB422
+106. Updated stock for TGKEM 1*1, Batch TGM24009AV
+107. Updated stock for TOFAGO 500 1*10, Batch LGN06/102/05
+108. Updated stock for TRAMAGIC GEL 1*1, Batch 49
+109. Updated stock for ULTRARICK 1*15, Batch PM36AC18
+110. Updated stock for XEELINE SYP 1*1, Batch ND-24008
+111. Updated stock for ZIPANT-40 1*1, Batch 274H003
+112. Updated stock for ALURIC 300 TAB. 1X10, Batch TT241177
+113. Updated stock for CYPROLOC SYP. 1X1, Batch SL240356
+114. Updated stock for HEMFER FCM-500 1*1, Batch 24680011
+115. Updated stock for ROBI D INJ. 1X1, Batch SR4013
+116. Updated stock for URJABOLIN-50, Batch SP24072C
+117. Updated stock for VOMITEB SYP 1*1, Batch SVO075
+118. Updated stock for FREDPRIDE-2ML, Batch 24LH22B
+119. Updated stock for PANTAKIND , Batch G95X001
+120. Updated stock for BIOFIBE POUCH 1X1, Batch ZFS-2377
+121. Updated stock for FLORABIC 1*30, Batch MFC24004
+122. Updated stock for GIAFIX-200LB 1*10, Batch BT2410002A
+123. Updated stock for LEVOSIZ-M 1*15, Batch HLM061124
+124. Updated stock for OFLOMAC 200MG 1*10, Batch 18243725A
+125. Updated stock for RHEUMO GOLD CAPS. 1X10, Batch RGC-136
+126. Updated stock for RHEUMO OIL. 1X1, Batch RET-363
+127. Updated stock for THIOROM-MR 1*10, Batch R24F093B
+128. Updated stock for JJAZ-T 1*10, Batch JAZT24001
+129. Updated stock for EDIBUL FORTE CAPS 1X10, Batch EHC-381
+130. Updated stock for IREVIT-GOLD 1*10, Batch MHT-24180
+131. Updated stock for MEROSURE O 1*9, Batch 25460002
+132. Updated stock for REVOTAZ 4.5GM 1*1, Batch 24444577
+133. Updated stock for MOBYL OINT 1X1, Batch 2402
+134. Updated stock for ETOCAL SYP 1*1, Batch MPL-24236
+135. Updated stock for FLORABIC 1*30, Batch MFC24004
+136. Updated stock for ETOCAL SYP 1*1, Batch MPL-24236
+137. Updated stock for FLORABIC 1*30, Batch MFC24004
+138. Updated stock for EDIBUL FORTE CAPS 1X10, Batch EHC-381
+139. Updated stock for MOBYL OINT 1X1, Batch 2402
+140. Updated stock for JJAZ-T 1*10, Batch JAZT24001
+141. Updated stock for BONEMIL 1*10, Batch LFT2412016
+142. Updated stock for FLORABIC 1*30, Batch MFC24004
+143. Updated stock for REVOTAZ 4.5GM 1*1, Batch 24444577
+144. Updated stock for LINOSPAN 100ML 1*1, Batch A24F028N
+145. Updated stock for CIRVONAC SP 1*10, Batch UGT-241024B
+146. Updated stock for LINID IV 1*1, Batch ABA1106
+147. Updated stock for IBUKAP-P SYP 1*1, Batch SP241258
+148. Updated stock for PENEM-500MG 1*1, Batch P502406
+149. Updated stock for MOBYL OINT 1X1, Batch 2402
+150. Updated stock for EDIBUL FORTE CAPS 1X10, Batch EHC-381
+151. Updated stock for FLORABIC 1*30, Batch MFC24004
+152. Updated stock for CYPROLOC SYP. 1X1, Batch SL240356
+153. Updated stock for JJAZ-T 1*10, Batch JAZT24001
+154. Updated stock for EDIBUL FORTE CAPS 1X10, Batch EHC-381
+155. Updated stock for IREVIT-GOLD 1*10, Batch MHT-24180
+156. Updated stock for NUROZIA GOLD 1*1, Batch NZL-102
+157. Updated stock for MEROSURE O 1*9, Batch 25460002
+158. Updated stock for INZAN IV 1*1, Batch CLPAD22
+159. Updated stock for REVOTAZ 4.5GM 1*1, Batch 24444577
+160. Updated stock for MOBYL OINT 1X1, Batch 2402
+161. Updated stock for NRVMATE-NT 1*10, Batch T24G742B
+162. Updated stock for KAPNAC MR TAB 1*10, Batch LRQB24002
+163. Updated stock for ETOCAL SYP 1*1, Batch MPL-24236
+164. Updated stock for GIAFIX-200LB 1*10, Batch BT2410002A
+165. Updated stock for M-SYS OINT. 1*1, Batch MOE09
+166. Updated stock for IREVIT-GOLD 1*10, Batch MHT-24180
+167. Updated stock for REVOTAZ 4.5GM 1*1, Batch 24444577
+168. Updated stock for LINID IV 1*1, Batch ABA1106
+169. Updated stock for BIOFIBE POUCH 1X1, Batch ZFS-2377
+170. Updated stock for NRVMATE-NT 1*10, Batch T24G742B
+171. Updated stock for PENEM-500MG 1*1, Batch P502406
+172. Updated stock for SANCLIN 2ML 1*1, Batch SNCL22401
+173. Updated stock for SILOFAST-D8 1*10, Batch AFS24023
+174. Updated stock for ZACY MR 1X10, Batch B245613
+175. Updated stock for MEDLER TAB 1*10, Batch B242512
+176. Updated stock for CEFSAFE 500 TAB. 1X10, Batch UTCCFB420
+177. Updated stock for BONEMIL 1*10, Batch LFT2412016
+178. Updated stock for NORTIPAN-DM 1*10, Batch MC240548
+179. Updated stock for KETOTRAM TAB 1*10, Batch 2409309
+180. Updated stock for SENSICLAV-1.2G 1*1, Batch G3624123
+181. Updated stock for SENSICLAV-1.2G 1*1, Batch G3624123
+182. Updated stock for ALFA-MAXICAL 1*10, Batch D02Y001
+183. Updated stock for RHEUMO GOLD CAPS. 1X10, Batch RGC-136
+184. Updated stock for METHRON 1GM 1*1, Batch 274B001
+185. Updated stock for IREVIT-GOLD 1*10, Batch MHT-24180
+186. Updated stock for FUZOXIN 1GM 1*1, Batch HICX24006A
+187. Updated stock for PAVONAK-40(PANTOP) 1*10, Batch UT-2416171
+188. Updated stock for BIOFIBE POUCH 1X1, Batch ZFS-2377
+189. Updated stock for PRIMACORT INJ. 1X1, Batch C052510
+190. Updated stock for EDIBUL FORTE CAPS 1X10, Batch EHC-381
+191. Updated stock for BONEMIL 1*10, Batch LFT2412016
+192. Updated stock for VANKING 500 INJ 1*1, Batch 345196
+193. Updated stock for PRIMACORT INJ. 1X1, Batch C052510
+194. Updated stock for CEFSAFE 500 TAB. 1X10, Batch UTCCFB420
+195. Updated stock for KAPNAC MR TAB 1*10, Batch LRQB24002
+196. Updated stock for ICEFLAM-PLUS 1*15, Batch ST24081A
+197. Updated stock for LINID IV 1*1, Batch ABA1106
+198. Updated stock for NUROZIA GOLD 1*1, Batch NZL-102
+199. Updated stock for FUZOXIN 1GM 1*1, Batch HICX24006A
+200. Updated stock for PAVONAK-40(PANTOP) 1*10, Batch UT-2416171
+201. Updated stock for NRVMATE-NT 1*10, Batch T24G742B
+202. Updated stock for NUTRAGESIC OIL 1*1, Batch ZPO-3110
+203. Medicine or Batch not found for ABCA , Batch GS4F13
+204. Medicine or Batch not found for AMPILOX CV DRY SYP 1*1, Batch NA
+205. Medicine or Batch not found for CLOZIMID 0.50 1*10, Batch MHT-076
+206. Medicine or Batch not found for DEECEE 100MG 1*10, Batch NA
+207. Medicine or Batch not found for DESTRES EC, Batch MHT-124
+208. Medicine or Batch not found for ELAGESIC FORTE TAB 1*10, Batch EGL0114
+209. Medicine or Batch not found for ELAGESIC OIL. 1X1, Batch EFT4L004
+210. Medicine or Batch not found for ENCIN-100 1*1, Batch SP24069A
+211. Medicine or Batch not found for ENZICTRA DS 1*10, Batch EY5177002
+212. Medicine or Batch not found for F & A FORTE 1*10, Batch MHT-079
+213. Medicine or Batch not found for FARONAC 200, Batch FARAH008
+214. Medicine or Batch not found for FEXIP-O 1*10, Batch CF0T5009D
+215. Medicine or Batch not found for FORECOX, Batch 17240870A
+216. Medicine or Batch not found for GROWMED AD, Batch G02243
+217. Medicine or Batch not found for TAMZED-4.5 , Batch TFDC034A
+218. Medicine or Batch not found for ITRASYS- 200, Batch IR020623
+219. Medicine or Batch not found for JALRA M50/500 1*15, Batch 6RA12030A
+220. Medicine or Batch not found for KAZOCART TAB 6 1X10, Batch SLP-24366
+221. Medicine or Batch not found for LIVOGEN-Z, Batch 5024C84302
+222. Medicine or Batch not found for LUPINEM-500 1*1, Batch icc25001
+223. Medicine or Batch not found for Maxxcal-500, Batch NA
+224. Medicine or Batch not found for METOPROLOL TARTRATE 5*5, Batch 4L60084
+225. Medicine or Batch not found for MILCEF 500MG 1*10, Batch BC240915
+226. Medicine or Batch not found for NERVIJEN NP 1*10, Batch NPT342502
+227. Medicine or Batch not found for NUTRI-D3, Batch JSD45002
+228. Medicine or Batch not found for NUROKIND-FORTE, Batch E71X021
+229. Medicine or Batch not found for OROFER-XT, Batch NA
+230. Medicine or Batch not found for OMNACORTIL 10MG 1*10, Batch 13241432A
+231. Medicine or Batch not found for Omnikacin-500 , Batch NPA00203
+232. Medicine or Batch not found for PANOSAN , Batch NA
+233. Medicine or Batch not found for PENEM INJ. 1GM 1X1, Batch P102409
+234. Medicine or Batch not found for PLEXIN-KID Syp 1*1, Batch GPK2419
+235. Medicine or Batch not found for PROTANCE Syp 1*1, Batch L2409043
+236. Medicine or Batch not found for RELIFE DX 1*1, Batch LSL231438
+237. Medicine or Batch not found for RIBOGESIC-FORTE 1*10, Batch SPT-01624
+238. Medicine or Batch not found for RIONERV NT 1*10, Batch SPT--01730
+239. Medicine or Batch not found for SENSICLAV-625 1*10, Batch 17240822A
+240. Medicine or Batch not found for Serendol 100 , Batch IA24-21
+241. Medicine or Batch not found for TOFALEMBIC OD 11 MG 1*14, Batch EY4174001
+242. Medicine or Batch not found for URJABOLIN-25, Batch SP24101B
+243. Medicine or Batch not found for VITALOC-SF 1*1, Batch NA
+244. Medicine or Batch not found for ZERODOL-MR 1*10, Batch GGG04205001BH
