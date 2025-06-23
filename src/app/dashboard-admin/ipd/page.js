@@ -10,13 +10,6 @@ import Link from "next/link";
 function Page() {
   const Works = [
     {
-      name: "Registration",
-      description: "You can show & manage the ipd patients here",
-      icon: <FaNetworkWired size={50} />,
-      link: "/dashboard-admin/ipd/works",
-      color: "bg-red-900",
-    },
-    {
       name: "IPD Registration",
       description: "You can show & manage the ipd patients here",
       icon: <FaNetworkWired size={50} />,

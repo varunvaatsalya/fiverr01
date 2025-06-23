@@ -1283,7 +1283,7 @@ function BalanceDetails({ bed }) {
             </div>
             {takeConfirmDischarge && (
               <div className="absolute top-0 left-0">
-                <div className="fixed w-screen h-screen bg-gray-950/[.6] text-gray-100 z-30 flex justify-center items-center">
+                <div className="fixed w-screen h-screen bg-gray-950/[.6] text-gray-100 z-50 flex justify-center items-center">
                   <div className="w-4/5 md:w-3/4 lg:w-3/5 py-4 text-center bg-gray-800 px-4 rounded-xl">
                     <div className="h-10 w-10 mx-auto my-3 rounded-full bg-red-200 flex justify-center items-center">
                       <PiSealWarningBold className="text-red-500 text-2xl" />

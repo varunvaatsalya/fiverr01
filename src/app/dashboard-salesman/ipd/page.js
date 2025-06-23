@@ -1,7 +1,6 @@
 import React from "react";
 import { FaOutdent } from "react-icons/fa6";
 import { FaNetworkWired } from "react-icons/fa";
-import { MdFormatListBulletedAdd } from "react-icons/md";
 import { BsClipboardDataFill } from "react-icons/bs";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -9,13 +8,6 @@ import Link from "next/link";
 
 function Page() {
   const Works = [
-    {
-      name: "Registration",
-      description: "You can show & manage the ipd patients here",
-      icon: <FaNetworkWired size={50} />,
-      link: "/dashboard-salesman/ipd/works",
-      color: "bg-red-900",
-    },
     {
       name: "IPD Registration",
       description: "You can show & manage the ipd patients here",

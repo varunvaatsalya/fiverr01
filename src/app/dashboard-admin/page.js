@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useRouter } from "next/navigation";
 import { BsBuildingFillAdd } from "react-icons/bs";
-import { FaFilePrescription, FaShippingFast } from "react-icons/fa";
+import { FaFilePrescription, FaFileUpload, FaShippingFast } from "react-icons/fa";
 import {
   FaKitMedical,
   FaMoneyBillTrendUp,
@@ -145,6 +145,13 @@ function Page() {
       icon: <AiOutlineAudit size={40} />,
       link: "/dashboard-admin/auditTrails",
       color: "bg-fuchsia-700",
+    },
+    {
+      name: "Data Exports",
+      description: "You can exports your data here",
+      icon: <FaFileUpload size={40} />,
+      link: "/dashboard-admin/exports",
+      color: "bg-amber-700",
     },
   ];
   return (
