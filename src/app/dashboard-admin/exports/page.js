@@ -24,7 +24,7 @@ function Page() {
       name: "Medicine Details",
       description: "You can filter & exports the prescriptions data here",
       icon: <FaPersonArrowUpFromLine size={50} />,
-      link: "/dashboard-admin/exports/prescriptions",
+      link: "/dashboard-admin/exports/medicineData",
       color: "bg-fuchsia-700",
     },
     {
@@ -59,7 +59,7 @@ function Page() {
       name: "Godown Stocks",
       description: "You can filter & exports the prescriptions data here",
       icon: <FaPersonArrowUpFromLine size={50} />,
-      link: "/dashboard-admin/exports/prescriptions",
+      link: "/dashboard-admin/exports/godownStocks",
       color: "bg-sky-700",
     },
     {

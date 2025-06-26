@@ -148,7 +148,7 @@ export async function GET(req) {
   try {
     if (paymentSummery == "1") {
       let query = {};
-      
+
       if (id) {
         query._id = id;
       } else if (patientId) {
@@ -336,7 +336,7 @@ export async function POST(req) {
       }
       const { providerName, tpa, coverageAmount } = insurenceDeatils;
       const { amount, txno, bankName } = transaction;
-      console.log(providerName, tpa, coverageAmount, amount, txno, bankName, 1);
+      // console.log(providerName, tpa, coverageAmount, amount, txno, bankName, 1);
 
       if (!admission.insuranceInfo) admission["insuranceInfo"] = {};
 
@@ -351,6 +351,11 @@ export async function POST(req) {
       const updatedAdmission = await Admission.findById(id);
       return NextResponse.json(
         {
+          insurenceDeatils: {
+            providerName: updatedAdmission.insuranceInfo.providerName,
+            tpa: updatedAdmission.insuranceInfo.tpa,
+            coverageAmount: updatedAdmission.insuranceInfo.coverageAmount,
+          },
           transaction: updatedAdmission.insuranceInfo.payments,
           success: true,
           message: "Saved Successfully",

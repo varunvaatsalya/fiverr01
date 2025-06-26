@@ -57,7 +57,9 @@ function IpdAdmissionForm({ bed, setBed, selectedSection, section }) {
         {SelectedComponent ? (
           <SelectedComponent {...selectedProps} />
         ) : (
-          <div className="text-xl font-semibold text-red-500">No section Selected</div>
+          <div className="text-xl font-semibold text-red-500">
+            No section Selected
+          </div>
         )}
       </div>
     </div>
@@ -592,6 +594,7 @@ function InsuranceDetails({ bed, setBed }) {
       result = await result.json();
 
       if (result.success) {
+        console.log(result);
         setBed((prevBed) => ({
           ...prevBed,
           occupancy: {
@@ -600,6 +603,9 @@ function InsuranceDetails({ bed, setBed }) {
               ...prevBed.occupancy.admissionId,
               insuranceInfo: {
                 ...prevBed.occupancy.insuranceInfo,
+                providerName: result.insurenceDeatils.providerName,
+                tpa: result.insurenceDeatils.tpa,
+                coverageAmount: result.insurenceDeatils.coverageAmount,
                 payments: result.transaction,
               },
             },
