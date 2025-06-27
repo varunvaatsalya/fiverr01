@@ -1,6 +1,7 @@
 import Admins from "./Admins";
 import Department from "./Departments";
 import Doctor from "./Doctors";
+import LabTest from "./LabTests";
 import Medicine from "./Medicine";
 import Patients from "./Patients";
 import Prescriptions from "./Prescriptions";
@@ -14,6 +15,7 @@ export {
   Admins,
   Department,
   Doctor,
+  LabTest,
   Medicine,
   Patients,
   Prescriptions,

@@ -267,8 +267,15 @@ function PrescriptionsSearchList({
                               {/* Display "Pending" or "Completed" based on isCompleted status */}
                               {matchingTest ? (
                                 matchingTest.isCompleted ? (
-                                  <span className="text-green-700">
-                                    Completed
+                                  <span className="text-green-700 flex justify-center items-center gap-1">
+                                    <span>Completed</span>
+                                    {matchingTest.isExternalReport ? (
+                                      <span className="py-0.5 px-1 text-xs font-semibold bg-violet-300 rounded-lg text-violet-700">
+                                        External
+                                      </span>
+                                    ) : (
+                                      ""
+                                    )}
                                   </span>
                                 ) : (
                                   <span className="text-red-500">Pending</span>

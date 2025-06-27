@@ -129,9 +129,14 @@ export async function POST(req) {
     );
   }
 
-  const { testResults, selectedTest, selectedPrescription, resultDate } =
-    await req.json();
-  console.log(testResults, selectedTest, selectedPrescription);
+  const {
+    testResults,
+    selectedTest,
+    selectedPrescription,
+    isExternalReport,
+    resultDate,
+  } = await req.json();
+  // console.log(testResults, selectedTest, selectedPrescription);
   try {
     const prescription = await Prescription.findOne({
       _id: selectedPrescription,
@@ -156,6 +161,7 @@ export async function POST(req) {
       {
         $set: {
           "tests.$.isCompleted": true,
+          "tests.$.isExternalReport": isExternalReport ?? false,
           "tests.$.resultDate": resultDate ? new Date(resultDate) : Date.now(),
           "tests.$.results": testResults, // Save the new results array
           ...ltridUpdate,
