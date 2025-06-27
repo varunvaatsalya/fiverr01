@@ -135,6 +135,7 @@ function UploadPathLabReport() {
           )
         );
         setTestFormat(null);
+        setIsExternalReport(false);
         setSelectedTest("");
         setSelectedPrescription("");
       } else {
