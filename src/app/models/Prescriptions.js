@@ -35,6 +35,7 @@ const prescriptionSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide a Payment Mode"],
   },
+  payments: [{ type: { type: String }, amount: { type: Number } }],
   pid: {
     type: String,
     required: [true, "Please provide a UID"],

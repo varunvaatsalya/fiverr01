@@ -114,6 +114,7 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
       required: true,
     },
   },
+  payments: [{ type: { type: String }, amount: { type: Number } }],
   isDelivered: {
     type: Date,
   },

@@ -99,7 +99,6 @@ const Analytics = ({
       filtered = filtered.filter((p) => p.paymentMode === selectedPaymentMode);
     }
 
-    console.log("Filtered Prescriptions:", filtered);
     setFilteredPrescriptions(filtered);
   };
 
@@ -121,25 +120,58 @@ const Analytics = ({
     return filteredPrescriptions.reduce((sum, p) => sum + p.price.subtotal, 0);
   };
 
+  // const paymentSummary = () => {
+  //   const summary = {
+  //     cash: { count: 0, total: 0 },
+  //     card: { count: 0, total: 0 },
+  //     upi: { count: 0, total: 0 },
+  //   };
+  //   filteredPrescriptions.forEach((p) => {
+  //     const amount = showSubtotal ? p.price.subtotal : p.price.total;
+  //     if (p.paymentMode === "Cash") {
+  //       summary.cash.count += 1;
+  //       summary.cash.total += amount;
+  //     } else if (p.paymentMode === "Card") {
+  //       summary.card.count += 1;
+  //       summary.card.total += amount;
+  //     } else if (p.paymentMode === "UPI") {
+  //       summary.upi.count += 1;
+  //       summary.upi.total += amount;
+  //     }
+  //   });
+  //   return summary;
+  // };
+
   const paymentSummary = () => {
-    const summary = {
-      cash: { count: 0, total: 0 },
-      card: { count: 0, total: 0 },
-      upi: { count: 0, total: 0 },
-    };
+    const summary = {}; // Dynamic summary object
+
     filteredPrescriptions.forEach((p) => {
+      const mode = p.paymentMode.toLowerCase(); // Ensure case consistency
+      // const amount = p.price.total;
       const amount = showSubtotal ? p.price.subtotal : p.price.total;
-      if (p.paymentMode === "Cash") {
-        summary.cash.count += 1;
-        summary.cash.total += amount;
-      } else if (p.paymentMode === "Card") {
-        summary.card.count += 1;
-        summary.card.total += amount;
-      } else if (p.paymentMode === "UPI") {
-        summary.upi.count += 1;
-        summary.upi.total += amount;
+
+      if (mode === "mixed" && Array.isArray(p.payments)) {
+        p.payments.forEach((subPayment) => {
+          const subMode = subPayment.type.toLowerCase();
+          const subAmount = subPayment.amount;
+
+          if (!summary[subMode]) {
+            summary[subMode] = { count: 0, total: 0 };
+          }
+
+          summary[subMode].count += 1;
+          summary[subMode].total += subAmount;
+        });
       }
+
+      if (!summary[mode]) {
+        summary[mode] = { count: 0, total: 0 }; // Create if mode not exists
+      }
+
+      summary[mode].count += 1;
+      summary[mode].total += amount;
     });
+
     return summary;
   };
 
@@ -289,17 +321,16 @@ const Analytics = ({
           <h3 className="text-blue-100 text-lg font-semibold pb-1">
             Payment Mode Summary
           </h3>
-          <p>
-            Cash Payments: {paymentData.cash.count} ( {paymentData.cash.total}/-
-            )
-          </p>
-          <p>
-            UPI Payments: {paymentData.upi.count} ( {paymentData.upi.total}/- )
-          </p>
-          <p>
-            Card Payments: {paymentData.card.count} ( {paymentData.card.total}/-
-            )
-          </p>
+        <div className="capitalize">
+            {Object.keys(paymentData).map((mode) => (
+              <p key={mode}>
+                {mode}
+                {": "}
+                {paymentData[mode].count} ({" "}<span className="text-blue-500">
+                {parseFloat(paymentData[mode].total.toFixed(2))}/-</span> )
+              </p>
+            ))}
+          </div>
         </div>
 
         {/* Section 3: Department Summary */}

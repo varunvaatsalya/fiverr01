@@ -97,6 +97,20 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
       const mode = p.paymentMode.toLowerCase(); // Ensure case consistency
       const amount = p.price.total;
 
+      if (mode === "mixed" && Array.isArray(p.payments)) {
+        p.payments.forEach((subPayment) => {
+          const subMode = subPayment.type.toLowerCase();
+          const subAmount = subPayment.amount;
+
+          if (!summary[subMode]) {
+            summary[subMode] = { count: 0, total: 0 };
+          }
+
+          summary[subMode].count += 1;
+          summary[subMode].total += subAmount;
+        });
+      }
+
       if (!summary[mode]) {
         summary[mode] = { count: 0, total: 0 }; // Create if mode not exists
       }

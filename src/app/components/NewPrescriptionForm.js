@@ -56,6 +56,22 @@ const NewPrescriptionForm = ({
   const [fetchingBalenceDetails, setFetchingBalenceDetails] = useState(false);
   const [fetchedBalenceDetailsMessage, setFetchedBalenceDetailsMessage] =
     useState("");
+  const [payments, setPayments] = useState([
+    { type: "Cash", amount: 0 },
+    { type: "Card", amount: 0 },
+    { type: "UPI", amount: 0 },
+  ]);
+  const getTotal = () =>
+    payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+  const totalEntered = useMemo(() => getTotal(), [payments]);
+
+  const handleChange = (index, value) => {
+    const updated = [...payments];
+    updated[index].amount = parseFloat(value || 0);
+    console.log(updated);
+    setPayments(updated);
+  };
 
   const ipdPrice = watch("ipdAmount.amount");
 
@@ -146,7 +162,7 @@ const NewPrescriptionForm = ({
     if (details?.departments && selectedDepartment) {
       setValue("ipdAmount", null);
       setChargeBalenceDetails(null);
-      setFetchedBalenceDetailsMessage("");      
+      setFetchedBalenceDetailsMessage("");
       const department = details.departments.find(
         (department) => department._id === selectedDepartment
       );
@@ -219,6 +235,10 @@ const NewPrescriptionForm = ({
     ) {
       showError("fill the details properly");
       return;
+    }
+
+    if (data.paymentMode === "mixed") {
+      data.payments = payments;
     }
 
     setSubmitting(true);
@@ -738,6 +758,7 @@ const NewPrescriptionForm = ({
               {!ipdPrice && (
                 <option value="Insurence">Insurence Patient</option>
               )}
+              <option value="mixed">Mixed</option>
             </select>
             <div className="text-blue-800 text-start px-2">
               <span
@@ -765,6 +786,63 @@ const NewPrescriptionForm = ({
                 />
               </div>
             )}
+            {watch("paymentMode") === "mixed" && (
+              <div className="w-full flex justify-center">
+                <div className="p-2 mx-auto border rounded-lg border-slate-700 flex flex-col items-center justify-center">
+                  <div className="text-center font-semiboldp-2">
+                    Payment Details
+                  </div>
+                  <hr className="border-t border-gray-700 w-full my-1" />
+                  {payments.map((payment, index) => (
+                    <div
+                      key={payment.type}
+                      className="flex justify-end items-center gap-3 px-2 my-1"
+                    >
+                      <div className="font-semibold w-12 capitalize">
+                        {payment.type}:
+                      </div>
+                      <input
+                        type="number"
+                        value={payment.amount || ""}
+                        onChange={(e) => handleChange(index, e.target.value)}
+                        min={0}
+                        className="outline-none bg-gray-800 rounded-lg text-sm px-2 py-1 w-32"
+                        placeholder="₹ amount"
+                      />
+                    </div>
+                  ))}
+                  <hr className="border border-gray-600 w-full my-1" />
+                  <div className="flex justify-end items-center gap-3 px-2">
+                    <div className="font-semibold w-12 capitalize">Total:</div>
+                    <div
+                      className={
+                        "w-32 font-semibold " +
+                        (totalEntered !== grandTotal
+                          ? "text-red-500"
+                          : "text-green-500")
+                      }
+                    >
+                      {totalEntered + "/-"}
+                    </div>
+                  </div>
+                  <div className="flex justify-end items-center gap-3 px-2 text-sm border-t border-gray-700">
+                    <div className="font-semibold w-12 capitalize">
+                      Remaining:
+                    </div>
+                    <div className={"w-32"}>
+                      {parseFloat((grandTotal - totalEntered).toFixed(2)) +
+                        "/-"}
+                    </div>
+                  </div>
+                  {/* Validation */}
+                  {totalEntered > grandTotal && (
+                    <div className="text-red-500 text-sm mt-2">
+                      Total payment exceeds the bill amount of ₹{grandTotal}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -782,8 +860,12 @@ const NewPrescriptionForm = ({
         </div>
         <button
           type="submit"
-          className="w-20 h-8 py-1 flex items-center justify-center gap-2 bg-red-500 rounded-lg font-semibold cursor-pointer text-white"
-          disabled={submitting}
+          className="w-20 h-8 py-1 flex items-center justify-center gap-2 bg-red-500 disabled:bg-gray-500 rounded-lg font-semibold text-white"
+          disabled={
+            submitting ||
+            (watch("paymentMode") === "mixed" &&
+              Math.abs(Math.floor(totalEntered) - Math.floor(grandTotal)) >= 1)
+          }
         >
           {submitting ? <Loading size={15} /> : <></>}
           {submitting ? "Wait..." : "Confirm"}

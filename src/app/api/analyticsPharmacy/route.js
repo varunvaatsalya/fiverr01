@@ -69,7 +69,7 @@ export async function GET(req) {
       "price.total": { $exists: true, $ne: null },
     };
     const pharmacyInvoices = await PharmacyInvoice.find(query).select(
-      "paymentMode inid price isDelivered createdAt"
+      "paymentMode payments inid price isDelivered createdAt"
     );
     return NextResponse.json(
       {
@@ -145,9 +145,8 @@ export async function POST(req) {
       "price.total": { $exists: true, $ne: null },
     };
     const pharmacyInvoices = await PharmacyInvoice.find(query).select(
-      "paymentMode inid price isDelivered createdAt"
+      "paymentMode payments inid price isDelivered createdAt"
     );
-console.log(pharmacyInvoices,pharmacyInvoices.length, start, end);
     // Send response with UID
     return NextResponse.json(
       { pharmacyInvoices, success: true },

@@ -14,6 +14,7 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import MedicineDetailsSection from "./MedicineDetailsSection";
 import { FaCheckCircle } from "react-icons/fa";
 import { MdAssignmentReturned } from "react-icons/md";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 function PharmacyInvoiceSearchList({
   page,
@@ -215,6 +216,25 @@ function PharmacyInvoiceSearchList({
                         <span className="text-blue-500 font-semibold">
                           {invoice.paymentMode}
                         </span>
+                        {invoice.paymentMode === "mixed" && (
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <button className="text-red-500 text-xs font-bold border rounded-full px-2 py-[1px] bg-red-300 hover:bg-red-200 transition">
+                                i
+                              </button>
+                            </HoverCardTrigger>
+                            <HoverCardContent className="text-sm bg-white border shadow-lg rounded-lg p-2">
+                              <div className="font-semibold mb-1 text-gray-800">
+                                Payment Breakdown:
+                              </div>
+                              {invoice.payments.map((p, i) => (
+                                <div key={i} className="text-gray-700">
+                                  {p.type}: ₹{p.amount}
+                                </div>
+                              ))}
+                            </HoverCardContent>
+                          </HoverCard>
+                        )}
                       </div>
                       {invoice.price.discount && (
                         <>

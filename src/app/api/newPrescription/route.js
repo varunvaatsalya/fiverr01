@@ -201,6 +201,7 @@ export async function POST(req) {
     ipdAmount,
     department,
     paymentMode,
+    payments,
     createdAt,
   } = await req.json();
 
@@ -302,6 +303,7 @@ export async function POST(req) {
       department,
       pid,
       paymentMode,
+      payments,
       tests: filteredTests,
       createdBy: userRole === "admin" || !userId ? null : userId,
       createdByRole: userRole,

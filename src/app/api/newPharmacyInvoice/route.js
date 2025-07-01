@@ -230,6 +230,7 @@ export async function POST(req) {
     selectedPaymentMode,
     discount,
     discountToAllMedicine,
+    payments,
   } = await req.json();
 
   if (!requestedMedicine || requestedMedicine.length === 0) {
@@ -480,10 +481,11 @@ export async function POST(req) {
         )
       );
     }
+
     let subtotal = getGrandTotal(result);
     let total = getDiscountedTotal(result, discount);
     // console.log(JSON.stringify(result), 123456);
-
+    console.log(payments, typeof payments, Array.isArray(payments));
     const invoice = new PharmacyInvoice({
       patientId: selectedPatient,
       inid,
@@ -523,6 +525,7 @@ export async function POST(req) {
         subtotal,
         total,
       },
+      payments,
       createdBy: userRole === "admin" || !userId ? null : userId,
       createdByRole: userRole,
     });
@@ -624,7 +627,7 @@ export async function PUT(req) {
       const previousData = invoice.toObject();
 
       invoice.paymentMode = paymentMode;
-      
+
       const audit = await AuditTrail.create({
         resourceType: "PharmacyInvoice",
         resourceId: invoice._id,
