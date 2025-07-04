@@ -484,8 +484,6 @@ export async function POST(req) {
 
     let subtotal = getGrandTotal(result);
     let total = getDiscountedTotal(result, discount);
-    // console.log(JSON.stringify(result), 123456);
-    console.log(payments, typeof payments, Array.isArray(payments));
     const invoice = new PharmacyInvoice({
       patientId: selectedPatient,
       inid,

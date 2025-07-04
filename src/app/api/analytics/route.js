@@ -4,7 +4,7 @@ import { verifyTokenWithLogout } from "../../utils/jwt";
 import Doctor from "../../models/Doctors";
 import Department from "../../models/Departments";
 import Prescription from "../../models/Prescriptions";
-import {Expense} from "../../models/Expenses";
+import { Expense } from "../../models/Expenses";
 
 function getDates() {
   const now = new Date();
@@ -92,6 +92,8 @@ export async function GET(req) {
 
     return NextResponse.json(
       {
+        startDate: startUTC,
+        endDate: endUTC,
         prescriptions,
         expenses,
         departments,
@@ -180,7 +182,13 @@ export async function POST(req) {
 
     // Send response with UID
     return NextResponse.json(
-      { prescriptions, expenses, success: true },
+      {
+        startDate: start,
+        endDate: end,
+        prescriptions,
+        expenses,
+        success: true,
+      },
       { status: 201 }
     );
   } catch (error) {

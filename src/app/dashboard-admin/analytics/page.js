@@ -5,6 +5,7 @@ import Loading from "../../components/Loading";
 
 function Page() {
   const [data, setData] = useState(null);
+  const [dateRange, setDateRange] = useState(null);
   useEffect(() => {
     async function fetchData() {
       try {
@@ -17,6 +18,7 @@ function Page() {
             prescriptions: result.prescriptions,
             expenses: result.expenses,
           });
+          setDateRange({ from: result.startDate, to: result.endDate });
         }
       } catch (err) {
         console.log("error: ", err);
@@ -42,6 +44,8 @@ function Page() {
         doctors={data?.doctors}
         expenses={data?.expenses}
         setData={setData}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
       />
     </>
   );

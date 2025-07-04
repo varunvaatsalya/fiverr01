@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Navbar from "./Navbar";
+import { formatDateTimeToIST } from "@/app/utils/date";
 
 const Analytics = ({
   prescriptions,
@@ -8,6 +9,8 @@ const Analytics = ({
   doctors,
   expenses,
   setData,
+  dateRange,
+  setDateRange,
 }) => {
   const [selectedDepartment, setSelectedDepartment] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState([]);
@@ -74,6 +77,7 @@ const Analytics = ({
           prescriptions: result.prescriptions,
           expenses: result.expenses,
         }));
+        setDateRange({ from: result.startDate, to: result.endDate });
       } else {
         setMessage(result.message);
       }
@@ -119,28 +123,6 @@ const Analytics = ({
   const getSubTotalAmount = () => {
     return filteredPrescriptions.reduce((sum, p) => sum + p.price.subtotal, 0);
   };
-
-  // const paymentSummary = () => {
-  //   const summary = {
-  //     cash: { count: 0, total: 0 },
-  //     card: { count: 0, total: 0 },
-  //     upi: { count: 0, total: 0 },
-  //   };
-  //   filteredPrescriptions.forEach((p) => {
-  //     const amount = showSubtotal ? p.price.subtotal : p.price.total;
-  //     if (p.paymentMode === "Cash") {
-  //       summary.cash.count += 1;
-  //       summary.cash.total += amount;
-  //     } else if (p.paymentMode === "Card") {
-  //       summary.card.count += 1;
-  //       summary.card.total += amount;
-  //     } else if (p.paymentMode === "UPI") {
-  //       summary.upi.count += 1;
-  //       summary.upi.total += amount;
-  //     }
-  //   });
-  //   return summary;
-  // };
 
   const paymentSummary = () => {
     const summary = {}; // Dynamic summary object
@@ -283,32 +265,48 @@ const Analytics = ({
           <option value="UPI">UPI</option>
         </select>
       </div>
-      <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl p-2 gap-x-5">
-        <span>
-          Today&#39;s Prescriptions:{" "}
-          <span className="font-bold">{filteredPrescriptions.length}</span>
-        </span>
-        <span>
-          Total Amount:{" "}
-          <span className="font-bold">
-            {showSubtotal ? getSubTotalAmount() : getTotalAmount()}
+      <div className="p-2 space-y-2">
+        <div className="font-semibold text-center">Date Range</div>
+        <div className="flex flex-wrap justify-center items-center gap-2">
+          <div className="bg-blue-800 p-1 text-sm rounded text-white">
+            From:{" "}
+            <span className="font-semibold uppercase">
+              {formatDateTimeToIST(dateRange.from)}
+            </span>
+          </div>
+          <div className="bg-blue-800 p-1 text-sm rounded text-white">
+            To:{" "}
+            <span className="font-semibold uppercase">
+              {formatDateTimeToIST(dateRange.to)}
+            </span>
+          </div>
+        </div>
+        <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl gap-x-5">
+          <span>
+            Prescriptions:{" "}
+            <span className="font-bold">{filteredPrescriptions.length}</span>
           </span>
-          /-
-        </span>
-        {/* Render filtered prescriptions if needed */}
-      </div>
-      <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl p-2 gap-x-5">
-        <span>
-          Today&#39;s Expenses:{" "}
-          <span className="font-bold">{expenses.length}</span>
-        </span>
-        <span>
-          Total Amount:{" "}
-          <span className="font-bold">
-            {expenses.reduce((total, expense) => total + expense.amount, 0)}
+          <span>
+            Total Amount:{" "}
+            <span className="font-bold">
+              {showSubtotal ? getSubTotalAmount() : getTotalAmount()}
+            </span>
+            /-
           </span>
-          /-
-        </span>
+          {/* Render filtered prescriptions if needed */}
+        </div>
+        <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl gap-x-5">
+          <span>
+            Expenses: <span className="font-bold">{expenses.length}</span>
+          </span>
+          <span>
+            Total Amount:{" "}
+            <span className="font-bold">
+              {expenses.reduce((total, expense) => total + expense.amount, 0)}
+            </span>
+            /-
+          </span>
+        </div>
         {/* Render filtered prescriptions if needed */}
       </div>
       <div className="bg-slate-900 max-w-xl rounded-xl mx-auto text-gray-100 text-center">
@@ -321,13 +319,16 @@ const Analytics = ({
           <h3 className="text-blue-100 text-lg font-semibold pb-1">
             Payment Mode Summary
           </h3>
-        <div className="capitalize">
+          <div className="capitalize">
             {Object.keys(paymentData).map((mode) => (
               <p key={mode}>
                 {mode}
                 {": "}
-                {paymentData[mode].count} ({" "}<span className="text-blue-500">
-                {parseFloat(paymentData[mode].total.toFixed(2))}/-</span> )
+                {paymentData[mode].count} ({" "}
+                <span className="text-blue-500">
+                  {parseFloat(paymentData[mode].total.toFixed(2))}/-
+                </span>{" "}
+                )
               </p>
             ))}
           </div>
