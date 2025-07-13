@@ -150,7 +150,8 @@ export async function GET(req) {
     }
     let userOrderQuery = pending === "1" ? {} : { createdAt: -1 };
     if (isReturn === "1") {
-      query.returns = { $exists: true, $not: { $size: 0 } };
+      // query.returns = { $exists: true, $not: { $size: 0 } };
+      query["returns.0"] = { $exists: true };
     }
     const allPharmacyInvoices = await PharmacyInvoice.find(query)
       .sort(userOrderQuery)

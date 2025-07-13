@@ -1,7 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 
 function UploadPathLabReport() {
   const [tests, setTests] = useState([]);
@@ -14,7 +12,6 @@ function UploadPathLabReport() {
   const [submitting, setSubmitting] = useState(null);
   const [createdAt, setCreatedAt] = useState("");
   const [isAddInfoOpen, setIsAddInfoOpen] = useState(false);
-  const [isExternalReport, setIsExternalReport] = useState(false);
 
   const [results, setResults] = useState();
   useEffect(() => {
@@ -104,7 +101,6 @@ function UploadPathLabReport() {
           testResults,
           selectedTest,
           selectedPrescription,
-          isExternalReport,
           resultDate: createdAt,
         }),
       });
@@ -135,7 +131,6 @@ function UploadPathLabReport() {
           )
         );
         setTestFormat(null);
-        setIsExternalReport(false);
         setSelectedTest("");
         setSelectedPrescription("");
       } else {
@@ -270,15 +265,6 @@ function UploadPathLabReport() {
               </div>
             )}
             <div className="px-4 flex justify-end items-center gap-4">
-              <Label htmlFor="isExternal" className="flex gap-2 items-center">
-                <Checkbox
-                  id="isExternal"
-                  className="size-6 border border-white text-black data-[state=checked]:bg-white data-[state=checked]:text-black data-[state=unchecked]:bg-transparent data-[state=unchecked]:border-white"
-                  checked={isExternalReport}
-                  onCheckedChange={() => setIsExternalReport((val) => !val)}
-                />
-                Check It if Report is External
-              </Label>
               <button
                 type="submit"
                 className="px-3 py-2 my-3 flex items-center justify-center gap-2 bg-red-500 rounded-lg font-semibold cursor-pointer text-white"

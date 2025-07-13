@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import PharmacyInvoice from "../../models/PharmacyInvoice";
+import { Medicine } from "@/app/models";
 
 function getDates() {
   const now = new Date();
@@ -27,6 +28,93 @@ function getDates() {
   const startUTC = new Date(startIST.getTime());
   const endUTC = new Date(endIST.getTime());
   return { startUTC, endUTC };
+}
+
+async function getAnalytics(startDate, endDate) {
+  const invoicesQuery = {
+    createdAt: { $gte: startDate, $lt: endDate },
+    "price.total": { $exists: true, $ne: null },
+  };
+
+  const pharmacyInvoices = await PharmacyInvoice.find(invoicesQuery).select(
+    "paymentMode payments inid price isDelivered createdAt returns"
+  );
+
+  const returnQuery = {
+    "returns.createdAt": { $gte: startDate, $lt: endDate },
+  };
+
+  const returnInvoices = await PharmacyInvoice.find(returnQuery).select(
+    "returns inid patientId createdAt"
+  );
+
+  // Step 3: Categorize returns: paid vs unpaid
+  let paid = 0,
+    unpaid = 0;
+  const medicineReturnMap = new Map();
+
+  for (const inv of returnInvoices) {
+    for (const ret of inv.returns || []) {
+      if (ret.createdAt >= startDate && ret.createdAt < endDate) {
+        if (ret.isReturnAmtPaid) paid++;
+        else unpaid++;
+
+        for (const med of ret.medicines || []) {
+          const medId = med.medicineId.toString();
+
+          for (const stock of med.returnStock || []) {
+            const qty =
+              (stock.quantity?.strips || 0) + (stock.quantity?.tablets || 0);
+            const price = stock.price || 0;
+
+            if (!medicineReturnMap.has(medId)) {
+              medicineReturnMap.set(medId, {
+                medicineId: medId,
+                quantity: 0,
+                totalAmount: 0,
+              });
+            }
+
+            const existing = medicineReturnMap.get(medId);
+            existing.quantity += qty;
+            existing.totalAmount += price;
+          }
+        }
+      }
+    }
+  }
+
+  // Final array from Map
+
+  const medicineIds = Array.from(medicineReturnMap.keys());
+
+  // STEP 2: Bulk fetch medicines from DB with only `_id` and `name`
+  const medicines = await Medicine.find({ _id: { $in: medicineIds } })
+    .select("_id name")
+    .lean();
+
+  // STEP 3: Create a map of id → name
+  const medicineIdNameMap = new Map(
+    medicines.map((m) => [m._id.toString(), m.name])
+  );
+
+  const medicineWiseReturn = Array.from(medicineReturnMap.entries()).map(
+    ([id, data]) => ({
+      name: medicineIdNameMap.get(id) || "Unknown",
+      quantity: data.quantity,
+      totalAmount: data.totalAmount,
+    })
+  );
+
+  return {
+    pharmacyInvoices,
+    returnSummary: {
+      totalReturnInvoices: returnInvoices.length,
+      paid,
+      unpaid,
+      medicineWiseReturn,
+    },
+  };
 }
 
 export async function GET(req) {
@@ -60,20 +148,15 @@ export async function GET(req) {
   try {
     let { startUTC, endUTC } = getDates();
 
-    let query = {
-      createdAt: {
-        $gte: startUTC,
-        $lt: endUTC,
-      },
-      // isDelivered: { $type: "date" },
-      "price.total": { $exists: true, $ne: null },
-    };
-    const pharmacyInvoices = await PharmacyInvoice.find(query).select(
-      "paymentMode payments inid price isDelivered createdAt"
+    const { pharmacyInvoices, returnSummary } = await getAnalytics(
+      startUTC,
+      endUTC
     );
+
     return NextResponse.json(
       {
         pharmacyInvoices,
+        returnSummary,
         success: true,
       },
       { status: 200 }
@@ -136,21 +219,15 @@ export async function POST(req) {
 
     let end = endDateTime ? getUTCDateTime(endDateTime) : endUTC;
 
-    let query = {
-      createdAt: {
-        $gte: start,
-        $lt: end,
-      },
-      // isDelivered: { $type: "date" },
-      "price.total": { $exists: true, $ne: null },
-    };
-    const pharmacyInvoices = await PharmacyInvoice.find(query).select(
-      "paymentMode payments inid price isDelivered createdAt"
-    );
-    // Send response with UID
+    const { pharmacyInvoices, returnSummary } = await getAnalytics(start, end);
+
     return NextResponse.json(
-      { pharmacyInvoices, success: true },
-      { status: 201 }
+      {
+        pharmacyInvoices,
+        returnSummary,
+        success: true,
+      },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error during registration:", error);

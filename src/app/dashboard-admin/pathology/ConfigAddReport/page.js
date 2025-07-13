@@ -1,21 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Navbar from "../../../components/Navbar";
-import Footer from "../../../components/Footer";
-import { IoPersonAdd } from "react-icons/io5";
-import AddLabReportSection from "../../../components/AddLabReportSection";
+import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
+import AddLabReportSection from "@/app/components/AddLabReportSection";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { MdAssignmentAdd } from "react-icons/md";
 
 function Page() {
   const [tests, setTests] = useState([]);
   const [newUserSection, setNewUserSection] = useState(false);
-
-  const tests1 = [
-    { name: "blood test", _id: "14fvsd", ltid: "yebdjh", price: 200 },
-    { name: "liver test", _id: "15sdvds", ltid: "yebdjh", price: 200 },
-    { name: "urine test", _id: "18fscevsd", ltid: "yebdjh", price: 200 },
-    { name: "hand test", _id: "betb14fvsd", ltid: "yebdjh", price: 200 },
-  ];
 
   useEffect(() => {
     async function fetchData() {
@@ -43,42 +38,60 @@ function Page() {
         <></>
       )}
       <div className="flex flex-col min-h-screen bg-gray-200">
-        <Navbar route={["Admins"]} />
+        <Navbar route={["Test Reports"]} />
         <main className="flex-grow">
-          <div className="px-2 lg:px-4 max-w-screen-xl mx-auto">
-            <div className="h-16 py-2 flex justify-center gap-2 items-center">
-              <button
-                onClick={() => {
-                  setNewUserSection((newUserSection) => !newUserSection);
-                }}
-                className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
+          <div className="px-4 max-w-3xl mx-auto space-y-2">
+            {/* Top bar: Add button + Header */}
+            <div className="flex items-center justify-between gap-3 py-2">
+              <div className="text-sm font-medium bg-black text-white px-4 py-1.5 rounded-full">
+                Lab Reports Models
+              </div>
+              <Button
+                onClick={() => setNewUserSection((prev) => !prev)}
+                className="flex items-center gap-2 h-9 px-4 rounded-full text-sm font-medium"
               >
-                <IoPersonAdd />
-                <div>Add</div>
-              </button>
+                <MdAssignmentAdd className="text-base" />
+                Add
+              </Button>
             </div>
-            <div className=" w-1/2 py-3 text-lg font-bold mx-auto text-center rounded-full bg-black text-white">
-              Lab Reports Models
-            </div>
-            <div className="flex flex-wrap justify-center w-full gap-3 p-3">
-              {tests.map((test, index) => {
-                return (
-                  <div
-                    className="py-4 w-full md:w-2/5 text-sm font-semibold text-center rounded-xl bg-black hover:bg-gray-900 text-white"
-                    key={index}
-                  >
-                    <div>{test.ltid}</div>
-                    <div className="text-2xl font-bold capitalize">
-                      {test.name + ", " + test.price + "/-"}
+            <div className="w-full space-y-2">
+              {tests.map((test, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-sm shadow-sm"
+                >
+                  {/* Left Section */}
+                  <div className="grid grid-cols-3 overflow-hidden flex-1">
+                    <div className="w-full">
+                      <span className="text-sm text-black dark:text-white font-medium truncate max-w-[200px]">
+                        {test.name}
+                      </span>
+                      {test.isExternalReport && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-800 text-green-300 px-2 py-0.5 text-xs mx-2"
+                        >
+                          External
+                        </Badge>
+                      )}
                     </div>
-                    <Link href={`ConfigAddReport/${test._id}`}>
-                      <div className="bg-white text-black py-3 px-4 font-bold mt-1 w-20 mx-auto rounded-full">
-                        Edit
-                      </div>
-                    </Link>
+                    <div className="text-black">₹{test.price}</div>
+                    <div className="text-gray-600 dark:text-gray-300 truncate w-full">
+                      {test.ltid}
+                    </div>
                   </div>
-                );
-              })}
+
+                  {/* Right: Edit Button */}
+                  <Link href={`ConfigAddReport/${test._id}`}>
+                    <Button
+                      variant="ghost"
+                      className="rounded-full bg-white text-black dark:bg-white dark:text-black h-8 px-4 text-xs font-semibold hover:bg-gray-100"
+                    >
+                      Edit
+                    </Button>
+                  </Link>
+                </div>
+              ))}
             </div>
           </div>
         </main>

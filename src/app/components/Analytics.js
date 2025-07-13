@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Navbar from "./Navbar";
 import { formatDateTimeToIST } from "@/app/utils/date";
+import { showError } from "../utils/toast";
 
 const Analytics = ({
   prescriptions,
@@ -21,6 +22,12 @@ const Analytics = ({
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
   const [showSubtotal, setShowSubtotal] = useState(false);
+  const [externalTestDetails, setExternalTestDetails] = useState({
+    totalPrescriptions: 0,
+    count: 0,
+    totalAmount: 0,
+    testWise: [],
+  });
   const pressedKeys = useRef(new Set());
 
   const handleKeyDown = (event) => {
@@ -79,7 +86,7 @@ const Analytics = ({
         }));
         setDateRange({ from: result.startDate, to: result.endDate });
       } else {
-        setMessage(result.message);
+        showError(result.message);
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -174,12 +181,39 @@ const Analytics = ({
   const departmentData = departmentSummary();
   // const salesmanData = salesmanSummary();
 
+  async function handleGetExtrernalTest() {
+    setSubmitting(true);
+    try {
+      let result = await fetch("/api/analytics?externalTest=1", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // body: JSON.stringify(dateRange),
+        body: JSON.stringify({ startDateTime, endDateTime }),
+      });
+
+      result = await result.json();
+      if (result.success) {
+        setExternalTestDetails({
+          totalPrescriptions: result.totalPrescriptions,
+          count: result.count,
+          totalAmount: result.totalAmount,
+          testWise: result.testWise,
+        });
+      } else {
+        showError(result.message);
+      }
+    } catch (error) {
+      console.error("Error submitting application:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <div className="bg-black min-h-screen">
       <Navbar route={["Analytics"]} />
-      {message && (
-        <div className="my-1 w-full text-center text-red-500">{message}</div>
-      )}
 
       <div className="w-full flex flex-wrap justify-center gap-3 my-2">
         <div className="flex justify-center items-center px-3 py-2 gap-2 bg-gray-700 rounded-xl shadow-sm focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
@@ -265,90 +299,91 @@ const Analytics = ({
           <option value="UPI">UPI</option>
         </select>
       </div>
-      <div className="p-2 space-y-2">
-        <div className="font-semibold text-center">Date Range</div>
-        <div className="flex flex-wrap justify-center items-center gap-2">
-          <div className="bg-blue-800 p-1 text-sm rounded text-white">
-            From:{" "}
-            <span className="font-semibold uppercase">
-              {formatDateTimeToIST(dateRange.from)}
+      <div className="py-4">
+        <div className="p-2 space-y-2">
+          <div className="font-semibold text-center">Date Range</div>
+          <div className="flex flex-wrap justify-center items-center gap-2">
+            <div className="bg-blue-800 p-1 text-sm rounded text-white">
+              From:{" "}
+              <span className="font-semibold uppercase">
+                {formatDateTimeToIST(dateRange.from)}
+              </span>
+            </div>
+            <div className="bg-blue-800 p-1 text-sm rounded text-white">
+              To:{" "}
+              <span className="font-semibold uppercase">
+                {formatDateTimeToIST(dateRange.to)}
+              </span>
+            </div>
+          </div>
+          <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl gap-x-5">
+            <span>
+              Prescriptions:{" "}
+              <span className="font-bold">{filteredPrescriptions.length}</span>
+            </span>
+            <span>
+              Total Amount:{" "}
+              <span className="font-bold">
+                {showSubtotal ? getSubTotalAmount() : getTotalAmount()}
+              </span>
+              /-
+            </span>
+            {/* Render filtered prescriptions if needed */}
+          </div>
+          <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl gap-x-5">
+            <span>
+              Expenses: <span className="font-bold">{expenses.length}</span>
+            </span>
+            <span>
+              Total Amount:{" "}
+              <span className="font-bold">
+                {expenses.reduce((total, expense) => total + expense.amount, 0)}
+              </span>
+              /-
             </span>
           </div>
-          <div className="bg-blue-800 p-1 text-sm rounded text-white">
-            To:{" "}
-            <span className="font-semibold uppercase">
-              {formatDateTimeToIST(dateRange.to)}
-            </span>
-          </div>
-        </div>
-        <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl gap-x-5">
-          <span>
-            Prescriptions:{" "}
-            <span className="font-bold">{filteredPrescriptions.length}</span>
-          </span>
-          <span>
-            Total Amount:{" "}
-            <span className="font-bold">
-              {showSubtotal ? getSubTotalAmount() : getTotalAmount()}
-            </span>
-            /-
-          </span>
           {/* Render filtered prescriptions if needed */}
         </div>
-        <div className="w-full text-gray-100 flex flex-wrap justify-center text-2xl gap-x-5">
-          <span>
-            Expenses: <span className="font-bold">{expenses.length}</span>
-          </span>
-          <span>
-            Total Amount:{" "}
-            <span className="font-bold">
-              {expenses.reduce((total, expense) => total + expense.amount, 0)}
-            </span>
-            /-
-          </span>
-        </div>
-        {/* Render filtered prescriptions if needed */}
-      </div>
-      <div className="bg-slate-900 max-w-xl rounded-xl mx-auto text-gray-100 text-center">
-        <h2 className="text-blue-300 text-2xl font-semibold py-1 border-b-2 border-gray-800">
-          Analytics
-        </h2>
+        <div className="bg-slate-900 max-w-xl rounded-xl mx-auto text-gray-100 text-center">
+          <h2 className="text-blue-300 text-2xl font-semibold py-1 border-b-2 border-gray-800">
+            Analytics
+          </h2>
 
-        {/* Section 2: Payment Mode Summary */}
-        <div className="border-b-2 border-gray-800 p-2">
-          <h3 className="text-blue-100 text-lg font-semibold pb-1">
-            Payment Mode Summary
-          </h3>
-          <div className="capitalize">
-            {Object.keys(paymentData).map((mode) => (
-              <p key={mode}>
-                {mode}
-                {": "}
-                {paymentData[mode].count} ({" "}
-                <span className="text-blue-500">
-                  {parseFloat(paymentData[mode].total.toFixed(2))}/-
-                </span>{" "}
-                )
+          {/* Section 2: Payment Mode Summary */}
+          <div className="border-b-2 border-gray-800 p-2">
+            <h3 className="text-blue-100 text-lg font-semibold pb-1">
+              Payment Mode Summary
+            </h3>
+            <div className="capitalize">
+              {Object.keys(paymentData).map((mode) => (
+                <p key={mode}>
+                  {mode}
+                  {": "}
+                  {paymentData[mode].count} ({" "}
+                  <span className="text-blue-500">
+                    {parseFloat(paymentData[mode].total.toFixed(2))}/-
+                  </span>{" "}
+                  )
+                </p>
+              ))}
+            </div>
+          </div>
+
+          {/* Section 3: Department Summary */}
+          <div className="p-2">
+            <h3 className="text-blue-100 text-lg font-semibold pb-1">
+              Department Summary
+            </h3>
+            {Object.keys(departmentData).map((department) => (
+              <p key={department}>
+                {department}: {departmentData[department].count} prescriptions ({" "}
+                {departmentData[department].total}/- )
               </p>
             ))}
           </div>
-        </div>
 
-        {/* Section 3: Department Summary */}
-        <div className="p-2">
-          <h3 className="text-blue-100 text-lg font-semibold pb-1">
-            Department Summary
-          </h3>
-          {Object.keys(departmentData).map((department) => (
-            <p key={department}>
-              {department}: {departmentData[department].count} prescriptions ({" "}
-              {departmentData[department].total}/- )
-            </p>
-          ))}
-        </div>
-
-        {/* Section 4: Salesman Summary */}
-        {/* <div className="section">
+          {/* Section 4: Salesman Summary */}
+          {/* <div className="section">
           <h3>Salesman Summary</h3>
           {Object.keys(salesmanData).map((salesmanId) => (
             <p key={salesmanId}>
@@ -357,6 +392,60 @@ const Analytics = ({
             </p>
           ))}
         </div> */}
+        </div>
+        <div className="bg-slate-900 max-w-xl rounded-xl mx-auto text-gray-100 text-center my-2 p-2">
+          <div className="font-semibold">External Test Details</div>
+          <button
+            onClick={handleGetExtrernalTest}
+            className="px-3 py-1 my-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Get Details
+          </button>
+          <div className="text-lg font-semibold">
+            Prescriptions:{" "}
+            <span className="text-blue-600">
+              {externalTestDetails.totalPrescriptions}
+            </span>
+          </div>
+          <div className="text-lg font-semibold">
+            Count:{" "}
+            <span className="text-blue-600">{externalTestDetails.count}</span>
+          </div>
+          <div className="text-lg font-semibold">
+            Amount:{" "}
+            <span className="text-blue-600">
+              {externalTestDetails.totalAmount}
+            </span>
+          </div>
+
+          {externalTestDetails.testWise.length > 0 && (
+            <div className="p-2 text-white">
+              <hr />
+              <div className="p-1 font-semibold">Test Wise Data</div>
+              <div className="grid grid-cols-4 gap-4 text-sm font-semibold dark:text-gray-300 border-b pb-2 mb-2">
+                <div>Test Name</div>
+                <div className="text-center">Count</div>
+                <div className="text-center">Price</div>
+                <div className="text-right">Total</div>
+              </div>
+              {externalTestDetails.testWise.map((test) => (
+                <div
+                  key={test._id}
+                  className="grid grid-cols-4 gap-4 text-sm py-1 border-b"
+                >
+                  <div className="truncate" title={test.name}>
+                    {test.name}
+                  </div>
+                  <div className="text-center">{test.count}</div>
+                  <div className="text-center">₹{test.price}</div>
+                  <div className="text-right font-medium">
+                    ₹{test.totalAmount}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -12,7 +12,11 @@ import Report from "./Report";
 import AdvPrescSearch from "./AdvPrescSearch";
 import BlankPrescription from "./BlankPrescription";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 function PrescriptionsSearchList({
   prescriptions,
@@ -289,13 +293,6 @@ function PrescriptionsSearchList({
                                 matchingTest.isCompleted ? (
                                   <span className="text-green-700 flex justify-center items-center gap-1">
                                     <span>Completed</span>
-                                    {matchingTest.isExternalReport ? (
-                                      <span className="py-0.5 px-1 text-xs font-semibold bg-violet-300 rounded-lg text-violet-700">
-                                        External
-                                      </span>
-                                    ) : (
-                                      ""
-                                    )}
                                   </span>
                                 ) : (
                                   <span className="text-red-500">Pending</span>

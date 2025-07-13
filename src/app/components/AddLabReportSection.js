@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import Loading from "./Loading";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 function AddLabReportSection({ setNewUserSection, setTests }) {
   const [submitting, setSubmitting] = useState(false);
@@ -40,11 +42,12 @@ function AddLabReportSection({ setNewUserSection, setTests }) {
     fetchData();
   }, []);
 
-  const { register, control, handleSubmit, reset } = useForm({
+  const { register, control, handleSubmit, reset, watch, setValue } = useForm({
     defaultValues: {
       name: "",
       price: null,
       items: [], // No items initially
+      isExternalReport: false,
     },
   });
 
@@ -117,10 +120,23 @@ function AddLabReportSection({ setNewUserSection, setTests }) {
                   placeholder="Price"
                 />
               </div>
+              <Label htmlFor="isExternal" className="flex gap-2 items-center">
+                <Checkbox
+                  id="isExternal"
+                  className="size-4 md:size-6 border border-white text-black data-[state=checked]:bg-white data-[state=checked]:text-black data-[state=unchecked]:bg-transparent data-[state=unchecked]:border-white"
+                  checked={watch("isExternalReport")}
+                  onCheckedChange={() => {
+                    setValue("isExternalReport", !watch("isExternalReport"));
+                  }}
+                />
+                Check It if Report is External
+              </Label>
 
               {/* Items (item name and price) */}
               <div>
-                <h3 className="font-semibold text-lg mb-2 text-gray-100">Items</h3>
+                <h3 className="font-semibold text-lg mb-2 text-gray-100">
+                  Items
+                </h3>
                 {fields.length === 0 && (
                   <p className="text-gray-500">
                     No items added yet. Click <u>Add Item</u> to start.
@@ -164,7 +180,11 @@ function AddLabReportSection({ setNewUserSection, setTests }) {
                       >
                         <option value="">Unit</option>
                         {units.map((unit, index) => {
-                          return <option value={unit.name} key={index}>{unit.name}</option>;
+                          return (
+                            <option value={unit.name} key={index}>
+                              {unit.name}
+                            </option>
+                          );
                         })}
                       </select>
                     </div>

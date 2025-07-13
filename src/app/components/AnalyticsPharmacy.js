@@ -1,15 +1,47 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import Loading from "./Loading";
+import { showError } from "../utils/toast";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
+const AnalyticsPharmacy = () => {
   const [selectedPaymentMode, setSelectedPaymentMode] = useState("");
+  const [pharmacyInvoices, setPharmacyInvoices] = useState([]);
+  const [returnSummary, setReturnSummary] = useState([]);
   const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState(null);
   const [invoiceType, setInvoiceType] = useState("Today");
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
+
+  useEffect(() => {
+    async function fetchPharmacyInvoices() {
+      try {
+        let result = await fetch("/api/analyticsPharmacy");
+        result = await result.json();
+        if (result.success) {
+          setPharmacyInvoices(result.pharmacyInvoices);
+          setReturnSummary(result.returnSummary);
+        }
+      } catch (err) {
+        console.log("error: ", err);
+      }
+    }
+    fetchPharmacyInvoices();
+  }, []);
 
   const onSubmit = async () => {
     setSubmitting(true);
@@ -25,9 +57,10 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
       result = await result.json();
       if (result.success) {
         setPharmacyInvoices(result.pharmacyInvoices);
+        setReturnSummary(result.returnSummary);
         setInvoiceType("Search");
       } else {
-        setMessage(result.message);
+        showError(result.message);
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -101,6 +134,7 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
         p.payments.forEach((subPayment) => {
           const subMode = subPayment.type.toLowerCase();
           const subAmount = subPayment.amount;
+          if (!subAmount || subAmount === 0) return;
 
           if (!summary[subMode]) {
             summary[subMode] = { count: 0, total: 0 };
@@ -126,155 +160,261 @@ const AnalyticsPharmacy = ({ pharmacyInvoices, setPharmacyInvoices }) => {
   const paymentData = paymentSummary();
   // const salesmanData = salesmanSummary();
 
+  if (!pharmacyInvoices) {
+    return (
+      <div className="min-h-screen bg-slate-900 w-full flex flex-col justify-center items-center">
+        <Loading size={50} />
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-black min-h-screen flex flex-col items-center">
       <div className="w-full">
         <Navbar route={["Pharmacy", "Analytics"]} />
       </div>
-      {message && (
-        <div className="my-1 w-full text-center text-red-500">{message}</div>
-      )}
 
-      <div className="w-full flex flex-wrap justify-center gap-3 my-2">
-        <div className="flex justify-center items-center px-3 py-2 gap-2 bg-gray-700 rounded-xl shadow-sm focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
-          <label
+      <div className="w-full flex flex-wrap justify-center items-center gap-3 my-4">
+        <div className="flex flex-col md:flex-row min-w-40 gap-2 items-center bg-zinc-800 p-3 rounded-xl shadow">
+          <Label
             htmlFor="sdate"
-            className=" text-sm lg:text-base font-semibold text-blue-200"
+            className="text-blue-300 text-sm font-medium text-nowrap"
           >
-            Start Date :
-          </label>
-          <input
+            Start Date
+          </Label>
+          <Input
             id="sdate"
             type="datetime-local"
-            onChange={(e) => {
-              setStartDateTime(e.target.value);
-            }}
-            className="block text-white focus:outline-none bg-transparent"
+            value={startDateTime}
+            onChange={(e) => setStartDateTime(e.target.value)}
+            className="bg-zinc-900 text-white border border-zinc-700"
           />
         </div>
-        <div className="flex justify-center items-center px-3 py-2 gap-2 bg-gray-700 rounded-xl shadow-sm focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out">
-          <label
+
+        <div className="flex flex-col md:flex-row min-w-40 gap-2 items-center bg-zinc-800 p-3 rounded-xl shadow">
+          <Label
             htmlFor="edate"
-            className=" text-sm lg:text-base font-semibold text-blue-200"
+            className="text-blue-300 text-sm font-medium text-nowrap"
           >
-            End Date :
-          </label>
-          <input
+            End Date
+          </Label>
+          <Input
             id="edate"
             type="datetime-local"
-            onChange={(e) => {
-              setEndDateTime(e.target.value);
-            }}
-            className="block text-white bg-transparent focus:outline-none"
+            value={endDateTime}
+            onChange={(e) => setEndDateTime(e.target.value)}
+            className="bg-zinc-900 text-white border border-zinc-700"
           />
         </div>
-        <button
+
+        <Button
           onClick={onSubmit}
-          className="px-3 py-2 my-2 flex items-center justify-center gap-2 bg-blue-500 rounded-lg font-semibold cursor-pointer text-white"
+          disabled={submitting}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
         >
           {submitting ? "Searching..." : "Search"}
-        </button>
+        </Button>
       </div>
-      <div className="w-full flex flex-wrap items-center justify-center gap-2 bg-slate-800 p-3 text-gray-100">
-        {/* <select
-          onChange={(e) => setSelectedSalesman(e.target.value)}
-          className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+
+      {/* Filters */}
+      <div className="w-full flex flex-wrap items-center justify-center gap-4 bg-zinc-900 p-4 rounded-xl text-white mb-4">
+        {/* Uncomment if salesman filter needed */}
+        {/* <Select onValueChange={setSelectedSalesman}>
+          <SelectTrigger className="w-[200px] bg-zinc-800 text-white border border-zinc-700">
+            <SelectValue placeholder="Select Salesman" />
+          </SelectTrigger>
+          <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
+            {salesmen.map((sales) => (
+              <SelectItem key={sales._id} value={sales._id}>
+                {sales.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select> */}
+
+        <Select
+          onValueChange={setSelectedPaymentMode}
+          defaultValue={selectedPaymentMode}
         >
-          <option value="">Select Salesman</option>
-          {salesmen.map((sales) => (
-            <option key={sales._id} value={sales._id}>
-              {sales.name}
-            </option>
-          ))}
-        </select> */}
-        <select
-          onChange={(e) => setSelectedPaymentMode(e.target.value)}
-          className="block text-white w-full md:w-2/5 lg:w-52 px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        >
-          <option value="">Select Payment Mode</option>
-          <option value="Card">Card</option>
-          <option value="Cash">Cash</option>
-          <option value="UPI">UPI</option>
-        </select>
+          <SelectTrigger className="w-[200px] bg-zinc-800 text-white border border-zinc-700">
+            <SelectValue placeholder="Select Payment Mode" />
+          </SelectTrigger>
+          <SelectContent className="bg-zinc-900 text-white">
+            <SelectItem value="Card">Card</SelectItem>
+            <SelectItem value="Cash">Cash</SelectItem>
+            <SelectItem value="UPI">UPI</SelectItem>
+            <SelectItem value="mixed">Mixed</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-      <div className="font-bold text-xl text-center text-slate-300 bg-gray-800 rounded-lg py-1 px-3 my-1">
+
+      {/* Invoice Type Display */}
+      <div className="font-bold text-lg text-center text-slate-300 bg-zinc-800 rounded-lg py-2 px-4">
         {invoiceType}
       </div>
-      <div className="w-full text-gray-100 flex flex-col items-center">
-        <div className="flex justify-center gap-5 text-2xl">
-          <span>
-            No of Invoices:{" "}
-            <span className="font-bold">{totalsData.totalCount}</span>
-          </span>
-          <span>
-            Total Amount:{" "}
-            <span className="font-bold">
-              {parseFloat(totalsData.totalAmount.toFixed(2))}
-            </span>
-            /-
-          </span>
-        </div>
-        <div className="flex justify-center gap-4">
-          <div className="text-xl">
-            No. of Discount Inv.: {totalsData.discountCount}
-          </div>
-          <div className="text-xl">
-            Total Discount Amt:{" "}
-            {parseFloat(totalsData.discountAmount.toFixed(2))}
-          </div>
-          <div className="text-xl">
-            Sub Total: {parseFloat(totalsData.subtotalAmount.toFixed(2))}
-          </div>
-        </div>
-        {
-          <div className="flex justify-center gap-5 text-xl">
-            <span>
-              No of Undelivered Inv:{" "}
-              <span className="font-bold">{totalsData.undeliveredCount}</span>
-            </span>
-            <span>
-              Total Undelivered Inv Amt:{" "}
-              <span className="font-bold">
-                {parseFloat(totalsData.undeliveredAmount.toFixed(2))}
-              </span>
-              /-
-            </span>
-          </div>
-        }
-      </div>
+      <div className="w-full max-w-3xl mx-auto space-y-4 text-white p-2">
+        {/* Invoice Totals */}
+        <Card className="bg-zinc-900 border border-zinc-700">
+          <CardHeader>
+            <CardTitle className="text-white text-xl">
+              Invoice Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-white">
+            <div className="grid sm:grid-cols-2 gap-4 text-center">
+              <div className="bg-zinc-800 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">No. of Invoices</p>
+                <p className="text-2xl font-bold">{totalsData.totalCount}</p>
+              </div>
+              <div className="bg-zinc-800 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">Total Amount</p>
+                <p className="text-2xl font-bold">
+                  ₹{parseFloat(totalsData.totalAmount.toFixed(2))}/-
+                </p>
+              </div>
+            </div>
 
-      <div className="bg-slate-900 max-w-xl w-full rounded-xl mx-auto text-gray-100 text-center">
-        <h2 className="text-blue-300 text-2xl font-semibold py-1 border-b-2 border-gray-800">
-          Analytics
-        </h2>
+            <div className="grid sm:grid-cols-3 gap-4 text-center">
+              <div className="bg-zinc-800 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  Discount Invoices
+                </p>
+                <p className="text-xl font-semibold">
+                  {totalsData.discountCount}
+                </p>
+              </div>
+              <div className="bg-zinc-800 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  Total Discount Amount
+                </p>
+                <p className="text-xl font-semibold">
+                  ₹{parseFloat(totalsData.discountAmount.toFixed(2))}
+                </p>
+              </div>
+              <div className="bg-zinc-800 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">Sub Total</p>
+                <p className="text-xl font-semibold">
+                  ₹{parseFloat(totalsData.subtotalAmount.toFixed(2))}
+                </p>
+              </div>
+            </div>
 
-        {/* Section 2: Payment Mode Summary */}
-        <div className="p-2">
-          <h3 className="text-blue-100 text-lg font-semibold pb-1">
-            Payment Mode Summary
-          </h3>
-          <div className="capitalize">
-            {Object.keys(paymentData).map((mode) => (
-              <p key={mode}>
-                {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                {" - "}
-                {paymentData[mode].count} ({" "}
-                {parseFloat(paymentData[mode].total.toFixed(2))}/- )
+            <div className="grid sm:grid-cols-2 gap-4 text-center">
+              <div className="bg-zinc-800 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  Undelivered Invoices
+                </p>
+                <p className="text-xl font-semibold">
+                  {totalsData.undeliveredCount}
+                </p>
+              </div>
+              <div className="bg-zinc-800 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  Undelivered Invoice Amount
+                </p>
+                <p className="text-xl font-semibold">
+                  ₹{parseFloat(totalsData.undeliveredAmount.toFixed(2))}/-
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Payment Mode Summary */}
+        <Card className="bg-zinc-900 border border-zinc-700">
+          <CardHeader>
+            <CardTitle className="text-white text-xl">
+              Payment Mode Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-white">
+            {Object.keys(paymentData).length > 0 ? (
+              Object.keys(paymentData).map((mode) => (
+                <div
+                  key={mode}
+                  className="grid grid-cols-3 border-b border-zinc-700 py-1 px-2"
+                >
+                  <span className="capitalize">{mode}</span>
+                  <span className="text-center">
+                    {paymentData[mode].count} Inv
+                  </span>
+                  <span className="text-end">
+                    ₹{parseFloat(paymentData[mode].total.toFixed(2))}/-
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-muted-foreground">
+                No payment data available.
               </p>
-            ))}
-          </div>
-        </div>
+            )}
+          </CardContent>
+        </Card>
+        <Card className="bg-zinc-900 border border-zinc-700">
+          <CardHeader>
+            <CardTitle className="text-lg text-white">Return Summary</CardTitle>
+          </CardHeader>
 
-        {/* Section 4: Salesman Summary */}
-        {/* <div className="section">
-          <h3>Salesman Summary</h3>
-          {Object.keys(salesmanData).map((salesmanId) => (
-            <p key={salesmanId}>
-              {salesmanData[salesmanId].name}: {salesmanData[salesmanId].count}{" "}
-              prescriptions (${salesmanData[salesmanId].total})
-            </p>
-          ))}
-        </div> */}
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+              <div className="bg-zinc-800 p-4 rounded-lg">
+                <p className="text-sm text-zinc-400">Total Return Invoices</p>
+                <p className="text-xl font-semibold text-white">
+                  {returnSummary?.totalReturnInvoices || 0}
+                </p>
+              </div>
+              <div className="bg-green-900 p-4 rounded-lg">
+                <p className="text-sm text-green-300">Paid Returns</p>
+                <p className="text-xl font-semibold text-green-100">
+                  {returnSummary?.paid || 0}
+                </p>
+              </div>
+              <div className="bg-red-900 p-4 rounded-lg">
+                <p className="text-sm text-red-300">Unpaid Returns</p>
+                <p className="text-xl font-semibold text-red-100">
+                  {returnSummary?.unpaid || 0}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-medium mb-2 text-white">
+                Medicine-wise Returns
+              </h4>
+              <ScrollArea className="max-h-64 pr-2">
+                {returnSummary?.medicineWiseReturn?.length > 0 ? (
+                  <div className="space-y-2 text-sm">
+                    {returnSummary?.medicineWiseReturn.map((med, idx) => (
+                      <div
+                        key={med.medicineId || idx}
+                        className="flex items-center justify-between border border-zinc-700 rounded p-2 bg-zinc-800"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            title={med.name}
+                            className="truncate max-w-[180px] text-white border-zinc-500"
+                          >
+                            {med.name}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs sm:text-sm text-white">
+                          <span>Qty: {med.quantity}</span>
+                          <span>
+                            Total: ₹{parseFloat(med.totalAmount.toFixed(2))}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-zinc-400 text-sm">No medicine returns.</p>
+                )}
+              </ScrollArea>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -3,6 +3,8 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import Loading from "../../../../components/Loading";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 function Page({ params }) {
   const id = params.id;
@@ -10,11 +12,12 @@ function Page({ params }) {
   const [units, setUnits] = useState([]);
   const [message, setMessage] = useState(null);
 
-  const { register, control, handleSubmit, setValue } = useForm({
+  const { register, control, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
       name: "",
       price: null,
       items: [], // No items initially
+      isExternalReport: false,
     },
   });
 
@@ -40,6 +43,10 @@ function Page({ params }) {
           setValue("items", labTestResult.pathologyLabTest.items);
           setValue("name", labTestResult.pathologyLabTest.name);
           setValue("price", labTestResult.pathologyLabTest.price);
+          setValue(
+            "isExternalReport",
+            labTestResult.pathologyLabTest.isExternalReport
+          );
         }
         console.log(labTestResult.pathologyLabTest, unitResult.units);
       } catch (err) {
@@ -99,6 +106,17 @@ function Page({ params }) {
             placeholder="Price"
           />
         </div>
+        <Label htmlFor="isExternal" className="flex gap-2 items-center">
+          <Checkbox
+            id="isExternal"
+            className="size-4 md:size-6 border border-white text-black data-[state=checked]:bg-white data-[state=checked]:text-black data-[state=unchecked]:bg-transparent data-[state=unchecked]:border-white"
+            checked={watch("isExternalReport")}
+            onCheckedChange={() => {
+              setValue("isExternalReport", !watch("isExternalReport"));
+            }}
+          />
+          Check It if Report is External
+        </Label>
 
         {/* Items (item name and price) */}
         <div>
@@ -181,7 +199,7 @@ function Page({ params }) {
         <div className="flex px-4 gap-3 justify-end">
           <Link
             className="p-2 border text-white border-slate-700 rounded-lg font-semibold"
-            href="/dashboard-admin/pathology/ConfigAddReport"
+            href="./"
           >
             Cancel
           </Link>

@@ -1,5 +1,35 @@
 import mongoose from "mongoose";
 
+const returnSchema = new mongoose.Schema({
+  returnId: String,
+  medicines: [
+    {
+      medicineId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Medicine",
+        required: true,
+      },
+      returnStock: [
+        {
+          batchName: String,
+          expiryDate: Date,
+          sellingPrice: Number,
+          quantity: {
+            strips: Number,
+            tablets: Number,
+          },
+          price: Number,
+        },
+      ],
+    },
+  ],
+  isReturnAmtPaid: Date,
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 const pharmacyInvoiceSchema = new mongoose.Schema({
   patientId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -53,50 +83,7 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
       ],
     },
   ],
-  returns: [
-    {
-      returnId: {
-        type: String,
-      },
-      medicines: [
-        {
-          medicineId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Medicine",
-            required: true,
-          },
-          returnStock: [
-            {
-              batchName: {
-                type: String,
-                required: true,
-              },
-              expiryDate: {
-                type: Date,
-                required: true,
-              },
-              sellingPrice: {
-                type: Number,
-                required: true,
-              },
-              quantity: {
-                strips: { type: Number, default: 0 },
-                tablets: { type: Number, default: 0 },
-              },
-              price: { type: Number },
-            },
-          ],
-        },
-      ],
-      isReturnAmtPaid: {
-        type: Date,
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now,
-      },
-    },
-  ],
+  returns: [returnSchema],
   paymentMode: {
     type: String,
     required: true,
@@ -137,6 +124,8 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+pharmacyInvoiceSchema.index({ "returns.createdAt": 1 });
 
 export default mongoose.models.PharmacyInvoice ||
   mongoose.model("PharmacyInvoice", pharmacyInvoiceSchema);

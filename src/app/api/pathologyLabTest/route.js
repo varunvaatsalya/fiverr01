@@ -47,7 +47,7 @@ export async function GET(req) {
     if (id) {
       pathologyLabTest = await LabTest.findById(id);
     } else {
-      pathologyLabTest = await LabTest.find({}, "_id ltid name price").sort({
+      pathologyLabTest = await LabTest.find({}, "_id ltid name price isExternalReport").sort({
         _id: -1,
       });
     }
@@ -92,7 +92,7 @@ export async function POST(req) {
     );
   }
 
-  const { name, price, items } = await req.json();
+  const { name, price, items, isExternalReport } = await req.json();
 
   try {
     const existingLabTest = await LabTest.findOne({ name });
@@ -111,12 +111,12 @@ export async function POST(req) {
       name,
       price,
       items,
+      isExternalReport: isExternalReport ?? false,
       ltid,
     });
 
     // Save user to the database
     await newLabTest.save();
-
 
     // Send response with UID
     return NextResponse.json({ newLabTest, success: true }, { status: 201 });
@@ -158,8 +158,7 @@ export async function PUT(req) {
     );
   }
 
-  const { id, name, price, items } =
-    await req.json();
+  const { id, name, price, items, isExternalReport } = await req.json();
 
   try {
     // Check if patient exists
@@ -175,6 +174,7 @@ export async function PUT(req) {
     existingLabTest.name = name;
     existingLabTest.price = price;
     existingLabTest.items = items;
+    existingLabTest.isExternalReport = isExternalReport ?? false;
 
     // Save updated patient to the database
     await existingLabTest.save();
@@ -192,4 +192,3 @@ export async function PUT(req) {
     );
   }
 }
-

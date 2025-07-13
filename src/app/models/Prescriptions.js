@@ -61,7 +61,6 @@ const prescriptionSchema = new mongoose.Schema({
         },
       ],
       resultDate: { type: Date },
-      isExternalReport: { type: Boolean },
       isCompleted: { type: Boolean, default: false },
     },
   ],

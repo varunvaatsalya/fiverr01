@@ -5,6 +5,7 @@ import Doctor from "../../models/Doctors";
 import Department from "../../models/Departments";
 import Prescription from "../../models/Prescriptions";
 import { Expense } from "../../models/Expenses";
+import { LabTest } from "@/app/models";
 
 function getDates() {
   const now = new Date();
@@ -62,9 +63,6 @@ export async function GET(req) {
   }
 
   try {
-    const doctors = await Doctor.find({}, "_id name department").exec();
-    const departments = await Department.find({}, "_id name").exec();
-
     let { startUTC, endUTC } = getDates();
 
     const expenses = await Expense.find({
@@ -80,7 +78,7 @@ export async function GET(req) {
         $lt: endUTC, // Until the start of tomorrow
       },
     })
-      .select("-patient -tests") // Exclude the patient field entirely
+      .select("-patient -tests")
       .populate({
         path: "doctor",
         select: "name specialty",
@@ -89,6 +87,9 @@ export async function GET(req) {
         path: "department",
         select: "name",
       });
+
+    const doctors = await Doctor.find({}, "_id name department").exec();
+    const departments = await Department.find({}, "_id name").exec();
 
     return NextResponse.json(
       {
@@ -113,6 +114,9 @@ export async function GET(req) {
 
 export async function POST(req) {
   await dbConnect();
+
+  let externalTest = req.nextUrl.searchParams.get("externalTest");
+
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -164,9 +168,88 @@ export async function POST(req) {
     let dateQuery = {
       createdAt: {
         $gte: start,
-        $lt: end,
+        $lte: end,
       },
     };
+
+    if (externalTest === "1") {
+      // Step 1: Get all external tests
+      const externalTests = await LabTest.find(
+        { isExternalReport: true },
+        "_id name price"
+      ).lean();
+      const externalTestMap = new Map();
+      const externalTestIds = [];
+
+      externalTests.forEach((test) => {
+        externalTestMap.set(test._id.toString(), test);
+        externalTestIds.push(test._id);
+      });
+
+      const prescriptions = await Prescription.find({
+        createdAt: dateQuery.createdAt,
+        "tests.test": { $in: externalTestIds },
+        "tests.isCompleted": true,
+      })
+        .select("tests")
+        .lean();
+
+      let totalPrescriptions = new Set();
+      let totalTests = 0;
+      let totalAmount = 0;
+      const testStats = new Map();
+
+      for (const pres of prescriptions) {
+        let hasCounted = false;
+        for (const t of pres.tests) {
+          const testId = t.test?.toString();
+          if (!testId || !externalTestMap.has(testId)) continue;
+
+          if (!hasCounted) {
+            totalPrescriptions.add(pres._id.toString());
+            hasCounted = true;
+          }
+
+          totalTests += 1;
+          const price = externalTestMap.get(testId).price;
+
+          if (!testStats.has(testId)) {
+            testStats.set(testId, {
+              name: externalTestMap.get(testId).name,
+              price,
+              count: 1,
+              totalAmount: price,
+            });
+          } else {
+            const stat = testStats.get(testId);
+            stat.count += 1;
+            stat.totalAmount += price;
+          }
+
+          totalAmount += price;
+        }
+      }
+
+      const testWise = Array.from(testStats.entries()).map(
+        ([testId, stat]) => ({
+          _id: testId,
+          ...stat,
+        })
+      );
+
+
+      return NextResponse.json(
+        {
+          totalPrescriptions: totalPrescriptions.size,
+          count: totalTests,
+          totalAmount,
+          testWise,
+          success: true,
+        },
+        { status: 200 }
+      );
+    }
+
     const prescriptions = await Prescription.find(dateQuery)
       .select("-patient -tests")
       .populate({

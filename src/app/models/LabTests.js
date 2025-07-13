@@ -11,6 +11,7 @@ const labTestSchema = new mongoose.Schema({
       unit: { type: String, required: true },
     },
   ],
+  isExternalReport: { type: Boolean },
   createdAt: { type: Date, default: Date.now },
 });
 
