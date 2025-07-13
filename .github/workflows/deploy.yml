@@ -7,25 +7,27 @@ on:
 
 jobs:
   deploy:
-    if: ${{ secrets.DEPLOY_ENABLED != 'false' }}
-  
     runs-on: ubuntu-latest
 
+    env:
+      DEPLOY_ENABLED: ${{ secrets.DEPLOY_ENABLED }}
+
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Setup SSH key
-      uses: webfactory/ssh-agent@v0.8.0
-      with:
-        ssh-private-key: ${{ secrets.DO_PRIVATE_KEY }}
+      - name: Setup SSH key
+        if: env.DEPLOY_ENABLED != 'false'
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DO_PRIVATE_KEY }}
 
-    - name: Deploy on server
-      run: |
-        ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} << 'EOF'
-          cd fiverr01
-          git pull origin main
-          npm install
-          NODE_OPTIONS="--max-old-space-size=4096" npm run build
-          pm2 restart fiverr01-app
-        EOF
+      - name: Deploy on server
+        run: |
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} << 'EOF'
+            cd fiverr01
+            git pull origin main
+            npm install
+            NODE_OPTIONS="--max-old-space-size=4096" npm run build
+            pm2 restart fiverr01-app
+          EOF
