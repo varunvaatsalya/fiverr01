@@ -55,7 +55,7 @@ function NewStockForm({ medicines, ids }) {
     }
   }
   return (
-    <div className="w-full px-2">
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full px-2">
       <div className="flex justify-between items-center gap-2 flex-wrap my-1 border-b-2 border-gray-400">
         <div
           className="bg-blue-800 cursor-pointer hover:bg-blue-700 text-white rounded-lg px-3 py-1"
@@ -126,7 +126,7 @@ function NewStockForm({ medicines, ids }) {
           </button>
         </ol>
       )}
-      <form onSubmit={handleSubmit(onSubmit)} className="px-2">
+      <div className="px-2">
         {fields.length > 0 && (
           <>
             <div className="flex flex-wrap items-center gap-2 my-2 bg-gray-800 text-white rounded-lg py-1 px-2">
@@ -353,8 +353,8 @@ function NewStockForm({ medicines, ids }) {
             </button>
           )}
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }
 

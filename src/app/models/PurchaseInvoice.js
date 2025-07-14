@@ -54,6 +54,13 @@ const purchaseInvoiceSchema = new mongoose.Schema({
   isPaid: { type: Boolean, default: false },
   invoiceDate: { type: Date, required: true },
   receivedDate: { type: Date, required: true },
+  createdByRole: {
+    type: String,
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

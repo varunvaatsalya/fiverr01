@@ -233,6 +233,7 @@ export async function POST(req) {
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
+  const userId = decoded._id;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -363,7 +364,6 @@ export async function POST(req) {
         insertedAt: new Date(),
       });
 
-      await invoice.save();
       await newMedicineStock.save();
 
       updatedList = updatedList.filter(
@@ -386,6 +386,10 @@ export async function POST(req) {
         message: ` saved successfully`,
       });
     }
+
+    invoice.createdBy = userRole === "admin" || !userId ? null : userId;
+    invoice.createdByRole = userRole;
+    await invoice.save();
 
     return NextResponse.json(
       { savedStocks, message: "Stocks Added Successfully!", success: true },

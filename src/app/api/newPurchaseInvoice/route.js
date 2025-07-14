@@ -108,6 +108,10 @@ export async function GET(req) {
           path: "medicine",
           select: "name",
         },
+      })
+      .populate({
+        path: "createdBy",
+        select: "name email",
       });
 
     const totalPurchaseInvoices = await Model.countDocuments();

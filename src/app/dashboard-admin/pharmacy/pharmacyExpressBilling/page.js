@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import ExpressBillSearchList from "../../../components/ExpressBillSearchList";
+import ExpressBillSearchList from "@/app/components/ExpressBillSearchList";
 
 function Page() {
   const [expressBill, setExpressBill] = useState([]);

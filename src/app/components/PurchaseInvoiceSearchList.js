@@ -170,6 +170,23 @@ function PurchaseInvoiceSearchList({
                           {formatDateTimeToIST(invoice.createdAt)}
                         </span>
                       </div>
+                      {invoice.createdByRole && (
+                        <div className="py-1 px-4 ">
+                          Created By Role:{" "}
+                          <span className="text-blue-500 font-semibold capitalize">
+                            {invoice.createdByRole}
+                          </span>
+                        </div>
+                      )}
+                      {invoice.createdBy &&
+                        invoice.createdByRole !== "admin" && (
+                          <div className="py-1 px-4 ">
+                            Created By Name:{" "}
+                            <span className="text-blue-500 font-semibold capitalize">
+                              {invoice.createdBy?.name}
+                            </span>
+                          </div>
+                        )}
                     </div>
                     {/* <div className="max-h-80 overflow-y-auto">
                       {invoice.medicines.map((medicine, it) => {

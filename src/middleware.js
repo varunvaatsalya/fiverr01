@@ -63,6 +63,8 @@ export const config = {
     "/dashboard-salesman/:path*",
     "/dashboard-pathologist/:path*",
     "/dashboard-nurse/:path*",
+    "/dashboard-dispenser/:path*",
+    "/dashboard-stockist/:path*",
     // "/api/:path*",
   ],
 };
