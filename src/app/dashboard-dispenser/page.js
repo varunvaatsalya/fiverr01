@@ -8,6 +8,8 @@ import Link from "next/link";
 import { IoBagAddSharp, IoCreate, IoLogOut } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 import { BsReceipt } from "react-icons/bs";
+import { MdSpeakerNotes } from "react-icons/md";
+import { FaPersonCirclePlus } from "react-icons/fa6";
 
 function Page() {
   const router = useRouter();
@@ -32,6 +34,20 @@ function Page() {
       icon: <BsReceipt size={50} />,
       link: "/dashboard-dispenser/invoices",
       color: "bg-rose-900",
+    },
+    {
+      name: "Express Billing",
+      description: "You can show all the pharmacy Express Invoices here",
+      icon: <MdSpeakerNotes size={50} />,
+      link: "/dashboard-dispenser/pharmacyExpressBilling",
+      color: "bg-sky-600",
+    },
+    {
+      name: "Patients",
+      description: "You can show & add the patients",
+      icon: <FaPersonCirclePlus size={50} />,
+      link: "/dashboard-dispenser/patients",
+      color: "bg-pink-700",
     },
     {
       name: "Stock Request",

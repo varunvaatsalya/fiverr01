@@ -60,6 +60,13 @@ function Page() {
       color: "bg-rose-700",
     },
     {
+      name: "Purchase Analytics",
+      description: "You can create and view all the due invoices here",
+      icon: <TbReportMoney size={50} />,
+      link: "/dashboard-admin/pharmacy/godown/purchaseAnalytics",
+      color: "bg-teal-700",
+    },
+    {
       name: "Payments Dues",
       description: "You can create and view all the due invoices here",
       icon: <TbReportMoney size={50} />,

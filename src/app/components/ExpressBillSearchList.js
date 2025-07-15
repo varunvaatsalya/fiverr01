@@ -16,7 +16,6 @@ function ExpressBillSearchList({
   setPage,
   totalPages,
   role,
-  isEditPermission = false,
   expressBills,
   setExpressBills,
 }) {
@@ -94,16 +93,6 @@ function ExpressBillSearchList({
     setIsDeleting(false);
   }
 
-  if (role === "stockist" && !isEditPermission) {
-    // console.log("role: ", role);
-    // console.log("isEditPermission: ", isEditPermission);
-    return (
-      <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center bg-slate-800 text-white py-2 text-lg rounded-xl mx-auto my-2">
-        You do not have permission to edit medicines bills.
-      </div>
-    );
-  }
-
   if (printInvoice) {
     return (
       <>
@@ -150,7 +139,7 @@ function ExpressBillSearchList({
             // }}
             className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
           />
-          {(role === "admin" || role === "nurse" || role === "stockist") && (
+          {(role === "admin" || role === "nurse" || role === "dispenser") && (
             <button
               onClick={() => {
                 setNewInvoiceSection((newInvoiceSection) => !newInvoiceSection);
@@ -170,7 +159,7 @@ function ExpressBillSearchList({
                 onClick={handleDeleteAllExpressInv}
                 className="font-semibold"
               >
-                {isDeleteing?"Deleteing...":"Delete All"}
+                {isDeleteing ? "Deleteing..." : "Delete All"}
               </span>
             </button>
           )}
@@ -272,7 +261,7 @@ function ExpressBillSearchList({
                     <div className="flex justify-around items-center gap-2 mt-3">
                       {(role === "admin" ||
                         role === "nurse" ||
-                        role === "stockist") && (
+                        role === "dispenser") && (
                         <>
                           <button
                             className="py-2 px-4 text-white bg-red-700 hover:bg-red-800 rounded-lg font-semibold flex gap-1 items-center"
@@ -292,17 +281,20 @@ function ExpressBillSearchList({
                           >
                             Edit
                           </button>
-
-                          <button
-                            className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
-                            onClick={() => {
-                              console.log(invoice);
-                              setExpressData(invoice);
-                              setCreateInvoiceSection(true);
-                            }}
-                          >
-                            Create Invoice
-                          </button>
+                          {(role === "admin" ||
+                            role === "salesman" ||
+                            role === "dispenser") && (
+                            <button
+                              className="py-2 px-4 text-white bg-slate-900 rounded-lg font-semibold flex gap-1 items-center"
+                              onClick={() => {
+                                console.log(invoice);
+                                setExpressData(invoice);
+                                setCreateInvoiceSection(true);
+                              }}
+                            >
+                              Create Invoice
+                            </button>
+                          )}
                         </>
                       )}
                     </div>

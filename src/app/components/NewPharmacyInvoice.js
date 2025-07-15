@@ -27,6 +27,7 @@ function NewPharmacyInvoice({
   setInvoices,
   expressData,
   setExpressBills,
+  setExpressData,
 }) {
   const [patientOptions, setPatientOptions] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -61,7 +62,7 @@ function NewPharmacyInvoice({
   const handleChange = (index, value) => {
     const updated = [...payments];
     updated[index].amount = parseFloat(value || 0);
-    console.log(updated)
+    console.log(updated);
     setPayments(updated);
   };
 
@@ -342,6 +343,7 @@ function NewPharmacyInvoice({
               setExpressBills((prevBills) =>
                 prevBills.filter((bill) => bill._id !== expressData._id)
               );
+              setExpressData(null);
             }
           }
           setPrintInvoice(result.invoice);
@@ -969,7 +971,9 @@ function NewPharmacyInvoice({
                         Remaining:
                       </div>
                       <div className={"w-32"}>
-                        {parseFloat((discountedTotal - totalEntered).toFixed(2)) + "/-"}
+                        {parseFloat(
+                          (discountedTotal - totalEntered).toFixed(2)
+                        ) + "/-"}
                       </div>
                     </div>
                     {/* Validation */}

@@ -54,13 +54,6 @@ function Page() {
       color: "bg-yellow-700",
     },
     {
-      name: "Stock Edit",
-      description: "You can View & Edit godown stock here",
-      icon: <FaEdit size={50} />,
-      link: "/dashboard-stockist/editGodownStock",
-      color: "bg-rose-700",
-    },
-    {
       name: "Sell Records",
       description: "You can view all the pharmacy Sell Records here",
       icon: <FaFileInvoice size={50} />,
@@ -95,13 +88,6 @@ function Page() {
       icon: <FaHistory size={50} />,
       link: "/dashboard-stockist/stockOrderHistory",
       color: "bg-rose-700",
-    },
-    {
-      name: "Pharmacy Config",
-      description: "You can edit & create pharmacy items",
-      icon: <MdFormatListBulletedAdd size={50} />,
-      link: "/dashboard-stockist/pharmacyConfig",
-      color: "bg-green-800",
     },
     {
       name: "Stock Info",

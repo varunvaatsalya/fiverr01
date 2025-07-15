@@ -401,7 +401,7 @@ export default function PharmacyDueInvoice() {
                     </div>
 
                     {/* Grand Total */}
-                    <div>₹{parseFloat(invoice.grandTotal.toFixed(2))}</div>
+                    <div>₹{parseFloat(invoice?.grandTotal?.toFixed(2))}</div>
 
                     {/* Paid Info */}
                     <div className="text-right">

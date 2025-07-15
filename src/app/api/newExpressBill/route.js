@@ -96,7 +96,7 @@ export async function POST(req) {
     userRole !== "admin" &&
     userRole !== "salesman" &&
     userRole !== "nurse" &&
-    userRole !== "stockist"
+    userRole !== "dispenser"
   ) {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
@@ -180,7 +180,7 @@ export async function PUT(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  if (userRole !== "admin" && userRole !== "nurse" && userRole !== "stockist") {
+  if (userRole !== "admin" && userRole !== "nurse" && userRole !== "dispenser") {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }
@@ -267,7 +267,7 @@ export async function DELETE(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  if (userRole !== "admin" && userRole !== "nurse" && userRole !== "stockist") {
+  if (userRole !== "admin" && userRole !== "nurse" && userRole !== "dispenser") {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }

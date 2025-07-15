@@ -94,7 +94,12 @@ export async function POST(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  if (userRole !== "admin" && userRole !== "salesman" && userRole !== "nurse") {
+  if (
+    userRole !== "admin" &&
+    userRole !== "salesman" &&
+    userRole !== "nurse" &&
+    userRole !== "dispenser"
+  ) {
     return NextResponse.json(
       { message: "Access denied. Admins only.", success: false },
       { status: 403 }
@@ -193,8 +198,17 @@ export async function PUT(req) {
     );
   }
 
-  const { _id, name, fathersName, age, gender, mobileNumber, aadharNumber, address, reason } =
-    await req.json();
+  const {
+    _id,
+    name,
+    fathersName,
+    age,
+    gender,
+    mobileNumber,
+    aadharNumber,
+    address,
+    reason,
+  } = await req.json();
 
   try {
     // Check if patient exists

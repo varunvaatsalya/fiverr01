@@ -17,7 +17,7 @@ const patientSchema = new mongoose.Schema({
   ],
   createdByRole: {
     type: String,
-    enum: ["admin", "salesman", "nurse"],
+    enum: ["admin", "salesman", "nurse", "dispenser"],
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

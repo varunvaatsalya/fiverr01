@@ -133,6 +133,7 @@ function PatientSearchList({
               />
               {(accessInfo?.accessRole === "admin" ||
                 accessInfo?.accessRole === "salesman" ||
+                accessInfo?.accessRole === "dispenser" ||
                 accessInfo?.accessRole === "nurse") && (
                 <button
                   onClick={() => {
