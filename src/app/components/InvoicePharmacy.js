@@ -146,7 +146,10 @@ function InvoicePharmacy({
                   </span>
                 </p>
                 <p>
-                  <strong>Mode of Payment:</strong> {printInvoice.paymentMode}
+                  <strong>Mode of Payment:</strong>{" "}
+                  {printInvoice.paymentMode === "Credit-Insurance"
+                    ? "Other Insurance Provider"
+                    : printInvoice.paymentMode}
                 </p>
               </div>
             </div>
