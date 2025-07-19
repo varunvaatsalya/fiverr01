@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Loading from "./Loading";
 import { showError, showSuccess } from "../utils/toast";
 
@@ -14,6 +14,24 @@ function NewPharmacyInvoiceBackDate({
   const [discount, setDiscount] = useState("");
   const [selectedPaymentMode] = useState("Credit-Insurance");
   const [submitting, setSubmitting] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [isDataFetched, setIsDataFetched] = useState(false);
+
+  function calculateSubtotal(med, sellingPrice) {
+    let mrp = parseFloat(sellingPrice) || 0;
+    let total = 0;
+    if (med.medicine?.isTablets) {
+      const strips = med.quantity?.strips || 0;
+      const tablets = med.quantity?.tablets || 0;
+      const tabletsPerStrip = med.medicine?.packetSize?.tabletsPerStrip || 1;
+
+      total = strips * mrp + (tablets * mrp) / tabletsPerStrip;
+    } else {
+      const qty = med.quantity?.normalQuantity || 0;
+      total = qty * mrp;
+    }
+    return parseFloat(total.toFixed(2));
+  }
 
   const handleInputChange = (index, field, value) => {
     setIsAddInfoOpen((prev) => {
@@ -25,23 +43,7 @@ function NewPharmacyInvoiceBackDate({
 
       // If field is 'mrp', recalculate the price
       if (field === "mrp") {
-        const med = item;
-        const mrp = parseFloat(value) || 0;
-
-        let total = 0;
-        if (med.medicine?.isTablets) {
-          const strips = med.quantity?.strips || 0;
-          const tablets = med.quantity?.tablets || 0;
-          const tabletsPerStrip =
-            med.medicine?.packetSize?.tabletsPerStrip || 1;
-
-          total = strips * mrp + (tablets * mrp) / tabletsPerStrip;
-        } else {
-          const qty = med.quantity?.normalQuantity || 0;
-          total = qty * mrp;
-        }
-
-        item.price = parseFloat(total.toFixed(2)); // round to 2 decimals
+        item.price = calculateSubtotal(item, value);
       }
 
       updated[index] = { ...item };
@@ -64,6 +66,71 @@ function NewPharmacyInvoiceBackDate({
 
     return parseFloat(grandTotal.toFixed(2));
   }
+
+  const fetchBackDateMedDetails = async () => {
+    if (!createdAt) return;
+    setFetching(true);
+    try {
+      const medicines = isAddInfoOpen.map((med) => med.medicine?._id);
+      try {
+        let result = await fetch(
+          "/api/newPharmacyInvoice/backDateInvoice/getInvoiceData",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              medicines,
+              backDate: createdAt,
+            }),
+          }
+        );
+        result = await result.json();
+        if (result.success) {
+          // medicineData
+          console.log(result, isAddInfoOpen);
+          setIsAddInfoOpen((prev) =>
+            prev.map((item) => {
+              const matched = result?.medicineData.find(
+                (med) => med.medicineId === item.medicine._id
+              );
+
+              if (!matched || matched.notFound) return item;
+
+              return {
+                ...item,
+                batch: matched.batchName ?? "",
+                expiry: matched.expiryDate ?? "",
+                purchasePrice: matched.purchasePrice ?? "",
+                mrp: matched.sellingPrice ?? "",
+                price: calculateSubtotal(item, matched.sellingPrice),
+              };
+            })
+          );
+        } else {
+          showError(result.message);
+        }
+      } catch (error) {
+        showError("Error in submitting application");
+        console.error("Error submitting application:", error);
+      }
+      setSubmitting(false);
+    } catch (error) {
+      showError(error.message || "Data Fetch Error! Please Contact to admin!");
+    } finally {
+      setIsDataFetched(true);
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      fetchBackDateMedDetails();
+    }, 700);
+
+    return () => clearTimeout(delayDebounce);
+  }, [createdAt]);
 
   const onSubmit = async () => {
     if (submitting || !selectedPatient || !discount || !createdAt) return;
@@ -88,7 +155,7 @@ function NewPharmacyInvoiceBackDate({
         };
       });
       setSubmitting(true);
-      console.log(data)
+      console.log(data);
       try {
         let result = await fetch("/api/newPharmacyInvoice/backDateInvoice", {
           method: "POST",
@@ -165,164 +232,179 @@ function NewPharmacyInvoiceBackDate({
                 className="px-2 py-1 mx-2 bg-gray-800 text-gray-300 outline-none rounded-lg"
               />
             </label>
-
-            <div className="w-full flex flex-wrap items-center justify-between px-2 pb-1 gap-1 text-sm font-semibold text-gray-200 border-b border-gray-700">
-              <div className="w-1/5 px-1 text-start">Medicine</div>
-              <div className="flex-1 px-1 text-center">Packet Size</div>
-              <div className="flex-1 px-1 text-center">Batch</div>
-              <div className="flex-1 px-1 text-center">Expiry</div>
-              <div className="flex-1 px-1">P.Price</div>
-              <div className="flex-1 px-1">MRP</div>
-              <div className="flex-1 px-1 text-start">Qty</div>
-              <div className="flex-1 px-1 text-end">Total</div>
-            </div>
-            <div className="max-h-[60vh] overflow-y-auto space-y-1 py-1 w-full">
-              {isAddInfoOpen.map((med, it) => {
-                return (
-                  <div
-                    key={it}
-                    className="w-full flex flex-wrap items-center justify-between gap-1 px-2 text-sm text-gray-300"
-                  >
-                    <div
-                      title={med.medicine.name}
-                      className="w-1/5 line-clamp-1 text-start"
-                    >
-                      {med.medicine.name}
-                    </div>
-                    <div className="flex-1 text-center min-w-28">
-                      {med.medicine?.isTablets
-                        ? `${med.medicine?.packetSize?.strips} Strps, ${med.medicine?.packetSize?.tabletsPerStrip} Tabs`
-                        : `${med.medicine?.packetSize?.strips} Pcs`}
-                    </div>
-                    <div className="flex-1 min-w-28">
-                      <input
-                        type="text"
-                        className="w-full bg-gray-800 p-1 rounded"
-                        placeholder="Batch"
-                        value={med.batch || ""}
-                        onChange={(e) =>
-                          handleInputChange(it, "batch", e.target.value)
+            {fetching && (
+              <div className="text-center font-semibold">
+                Medicine Data Fetching...
+              </div>
+            )}
+            {createdAt && isDataFetched && (
+              <>
+                <div className="w-full flex flex-wrap items-center justify-between px-2 pb-1 gap-1 text-sm font-semibold text-gray-200 border-b border-gray-700">
+                  <div className="w-1/5 px-1 text-start">Medicine</div>
+                  <div className="flex-1 px-1 text-center">Packet Size</div>
+                  <div className="flex-1 px-1 text-center">Batch</div>
+                  <div className="flex-1 px-1 text-center">Expiry</div>
+                  <div className="flex-1 px-1">MRP</div>
+                  <div className="flex-1 px-1 text-start">Qty</div>
+                  <div className="flex-1 px-1 text-end">Total</div>
+                </div>
+                <div className="max-h-[60vh] overflow-y-auto space-y-1 py-1 w-full">
+                  {isAddInfoOpen.map((med, it) => {
+                    return (
+                      <div
+                        key={it}
+                        className="w-full flex flex-wrap items-center justify-between gap-1 px-2 text-sm text-gray-300"
+                      >
+                        <div
+                          title={med.medicine.name}
+                          className="w-1/5 line-clamp-1 text-start"
+                        >
+                          {med.medicine.name}
+                        </div>
+                        <div className="flex-1 text-center min-w-28">
+                          {med.medicine?.isTablets
+                            ? `${med.medicine?.packetSize?.strips} Strps, ${med.medicine?.packetSize?.tabletsPerStrip} Tabs`
+                            : `${med.medicine?.packetSize?.strips} Pcs`}
+                        </div>
+                        <div className="flex-1 min-w-28">
+                          <input
+                            type="text"
+                            className="w-full bg-gray-800 p-1 rounded"
+                            placeholder="Batch"
+                            value={med.batch || ""}
+                            onChange={(e) =>
+                              handleInputChange(it, "batch", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="flex-1 min-w-28">
+                          <input
+                            type="date"
+                            className="w-full bg-gray-800 p-1 rounded"
+                            value={
+                              med.expiry
+                                ? new Date(med.expiry)
+                                    .toISOString()
+                                    .slice(0, 10)
+                                : ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange(it, "expiry", e.target.value)
+                            }
+                          />
+                        </div>
+                        {/* <div className="flex-1 min-w-28">
+                          <input
+                            type="number"
+                            className="w-full bg-gray-800 p-1 rounded"
+                            placeholder="P.Price"
+                            value={med.purchasePrice || ""}
+                            onChange={(e) =>
+                              handleInputChange(
+                                it,
+                                "purchasePrice",
+                                parseFloat(e.target.value || 0)
+                              )
+                            }
+                          />
+                        </div> */}
+                        <div className="flex-1 min-w-28">
+                          <input
+                            type="number"
+                            className="w-full bg-gray-800 p-1 rounded"
+                            placeholder="MRP"
+                            value={med.mrp || ""}
+                            onChange={(e) =>
+                              handleInputChange(
+                                it,
+                                "mrp",
+                                parseFloat(e.target.value || 0)
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="flex-1 min-w-28 text-start text-gray-300 px-2">
+                          {med.medicine?.isTablets ? (
+                            <>
+                              {med.quantity.strips > 0 &&
+                                med.quantity.strips + " Strips"}
+                              {med.quantity.strips > 0 &&
+                                med.quantity.tablets > 0 &&
+                                ", "}
+                              {med.quantity.tablets > 0
+                                ? med.quantity.tablets + " Tablets"
+                                : ""}
+                            </>
+                          ) : (
+                            <>{med.quantity.normalQuantity + " Pcs"}</>
+                          )}
+                        </div>
+                        {
+                          <div className="flex-1 min-w-28 text-end font-semibold">
+                            {med?.mrp && med.price ? (
+                              <span>
+                                {parseFloat(med.price.toFixed(2)) + "/-"}
+                              </span>
+                            ) : (
+                              "--"
+                            )}
+                          </div>
                         }
-                      />
-                    </div>
-                    <div className="flex-1 min-w-28">
-                      <input
-                        type="date"
-                        className="w-full bg-gray-800 p-1 rounded"
-                        value={med.expiry || ""}
-                        onChange={(e) =>
-                          handleInputChange(it, "expiry", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="flex-1 min-w-28">
-                      <input
-                        type="number"
-                        className="w-full bg-gray-800 p-1 rounded"
-                        placeholder="P.Price"
-                        value={med.purchasePrice || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            it,
-                            "purchasePrice",
-                            parseFloat(e.target.value || 0)
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="flex-1 min-w-28">
-                      <input
-                        type="number"
-                        className="w-full bg-gray-800 p-1 rounded"
-                        placeholder="MRP"
-                        value={med.mrp || ""}
-                        onChange={(e) =>
-                          handleInputChange(
-                            it,
-                            "mrp",
-                            parseFloat(e.target.value || 0)
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="flex-1 min-w-28 text-start text-gray-300 px-2">
-                      {med.medicine?.isTablets ? (
-                        <>
-                          {med.quantity.strips > 0 &&
-                            med.quantity.strips + " Strips"}
-                          {med.quantity.strips > 0 &&
-                            med.quantity.tablets > 0 &&
-                            ", "}
-                          {med.quantity.tablets > 0
-                            ? med.quantity.tablets + " Tablets"
-                            : ""}
-                        </>
-                      ) : (
-                        <>{med.quantity.normalQuantity + " Pcs"}</>
-                      )}
-                    </div>
-                    {
-                      <div className="flex-1 min-w-28 text-end font-semibold">
-                        {med?.mrp && med.price ? (
-                          <span>{parseFloat(med.price.toFixed(2)) + "/-"}</span>
-                        ) : (
-                          "--"
-                        )}
                       </div>
-                    }
+                    );
+                  })}
+                </div>
+                <div className="w-full border-t border-gray-700 py-1 text-white">
+                  <div className="flex justify-end gap-3 items-center px-2 text-md">
+                    <div className="font-semibold text-center text-blue-500">
+                      Total:
+                    </div>
+                    <div className="">{getGrandTotal() + "/-"}</div>
                   </div>
-                );
-              })}
-            </div>
-            <div className="w-full border-t border-gray-700 py-1 text-white">
-              <div className="flex justify-end gap-3 items-center px-2 text-md">
-                <div className="font-semibold text-center text-blue-500">
-                  Total:
-                </div>
-                <div className="">{getGrandTotal() + "/-"}</div>
-              </div>
-              <div className="w-full flex justify-end items-center gap-3 px-2 my-1">
-                <div className="font-semibold flex flex-col-reverse md:flex-row md:gap-1 items-center justify-end">
-                  <span className="text-gray-300 text-xs font-light">
-                    {"(Discount Applicable only on selected medicines)"}
-                  </span>
-                  Discount:
-                </div>
-                <input
-                  type="number"
-                  value={discount}
-                  onChange={(e) => {
-                    setDiscount(e.target.value);
-                  }}
-                  min={0}
-                  max={5}
-                  className="outline-none bg-gray-800 rounded-lg text-sm px-2 py-1 w-32"
-                  placeholder="Upto 5%"
-                />
-              </div>
-              {discount === "" ? (
-                <></>
-              ) : discount >= 0 && discount <= 5 ? (
-                <div className="flex justify-end gap-3 items-center px-2 text-md">
-                  <div className="font-semibold text-center text-blue-500">
-                    Grand Total:
+                  <div className="w-full flex justify-end items-center gap-3 px-2 my-1">
+                    <div className="font-semibold flex flex-col-reverse md:flex-row md:gap-1 items-center justify-end">
+                      <span className="text-gray-300 text-xs font-light">
+                        {"(Discount Applicable only on selected medicines)"}
+                      </span>
+                      Discount:
+                    </div>
+                    <input
+                      type="number"
+                      value={discount}
+                      onChange={(e) => {
+                        setDiscount(e.target.value);
+                      }}
+                      min={0}
+                      max={5}
+                      className="outline-none bg-gray-800 rounded-lg text-sm px-2 py-1 w-32"
+                      placeholder="Upto 5%"
+                    />
                   </div>
-                  <div className="">
-                    {getDiscountedTotal().toString() + "/-"}
+                  {discount === "" ? (
+                    <></>
+                  ) : discount >= 0 && discount <= 5 ? (
+                    <div className="flex justify-end gap-3 items-center px-2 text-md">
+                      <div className="font-semibold text-center text-blue-500">
+                        Grand Total:
+                      </div>
+                      <div className="">
+                        {getDiscountedTotal().toString() + "/-"}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-red-500 px-2 text-end">
+                      Discount must be between 0 to 5
+                    </div>
+                  )}
+                  <div className="flex justify-end gap-3 items-center px-2 text-sm">
+                    <div className="font-semibold text-center text-blue-500">
+                      payment mode:
+                    </div>
+                    <div className="">{selectedPaymentMode}</div>
                   </div>
                 </div>
-              ) : (
-                <div className="text-red-500 px-2 text-end">
-                  Discount must be between 0 to 5
-                </div>
-              )}
-              <div className="flex justify-end gap-3 items-center px-2 text-sm">
-                <div className="font-semibold text-center text-blue-500">
-                  payment mode:
-                </div>
-                <div className="">{selectedPaymentMode}</div>
-              </div>
-            </div>
+              </>
+            )}
             <hr className="border-t border-slate-900 w-full my-2" />
             <div className="w-full flex px-4 gap-3 justify-end">
               <div

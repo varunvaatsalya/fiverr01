@@ -18,6 +18,7 @@ import {
 import { GrHistory } from "react-icons/gr";
 import { CiSearch } from "react-icons/ci";
 import NewPharmacyInvoiceBackDate from "./NewPharmacyInvoiceBackDate";
+import { Textarea } from "@/components/ui/textarea";
 
 function NewPharmacyInvoice({
   setNewInvoiceSection,
@@ -49,6 +50,7 @@ function NewPharmacyInvoice({
   const [recentMedicines, setRecentMedicine] = useState([]);
   const [isMedicineListFocused, setIsMedicineListFocused] = useState(false);
   const [isAddInfoOpen, setIsAddInfoOpen] = useState(null);
+  const [comments, setComments] = useState("");
   const [payments, setPayments] = useState([
     { type: "Cash", amount: 0 },
     { type: "Card", amount: 0 },
@@ -279,6 +281,8 @@ function NewPharmacyInvoice({
         showError(error);
         return;
       }
+      if (selectedPaymentMode === "Credit-Doctor" && !comments)
+        showError("Please Fill the reason for choosing this payment mode");
       let data = parsedData.map((med) => ({
         medicineId: med.medicine._id,
         isTablets: med.medicine.isTablets,
@@ -293,6 +297,7 @@ function NewPharmacyInvoice({
         discount,
         discountToAllMedicine,
         ...(selectedPaymentMode === "mixed" && { payments }),
+        comments
       };
 
       if (isMakeExpressInvoice) {
@@ -921,6 +926,7 @@ function NewPharmacyInvoice({
                   <option value="Credit-Doctor">{"Credit (Doctor)"}</option>
                   <option value="Credit-Society">{"Credit (Society)"}</option>
                   <option value="Credit-Others">{"Credit (Others)"}</option>
+                  <option value="Package-Discount">{"Package Discount"}</option>
                   <option value="mixed">Mixed</option>
                   {/*!ipdPrice && <option value="Insurence">Insurence Patient</option>*/}
                 </select>
@@ -986,6 +992,15 @@ function NewPharmacyInvoice({
                   </div>
                 </div>
               )}
+              {selectedPaymentMode === "Credit-Doctor" && (
+                <div className="max-w-3xl mx-auto px-2">
+                  <Textarea
+                    placeholder="Enter the reason for choosing the Credit (Doctor) payment mode"
+                    value={comments || ""}
+                    onChange={(e) => setComments(e.target.value)}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
@@ -1037,7 +1052,8 @@ function NewPharmacyInvoice({
                 (selectedPaymentMode === "mixed" &&
                   Math.abs(
                     Math.floor(totalEntered) - Math.floor(discountedTotal)
-                  ) >= 1)
+                  ) >= 1) ||
+                (selectedPaymentMode === "Credit-Doctor" && !comments)
               }
             >
               {submitting ? <Loading size={15} /> : <></>}

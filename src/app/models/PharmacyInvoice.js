@@ -36,6 +36,10 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
     ref: "Patient",
     required: true,
   },
+  doctor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Doctor",
+  },
   inid: {
     type: String,
     required: true,
@@ -105,6 +109,7 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
   isDelivered: {
     type: Date,
   },
+  comments: { type: String },
   updates: [
     {
       type: mongoose.Schema.Types.ObjectId,

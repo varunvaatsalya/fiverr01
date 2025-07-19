@@ -804,8 +804,8 @@ function BedDetails({ bed }) {
       if (result.success) {
         const currentUrl = window.location.href;
         const updatedUrl = currentUrl.replace(
-          /works\/[^/]+$/,
-          `works/${result.newBedId}`
+          /ipdWorks\/[^/]+$/,
+          `ipdWorks/${result.newBedId}`
         );
         console.log(updatedUrl);
         router.push(updatedUrl);

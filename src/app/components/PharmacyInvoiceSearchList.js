@@ -14,7 +14,13 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import MedicineDetailsSection from "./MedicineDetailsSection";
 import { FaCheckCircle } from "react-icons/fa";
 import { MdAssignmentReturned } from "react-icons/md";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 function PharmacyInvoiceSearchList({
   page,
@@ -216,6 +222,18 @@ function PharmacyInvoiceSearchList({
                         <span className="text-blue-500 font-semibold">
                           {invoice.paymentMode}
                         </span>
+                        {invoice.paymentMode === "Credit-Doctor" && (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button size="sm" variant="outline" className="mx-1">Reason</Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80">
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                {invoice.comments || "No reason provided"}
+                              </p>
+                            </PopoverContent>
+                          </Popover>
+                        )}
                         {invoice.paymentMode === "mixed" && (
                           <HoverCard>
                             <HoverCardTrigger asChild>

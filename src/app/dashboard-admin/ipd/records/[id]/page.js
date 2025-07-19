@@ -1,9 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Loading from "../../../../components/Loading";
+import IpdInvoice from "../../../../components/IpdInvoice";
 import Navbar from "../../../../components/Navbar";
 import { FaCircleLeft } from "react-icons/fa6";
 import AdmissionRecordsForm from "../../../../components/AdmissionRecordsForm";
+import { Button } from "@/components/ui/button";
 
 let details = {
   ward: { name: "icu" },
@@ -19,6 +21,7 @@ let details = {
 function Page({ params }) {
   const id = params.id;
   const [admission, setAdmission] = useState(null);
+  const [printInvoice, setPrintInvoice] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -44,6 +47,16 @@ function Page({ params }) {
       </div>
     );
   }
+  // {
+  //   if (printInvoice) {
+  //     return (
+  //       <IpdInvoice
+  //         printInvoice={printInvoice}
+  //         setPrintInvoice={setPrintInvoice}
+  //       />
+  //     );
+  //   }
+  // }
   return (
     <div>
       <Navbar route={["IPD", "Works"]} />
@@ -55,15 +68,28 @@ function Page({ params }) {
         </a>
         <div className="bg-slate-800 my-2 flex justify-center gap-4 py-3 w-full font-bold text-2xl rounded-full mx-auto md:w-3/4 lg:w-1/2">
           <div className="">
-            Patient: <span className="text-blue-500">{admission.patientId.name}</span>
+            Patient:{" "}
+            <span className="text-blue-500">{admission.patientId.name}</span>
           </div>
           <div className="">
-            UHID: <span className="text-blue-500">{admission.patientId.uhid}</span>
+            UHID:{" "}
+            <span className="text-blue-500">{admission.patientId.uhid}</span>
           </div>
         </div>
         <div className="px-5 md:px-10"></div>
       </div>
-      <AdmissionRecordsForm admission={admission} setAdmission={setAdmission} insurenceDetails={false} />
+      <Button
+        onClick={() => {
+          setPrintInvoice(admission);
+        }}
+      >
+        Print
+      </Button>
+      <AdmissionRecordsForm
+        admission={admission}
+        setAdmission={setAdmission}
+        insurenceDetails={false}
+      />
     </div>
   );
 }

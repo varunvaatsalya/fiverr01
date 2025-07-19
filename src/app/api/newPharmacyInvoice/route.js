@@ -232,6 +232,7 @@ export async function POST(req) {
     discount,
     discountToAllMedicine,
     payments,
+    comments,
   } = await req.json();
 
   if (!requestedMedicine || requestedMedicine.length === 0) {
@@ -525,6 +526,7 @@ export async function POST(req) {
         total,
       },
       payments,
+      comments,
       createdBy: userRole === "admin" || !userId ? null : userId,
       createdByRole: userRole,
     });
