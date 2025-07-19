@@ -322,6 +322,95 @@ export async function POST(req) {
       }
     } else if (type === "StocksQty") {
       // Step 1: Prepare input map for quick access
+      //   const inputMap = new Map();
+      //   for (const stock of data) {
+      //     if (stock.Name && stock.Batch) {
+      //       inputMap.set(`${stock.Name}|${stock.Batch}`, {
+      //         ...stock,
+      //         processed: false,
+      //       });
+      //     }
+      //   }
+
+      //   // Step 2: Get all stocks and populate medicine
+      //   const allStocks = await Stock.find({}).populate("medicine");
+
+      //   // Step 3: Process & build bulk update ops
+      //   const bulkOps = [];
+
+      //   for (const stock of allStocks) {
+      //     if (!stock.medicine || !stock.medicine.name) continue;
+
+      //     const key = `${stock.medicine.name}|${stock.batchName}`;
+      //     const matched = inputMap.get(key);
+
+      //     if (matched && !matched.processed) {
+      //       // Calculate new quantities
+      //       const totalStrips = Number(matched.Qty);
+      //       const stripsPerBox = stock.medicine.packetSize?.strips || 1;
+
+      //       if (isNaN(totalStrips)) {
+      //         resultMessage.push({
+      //           info: `Invalid Qty for ${matched.Name}, Batch ${matched.Batch}`,
+      //           success: false,
+      //         });
+      //         continue;
+      //       }
+
+      //       const boxes = Math.floor(totalStrips / stripsPerBox);
+      //       const extra = totalStrips % stripsPerBox;
+
+      //       bulkOps.push({
+      //         updateOne: {
+      //           filter: { _id: stock._id },
+      //           update: {
+      //             $set: {
+      //               "quantity.totalStrips": totalStrips,
+      //               "quantity.boxes": boxes,
+      //               "quantity.extra": extra,
+      //             },
+      //           },
+      //         },
+      //       });
+
+      //       resultMessage.push({
+      //         info: `Updated stock for ${matched.Name}, Batch ${matched.Batch}`,
+      //         success: true,
+      //       });
+
+      //       matched.processed = true;
+      //     } else {
+      //       // Zero out unmatched stocks
+      //       bulkOps.push({
+      //         updateOne: {
+      //           filter: { _id: stock._id },
+      //           update: {
+      //             $set: {
+      //               "quantity.totalStrips": 0,
+      //               "quantity.boxes": 0,
+      //               "quantity.extra": 0,
+      //             },
+      //           },
+      //         },
+      //       });
+      //     }
+      //   }
+
+      //   // Step 4: Apply all updates in bulk
+      //   if (bulkOps.length > 0) {
+      //     await Stock.bulkWrite(bulkOps);
+      //   }
+
+      //   // Step 5: Log unmatched input entries
+      //   for (const [key, entry] of inputMap.entries()) {
+      //     if (!entry.processed) {
+      //       resultMessage.push({
+      //         info: `Medicine or Batch not found for ${entry.Name}, Batch ${entry.Batch}`,
+      //         success: false,
+      //       });
+      //     }
+      //   }
+
       const inputMap = new Map();
       for (const stock of data) {
         if (stock.Name && stock.Batch) {
@@ -332,20 +421,23 @@ export async function POST(req) {
         }
       }
 
-      // Step 2: Get all stocks and populate medicine
+      // Step 1: Get all stocks
       const allStocks = await Stock.find({}).populate("medicine");
 
-      // Step 3: Process & build bulk update ops
       const bulkOps = [];
+      const zeroedStockMap = new Map(); // To collect zeroed stocks by medicine name
+      const updatedStockIds = new Set(); // Prevent re-updates
 
+      // Step 2: Phase 1 – Try to match by batch
       for (const stock of allStocks) {
-        if (!stock.medicine || !stock.medicine.name) continue;
+        const medName = stock.medicine?.name;
+        const batchName = stock.batchName;
+        if (!medName || !batchName) continue;
 
-        const key = `${stock.medicine.name}|${stock.batchName}`;
+        const key = `${medName}|${batchName}`;
         const matched = inputMap.get(key);
 
         if (matched && !matched.processed) {
-          // Calculate new quantities
           const totalStrips = Number(matched.Qty);
           const stripsPerBox = stock.medicine.packetSize?.strips || 1;
 
@@ -379,8 +471,9 @@ export async function POST(req) {
           });
 
           matched.processed = true;
+          updatedStockIds.add(stock._id.toString());
         } else {
-          // Zero out unmatched stocks
+          // Phase 1: Temporarily zero the stock, but save it to use later
           bulkOps.push({
             updateOne: {
               filter: { _id: stock._id },
@@ -393,19 +486,87 @@ export async function POST(req) {
               },
             },
           });
+
+          if (!zeroedStockMap.has(medName)) zeroedStockMap.set(medName, []);
+          zeroedStockMap.get(medName).push(stock);
         }
       }
 
-      // Step 4: Apply all updates in bulk
+      // Step 3: Phase 2 – Handle unmatched input entries
+      for (const [key, entry] of inputMap.entries()) {
+        if (entry.processed) continue;
+
+        const stocks = zeroedStockMap.get(entry.Name);
+        if (!stocks || stocks.length === 0) {
+          resultMessage.push({
+            info: `Medicine found but no usable stock for ${entry.Name}, Batch ${entry.Batch}`,
+            success: false,
+          });
+          continue;
+        }
+
+        // Pick stock with nearest expiry
+        const unupdated = stocks.filter(
+          (s) => !updatedStockIds.has(s._id.toString())
+        );
+        if (unupdated.length === 0) {
+          resultMessage.push({
+            info: `All stock entries already used for ${entry.Name}, Batch ${entry.Batch}`,
+            success: false,
+          });
+          continue;
+        }
+
+        const chosen = unupdated.sort(
+          (a, b) => new Date(a.expiryDate) - new Date(b.expiryDate)
+        )[0];
+
+        const totalStrips = Number(entry.Qty);
+        const stripsPerBox = chosen.medicine.packetSize?.strips || 1;
+
+        if (isNaN(totalStrips)) {
+          resultMessage.push({
+            info: `Invalid Qty for ${entry.Name}, Batch ${entry.Batch}`,
+            success: false,
+          });
+          continue;
+        }
+
+        const boxes = Math.floor(totalStrips / stripsPerBox);
+        const extra = totalStrips % stripsPerBox;
+
+        bulkOps.push({
+          updateOne: {
+            filter: { _id: chosen._id },
+            update: {
+              $set: {
+                "quantity.totalStrips": totalStrips,
+                "quantity.boxes": boxes,
+                "quantity.extra": extra,
+              },
+            },
+          },
+        });
+
+        resultMessage.push({
+          info: `Batch ${entry.Batch} not found; updated ${entry.Name} stock with Batch ${chosen.batchName}`,
+          success: true,
+        });
+
+        updatedStockIds.add(chosen._id.toString());
+        entry.processed = true;
+      }
+
+      // Step 4: Apply all updates
       if (bulkOps.length > 0) {
         await Stock.bulkWrite(bulkOps);
       }
 
-      // Step 5: Log unmatched input entries
+      // Step 5: Final unmatched logs
       for (const [key, entry] of inputMap.entries()) {
         if (!entry.processed) {
           resultMessage.push({
-            info: `Medicine or Batch not found for ${entry.Name}, Batch ${entry.Batch}`,
+            info: `No stock found for ${entry.Name}, Batch ${entry.Batch}`,
             success: false,
           });
         }

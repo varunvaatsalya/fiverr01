@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import {
   FaChevronDown,
   FaChevronRight,
@@ -25,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 function StockOrder({ manufacturers, vendors }) {
   const [message, setMessage] = useState("");
@@ -381,6 +383,29 @@ Required Quantity: *${medicine.quantity}* units
     }
   };
 
+  const handleExportMedicineData = () => {
+    // 1. Format data into Excel-ready structure
+    const formattedData = searchedMedicines.map((item) => ({
+      "Medicine Name": item.name,
+      "Medicine Type": item.medicineType,
+      "Strips per Box": item.packetSize?.strips || "",
+      "Tablets per Strip": item.packetSize?.tabletsPerStrip || "",
+      "Min Strips": item.minimumStockCount?.godown || 0,
+      "Total Strips": item.totalBoxes || 0,
+      "Max Strips": item.maximumStockCount?.godown || 0,
+      "Latest Source": item.latestSource?.name || "",
+      "Source Type": item.latestSource?.type || "",
+    }));
+
+    // 2. Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Medicines");
+
+    // 3. Generate Excel file and trigger download
+    XLSX.writeFile(workbook, "medicinesOrder.xlsx");
+  };
+
   if (loading) {
     return (
       <div className="py-8 flex flex-col items-center justify-center gap-2">
@@ -489,6 +514,7 @@ Required Quantity: *${medicine.quantity}* units
                 />
                 Remove All Zero Med
               </label>
+              <Button onClick={handleExportMedicineData}>Export</Button>
               <div className="flex justify-center items-center gap-2">
                 {sectionType !== "hospital" && (
                   <>
