@@ -344,7 +344,7 @@ export async function POST(req) {
         const key = `${stock.medicine.name}|${stock.batchName}`;
         const matched = inputMap.get(key);
 
-        if (matched) {
+        if (matched && !matched.processed) {
           // Calculate new quantities
           const totalStrips = Number(matched.Qty);
           const stripsPerBox = stock.medicine.packetSize?.strips || 1;
