@@ -340,7 +340,8 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
                             min !== undefined &&
                             max !== undefined &&
                             max >= min &&
-                            min >= current;
+                            min >= current &&
+                            max > current;
 
                           setSelectedMedicine((prev) => [
                             ...prev,
@@ -420,9 +421,9 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
                               <input
                                 type="number"
                                 min={0}
-                                // hidden={Boolean(
-                                //   requestedMedicine.requestedQuantity
-                                // )}
+                                hidden={Boolean(
+                                  requestedMedicine.requestedQuantity
+                                )}
                                 value={requestedMedicine.requestedQuantity}
                                 onChange={(e) => {
                                   handleQuantityChange(

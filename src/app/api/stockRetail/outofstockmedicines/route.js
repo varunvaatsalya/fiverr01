@@ -121,6 +121,42 @@ export async function GET(req) {
         },
       },
       {
+        $addFields: {
+          "minimumStockCount.retails": {
+            $cond: [
+              {
+                $and: [
+                  { $gt: ["$minimumStockCount.retails", 0] },
+                  { $gt: ["$packetSize.strips", 0] },
+                ],
+              },
+              {
+                $ceil: {
+                  $divide: ["$minimumStockCount.retails", "$packetSize.strips"],
+                },
+              },
+              0,
+            ],
+          },
+          "maximumStockCount.retails": {
+            $cond: [
+              {
+                $and: [
+                  { $gt: ["$maximumStockCount.retails", 0] },
+                  { $gt: ["$packetSize.strips", 0] },
+                ],
+              },
+              {
+                $ceil: {
+                  $divide: ["$maximumStockCount.retails", "$packetSize.strips"],
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+      {
         $group: {
           _id: "$_id",
           name: { $first: "$name" },
@@ -146,7 +182,9 @@ export async function GET(req) {
               },
             },
           },
-          totalRetailStock: { $sum: "$retailStock.stocks.quantity.totalStrips" },
+          totalRetailStock: {
+            $sum: "$retailStock.stocks.quantity.boxes",
+          },
         },
       },
       // {
@@ -164,18 +202,27 @@ export async function GET(req) {
       // },
 
       {
+        $addFields: {
+          requestedQuantity: {
+            $subtract: ["$maximumStockCount.retails", "$totalRetailStock"],
+          },
+        },
+      },
+      {
         $match: {
           $and: [
             {
               $or: [
-                { minimumStockCount: null },
+                { "minimumStockCount.retails": { $eq: 0 } },
                 {
-                  "minimumStockCount.retails": { $exists: true },
                   $expr: {
                     $lte: ["$totalRetailStock", "$minimumStockCount.retails"],
                   },
                 },
               ],
+            },
+            {
+              requestedQuantity: { $gt: 0 },
             },
             {
               $expr: {

@@ -13,7 +13,6 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Link from "next/link";
 import {
-  FaEdit,
   FaFileInvoice,
   FaFileInvoiceDollar,
   FaHistory,
@@ -95,6 +94,13 @@ function Page() {
       icon: <TbChartInfographic size={50} />,
       link: "/dashboard-stockist/retailStock",
       color: "bg-lime-700",
+    },
+    {
+      name: "Pharmacy Config",
+      description: "You can edit & create pharmacy items",
+      icon: <MdFormatListBulletedAdd size={50} />,
+      link: "/dashboard-stockist/pharmacyConfig",
+      color: "bg-green-800",
     },
     {
       name: "Retail Stock Edit",
