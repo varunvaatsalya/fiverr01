@@ -1,8 +1,8 @@
 import React from "react";
 import { FaCircleInfo, FaListCheck } from "react-icons/fa6";
 import { MdMedicalInformation } from "react-icons/md";
-import Navbar from "../../../components/Navbar";
-import Footer from "../../../components/Footer";
+import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 import Link from "next/link";
 
 function Page() {
