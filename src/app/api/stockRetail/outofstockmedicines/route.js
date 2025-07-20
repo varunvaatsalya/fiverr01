@@ -182,25 +182,31 @@ export async function GET(req) {
               },
             },
           },
-          totalRetailStock: {
-            $sum: "$retailStock.stocks.quantity.boxes",
+          totalRetailStrips: {
+            $sum: "$retailStock.stocks.quantity.totalStrips",
           },
         },
       },
-      // {
-      //   $match: {
-      //     $or: [
-      //       { minimumStockCount: null }, // Medicines with no minimum stock count
-      //       {
-      //         "minimumStockCount.retails": { $exists: true },
-      //         $expr: {
-      //           $lt: ["$totalRetailStock", "$minimumStockCount.retails"],
-      //         },
-      //       },
-      //     ],
-      //   },
-      // },
-
+      {
+        $addFields: {
+          totalRetailStock: {
+            $cond: [
+              {
+                $and: [
+                  { $isNumber: "$packetSize.strips" },
+                  { $gt: ["$packetSize.strips", 0] },
+                ],
+              },
+              {
+                $round: {
+                  $divide: ["$totalRetailStrips", "$packetSize.strips"],
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
       {
         $addFields: {
           requestedQuantity: {
