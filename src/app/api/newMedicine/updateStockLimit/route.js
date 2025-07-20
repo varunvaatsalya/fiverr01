@@ -83,28 +83,38 @@ export async function GET(req) {
 
       const tabletsPerStrip = medicine.packetSize.tabletsPerStrip || 1;
 
-      let minTotalTablets = 0;
-      let maxTotalTablets = 0;
+      let minGodownTotalTablets = 0;
+      let maxGodownTotalTablets = 0;
+      let minRetailTotalTablets = 0;
+      let maxRetailTotalTablets = 0;
 
       const now = Date.now();
-      const minCutoff = now - 21 * 24 * 60 * 60 * 1000;
-      const maxCutoff = now - 49 * 24 * 60 * 60 * 1000;
+      const minGodownCutoff = now - 21 * 24 * 60 * 60 * 1000;
+      const maxGodownCutoff = now - 49 * 24 * 60 * 60 * 1000;
+      const minRetailCutoff = now - 7 * 24 * 60 * 60 * 1000;
+      const maxRetailCutoff = now - 10 * 24 * 60 * 60 * 1000;
 
       for (const entry of item.entries) {
         const time = new Date(entry.createdAt).getTime();
         const total = (entry.strips ?? 0) * tabletsPerStrip + (entry.tablets ?? 0);
 
-        if (time >= minCutoff) minTotalTablets += total;
-        if (time >= maxCutoff) maxTotalTablets += total;
+        if (time >= minGodownCutoff) minGodownTotalTablets += total;
+        if (time >= maxGodownCutoff) maxGodownTotalTablets += total;
+        if (time >= minRetailCutoff) minRetailTotalTablets += total;
+        if (time >= maxRetailCutoff) maxRetailTotalTablets += total;
       }
 
-      const minStrips = Math.round(minTotalTablets / tabletsPerStrip);
-      const maxStrips = Math.round(maxTotalTablets / tabletsPerStrip);
+      const minGodownStrips = Math.round(minGodownTotalTablets / tabletsPerStrip);
+      const maxGodownStrips = Math.round(maxGodownTotalTablets / tabletsPerStrip);
+      const minRetailStrips = Math.round(minRetailTotalTablets / tabletsPerStrip);
+      const maxRetailStrips = Math.round(maxRetailTotalTablets / tabletsPerStrip);
 
       await Medicine.findByIdAndUpdate(item._id, {
         $set: {
-          "minimumStockCount.godown": minStrips,
-          "maximumStockCount.godown": maxStrips,
+          "minimumStockCount.godown": minGodownStrips,
+          "maximumStockCount.godown": maxGodownStrips,
+          "minimumStockCount.retails": minRetailStrips,
+          "maximumStockCount.retails": maxRetailStrips,
         },
       });
 
@@ -118,6 +128,8 @@ export async function GET(req) {
         $set: {
           "minimumStockCount.godown": 0,
           "maximumStockCount.godown": 0,
+          "minimumStockCount.retails": 0,
+          "maximumStockCount.retails": 0,
         },
       }
     );

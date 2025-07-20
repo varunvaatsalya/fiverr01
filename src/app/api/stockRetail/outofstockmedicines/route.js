@@ -114,6 +114,10 @@ export async function GET(req) {
             sectionType === "hospital"
               ? "$minimumHospitalStockCount"
               : "$minimumStockCount",
+          maximumStockCount:
+            sectionType === "hospital"
+              ? "$maximumHospitalStockCount"
+              : "$maximumStockCount",
         },
       },
       {
@@ -125,6 +129,7 @@ export async function GET(req) {
           isTablets: { $first: "$isTablets" },
           packetSize: { $first: "$packetSize" },
           minimumStockCount: { $first: "$minimumStockCount" },
+          maximumStockCount: { $first: "$maximumStockCount" },
           requests: {
             $first: {
               $filter: {
@@ -141,7 +146,7 @@ export async function GET(req) {
               },
             },
           },
-          totalRetailStock: { $sum: "$retailStock.stocks.quantity.boxes" },
+          totalRetailStock: { $sum: "$retailStock.stocks.quantity.totalStrips" },
         },
       },
       // {
@@ -157,47 +162,42 @@ export async function GET(req) {
       //     ],
       //   },
       // },
-      ...(onlyApproved
-        ? [
+
+      {
+        $match: {
+          $and: [
             {
-              $match: {
-                $and: [
-                  {
-                    $or: [
-                      { minimumStockCount: null },
-                      {
-                        "minimumStockCount.retails": { $exists: true },
-                        $expr: {
-                          $lt: [
-                            "$totalRetailStock",
-                            "$minimumStockCount.retails",
-                          ],
-                        },
-                      },
-                    ],
+              $or: [
+                { minimumStockCount: null },
+                {
+                  "minimumStockCount.retails": { $exists: true },
+                  $expr: {
+                    $lte: ["$totalRetailStock", "$minimumStockCount.retails"],
                   },
-                  {
-                    "requests.0.status": "Approved", // ensure at least one approved
-                  },
-                ],
+                },
+              ],
+            },
+            {
+              $expr: {
+                $not: {
+                  $and: [
+                    { $eq: ["$maximumStockCount.retails", 0] },
+                    { $eq: ["$minimumStockCount.retails", 0] },
+                    { $eq: ["$totalRetailStock", 0] },
+                  ],
+                },
               },
             },
-          ]
-        : [
-            {
-              $match: {
-                $or: [
-                  { minimumStockCount: null },
+            ...(onlyApproved
+              ? [
                   {
-                    "minimumStockCount.retails": { $exists: true },
-                    $expr: {
-                      $lt: ["$totalRetailStock", "$minimumStockCount.retails"],
-                    },
+                    "requests.0.status": "Approved",
                   },
-                ],
-              },
-            },
-          ]),
+                ]
+              : []),
+          ],
+        },
+      },
       {
         $project: {
           name: 1,
@@ -206,6 +206,7 @@ export async function GET(req) {
           packetSize: 1,
           isTablets: 1,
           minimumStockCount: 1,
+          maximumStockCount: 1,
           totalRetailStock: 1,
           requests: {
             _id: 1,

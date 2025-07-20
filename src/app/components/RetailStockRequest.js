@@ -5,7 +5,7 @@ import Loading from "./Loading";
 import { FaCheckCircle } from "react-icons/fa";
 import { useStockType } from "../context/StockTypeContext";
 
-function RetailStockRequest({ medicineStock, setMedicineStock, query }) {
+function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [proceedSection, setProceedSection] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState([]);
@@ -149,6 +149,42 @@ function RetailStockRequest({ medicineStock, setMedicineStock, query }) {
         <div className="w-full rounded-full p-2 bg-gray-900 text-center ">
           List of all out of stock Medcines
         </div>
+        <button
+          disabled={selectedMedicine.length === medicineStock?.length}
+          className="rounded-full px-3 bg-gray-900 py-2 text-nowrap"
+          onClick={() => {
+            const allSelected = medicineStock?.map((medicine) => {
+              const min = medicine.minimumStockCount?.retails;
+              const max = medicine.maximumStockCount?.retails;
+              const current = medicine.totalRetailStock;
+
+              const shouldCalculate =
+                typeof min === "number" &&
+                typeof max === "number" &&
+                max >= min &&
+                min >= current;
+
+              return {
+                ...medicine,
+                enteredRemainingQuantity: "",
+                requestedQuantity: shouldCalculate ? max - current : "",
+              };
+            });
+
+            setSelectedMedicine(allSelected);
+          }}
+        >
+          Select All
+        </button>
+        <button
+          onClick={() => {
+            setSelectedMedicine([]);
+          }}
+          disabled={!selectedMedicine.length}
+          className="rounded-full px-3 bg-gray-900 py-2 text-nowrap"
+        >
+          Clear All
+        </button>
         <button
           onClick={() => setProceedSection(true)}
           disabled={!selectedMedicine.length}
@@ -296,17 +332,24 @@ function RetailStockRequest({ medicineStock, setMedicineStock, query }) {
                             )
                           );
                         } else {
-                          setSelectedMedicine([
-                            ...selectedMedicine,
+                          const min = medicine.minimumStockCount?.retails;
+                          const max = medicine.maximumStockCount?.retails;
+                          const current = medicine.totalRetailStock;
+
+                          const shouldCalculate =
+                            min !== undefined &&
+                            max !== undefined &&
+                            max >= min &&
+                            min >= current;
+
+                          setSelectedMedicine((prev) => [
+                            ...prev,
                             {
                               ...medicine,
                               enteredRemainingQuantity: "",
-                              requestedQuantity:
-                                medicine.minimumStockCount &&
-                                medicine.minimumStockCount.retails
-                                  ? medicine.minimumStockCount.retails -
-                                    medicine.totalRetailStock
-                                  : "",
+                              requestedQuantity: shouldCalculate
+                                ? max - current
+                                : "",
                             },
                           ]);
                         }
@@ -377,10 +420,9 @@ function RetailStockRequest({ medicineStock, setMedicineStock, query }) {
                               <input
                                 type="number"
                                 min={0}
-                                hidden={
-                                  requestedMedicine.minimumStockCount &&
-                                  requestedMedicine.minimumStockCount.retails
-                                }
+                                // hidden={Boolean(
+                                //   requestedMedicine.requestedQuantity
+                                // )}
                                 value={requestedMedicine.requestedQuantity}
                                 onChange={(e) => {
                                   handleQuantityChange(
