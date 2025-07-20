@@ -258,9 +258,8 @@ function RetailStock({
                       totalTablets
                     : "--"}
                 </div>
-                {
-                  medicine.retailStocks.length > 0 &&
-                  totalStrips < medicine.minimumStockCount.retails && (
+                {medicine.retailStocks.length > 0 &&
+                  totalStrips <= medicine.minimumStockCount.retails && (
                     <TiWarning className="text-red-900 size-6 animate-pulse" />
                   )}
                 {medicine.requests.length ? (

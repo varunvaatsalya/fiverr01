@@ -131,7 +131,7 @@ export async function GET(req) {
                 ],
               },
               {
-                $ceil: {
+                $round: {
                   $divide: ["$minimumStockCount.retails", "$packetSize.strips"],
                 },
               },
@@ -147,7 +147,7 @@ export async function GET(req) {
                 ],
               },
               {
-                $ceil: {
+                $round: {
                   $divide: ["$maximumStockCount.retails", "$packetSize.strips"],
                 },
               },
