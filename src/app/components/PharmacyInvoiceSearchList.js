@@ -19,7 +19,11 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
 function PharmacyInvoiceSearchList({
@@ -225,7 +229,13 @@ function PharmacyInvoiceSearchList({
                         {invoice.paymentMode === "Credit-Doctor" && (
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button size="sm" variant="outline" className="mx-1">Reason</Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="mx-1"
+                              >
+                                Reason
+                              </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-80">
                               <p className="text-sm text-muted-foreground whitespace-pre-wrap">
@@ -254,7 +264,7 @@ function PharmacyInvoiceSearchList({
                           </HoverCard>
                         )}
                       </div>
-                      {invoice.price.discount && (
+                      {invoice.price.discount > 0 && (
                         <>
                           <div className="py-1 px-4 ">
                             Subtotal:{" "}

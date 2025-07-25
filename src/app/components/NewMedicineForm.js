@@ -6,7 +6,6 @@ import Loading from "./Loading";
 function NewMedicineForm() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-  const [data, setData] = useState({});
   const [manufacturers, setManufacturers] = useState([]);
   // const [vendors, setVendors] = useState([]);
   const [salts, setSalts] = useState([]);

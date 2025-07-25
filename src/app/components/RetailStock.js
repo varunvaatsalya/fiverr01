@@ -259,7 +259,8 @@ function RetailStock({
                     : "--"}
                 </div>
                 {medicine.retailStocks.length > 0 &&
-                  totalStrips <= medicine.minimumStockCount.retails && (
+                  totalStrips < medicine.maximumStockCount?.retails &&
+                  totalStrips <= medicine.minimumStockCount?.retails && (
                     <TiWarning className="text-red-900 size-6 animate-pulse" />
                   )}
                 {medicine.requests.length ? (
@@ -300,12 +301,12 @@ function RetailStock({
                   </div>
                   <div className="flex justify-around items-center mt-2 w-full">
                     {medicine.minimumStockCount &&
-                    medicine.minimumStockCount.retails != null ? (
+                    medicine.minimumStockCount?.retails != null ? (
                       <div className="flex justify-center items-center gap-2 ">
                         <div className="font-semibold text-gray-600 bg-slate-300 px-2 rounded">
                           Min Stock Qty:{" "}
                           <span className="text-black">
-                            {medicine.minimumStockCount.retails}
+                            {medicine.minimumStockCount?.retails}
                           </span>
                         </div>
                         <div
@@ -353,12 +354,12 @@ function RetailStock({
                       </div>
                     )}
                     {medicine.maximumStockCount &&
-                    medicine.maximumStockCount.retails != null ? (
+                    medicine.maximumStockCount?.retails != null ? (
                       <div className="flex justify-center items-center gap-2 ">
                         <div className="font-semibold text-gray-600 bg-slate-300 px-2 rounded">
                           Max Stock Qty:{" "}
                           <span className="text-black">
-                            {medicine.maximumStockCount.retails}
+                            {medicine.maximumStockCount?.retails}
                           </span>
                         </div>
                         <div

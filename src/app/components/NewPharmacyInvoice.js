@@ -297,7 +297,7 @@ function NewPharmacyInvoice({
         discount,
         discountToAllMedicine,
         ...(selectedPaymentMode === "mixed" && { payments }),
-        comments
+        comments,
       };
 
       if (isMakeExpressInvoice) {
@@ -992,15 +992,16 @@ function NewPharmacyInvoice({
                   </div>
                 </div>
               )}
-              {selectedPaymentMode === "Credit-Doctor" && (
-                <div className="max-w-3xl mx-auto px-2">
-                  <Textarea
-                    placeholder="Enter the reason for choosing the Credit (Doctor) payment mode"
-                    value={comments || ""}
-                    onChange={(e) => setComments(e.target.value)}
-                  />
-                </div>
-              )}
+              {selectedPaymentMode === "Credit-Doctor" &&
+                selectedPaymentMode === "Package-Discount" && (
+                  <div className="max-w-3xl mx-auto px-2">
+                    <Textarea
+                      placeholder="Enter the reason for choosing the Credit (Doctor) payment mode"
+                      value={comments || ""}
+                      onChange={(e) => setComments(e.target.value)}
+                    />
+                  </div>
+                )}
             </>
           )}
         </div>
@@ -1053,7 +1054,9 @@ function NewPharmacyInvoice({
                   Math.abs(
                     Math.floor(totalEntered) - Math.floor(discountedTotal)
                   ) >= 1) ||
-                (selectedPaymentMode === "Credit-Doctor" && !comments)
+                ((selectedPaymentMode === "Credit-Doctor" ||
+                  selectedPaymentMode === "Package-Discount") &&
+                  !comments)
               }
             >
               {submitting ? <Loading size={15} /> : <></>}

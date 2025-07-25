@@ -358,34 +358,73 @@ const AnalyticsPharmacy = () => {
 
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-              <div className="bg-zinc-800 p-4 rounded-lg">
+              <div className="bg-zinc-800 p-4 rounded-lg text-center">
                 <p className="text-sm text-zinc-400">Total Return Invoices</p>
                 <p className="text-xl font-semibold text-white">
-                  {returnSummary?.totalReturnInvoices || 0}
+                  {returnSummary?.totalReturnInvoices || 0} (₹
+                  {(returnSummary?.totalReturnAmount || 0).toFixed(2)})
                 </p>
               </div>
-              <div className="bg-green-900 p-4 rounded-lg">
+              <div className="bg-green-900 p-4 rounded-lg text-center">
                 <p className="text-sm text-green-300">Paid Returns</p>
-                <p className="text-xl font-semibold text-green-100">
-                  {returnSummary?.paid || 0}
+                <p className="text-lg font-bold text-green-100">
+                  {returnSummary?.paidCount || 0} (₹
+                  {(returnSummary?.paidAmount || 0).toFixed(2)})
                 </p>
               </div>
-              <div className="bg-red-900 p-4 rounded-lg">
+
+              <div className="bg-red-900 p-4 rounded-lg text-center">
                 <p className="text-sm text-red-300">Unpaid Returns</p>
-                <p className="text-xl font-semibold text-red-100">
-                  {returnSummary?.unpaid || 0}
+                <p className="text-lg font-bold text-red-100">
+                  {returnSummary?.unpaidCount || 0} (₹
+                  {(returnSummary?.unpaidCount || 0).toFixed(2)})
                 </p>
               </div>
             </div>
-
+            <div>
+              <h4 className="text-sm font-medium mb-2 text-white">
+                Patient-wise Returns
+              </h4>
+              <ScrollArea className="max-h-64 pr-2">
+                {returnSummary?.patientWise?.length > 0 ? (
+                  <div className="space-y-2 text-sm">
+                    {returnSummary?.patientWise.map((patient, idx) => (
+                      <div
+                        key={patient.patientId || idx}
+                        className="flex justify-between items-center border border-zinc-700 rounded p-2 bg-zinc-800 text-white"
+                      >
+                        <div>
+                          <p className="font-medium">{patient.patientName}</p>
+                        </div>
+                        <div className="text-right text-sm">
+                          <p>Total: ₹{patient.totalAmount.toFixed(2)}</p>
+                        </div>
+                        <div className="text-right text-sm">
+                          <p className="text-green-400">
+                            Paid: ₹{patient.paidAmount.toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="text-right text-sm">
+                          <p className="text-red-400">
+                            Unpaid: ₹{patient.unpaidAmount.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-zinc-400 text-sm">No patient returns.</p>
+                )}
+              </ScrollArea>
+            </div>
             <div>
               <h4 className="text-sm font-medium mb-2 text-white">
                 Medicine-wise Returns
               </h4>
               <ScrollArea className="max-h-64 pr-2">
-                {returnSummary?.medicineWiseReturn?.length > 0 ? (
+                {returnSummary?.medicineWise?.length > 0 ? (
                   <div className="space-y-2 text-sm">
-                    {returnSummary?.medicineWiseReturn.map((med, idx) => (
+                    {returnSummary?.medicineWise.map((med, idx) => (
                       <div
                         key={med.medicineId || idx}
                         className="flex items-center justify-between border border-zinc-700 rounded p-2 bg-zinc-800"
@@ -396,7 +435,7 @@ const AnalyticsPharmacy = () => {
                             title={med.name}
                             className="truncate max-w-[180px] text-white border-zinc-500"
                           >
-                            {med.name}
+                            {med.name || med.medicineId}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-4 text-xs sm:text-sm text-white">

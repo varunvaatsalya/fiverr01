@@ -267,6 +267,7 @@ function AdvPharmacyInvoiceSearch({ setSearchedInvoices }) {
           <option value="Cash">Cash</option>
           <option value="UPI">UPI</option>
           <option value="Card">Card</option>
+          <option value="mixed">Mixed</option>
           <option value="Credit-Insurance">{"Credit (Insurance)"}</option>
           <option value="Credit-Doctor">{"Credit (Doctor)"}</option>
           <option value="Credit-Society">{"Credit (Society)"}</option>

@@ -12,7 +12,7 @@ function NewPharmacyInvoiceBackDate({
 }) {
   const [createdAt, setCreatedAt] = useState("");
   const [discount, setDiscount] = useState("");
-  const [selectedPaymentMode] = useState("Credit-Insurance");
+  const [selectedPaymentMode] = useState("Credit-Others");
   const [submitting, setSubmitting] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [isDataFetched, setIsDataFetched] = useState(false);
@@ -133,7 +133,15 @@ function NewPharmacyInvoiceBackDate({
   }, [createdAt]);
 
   const onSubmit = async () => {
-    if (submitting || !selectedPatient || !discount || !createdAt) return;
+    if (
+      submitting ||
+      !selectedPatient ||
+      (typeof discount === "number" && (discount < 1 || discount > 5)) ||
+      !createdAt
+    )
+      return;
+    if (!window.confirm("Do you want to Generate Back Date Invoice in Credit-Others payment mode?"))
+      return;
     try {
       const data = isAddInfoOpen.map((med) => {
         let batch = med.batch || "";
@@ -425,7 +433,8 @@ function NewPharmacyInvoiceBackDate({
                   isAddInfoOpen.length === 0 ||
                   !selectedPatient ||
                   !createdAt ||
-                  (discount && (discount < 1 || discount > 5))
+                  (typeof discount === "number" &&
+                    (discount < 1 || discount > 5))
                 }
               >
                 {submitting ? <Loading size={15} /> : <></>}

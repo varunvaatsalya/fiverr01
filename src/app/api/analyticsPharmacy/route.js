@@ -44,20 +44,29 @@ async function getAnalytics(startDate, endDate) {
     "returns.createdAt": { $gte: startDate, $lt: endDate },
   };
 
-  const returnInvoices = await PharmacyInvoice.find(returnQuery).select(
-    "returns inid patientId createdAt"
-  );
+  const returnInvoices = await PharmacyInvoice.find(returnQuery)
+    .select("returns inid patientId createdAt")
+    .populate("patientId", "name");
 
-  // Step 3: Categorize returns: paid vs unpaid
-  let paid = 0,
-    unpaid = 0;
-  const medicineReturnMap = new Map();
+  let paidCount = 0,
+    unpaidCount = 0,
+    paidAmount = 0,
+    unpaidAmount = 0,
+    totalReturnInvoices = 0,
+    totalReturnAmount = 0;
+    
+  const medicineReturnMap = new Map(); // medicine-wise
+  const patientReturnMap = new Map(); // patient-wise
 
   for (const inv of returnInvoices) {
+    let hasReturnInRange = false;
+    let patientId = inv.patientId.toString();
+
     for (const ret of inv.returns || []) {
       if (ret.createdAt >= startDate && ret.createdAt < endDate) {
-        if (ret.isReturnAmtPaid) paid++;
-        else unpaid++;
+        hasReturnInRange = true;
+
+        let returnTotal = 0;
 
         for (const med of ret.medicines || []) {
           const medId = med.medicineId.toString();
@@ -66,7 +75,9 @@ async function getAnalytics(startDate, endDate) {
             const qty =
               (stock.quantity?.strips || 0) + (stock.quantity?.tablets || 0);
             const price = stock.price || 0;
+            returnTotal += price;
 
+            // Medicine-wise mapping
             if (!medicineReturnMap.has(medId)) {
               medicineReturnMap.set(medId, {
                 medicineId: medId,
@@ -75,13 +86,41 @@ async function getAnalytics(startDate, endDate) {
               });
             }
 
-            const existing = medicineReturnMap.get(medId);
-            existing.quantity += qty;
-            existing.totalAmount += price;
+            const existingMed = medicineReturnMap.get(medId);
+            existingMed.quantity += qty;
+            existingMed.totalAmount += price;
           }
         }
+
+        // Paid / unpaid tracking
+        if (ret.isReturnAmtPaid) {
+          paidCount++;
+          paidAmount += returnTotal;
+        } else {
+          unpaidCount++;
+          unpaidAmount += returnTotal;
+        }
+        totalReturnAmount += returnTotal;
+
+        // Patient-wise mapping
+        if (!patientReturnMap.has(patientId)) {
+          patientReturnMap.set(patientId, {
+            patientName: inv.patientId?.name || "Unknown",
+            totalAmount: 0,
+            paidAmount: 0,
+            unpaidAmount: 0,
+          });
+        }
+
+        const patientEntry = patientReturnMap.get(patientId);
+        patientEntry.totalAmount += returnTotal;
+        if (ret.isReturnAmtPaid) patientEntry.paidAmount += returnTotal;
+        else patientEntry.unpaidAmount += returnTotal;
       }
     }
+
+    // Count only if invoice has return in date range
+    if (hasReturnInRange) totalReturnInvoices++;
   }
 
   // Final array from Map
@@ -109,10 +148,13 @@ async function getAnalytics(startDate, endDate) {
   return {
     pharmacyInvoices,
     returnSummary: {
-      totalReturnInvoices: returnInvoices.length,
-      paid,
-      unpaid,
-      medicineWiseReturn,
+      totalReturnInvoices,
+      paidCount,
+      unpaidCount,
+      paidAmount,
+      unpaidAmount,
+      patientWise: Array.from(patientReturnMap.values()),
+      medicineWise: Array.from(medicineWiseReturn.values()),
     },
   };
 }
