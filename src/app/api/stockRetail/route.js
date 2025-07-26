@@ -6,6 +6,7 @@ import Medicine from "../../models/Medicine";
 export async function GET(req) {
   await dbConnect();
 
+  let letter = req.nextUrl.searchParams.get("letter");
   let sectionType = req.nextUrl.searchParams.get("sectionType");
 
   const token = req.cookies.get("authToken");
@@ -33,8 +34,19 @@ export async function GET(req) {
   const requestCollection =
     sectionType === "hospital" ? "hospitalrequests" : "requests";
 
+  let regex;
+  if (letter === "#") regex = new RegExp("^[^A-Za-z]", "i");
+  else regex = new RegExp("^" + letter, "i");
+
   try {
     const retailStockData = await Medicine.aggregate([
+      {
+        $match: {
+          name: {
+            $regex: regex,
+          },
+        },
+      },
       {
         $lookup: {
           from: retailstockCollection, // Changed to retailstocks collection

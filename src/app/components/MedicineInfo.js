@@ -36,8 +36,9 @@ function MedicineInfo() {
   useEffect(() => {
     async function fetchData() {
       try {
+        let encodedLetter = encodeURIComponent(selectedLetter);
         let result = await fetch(
-          `/api/medicinesInfo?letter=${selectedLetter}${
+          `/api/medicinesInfo?letter=${encodedLetter}${
             metaData ? `&metaData=1` : ""
           }`
         );

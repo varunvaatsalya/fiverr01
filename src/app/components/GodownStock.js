@@ -22,7 +22,6 @@ function GodownStock({ medicineStock, query }) {
 
   useEffect(() => {
     setFilteredMedicines(medicineStock?.medicines);
-    console.log(medicineStock?.medicines);
   }, [medicineStock]);
 
   useEffect(() => {
@@ -142,7 +141,6 @@ function GodownStock({ medicineStock, query }) {
       </div>
       {filteredMedicines ? (
         filteredMedicines.map((medicine, index) => {
-          console.log(filteredMedicines);
           let totalStrips = medicine.stocks.reduce(
             (acc, stock) => acc + stock.quantity.totalStrips,
             0
