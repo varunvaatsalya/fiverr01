@@ -1,6 +1,6 @@
 import React from "react";
-import Navbar from "../../../../components/Navbar";
-import PurchaseHistory from "../../../../components/PharmacyDueInvoice";
+import Navbar from "@/app/components/Navbar";
+import PurchaseHistory from "@/app/components/PharmacyDueInvoice";
 
 function Page() {
   return (

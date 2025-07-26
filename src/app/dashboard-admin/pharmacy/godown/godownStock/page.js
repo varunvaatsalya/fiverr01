@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Navbar from "../../../../components/Navbar";
-import GodownStock from "../../../../components/GodownStock";
+import Navbar from "@/app/components/Navbar";
+import GodownStock from "@/app/components/GodownStock";
 import { ImBoxRemove } from "react-icons/im";
 import { FaSquarePen } from "react-icons/fa6";
 import { TiWarning } from "react-icons/ti";
