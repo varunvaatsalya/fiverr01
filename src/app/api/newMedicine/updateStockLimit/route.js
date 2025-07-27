@@ -91,8 +91,8 @@ export async function GET(req) {
       const now = Date.now();
       const minGodownCutoff = now - 21 * 24 * 60 * 60 * 1000;
       const maxGodownCutoff = now - 49 * 24 * 60 * 60 * 1000;
-      const minRetailCutoff = now - 7 * 24 * 60 * 60 * 1000;
-      const maxRetailCutoff = now - 10 * 24 * 60 * 60 * 1000;
+      const minRetailCutoff = now - 10 * 24 * 60 * 60 * 1000;
+      const maxRetailCutoff = now - 14 * 24 * 60 * 60 * 1000;
 
       for (const entry of item.entries) {
         const time = new Date(entry.createdAt).getTime();
