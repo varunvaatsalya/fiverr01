@@ -5,9 +5,9 @@ import { verifyTokenWithLogout } from "@/app/utils/jwt";
 import fs from "fs/promises";
 import path from "path";
 
-export const config = {
-  api: { bodyParser: false },
-};
+// export const config = {
+//   api: { bodyParser: false },
+// };
 
 export async function POST(req) {
   await dbConnect();

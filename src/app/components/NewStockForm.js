@@ -49,6 +49,7 @@ function NewStockForm({ medicines, lists, type, setType, uniqueID }) {
       return;
     }
     setSubmitting(true);
+    data.invoiceNumber = uniqueID;
     try {
       let result = await fetch("/api/newPurchaseInvoice", {
         method: "POST",
