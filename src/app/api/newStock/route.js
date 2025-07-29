@@ -6,6 +6,7 @@ import { Stock, HospitalStock } from "../../models/Stock";
 import PurchaseInvoice, {
   HospitalPurchaseInvoice,
 } from "../../models/PurchaseInvoice";
+import PendingPurchaseInvoice from "@/app/models/PendingPurchaseInvoice";
 
 function getInvoiceModel(typesectionType) {
   if (typesectionType === "hospital") return HospitalPurchaseInvoice;
@@ -261,30 +262,97 @@ export async function POST(req) {
   //   );
   // }
 
-  const { stocks, invoiceNumber, sectionType } = await req.json();
+  const { pendingInvoiceId, status, rejectionReason } = await req.json();
 
+  if (!pendingInvoiceId || !status) {
+    return NextResponse.json(
+      { message: "Pending invoice ID and status are required", success: false },
+      { status: 400 }
+    );
+  }
+  if (!["approved", "rejected"].includes(status)) {
+    return NextResponse.json(
+      { message: "Invalid status value", success: false },
+      { status: 400 }
+    );
+  }
+  const pendingInvoice = await PendingPurchaseInvoice.findById(
+    pendingInvoiceId
+  ).populate({
+    path: "stocks.medicine",
+    select:
+      "name packetSize isTablets latestSource stockHospitalOrderInfo stockOrderInfo",
+  });
+  if (!pendingInvoice) {
+    return NextResponse.json(
+      { message: "Pending invoice not found", success: false },
+      { status: 404 }
+    );
+  }
+  if (pendingInvoice.status !== "pending") {
+    return NextResponse.json(
+      { message: "Invoice already processed!", success: false },
+      { status: 400 }
+    );
+  }
+  if (status === "rejected") {
+    pendingInvoice.status = "rejected";
+    pendingInvoice.rejectionReason = rejectionReason;
+    await pendingInvoice.save();
+
+    return NextResponse.json(
+      { message: "Invoice rejected successfully", success: true },
+      { status: 200 }
+    );
+  }
+
+  const {
+    invoiceNumber,
+    vendorInvoiceId,
+    type,
+    source,
+    invoiceDate,
+    receivedDate,
+    isBackDated,
+    sectionType,
+    stocks,
+    billImageId,
+    submittedBy,
+  } = pendingInvoice;
+
+  if (!["pharmacy", "hospital"].includes(sectionType)) {
+    return NextResponse.json(
+      {
+        message: "Invalid section type. Must be 'pharmacy' or 'hospital'.",
+        success: false,
+      },
+      { status: 400 }
+    );
+  }
   const StockModel = getStockModel(sectionType);
   const PurchaseInvoiceModel = getInvoiceModel(sectionType);
 
   try {
-    const invoice = await PurchaseInvoiceModel.findOne({ invoiceNumber });
-    if (!invoice) {
+    const invoiceExist = await PurchaseInvoiceModel.findOne({ invoiceNumber });
+
+    if (invoiceExist) {
       return NextResponse.json(
-        { message: "Invoice ID not found!", success: false },
-        { status: 404 }
+        { message: "Invoice number already exists!", success: false },
+        { status: 409 } // Conflict
       );
     }
-    const sourceId = invoice.vendor ?? invoice.manufacturer;
-    const sourceType = invoice.vendor ? "Vendor" : "Manufacturer";
 
-    let savedStocks = [];
+    let savedStocks = []; // for response
+    let insertedStocks = []; // in purchase invoice used
+    let grandTotal = 0;
 
     for (const stock of stocks) {
-      let medicine = stock.medicine || "";
+      let medicineData = stock.medicine;
       let batchName = stock.batchName || "N/A";
       let mfgDate = stock.mfgDate;
       let expiryDate = stock.expiryDate;
-      let quantity = parseFloat(stock.quantity || 0);
+      let currentQuantity = parseFloat(stock.currentQuantity);
+      let quantity = parseFloat(stock.initialQuantity || 0);
       let offer = parseFloat(stock.offer || 0);
       let sellingPrice = parseFloat(stock.sellingPrice || 0);
       let purchasePrice = parseFloat(stock.purchasePrice || 0); // purchase rate (raw)
@@ -294,17 +362,17 @@ export async function POST(req) {
 
       if (purchasePrice > sellingPrice) {
         savedStocks.push({
-          medicine,
+          medicine: medicineData.name,
           success: false,
           message: ` Selling price should be Greater than purchase price`,
         });
         continue;
       }
 
-      let medicineData = await Medicine.findById(medicine);
+      // let medicineData = await Medicine.findById(medicine);
       if (!medicineData) {
         savedStocks.push({
-          medicine,
+          medicine: medicineData.name,
           success: false,
           message: ` not found`,
         });
@@ -312,10 +380,18 @@ export async function POST(req) {
       }
       let updatedList = medicineData.latestSource || [];
 
-      let stripsPerBox = medicineData.packetSize.strips;
+      let stripsPerBox = medicineData.packetSize?.strips;
       let totalQuantity = quantity + offer;
       let boxes = Math.floor(totalQuantity / stripsPerBox);
       let extra = totalQuantity % stripsPerBox;
+
+      let totalAvailableQuantity = isBackDated
+        ? currentQuantity
+        : totalQuantity;
+      let totalAvailableBoxes = Math.floor(
+        totalAvailableQuantity / stripsPerBox
+      );
+      let totalAvailableExtra = totalAvailableQuantity % stripsPerBox;
 
       let baseAmount = quantity * purchasePrice;
 
@@ -343,7 +419,7 @@ export async function POST(req) {
       let totalAmount = parseFloat((costPrice * quantity).toFixed(2));
 
       let newMedicineStock = new StockModel({
-        medicine,
+        medicine: medicineData._id,
         batchName,
         mfgDate,
         packetSize: medicineData.packetSize,
@@ -360,9 +436,9 @@ export async function POST(req) {
         },
         invoiceId: invoiceNumber,
         quantity: {
-          boxes,
-          extra,
-          totalStrips: totalQuantity,
+          boxes: totalAvailableBoxes,
+          extra: totalAvailableExtra,
+          totalStrips: totalAvailableQuantity,
         },
         initialQuantity: {
           boxes,
@@ -371,18 +447,19 @@ export async function POST(req) {
           totalStrips: totalQuantity,
         },
       });
-      invoice.stocks.push({
+      insertedStocks.push({
         stockId: newMedicineStock._id,
         insertedAt: new Date(),
       });
 
       await newMedicineStock.save();
+      grandTotal += totalAmount;
 
       updatedList = updatedList.filter(
-        (entry) => !entry.sourceId.equals(sourceId)
+        (entry) => !entry.sourceId.equals(source)
       );
 
-      updatedList.unshift({ sourceId, sourceType });
+      updatedList.unshift({ sourceId: source, sourceType: type });
 
       medicineData.latestSource = updatedList.slice(0, 3);
       if (sectionType === "hospital")
@@ -393,18 +470,46 @@ export async function POST(req) {
       await medicineData.save();
 
       savedStocks.push({
-        medicine,
+        medicine: medicineData.name,
         success: true,
         message: ` saved successfully`,
       });
     }
 
-    invoice.createdBy = userRole === "admin" || !userId ? null : userId;
-    invoice.createdByRole = userRole;
+    let manufacturer;
+    let vendor;
+    if (type === "Manufacturer") manufacturer = source;
+    else if (type === "Vendor") vendor = source;
+
+    let invoice = new PurchaseInvoiceModel({
+      invoiceNumber,
+      vendorInvoiceId,
+      manufacturer,
+      vendor,
+      stocks: insertedStocks,
+      grandTotal,
+      billImageId,
+      invoiceDate,
+      receivedDate,
+      createdByRole: submittedBy.role,
+      createdBy:
+        submittedBy.role === "admin" || !submittedBy.id ? null : submittedBy.id,
+      reqCreatedAt: pendingInvoice.createdAt,
+      approvedByRole: userRole,
+      approvedBy: userRole === "admin" || !userId ? null : userId,
+    });
+
     await invoice.save();
+    pendingInvoice.status = "approved";
+    pendingInvoice.expireAt = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000); // 15 days later
+    await pendingInvoice.save();
 
     return NextResponse.json(
-      { savedStocks, message: "Stocks Added Successfully!", success: true },
+      {
+        savedStocks,
+        message: "Stocks Approved & Added Successfully!",
+        success: true,
+      },
       { status: 201 }
     );
   } catch (error) {

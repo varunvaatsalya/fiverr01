@@ -2,17 +2,12 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
-import PurchaseInvoice, {
-  HospitalPurchaseInvoice,
-} from "../../models/PurchaseInvoice";
 
 export async function GET(req) {
   await dbConnect();
-  let basicInfo = req.nextUrl.searchParams.get("basicInfo");
   let sellRecord = req.nextUrl.searchParams.get("sellRecord");
   let ids = req.nextUrl.searchParams.get("ids");
   let id = req.nextUrl.searchParams.get("id");
-  let sectionType = req.nextUrl.searchParams.get("sectionType");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -36,42 +31,6 @@ export async function GET(req) {
 
   try {
     let response = {};
-    if (basicInfo === "1") {
-      response = await Medicine.find()
-        .sort({ name: 1 })
-        .populate({
-          path: "manufacturer",
-        })
-        .populate({
-          path: "salts",
-        });
-
-      let InvoiceModel =
-        sectionType === "hospital" ? HospitalPurchaseInvoice : PurchaseInvoice;
-      let ids = await InvoiceModel.find(
-        { isPaid: false },
-        "_id invoiceNumber manufacturer vendor"
-      )
-        .sort({ _id: -1 })
-        .populate({
-          path: "manufacturer",
-          select: "name",
-        })
-        .populate({
-          path: "vendor",
-          select: "name",
-        })
-        .exec();
-
-      return NextResponse.json(
-        {
-          response,
-          ids,
-          success: true,
-        },
-        { status: 200 }
-      );
-    }
 
     if (id) {
       response = await Medicine.findById(id);

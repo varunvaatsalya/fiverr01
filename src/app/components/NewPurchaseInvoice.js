@@ -19,26 +19,26 @@ function NewPurchaseInvoice({
 
   const sectionType = useStockType();
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        let result = await fetch(`/api/newPurchaseInvoice?info=${type}${
-            sectionType === "hospital" ? "&sectionType=hospital" : ""
-          }`);
-        result = await result.json();
-        if (result.success) {
-          setLists(result.lists);
-          setUniqueID(result.uniqueID);
-          setValue("invoiceNumber", result.uniqueID);
-        } else {
-          setMessage(result.message);
-        }
-      } catch (err) {
-        console.log("error: ", err);
-      }
-    }
-    fetchData();
-  }, [type]);
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     try {
+  //       let result = await fetch(`/api/newPurchaseInvoice?info=${type}${
+  //           sectionType === "hospital" ? "&sectionType=hospital" : ""
+  //         }`);
+  //       result = await result.json();
+  //       if (result.success) {
+  //         setLists(result.lists);
+  //         setUniqueID(result.uniqueID);
+  //         setValue("invoiceNumber", result.uniqueID);
+  //       } else {
+  //         setMessage(result.message);
+  //       }
+  //     } catch (err) {
+  //       console.log("error: ", err);
+  //     }
+  //   }
+  //   // fetchData();
+  // }, [type]);
 
   const onSubmit = async (data) => {
     setMessage("");

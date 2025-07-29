@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const purchaseInvoiceSchema = new mongoose.Schema({
   invoiceNumber: { type: String, required: true, unique: true },
+  vendorInvoiceId: { type: String },
   manufacturer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Manufacturer",
@@ -54,10 +55,22 @@ const purchaseInvoiceSchema = new mongoose.Schema({
   isPaid: { type: Boolean, default: false },
   invoiceDate: { type: Date, required: true },
   receivedDate: { type: Date, required: true },
+  billImageId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "FileAsset", // if you're storing bill photo
+  },
   createdByRole: {
     type: String,
   },
   createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  reqCreatedAt: { type: Date },
+  approvedByRole: {
+    type: String,
+  },
+  approvedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },

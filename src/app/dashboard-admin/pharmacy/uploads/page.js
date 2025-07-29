@@ -156,7 +156,7 @@ export default function Page() {
     else if (selectedType === "StocksQty") data = stockQtyData();
     else if (selectedType === "RetailStocks") data = retailStocksData();
     try {
-      let result = await fetch(`/api/uploads?type=${selectedType}`, {
+      let result = await fetch(`/api/bulkDataUploads?type=${selectedType}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

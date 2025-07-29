@@ -107,17 +107,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import Image from "next/image";
 
 export default function StockDetails({ stockDetails, setStockDetails }) {
   const {
     invoiceNumber,
+    vendorInvoiceId,
     invoiceDate,
     receivedDate,
+    manufacturer,
     vendor,
     payments,
     stocks,
     grandTotal,
     isPaid,
+    billImageId,
   } = stockDetails;
 
   return (
@@ -166,16 +170,41 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
         </DialogHeader>
 
         {/* Vendor Info */}
-        <div className="mb-4 text-sm">
-          <p>
-            <strong>Vendor:</strong> {vendor?.name}
-          </p>
-          <p>
-            <strong>Contact:</strong> {vendor?.contact}
-          </p>
-          <p>
-            <strong>Address:</strong> {vendor?.address}
-          </p>
+        <div className="mb-4 text-sm flex justify-between gap-3 items-center">
+          <div>
+            <p>
+              <strong>Vendor Invoice Id:</strong> {vendorInvoiceId}
+            </p>
+            {vendor && (
+              <p>
+                <strong>Vendor:</strong> {vendor?.name}
+              </p>
+            )}
+            {manufacturer && (
+              <p>
+                <strong>Manufacturer:</strong> {manufacturer?.name}
+              </p>
+            )}
+            <p>
+              <strong>Contact:</strong>{" "}
+              {vendor
+                ? vendor.contact
+                : manufacturer?.medicalRepresentator?.contact}
+            </p>
+            <p>
+              <strong>Address:</strong> {vendor ? vendor.address : "-"}
+            </p>
+          </div>
+          {billImageId && billImageId.filepath && (
+            <div className="h-40 aspect-video">
+              <Image
+                height={800}
+                width={800}
+                src={`/api${billImageId.filepath}`}
+                className="w-full h-full object-contain "
+              />
+            </div>
+          )}
         </div>
 
         {/* Payment Info */}

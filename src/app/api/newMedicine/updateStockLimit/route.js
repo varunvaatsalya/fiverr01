@@ -85,14 +85,16 @@ export async function GET(req) {
 
       let minGodownTotalTablets = 0;
       let maxGodownTotalTablets = 0;
-      let minRetailTotalTablets = 0;
-      let maxRetailTotalTablets = 0;
+      // let minRetailTotalTablets = 0;
+      // let maxRetailTotalTablets = 0;
+      let retailsTotalTablets = 0;
 
       const now = Date.now();
       const minGodownCutoff = now - 21 * 24 * 60 * 60 * 1000;
       const maxGodownCutoff = now - 49 * 24 * 60 * 60 * 1000;
-      const minRetailCutoff = now - 10 * 24 * 60 * 60 * 1000;
-      const maxRetailCutoff = now - 14 * 24 * 60 * 60 * 1000;
+      // const minRetailCutoff = now - 10 * 24 * 60 * 60 * 1000;
+      // const maxRetailCutoff = now - 14 * 24 * 60 * 60 * 1000;
+      const retailCutoff = now - 42 * 24 * 60 * 60 * 1000;
 
       for (const entry of item.entries) {
         const time = new Date(entry.createdAt).getTime();
@@ -100,14 +102,17 @@ export async function GET(req) {
 
         if (time >= minGodownCutoff) minGodownTotalTablets += total;
         if (time >= maxGodownCutoff) maxGodownTotalTablets += total;
-        if (time >= minRetailCutoff) minRetailTotalTablets += total;
-        if (time >= maxRetailCutoff) maxRetailTotalTablets += total;
+        // if (time >= minRetailCutoff) minRetailTotalTablets += total;
+        // if (time >= maxRetailCutoff) maxRetailTotalTablets += total;
+        if (time >= retailCutoff) retailsTotalTablets += total;
       }
 
       const minGodownStrips = Math.round(minGodownTotalTablets / tabletsPerStrip);
       const maxGodownStrips = Math.round(maxGodownTotalTablets / tabletsPerStrip);
-      const minRetailStrips = Math.round(minRetailTotalTablets / tabletsPerStrip);
-      const maxRetailStrips = Math.round(maxRetailTotalTablets / tabletsPerStrip);
+      // const minRetailStrips = Math.round(retailsTotalTablets / tabletsPerStrip);
+      // const maxRetailStrips = Math.round(maxRetailTotalTablets / tabletsPerStrip);
+      const minRetailStrips = Math.round(retailsTotalTablets / (tabletsPerStrip * 3));
+      const maxRetailStrips = Math.round(retailsTotalTablets / (tabletsPerStrip * 2));
 
       await Medicine.findByIdAndUpdate(item._id, {
         $set: {

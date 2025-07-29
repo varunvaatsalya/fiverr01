@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import { BsCashCoin } from "react-icons/bs";
 import { BiSolidReport } from "react-icons/bi";
+import { GiConfirmed } from "react-icons/gi";
 
 function Page() {
   const Works = [
@@ -20,6 +21,13 @@ function Page() {
       icon: <FaFileInvoiceDollar size={50} />,
       link: "/dashboard-owner/pharmacy/godown/purchaseInvoices",
       color: "bg-gray-800",
+    },
+    {
+      name: "Stock Confirmation",
+      description: "You can confirm the stock of any invoice",
+      icon: <GiConfirmed size={50} />,
+      link: "/dashboard-owner/pharmacy/godown/stockConfirmation",
+      color: "bg-purple-700",
     },
     {
       name: "Stock Info",

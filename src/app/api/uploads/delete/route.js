@@ -1,16 +1,11 @@
-import { NextResponse } from "next/server";
 import dbConnect from "@/app/lib/Mongodb";
 import FileAssets from "@/app/models/FileAssets";
 import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 
-export const config = {
-  api: { bodyParser: false },
-};
-
 export async function POST(req) {
-  await dbConnect();
   const token = req.cookies.get("authToken");
   if (!token) {
     console.log("Token not found. Redirecting to login.");
@@ -34,6 +29,7 @@ export async function POST(req) {
 
   if (
     userRole !== "admin" &&
+    userRole !== "owner" &&
     (userRole !== "stockist" || !userEditPermission)
   ) {
     return NextResponse.json(
@@ -41,52 +37,49 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-
   try {
-    const formData = await req.formData();
-    const file = formData.get("image"); // type: File
-    const folder = formData.get("folder") || "general";
-    const purpose = formData.get("purpose") || "unspecified";
+    await dbConnect();
 
-    if (!file || typeof file === "string") {
+    let body;
+    try {
+      body = await req.json();
+    } catch (err) {
       return NextResponse.json(
-        { success: false, message: "No image found" },
+        { success: false, message: "Invalid JSON" },
         { status: 400 }
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const fileName = `${Date.now()}_${file.name}`;
-    const uploadDir = path.join(process.cwd(), "uploads", folder);
-    const filePath = path.join(uploadDir, fileName);
+    const { id } = body || {};
 
-    await fs.mkdir(uploadDir, { recursive: true });
-    await fs.writeFile(filePath, buffer);
+    const image = await FileAssets.findById(id);
+    if (!image)
+      return NextResponse.json(
+        { success: false, message: "Image not found" },
+        { status: 404 }
+      );
 
-    const imageDoc = await FileAssets.create({
-      filename: file.name,
-      filepath: `/uploads/${folder}/${fileName}`,
-      uploadedBy: {
-        email: decoded.email,
-        role: decoded.role,
-      },
-      purpose,
-      folder,
-    });
+    const filePath = path.join(process.cwd(), image.filepath);
 
-    return NextResponse.json({
-      success: true,
-      imageId: imageDoc._id,
-      filepath: imageDoc.filepath,
-    });
+    try {
+      await fs.access(filePath);
+      await fs.unlink(filePath);
+    } catch (err) {
+      console.warn("File doesn't exist or already deleted.");
+      return NextResponse.json(
+        { success: false, message: "File doesn't exist or already deleted." },
+        { status: 404 }
+      );
+    }
+
+    await FileAssets.findByIdAndDelete(id);
+
+    return NextResponse.json({ success: true, message: "Image deleted" });
   } catch (err) {
-    console.error("UPLOAD ERROR", err);
+    console.error("DELETE ERROR", err);
     return NextResponse.json(
       { success: false, message: err.message },
       { status: 500 }
     );
   }
 }
-
-

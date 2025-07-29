@@ -4,8 +4,11 @@ import { verifyTokenWithLogout } from "../../utils/jwt";
 import { Manufacturer, Vendor } from "../../models/MedicineMetaData";
 import PurchaseInvoice, {
   HospitalPurchaseInvoice,
-} from "../../models/PurchaseInvoice";
+} from "@/app/models/PurchaseInvoice";
+import PendingPurchaseInvoice from "@/app/models/PendingPurchaseInvoice";
+
 import { generateUID } from "../../utils/counter";
+import { Medicine } from "@/app/models";
 
 // function getGrandTotal(medicineDetails) {
 //   const grandTotal = medicineDetails.reduce((grandTotal, medicine) => {
@@ -32,10 +35,13 @@ function getModel(typesectionType) {
 export async function GET(req) {
   await dbConnect();
 
-  let info = req.nextUrl.searchParams.get("info");
+  let sourceType = req.nextUrl.searchParams.get("sourceType");
+  let medicinesDetails = req.nextUrl.searchParams.get("medicinesDetails");
+  let generateNewId = req.nextUrl.searchParams.get("generateNewId");
   let page = req.nextUrl.searchParams.get("page");
   let pending = req.nextUrl.searchParams.get("pending");
   let sectionType = req.nextUrl.searchParams.get("sectionType");
+  let pendingInvoices = req.nextUrl.searchParams.get("pendingInvoices");
 
   const Model = getModel(sectionType);
 
@@ -61,23 +67,69 @@ export async function GET(req) {
   }
 
   try {
-    if (info === "manufacturer" || info === "vendor") {
-      let lists = [];
-      if (info === "manufacturer") {
-        lists = await Manufacturer.find({}, "_id name")
+    if (sourceType === "manufacturer" || sourceType === "vendor") {
+      let response = { lists: [] };
+      if (sourceType === "manufacturer") {
+        response.lists = await Manufacturer.find({}, "_id name")
           .sort({ _id: -1 })
           .exec();
-      } else if (info === "vendor") {
-        lists = await Vendor.find({}, "_id name").sort({ _id: -1 }).exec();
+      } else if (sourceType === "vendor") {
+        response.lists = await Vendor.find({}, "_id name")
+          .sort({ _id: -1 })
+          .exec();
       }
 
-      const prefix = sectionType === "hospital" ? "HI" : "PI";
-      let uniqueDigit = generateUID();
+      if (medicinesDetails === "1") {
+        response.medicines = await Medicine.find()
+          .sort({ name: 1 })
+          .populate({
+            path: "manufacturer",
+          })
+          .populate({
+            path: "salts",
+          });
+      }
 
-      const uniqueID = `${prefix}${uniqueDigit}`;
+      if (generateNewId === "1") {
+        const prefix = sectionType === "hospital" ? "HI" : "PI";
+        let uniqueDigit = generateUID();
+        response.uniqueID = `${prefix}${uniqueDigit}`;
+      }
 
       return NextResponse.json(
-        { lists, uniqueID, success: true },
+        {
+          response,
+          success: true,
+        },
+        { status: 200 }
+      );
+    }
+    if (pendingInvoices === "1") {
+      const pendingInvoices = await PendingPurchaseInvoice.find({
+        status: "pending",
+      })
+        .sort({ _id: 1 })
+        .populate({
+          path: "source",
+          select: "name",
+        })
+        .populate({
+          path: "stocks.medicine",
+          select: "name packetSize isTablets",
+        })
+        .populate({
+          path: "billImageId",
+        });
+      const rejectedCount = await PendingPurchaseInvoice.countDocuments({
+        status: "rejected",
+      });
+
+      return NextResponse.json(
+        {
+          pendingInvoices,
+          rejectedCount,
+          success: true,
+        },
         { status: 200 }
       );
     }
@@ -110,7 +162,14 @@ export async function GET(req) {
         },
       })
       .populate({
+        path: "billImageId",
+      })
+      .populate({
         path: "createdBy",
+        select: "name email",
+      })
+      .populate({
+        path: "approvedBy",
         select: "name email",
       });
 
@@ -163,33 +222,74 @@ export async function POST(req) {
     );
   }
 
-  const { invoiceNumber, type, name, invoiceDate, receivedDate, sectionType } =
-    await req.json();
+  // const { invoiceNumber, type, name, invoiceDate, receivedDate, sectionType } =
+  //   await req.json();
 
-  const Model = getModel(sectionType);
+  const {
+    stocks,
+    invoiceNumber,
+    vendorInvoiceId,
+    type,
+    source,
+    invoiceDate,
+    receivedDate,
+    isBackDated,
+    billImageId,
+    sectionType,
+  } = await req.json();
+
+  const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
+
+  // const Model = getModel(sectionType);
   try {
-    let manufacturer;
-    let vendor;
-
-    if (type === "manufacturer") manufacturer = name;
-    else if (type === "vendor") vendor = name;
-
-    const newPurchaseInvoice = new Model({
+    const newPendingPurchaseInvoice = new PendingPurchaseInvoice({
+      stocks: stocks.map((stock) => {
+        let initialQuantity = stock.quantity || 0;
+        let offer = stock.offer || 0;
+        let currentQuantity = isBackDated
+          ? typeof stock.availableQuantity === "number"
+            ? stock.availableQuantity
+            : initialQuantity + offer
+          : initialQuantity + offer;
+        return {
+          medicine: stock.medicine,
+          batchName: stock.batchName || "N/A",
+          mfgDate: stock.mfgDate || "",
+          expiryDate: stock.expiryDate || "",
+          currentQuantity,
+          initialQuantity,
+          offer,
+          sellingPrice: stock.sellingPrice || 0,
+          purchasePrice: stock.purchasePrice || 0,
+          sgst: stock.sgst || 0,
+          cgst: stock.cgst || 0,
+          discount: stock.discount || 0,
+        };
+      }),
       invoiceNumber,
-      manufacturer,
-      vendor,
+      vendorInvoiceId,
+      type: formattedType,
+      source,
       invoiceDate,
       receivedDate,
+      isBackDated,
+      billImageId,
+      sectionType,
+      submittedBy: {
+        id: decoded._id,
+        email: decoded.email,
+        role: decoded.role,
+      },
     });
 
     // // Save user to the database
-    await newPurchaseInvoice.save();
+    await newPendingPurchaseInvoice.save();
 
-    console.log("New Purchase Invoice created:", newPurchaseInvoice);
+    console.log("New Purchase Invoice created:", newPendingPurchaseInvoice);
     // Send response with UID
     return NextResponse.json(
       {
-        newPurchaseInvoice,
+        newPendingPurchaseInvoice,
         message: "Invoice Created Successfully!",
         success: true,
       },

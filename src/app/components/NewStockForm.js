@@ -4,19 +4,27 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { RxCross1 } from "react-icons/rx";
 import Loading from "./Loading";
 import { useStockType } from "../context/StockTypeContext";
+import { RiLoader2Line } from "react-icons/ri";
+import { showInfo } from "../utils/toast";
+import ImageDropUploader from "./ImageDropUploader";
 
-function NewStockForm({ medicines, ids }) {
+function NewStockForm({ medicines, lists, type, setType, uniqueID }) {
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
-  // const [data, setData] = useState();
   const [result, setResult] = useState(null);
 
   const sectionType = useStockType();
 
-  const { register, handleSubmit, control, watch, reset } = useForm({
+  const { register, handleSubmit, control, setValue, watch, reset } = useForm({
     defaultValues: {
-      invoiceNumber: "",
+      invoiceNumber: uniqueID || "",
+      vendorInvoiceId: "",
+      type: type || "vendor",
+      source: "",
+      invoiceDate: "",
+      receivedDate: "",
       stocks: [],
+      billImageId: "",
+      isBackDated: false,
     },
   });
   const { fields, append, remove } = useFieldArray({
@@ -28,11 +36,21 @@ function NewStockForm({ medicines, ids }) {
   useEffect(() => {
     console.log("Updated Stocks:", stocks);
   }, [stocks]);
+  useEffect(() => {
+    if (uniqueID) {
+      setValue("invoiceNumber", uniqueID);
+    }
+  }, [uniqueID, setValue]);
 
   async function onSubmit(data) {
+    console.log("Submitting data:", data);
+    if (!data.billImageId) {
+      showInfo("Please upload a bill image.");
+      return;
+    }
     setSubmitting(true);
     try {
-      let result = await fetch("/api/newStock", {
+      let result = await fetch("/api/newPurchaseInvoice", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,13 +58,10 @@ function NewStockForm({ medicines, ids }) {
         body: JSON.stringify({ ...data, sectionType }),
       });
       result = await result.json();
-      setMessage(result.message);
+      showInfo(result.message);
       setResult(result.savedStocks);
       if (result.success) {
         reset();
-        setTimeout(() => {
-          setMessage("");
-        }, 5000);
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -54,9 +69,147 @@ function NewStockForm({ medicines, ids }) {
       setSubmitting(false);
     }
   }
+  let isBackDated = watch("isBackDated");
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full px-2">
-      <div className="flex justify-between items-center gap-2 flex-wrap my-1 border-b-2 border-gray-400">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="w-full px-4 py-2 space-y-2 text-black rounded shadow"
+    >
+      <h2 className="text-xl font-bold text-center">New Purchase Invoice</h2>
+      <hr className="border border-gray-300" />
+
+      <div className="w-full flex flex-col md:flex-row items-center gap-3">
+        <div className="space-y-2 w-1/2">
+          <div className="flex flex-wrap gap-4">
+            <div>
+              <label className="block text-sm font-semibold mb-1">
+                Auto Invoice ID
+              </label>
+              <div className="w-48 border border-gray-300 rounded px-2 py-1 text-center font-semibold bg-gray-100">
+                {uniqueID ? (
+                  uniqueID
+                ) : (
+                  <RiLoader2Line className="animate-spin mx-auto" />
+                )}
+              </div>
+            </div>
+            <div>
+              <label
+                htmlFor="Vendor Invoice Id"
+                className="block text-sm font-semibold mb-1"
+              >
+                Vendor Invoice ID
+              </label>
+              <input
+                type="text"
+                id="vendorInvoiceId"
+                placeholder="Enter Invoice ID"
+                {...register("vendorInvoiceId", { required: true })}
+                className="w-60 border border-gray-300 rounded px-2 py-1 bg-gray-50"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="from"
+                className="block text-sm font-semibold mb-1"
+              >
+                From
+              </label>
+              <select
+                id="from"
+                value={type}
+                {...register("type", { required: true })}
+                onChange={(e) => setType(e.target.value)}
+                className="border border-gray-300 rounded px-2 py-1 bg-gray-50"
+              >
+                <option value="vendor">Vendor</option>
+                <option value="manufacturer">Manufacturer</option>
+              </select>
+            </div>
+          </div>
+          <div className="w-full">
+            <div className="flex-1">
+              <label
+                htmlFor="name"
+                className="block text-sm font-semibold mb-1"
+              >
+                Name
+              </label>
+              <select
+                id="name"
+                {...register("source", { required: true })}
+                className="w-full border border-gray-300 rounded px-2 py-1 bg-gray-50"
+              >
+                <option value="">-- Select Name --</option>
+                {lists.map((list, index) => (
+                  <option key={index} value={list._id}>
+                    {list.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Row 2: Invoice Date + Received Date */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="w-48">
+              <label
+                htmlFor="invoiceDate"
+                className="block text-sm font-semibold mb-1"
+              >
+                Seller Invoice Date
+              </label>
+              <input
+                type="date"
+                id="invoiceDate"
+                {...register("invoiceDate", { required: true })}
+                className="w-full border border-gray-300 rounded px-2 py-1 bg-gray-50"
+              />
+            </div>
+            <div className="w-48">
+              <label
+                htmlFor="receivedDate"
+                className="block text-sm font-semibold mb-1"
+              >
+                Received Date
+              </label>
+              <input
+                type="date"
+                id="receivedDate"
+                {...register("receivedDate", { required: true })}
+                className="w-full border border-gray-300 rounded px-2 py-1 bg-gray-50"
+              />
+            </div>
+            <div className="mx-6">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  {...register("isBackDated")}
+                  className="size-6"
+                />
+                <span className="text-sm font-semibold">Is Back Dated</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="w-1/2 p-2 border-l border-gray-700 flex flex-col justify-center items-center gap-2">
+          <label className="text-sm font-semibold">Upload Bill Image</label>
+          <div className="w-full md:w-2/5">
+            <ImageDropUploader
+              imageId={watch("billImageId")}
+              setImageId={(id) => setValue("billImageId", id)}
+              folder={
+                sectionType === "hospital"
+                  ? "hospitalPurchaseInvoice"
+                  : "pharmacyPurchaseInvoice"
+              }
+              purpose={`invoice-${uniqueID}`}
+            />
+          </div>
+        </div>
+      </div>
+      {/* Row 1: Auto Invoice ID + Manual Invoice ID */}
+      <div className="flex justify-between items-center gap-2 flex-wrap my-1 border-b-2 py-1 border-gray-400">
         <div
           className="bg-blue-800 cursor-pointer hover:bg-blue-700 text-white rounded-lg px-3 py-1"
           onClick={() =>
@@ -65,6 +218,7 @@ function NewStockForm({ medicines, ids }) {
               batchName: "",
               mfgDate: "",
               expiryDate: "",
+              availableQuantity: null,
               quantity: null,
               offer: null,
               sellingPrice: null,
@@ -75,7 +229,7 @@ function NewStockForm({ medicines, ids }) {
             })
           }
         >
-          Add New Stock
+          Add Medicine Details
         </div>
         <div className="text-sm">
           <div className="text-center text-red-500">
@@ -86,38 +240,17 @@ function NewStockForm({ medicines, ids }) {
             medicines.
           </div>
         </div>
-        <select
-          {...register("invoiceNumber", { required: true })}
-          className="rounded-lg bg-gray-800 text-white px-3 py-2"
-        >
-          <option value="">-- Select Invoice ID --</option>
-          {ids.map((id, index) => (
-            <option value={id.invoiceNumber} key={index}>
-              {id.invoiceNumber +
-                " - " +
-                (id.manufacturer ? id.manufacturer.name : id.vendor.name)}
-            </option>
-          ))}
-        </select>
       </div>
-      {message && (
-        <div className="my-1 text-center text-red-500">{message}</div>
-      )}
       {result && result.length > 0 && (
-        <ol>
-          {result.map((med, index) => {
-            let name = medicines.find(
-              (medicine) => medicine._id === med.medicine
-            )?.name;
-            return (
-              <li
-                key={index}
-                className={med.success ? "text-gray-900" : "text-red-600"}
-              >
-                {index + 1 + ". " + name + med.message}
-              </li>
-            );
-          })}
+        <ol className="w-full text-center">
+          {result.map((med, index) => (
+            <li
+              key={index}
+              className={med.success ? "text-gray-900" : "text-red-600"}
+            >
+              {`${index + 1}. ${med.medicine} ${med.message}`}
+            </li>
+          ))}
           <button
             onClick={() => setResult(null)}
             className="text-white bg-blue-600 rounded-lg px-4 py-2 hover:bg-blue-700"
@@ -135,6 +268,9 @@ function NewStockForm({ medicines, ids }) {
               <div className="flex-1 min-w-28 text-center">Mfg</div>
               <div className="flex-1 min-w-28 text-center">Expiry</div>
               <div className="flex-1 min-w-28 text-center">Qty or Pcs</div>
+              {isBackDated && (
+                <div className="flex-1 min-w-28 text-center">Avl Qty</div>
+              )}
               <div className="flex-1 min-w-28 text-center">Offer/Extra</div>
               <div className="flex-1 min-w-28 text-center">MRP</div>
               <div className="flex-1 min-w-28 text-center">Rate</div>
@@ -194,7 +330,7 @@ function NewStockForm({ medicines, ids }) {
           return (
             <div
               key={field.id}
-              className=" my-2 bg-gray-400 text-white rounded-lg py-1 px-2"
+              className=" my-2 bg-gray-300 text-white rounded-lg py-1 px-2"
             >
               <div
                 key={field.id}
@@ -205,7 +341,7 @@ function NewStockForm({ medicines, ids }) {
                   {...register(`stocks.${index}.medicine`, {
                     required: "Medicine is required",
                   })}
-                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                 >
                   <option value="">-- Medicine --</option>
                   {medicines.map((medicine, index) => (
@@ -220,14 +356,14 @@ function NewStockForm({ medicines, ids }) {
                   {...register(`stocks.${index}.batchName`, {
                     required: "Batch Name is required",
                   })}
-                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                   placeholder="Batch"
                 />
                 <input
                   type="date"
                   name="mfgDate"
                   {...register(`stocks.${index}.mfgDate`)}
-                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                 />
                 <input
                   type="date"
@@ -235,7 +371,7 @@ function NewStockForm({ medicines, ids }) {
                   {...register(`stocks.${index}.expiryDate`, {
                     required: "Expiry Date is required",
                   })}
-                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                 />
                 <input
                   type="number"
@@ -243,14 +379,25 @@ function NewStockForm({ medicines, ids }) {
                     required: true,
                   })}
                   placeholder="Total Strips or Pcs"
-                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                   min={0}
                 />
+                {isBackDated && (
+                  <input
+                    type="number"
+                    {...register(`stocks.${index}.availableQuantity`, {
+                      required: true,
+                    })}
+                    placeholder="Avl Strips or Pcs"
+                    className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-slate-800 ring-2 ring-offset-1 ring-red-700"
+                    min={0}
+                  />
+                )}
                 <input
                   type="number"
                   {...register(`stocks.${index}.offer`)}
                   placeholder="Offer/Deal"
-                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                   min={0}
                 />
                 <input
@@ -260,7 +407,7 @@ function NewStockForm({ medicines, ids }) {
                     required: "MRP is required",
                   })}
                   placeholder="MRP"
-                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                 />
                 <input
                   type="number"
@@ -269,7 +416,7 @@ function NewStockForm({ medicines, ids }) {
                     required: "Purchase Price is required",
                   })}
                   placeholder="Purchase Rate"
-                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                 />
                 <input
                   type="number"
@@ -278,7 +425,7 @@ function NewStockForm({ medicines, ids }) {
                   max={100}
                   {...register(`stocks.${index}.discount`)}
                   placeholder="Discount in %"
-                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-600"
+                  className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                 />
                 <div className="flex justify-center gap-1 flex-1 min-w-28">
                   <input
@@ -288,7 +435,7 @@ function NewStockForm({ medicines, ids }) {
                     max={100}
                     {...register(`stocks.${index}.sgst`)}
                     placeholder="SGST"
-                    className="w-full px-1 h-8 rounded-lg bg-gray-600"
+                    className="w-full px-1 h-8 rounded-lg bg-gray-700"
                   />
                   <input
                     type="number"
@@ -297,7 +444,7 @@ function NewStockForm({ medicines, ids }) {
                     max={100}
                     {...register(`stocks.${index}.cgst`)}
                     placeholder="CGST"
-                    className="w-full px-1 h-8 rounded-lg bg-gray-600"
+                    className="w-full px-1 h-8 rounded-lg bg-gray-700"
                   />
                 </div>
                 <button
@@ -346,7 +493,7 @@ function NewStockForm({ medicines, ids }) {
             <button
               type="submit"
               disabled={submitting}
-              className="bg-blue-600 hover:bg-blue-800 py-2 px-4 rounded-xl font-semibold"
+              className="bg-blue-600 hover:bg-blue-800 text-white py-2 px-4 rounded-lg font-semibold flex items-center gap-1"
             >
               {submitting ? <Loading size={15} /> : <></>}
               {submitting ? "Wait..." : "Save Stock"}
@@ -354,6 +501,7 @@ function NewStockForm({ medicines, ids }) {
           )}
         </div>
       </div>
+      <div className="py-12 w-full"></div>
     </form>
   );
 }

@@ -99,7 +99,7 @@ function PurchaseInvoiceSearchList({
             // }}
             className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
           />
-          {
+          {/* {
             <button
               onClick={() => {
                 setNewPurchaseInvoiceSection(
@@ -111,7 +111,7 @@ function PurchaseInvoiceSearchList({
               <IoCreate className="size-6" />
               <div>Add</div>
             </button>
-          }
+          } */}
         </div>
         <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 md:w-4/5 lg:w-3/4 mx-auto bg-black text-white">
           List of all the Purchase Invoices
@@ -132,8 +132,8 @@ function PurchaseInvoiceSearchList({
                   <div className="">{index + 1}</div>
                   <h3 className="font-semibold text-lg capitalize">
                     {invoice.manufacturer
-                      ? invoice.manufacturer.name
-                      : invoice.vendor.name}
+                      ? invoice.manufacturer?.name
+                      : invoice.vendor?.name}
                   </h3>
                   <div className="">{invoice.invoiceNumber}</div>
                   <div className="flex justify-center items-center gap-2">

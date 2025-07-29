@@ -1,4 +1,4 @@
-import PurchaseInvoice, { HospitalPurchaseInvoice } from "./PurchaseInvoice";
+// import PurchaseInvoice, { HospitalPurchaseInvoice } from "./PurchaseInvoice";
 
 const mongoose = require("mongoose");
 
@@ -103,28 +103,28 @@ const stockSchema = new mongoose.Schema({
   },
 });
 
-stockSchema.post("save", async function (doc) {
-  const Model = this.constructor;
+// stockSchema.post("save", async function (doc) {
+//   const Model = this.constructor;
 
-  let InvoiceModel =
-    Model.modelName === "HospitalStock"
-      ? HospitalPurchaseInvoice
-      : PurchaseInvoice;
+//   let InvoiceModel =
+//     Model.modelName === "HospitalStock"
+//       ? HospitalPurchaseInvoice
+//       : PurchaseInvoice;
 
-  let StockModel =
-    Model.modelName === "HospitalStock"
-      ? HospitalStock
-      : Stock;
+//   let StockModel =
+//     Model.modelName === "HospitalStock"
+//       ? HospitalStock
+//       : Stock;
 
-  const invoice = await InvoiceModel.findOne({ "stocks.stockId": doc._id });
-  if (invoice) {
-    const stockIds = invoice.stocks.map((s) => s.stockId);
-    const stocks = await StockModel.find({ _id: { $in: stockIds } });
-    const total = stocks.reduce((sum, s) => sum + s.totalAmount, 0);
-    invoice.grandTotal = total;
-    await invoice.save();
-  }
-});
+//   const invoice = await InvoiceModel.findOne({ "stocks.stockId": doc._id });
+//   if (invoice) {
+//     const stockIds = invoice.stocks.map((s) => s.stockId);
+//     const stocks = await StockModel.find({ _id: { $in: stockIds } });
+//     const total = stocks.reduce((sum, s) => sum + s.totalAmount, 0);
+//     invoice.grandTotal = total;
+//     await invoice.save();
+//   }
+// });
 
 // export default mongoose.models.Stock || mongoose.model("Stock", stockSchema);
 
