@@ -10,6 +10,7 @@ function RetailStockEdit() {
   const [message, setMessage] = useState("");
   const [formTypeErrMessage, setFormTypeErrMessage] = useState("");
   const [filteredMedicines, setFilteredMedicines] = useState([]);
+  const [userEditPermission, setUserEditPermission] = useState(false);
 
   const groupAndCountMedicines = (stocks) => {
     const grouped = {};
@@ -66,7 +67,7 @@ function RetailStockEdit() {
       if (result.success) {
         let medcinesStock = groupAndCountMedicines(result.stocks);
         setMedicineStock(medcinesStock);
-        console.log(medcinesStock);
+        setUserEditPermission(result.userEditPermission);
       } else setMessage(result.message);
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -218,7 +219,7 @@ function RetailStockEdit() {
     );
   }
 
-  if (!medicineStock) {
+  if (!medicineStock || !userEditPermission) {
     return (
       <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center bg-red-200 text-red-700 py-2 text-lg font-semibold rounded-xl mx-auto my-2">
         Access Denied!

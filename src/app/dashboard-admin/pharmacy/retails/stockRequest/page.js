@@ -1,21 +1,21 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import Navbar from "../../../../components/Navbar";
-import RetailStockRequest from "../../../../components/RetailStockRequest";
+import React, { useEffect, useMemo, useState } from "react";
+import Navbar from "@/app/components/Navbar";
+import RetailStockRequest from "@/app/components/RetailStockRequest";
+import { useStockType } from "@/app/context/StockTypeContext";
 
 function Page() {
+  const sectionType = useStockType();
   const [medicineStock, setMedicineStock] = useState([]);
   const [selectedLetter, setSelectedLetter] = useState("A");
-  const [isApprovedOnlyMedicine, setIsApprovedOnlyMedicine] = useState(false);
+  const [filterType, setFilterType] = useState("outofstock");
   const [query, setQuery] = useState("");
   const [finding, setFinding] = useState(false);
 
   useEffect(() => {
     setFinding(true);
     fetch(
-      `/api/stockRetail/outofstockmedicines?letter=${selectedLetter}${
-        isApprovedOnlyMedicine ? "&approved=1" : ""
-      }`
+      `/api/stockRetail/outofstockmedicines?letter=${selectedLetter}&sectionType=${sectionType}`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -25,20 +25,51 @@ function Page() {
         } else console.log(data.message);
       });
     setFinding(false);
-  }, [selectedLetter, isApprovedOnlyMedicine]);
+  }, [selectedLetter]);
 
   useEffect(() => {
-    if (query.length > 0 && query[0] !== selectedLetter) {
-      setSelectedLetter(query[0].toUpperCase());
+    if (query.length > 0) {
+      const firstChar = query[0].toUpperCase();
+      const isAlphabet = /^[A-Z]$/.test(firstChar);
+
+      if (firstChar !== selectedLetter) {
+        setSelectedLetter(isAlphabet ? firstChar : "#");
+      }
     }
   }, [query]);
+
+  const filteredMedicines = useMemo(() => {
+    return medicineStock.filter((med) => {
+      if (filterType === "all") return true;
+
+      if (filterType === "pending") {
+        return med.requests?.some((req) => req.status === "Pending");
+      }
+
+      if (filterType === "approved") {
+        return med.requests?.some((req) => req.status === "Approved");
+      }
+
+      if (filterType === "outofstock") {
+        return med.totalRetailStock < (med.minimumStockCount?.retails || 0);
+      }
+
+      return true;
+    });
+  }, [medicineStock, filterType]);
+
+  const searchedMedicines = useMemo(() => {
+    return filteredMedicines.filter((med) =>
+      med.name.toLowerCase().includes(query.toLowerCase())
+    );
+  }, [filteredMedicines, query]);
 
   return (
     <div>
       <Navbar route={["Pharmacy", "Retails", "Stock Request"]} />
       <div className="flex flex-col-reverse lg:flex-row items-center justify-center gap-2 my-2">
-        <div className="flex flex-wrap justify-center items-center w-full gap-2 px-2">
-          {"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter) => {
+        <div className="flex flex-wrap justify-center items-center w-full lg:w-1/2 gap-2 px-2">
+          {"ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("").map((letter) => {
             return (
               <button
                 key={letter}
@@ -58,34 +89,34 @@ function Page() {
             );
           })}
         </div>
-        <div className="w-full flex justify-center items-center gap-2">
-          <button
-            onClick={() => {
-              setIsApprovedOnlyMedicine((prev) => !prev);
-            }}
-            disabled={finding}
+        <div className="w-full lg:w-1/2 flex justify-center items-center gap-2 ">
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
             className={
-              "px-3 py-1 text-sm border rounded-xl flex justify-center items-center " +
-              (isApprovedOnlyMedicine
-                ? " bg-gray-800 text-gray-100"
-                : "border-gray-900 text-black")
+              "px-3 py-1 text-sm rounded-lg bg-gray-300 font-semibold text-black"
             }
           >
-            Approved Only
-          </button>
+            <option value="all">All</option>
+            <option value="outofstock">Out of Stock</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+          </select>
           <input
             type="text"
             value={query}
-            placeholder="Search"
             onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search"
             className="rounded-full p-2 italic font-semibold bg-gray-300 text-gray-900 w-3/4"
           />
         </div>
       </div>
       <RetailStockRequest
-        medicineStock={medicineStock}
+        filteredMedicines={filteredMedicines}
+        searchedMedicines={searchedMedicines}
         setMedicineStock={setMedicineStock}
         query={query}
+        filterType={filterType}
       />
     </div>
   );

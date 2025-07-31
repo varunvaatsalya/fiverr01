@@ -11,13 +11,14 @@ export default function EditStockForm() {
   const [stocks, setStocks] = useState([]);
   const [changedStocks, setChangedStocks] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [accessInfo, setAccessInfo] = useState(null);
 
   useEffect(() => {
     fetch(`/api/newStock?batchInfo=1`)
       .then((res) => res.json())
       .then((data) => {
         setStocks(data.stocks);
-        console.log(data.stocks);
+        setAccessInfo(data.accessInfo);
       });
   }, []);
 
@@ -90,6 +91,14 @@ export default function EditStockForm() {
     }
   }
 
+  if (!accessInfo || !accessInfo?.userEditPermission) {
+    return (
+      <div className="w-[95%] md:w-4/5 lg:w-3/4 text-center bg-red-200 text-red-700 py-2 text-lg font-semibold rounded-xl mx-auto my-2">
+        Access Denied!
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 space-y-2">
       <Button
@@ -141,9 +150,7 @@ export default function EditStockForm() {
                       )
                     }
                   />
-                  {changedStocks.some(
-                    (stk) => stk.stockId === stock._id
-                  ) && (
+                  {changedStocks.some((stk) => stk.stockId === stock._id) && (
                     <div className="rounded px-2 text-sm bg-red-200 text-red-800 font-semibold">
                       Edited
                     </div>

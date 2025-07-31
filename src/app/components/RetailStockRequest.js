@@ -2,37 +2,27 @@
 import React, { useEffect, useState } from "react";
 import { BiInjection } from "react-icons/bi";
 import Loading from "./Loading";
-import { FaCheckCircle } from "react-icons/fa";
 import { useStockType } from "../context/StockTypeContext";
+import { formatDateTimeToIST } from "../utils/date";
+import { showError, showInfo, showSuccess } from "../utils/toast";
 
-function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
-  const [selectedIndex, setSelectedIndex] = useState(null);
+function RetailStockRequest({
+  filteredMedicines = [],
+  searchedMedicines,
+  setMedicineStock,
+  filterType,
+}) {
   const [proceedSection, setProceedSection] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState([]);
   const [responseResult, setResponseResult] = useState([]);
-  const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [isReceiving, setIsReceiving] = useState(false);
-  const [filteredMedicines, setFilteredMedicines] = useState(medicineStock);
 
   const sectionType = useStockType();
 
   useEffect(() => {
-    setFilteredMedicines(medicineStock);
     setSelectedMedicine([]);
-  }, [medicineStock]);
-
-  useEffect(() => {
-    if (query) {
-      setFilteredMedicines(
-        medicineStock.filter((medicine) =>
-          medicine.name.toLowerCase().includes(query.toLowerCase())
-        )
-      );
-    } else {
-      setFilteredMedicines(medicineStock);
-    }
-  }, [query]);
+  }, [filteredMedicines]);
 
   async function handleCreateRequest() {
     setSubmitting(true);
@@ -55,7 +45,7 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
       });
 
       result = await result.json();
-      setMessage(result.message);
+      showInfo(result.message);
       console.log(result);
       if (result.success) {
         setResponseResult(result.responses);
@@ -79,7 +69,6 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
 
         setTimeout(() => {
           setSelectedMedicine([]);
-          setMessage("");
         }, 2000);
       }
     } catch (error) {
@@ -90,6 +79,9 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
   }
 
   async function handleResolveRequest(status, id, medId) {
+    if (status === "rejected") {
+      if (!window.confirm("Do you want to reject this medicine!")) return;
+    }
     setIsReceiving(true);
     try {
       // Make a POST request to the API with the request ID
@@ -107,17 +99,13 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
       // Parse the JSON response
       const result = await response.json();
 
-      setMessage(result.message);
-      const medicinesafterremoved = medicineStock.filter(
-        (obj) => obj._id !== medId
-      );
-      setFilteredMedicines(medicinesafterremoved);
-      setTimeout(() => {
-        setMessage("");
-      }, 2000);
+      if (result.success) {
+        showSuccess(result.message);
+        setMedicineStock((prev) => prev.filter((obj) => obj._id !== medId));
+      }
     } catch (error) {
       console.error("Error resolving the request:", error);
-      setMessage("An error occurred while resolving the request.");
+      showError("An error occurred while resolving the request.");
     } finally {
       setIsReceiving(false);
     }
@@ -149,42 +137,51 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
         <div className="w-full rounded-full p-2 bg-gray-900 text-center ">
           List of all out of stock Medcines
         </div>
-        <button
-          disabled={selectedMedicine.length === medicineStock?.length}
-          className="rounded-full px-3 bg-gray-900 py-2 text-nowrap"
-          onClick={() => {
-            const allSelected = medicineStock?.map((medicine) => {
-              const min = medicine.minimumStockCount?.retails;
-              const max = medicine.maximumStockCount?.retails;
-              const current = medicine.totalRetailStock;
+        {filterType === "outofstock" && (
+          <>
+            <button
+              disabled={selectedMedicine.length === filteredMedicines?.length}
+              className="rounded-full px-3 bg-gray-900 py-2 text-nowrap"
+              onClick={() => {
+                const allSelected = filteredMedicines
+                  ?.filter((medicine) => {
+                    return !medicine.requests || medicine.requests.length === 0;
+                  })
+                  .map((medicine) => {
+                    const min = medicine.minimumStockCount?.retails;
+                    const max = medicine.maximumStockCount?.retails;
+                    const current = medicine.totalRetailStock;
 
-              const shouldCalculate =
-                typeof min === "number" &&
-                typeof max === "number" &&
-                max >= min &&
-                min >= current;
+                    const shouldCalculate =
+                      min !== undefined &&
+                      max !== undefined &&
+                      max >= min &&
+                      min >= current &&
+                      max > current;
 
-              return {
-                ...medicine,
-                enteredRemainingQuantity: "",
-                requestedQuantity: shouldCalculate ? max - current : "",
-              };
-            });
+                    return {
+                      ...medicine,
+                      enteredRemainingQuantity: "",
+                      requestedQuantity: shouldCalculate ? max - current : "",
+                    };
+                  });
 
-            setSelectedMedicine(allSelected);
-          }}
-        >
-          Select All
-        </button>
-        <button
-          onClick={() => {
-            setSelectedMedicine([]);
-          }}
-          disabled={!selectedMedicine.length}
-          className="rounded-full px-3 bg-gray-900 py-2 text-nowrap"
-        >
-          Clear All
-        </button>
+                setSelectedMedicine(allSelected);
+              }}
+            >
+              Select All
+            </button>
+            <button
+              onClick={() => {
+                setSelectedMedicine([]);
+              }}
+              disabled={!selectedMedicine.length}
+              className="rounded-full px-3 bg-gray-900 py-2 text-nowrap"
+            >
+              Clear All
+            </button>
+          </>
+        )}
         <button
           onClick={() => setProceedSection(true)}
           disabled={!selectedMedicine.length}
@@ -193,8 +190,8 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
           Proceed
         </button>
       </div>
-      {filteredMedicines.length > 0 ? (
-        filteredMedicines.map((medicine, index) => {
+      {/* {searchedMedicines.length > 0 ? (
+        searchedMedicines.map((medicine, index) => {
           const isSelected = selectedMedicine.some(
             (item) => item._id === medicine._id
           );
@@ -369,7 +366,177 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
           <BiInjection size={60} />
           <div>No Medicine</div>
         </div>
-      )}
+      )} */}
+      <div className="my-2">
+        {searchedMedicines.length > 0 ? (
+          searchedMedicines.map((medicine, index) => {
+            const isSelected = selectedMedicine.some(
+              (item) => item._id === medicine._id
+            );
+
+            const hasRequest =
+              medicine.requests && medicine.requests.length > 0;
+            const latestRequest = hasRequest ? medicine.requests[0] : null;
+
+            const min = medicine.minimumStockCount?.retails;
+            const max = medicine.maximumStockCount?.retails;
+            const current = medicine.totalRetailStock;
+
+            const shouldCalculate =
+              typeof min === "number" &&
+              typeof max === "number" &&
+              max >= min &&
+              min >= current &&
+              max > current;
+
+            // Combined packet info
+            const packetInfo = medicine.isTablets
+              ? `${medicine.packetSize?.strips || 0}x${
+                  medicine.packetSize?.tabletsPerStrip || 0
+                }`
+              : `${medicine.packetSize?.strips || 0} strips`;
+
+            return (
+              <div
+                key={medicine._id}
+                className="w-full bg-gray-50 border rounded-md shadow-sm mb-2"
+              >
+                {/* Top Row */}
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 items-center p-3 text-sm font-medium text-gray-800">
+                  <div>{index + 1}</div>
+                  <div className="truncate">{medicine.name}</div>
+                  <div className="truncate">{medicine.manufacturer}</div>
+                  <div className="truncate">{medicine.salts}</div>
+                  <div>{packetInfo}</div>
+
+                  {/* Select/Unselect Button (only if no request) */}
+                  {!hasRequest ? (
+                    <button
+                      className={`ml-auto px-3 py-1 rounded-full font-semibold text-white ${
+                        isSelected
+                          ? "bg-green-500 hover:bg-green-600"
+                          : "bg-gray-400 hover:bg-gray-500"
+                      }`}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedMedicine((prev) =>
+                            prev.filter((item) => item._id !== medicine._id)
+                          );
+                        } else {
+                          setSelectedMedicine((prev) => [
+                            ...prev,
+                            {
+                              ...medicine,
+                              enteredRemainingQuantity: "",
+                              requestedQuantity: shouldCalculate
+                                ? max - current
+                                : "",
+                            },
+                          ]);
+                        }
+                      }}
+                    >
+                      {isSelected ? "✓ Selected" : "Select"}
+                    </button>
+                  ) : (
+                    <div className="text-center text-xs sm:text-sm text-gray-600 italic">
+                      Requested
+                    </div>
+                  )}
+                </div>
+
+                {/* Second Row: Request Info */}
+                {hasRequest && (
+                  <div className="bg-white border-t px-4 py-2 text-sm text-gray-700">
+                    {latestRequest.status === "Pending" ? (
+                      <div className="text-yellow-700 bg-yellow-100 rounded-md px-3 py-1 inline-block">
+                        Pending request on{" "}
+                        <span className="font-semibold uppercase">
+                          {formatDateTimeToIST(latestRequest.createdAt)}
+                        </span>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex items-center justify-between gap-2 pb-2">
+                          <div className="text-green-700 font-semibold">
+                            Approved on{" "}
+                            <span className="font-semibold uppercase">
+                              {formatDateTimeToIST(latestRequest.createdAt)}
+                            </span>
+                          </div>
+                          {latestRequest.status === "Approved" && (
+                            <div className="flex-1 flex items-center justify-between gap-3 px-3">
+                              <button
+                                className="px-3 py-1 font-semibold text-white bg-red-500 disabled:bg-gray-600 rounded-lg"
+                                disabled={isReceiving}
+                                onDoubleClick={() => {
+                                  handleResolveRequest(
+                                    "rejected",
+                                    latestRequest?._id,
+                                    medicine._id
+                                  );
+                                }}
+                              >
+                                {isReceiving ? "Processing..." : "Reject"}
+                              </button>
+                              <button
+                                className="px-6 py-1 font-semibold text-white bg-violet-500 disabled:bg-gray-600 rounded-lg"
+                                disabled={isReceiving}
+                                onClick={() => {
+                                  handleResolveRequest(
+                                    "received",
+                                    latestRequest?._id,
+                                    medicine._id
+                                  );
+                                }}
+                              >
+                                {isReceiving
+                                  ? "Processing..."
+                                  : "Confirm Receiving"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        {latestRequest.allocatedStocks?.map((stock) => (
+                          <div
+                            key={stock._id}
+                            className="flex justify-between items-center border-t py-1 text-gray-800"
+                          >
+                            <div>
+                              Batch:{" "}
+                              <span className="font-medium">
+                                {stock.batchName}
+                              </span>
+                            </div>
+                            <div>
+                              Qty:{" "}
+                              <span className="font-medium">
+                                {stock.quantity?.boxes || 0} Boxes
+                              </span>
+                            </div>
+                            <div>
+                              Expiry:{" "}
+                              <span className="font-medium">
+                                {stock.expiryDate.split("T")[0]}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <div className="w-full p-4 flex flex-col justify-center items-center text-2xl font-semibold text-gray-400">
+            <BiInjection size={60} />
+            <div>No Medicine</div>
+          </div>
+        )}
+      </div>
+
       {proceedSection && (
         <>
           <div className="absolute top-0 left-0">
@@ -379,9 +546,6 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
                   New Stock Request
                 </h2>
                 <hr className="border border-slate-800 w-full my-2" />
-                {message && (
-                  <div className="my-1 text-center text-red-500">{message}</div>
-                )}
 
                 <div className="flex flex-col items-center gap-1 max-h-[60vh] overflow-y-auto">
                   {responseResult.length > 0
@@ -461,7 +625,6 @@ function RetailStockRequest({ medicineStock = [], setMedicineStock, query }) {
                     onClick={() => {
                       setResponseResult([]);
                       setProceedSection(false);
-                      setMessage("");
                     }}
                   >
                     Cancel

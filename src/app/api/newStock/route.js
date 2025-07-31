@@ -36,6 +36,7 @@ export async function GET(req) {
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
+  const userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -95,6 +96,7 @@ export async function GET(req) {
       return NextResponse.json(
         {
           stocks,
+          accessInfo: { userRole, userEditPermission },
           success: true,
         },
         { status: 200 }

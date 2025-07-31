@@ -13,6 +13,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Link from "next/link";
 import {
+  FaEdit,
   FaFileInvoiceDollar,
   FaHistory,
   FaWhatsapp,
@@ -100,6 +101,13 @@ function Page() {
       icon: <TbEditCircle size={50} />,
       link: "/dashboard-stockist/stockEdit",
       color: "bg-fuchsia-700",
+    },
+    {
+      name: "Godown Stock Edit",
+      description: "You can View & Edit godown stock here",
+      icon: <FaEdit size={50} />,
+      link: "/dashboard-stockist/editGodownStock",
+      color: "bg-rose-700",
     },
   ];
 

@@ -10,6 +10,17 @@ function Page() {
   const [selectedLetter, setSelectedLetter] = useState("A");
   const [query, setQuery] = useState("");
 
+  useEffect(() => {
+    if (query.length > 0) {
+      const firstChar = query[0].toUpperCase();
+      const isAlphabet = /^[A-Z]$/.test(firstChar);
+
+      if (firstChar !== selectedLetter) {
+        setSelectedLetter(isAlphabet ? firstChar : "#");
+      }
+    }
+  }, [query]);
+
   const groupAndCountMedicines = (medicines) => {
     const grouped = {};
     medicines.forEach((medicine) => {

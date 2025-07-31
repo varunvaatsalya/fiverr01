@@ -136,6 +136,13 @@ export async function POST(req) {
       );
     }
 
+    if (invoice.paymentMode === "Credit-Others") {
+      return NextResponse.json(
+        { message: "This invoice is not returnable.", success: false },
+        { status: 401 }
+      );
+    }
+
     let invalidReturns = [];
     let uid = "RI" + generateUID();
     let newReturnEntry = {
@@ -153,7 +160,6 @@ export async function POST(req) {
         (med) => med.medicineId.toString() === medicineId
       );
 
-      
       if (!medicine) {
         console.log("medicine not found....");
         invalidReturns.push(medicineId);

@@ -1,15 +1,28 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Navbar from "../../../../components/Navbar";
-import GodownStock from "../../../../components/GodownStock";
+import Navbar from "@/app/components/Navbar";
+import GodownStock from "@/app/components/GodownStock";
 import { ImBoxRemove } from "react-icons/im";
 import { FaSquarePen } from "react-icons/fa6";
 import { TiWarning } from "react-icons/ti";
+
+const alphabets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ#"];
 
 function Page() {
   const [medicineStock, setMedicineStock] = useState({});
   const [selectedLetter, setSelectedLetter] = useState("A");
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (query.length > 0) {
+      const firstChar = query[0].toUpperCase();
+      const isAlphabet = /^[A-Z]$/.test(firstChar);
+
+      if (firstChar !== selectedLetter) {
+        setSelectedLetter(isAlphabet ? firstChar : "#");
+      }
+    }
+  }, [query]);
 
   const groupAndCountMedicines = (medicines) => {
     const grouped = {};
@@ -29,22 +42,24 @@ function Page() {
   };
 
   useEffect(() => {
-    fetch("/api/newStock")
+    const encodedLetter = encodeURIComponent(selectedLetter);
+    fetch(`/api/newStock?letter=${encodedLetter}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           let groupdData = groupAndCountMedicines(data.medicineStock);
+          console.log(data.medicineStock);
           setMedicineStock(groupdData);
-          setSelectedLetter(Object.keys(groupdData)[0]);
+          // setSelectedLetter(Object.keys(groupdData)[0]);
         } else console.log(data.message);
       });
-  }, []);
+  }, [selectedLetter]);
   return (
     <div>
       <Navbar route={["Pharmacy", "GoDown", "Stock Info"]} />
       <div className="flex flex-col-reverse lg:flex-row items-center justify-center gap-2">
         <div className="flex flex-wrap justify-center items-center w-full gap-2 p-2">
-          {Object.keys(medicineStock).map((letter) => {
+          {alphabets.map((letter) => {
             return (
               <button
                 key={letter}
@@ -59,12 +74,10 @@ function Page() {
                 }
               >
                 {letter}
-                {medicineStock[letter].requestCount ? (
+                {medicineStock && medicineStock[letter]?.requestCount > 0 && (
                   <div className="absolute -top-2 -right-2 w-4 aspect-square rounded-full bg-red-600 text-white text-[8px]">
                     {medicineStock[letter].requestCount}
                   </div>
-                ) : (
-                  ""
                 )}
               </button>
             );
