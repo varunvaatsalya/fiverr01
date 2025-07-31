@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { BiInjection } from "react-icons/bi";
+import { BiInjection, BiLoaderCircle } from "react-icons/bi";
 import Loading from "./Loading";
 import { useStockType } from "../context/StockTypeContext";
 import { formatDateTimeToIST } from "../utils/date";
@@ -11,6 +11,7 @@ function RetailStockRequest({
   searchedMedicines,
   setMedicineStock,
   filterType,
+  finding,
 }) {
   const [proceedSection, setProceedSection] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState([]);
@@ -368,7 +369,12 @@ function RetailStockRequest({
         </div>
       )} */}
       <div className="my-2">
-        {searchedMedicines.length > 0 ? (
+        {finding ? (
+          <div className="w-full p-4 flex flex-col justify-center items-center text-2xl font-semibold text-gray-400">
+            <BiLoaderCircle className="size-12 animate-spin" />
+            <div>Finding...</div>
+          </div>
+        ) : searchedMedicines.length > 0 ? (
           searchedMedicines.map((medicine, index) => {
             const isSelected = selectedMedicine.some(
               (item) => item._id === medicine._id

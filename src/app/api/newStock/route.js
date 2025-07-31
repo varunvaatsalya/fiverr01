@@ -547,7 +547,7 @@ export async function PUT(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  if (userRole !== "admin") {
+  if (userRole !== "admin" && (userRole !== "stockist" || !userEditPermission)) {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }

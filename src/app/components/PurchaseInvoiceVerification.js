@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, FileImage, Info } from "lucide-react";
 import { showError, showInfo, showSuccess } from "@/app/utils/toast";
+import { FaArrowRotateRight } from "react-icons/fa6";
 import {
   HoverCard,
   HoverCardContent,
@@ -74,6 +75,8 @@ import { Label } from "@/components/ui/label";
 // ];
 
 function PurchaseInvoiceVerification() {
+  const rotationSteps = [0, 90, 180, -90];
+  const [rotate, setRotate] = useState(0);
   const [pendingInvoices, setPendingInvoices] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [rejectedInvoiceCount, setRejectedInvoiceCount] = useState(0);
@@ -82,6 +85,13 @@ function PurchaseInvoiceVerification() {
   const [submitting, setSubmitting] = useState(false);
 
   const invoice = pendingInvoices[currentIndex] ?? null;
+
+  const rotateClass = {
+    0: "rotate-0",
+    90: "rotate-90",
+    180: "rotate-180",
+    [-90]: "-rotate-90",
+  }[rotate];
 
   const processedStocks = useMemo(() => {
     if (!invoice) return [];
@@ -259,15 +269,29 @@ function PurchaseInvoiceVerification() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
             {/* Left - Bill Image */}
-            <Card className="flex items-center justify-center overflow-hidden h-full">
+            <Card className="flex items-center justify-center overflow-hidden h-full relative">
               {invoice?.billImageId?.filepath ? (
-                <Image
-                  src={`/api${invoice.billImageId.filepath}`}
-                  alt="Bill Image"
-                  width={600}
-                  height={800}
-                  className="object-contain max-h-full"
-                />
+                <div className="w-3/4 aspect-square">
+                  <Image
+                    src={`/api${invoice.billImageId.filepath}`}
+                    alt="Bill Image"
+                    width={600}
+                    height={800}
+                    className={`object-contain w-full h-full transition-transform duration-300 ${rotateClass}`}
+                  />
+                  <Button
+                    variant="outline"
+                    className="absolute right-2 top-2 text-black opacity-30 hover:opacity-90"
+                    onClick={() => {
+                      const currentIndex = rotationSteps.indexOf(rotate);
+                      const nextIndex =
+                        (currentIndex + 1) % rotationSteps.length;
+                      setRotate(rotationSteps[nextIndex]);
+                    }}
+                  >
+                    <FaArrowRotateRight className="size-5" />
+                  </Button>
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center text-gray-400">
                   <FileImage className="w-16 h-16" />

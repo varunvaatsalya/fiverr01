@@ -117,6 +117,7 @@ function Page() {
         setMedicineStock={setMedicineStock}
         query={query}
         filterType={filterType}
+        finding={finding}
       />
     </div>
   );
