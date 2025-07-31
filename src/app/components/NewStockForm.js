@@ -5,7 +5,7 @@ import { RxCross1 } from "react-icons/rx";
 import Loading from "./Loading";
 import { useStockType } from "../context/StockTypeContext";
 import { RiLoader2Line } from "react-icons/ri";
-import { showInfo } from "../utils/toast";
+import { showError, showInfo } from "../utils/toast";
 import ImageDropUploader from "./ImageDropUploader";
 
 function NewStockForm({ medicines, lists, type, setType, uniqueID }) {
@@ -47,6 +47,40 @@ function NewStockForm({ medicines, lists, type, setType, uniqueID }) {
     if (!data.billImageId) {
       showInfo("Please upload a bill image.");
       return;
+    }
+    for (let i = 0; i < data.stocks.length; i++) {
+      const stock = data.stocks[i];
+
+      const qty = Number(stock.quantity || 0);
+      const offer = Number(stock.offer || 0);
+      const avlQty = Number(stock.availableQuantity || 0);
+      const purchasePrice = Number(stock.purchasePrice || 0);
+      const sellingPrice = Number(stock.sellingPrice || 0);
+
+      if (avlQty > qty + offer) {
+        showError(
+          `Row ${i + 1}: Available Quantity cannot exceed Quantity + Offer`
+        );
+        return;
+      }
+
+      if (stock.mfgDate && stock.expiryDate) {
+        const mfg = new Date(stock.mfgDate);
+        const exp = new Date(stock.expiryDate);
+        if (exp <= mfg) {
+          showError(
+            `Row ${i + 1}: Expiry Date must be after Manufacturing Date`
+          );
+          return;
+        }
+      }
+
+      if (sellingPrice < purchasePrice) {
+        showError(
+          `Row ${i + 1}: Selling Price (MRP) cannot be less than Purchase Price`
+        );
+        return;
+      }
     }
     setSubmitting(true);
     data.invoiceNumber = uniqueID;
@@ -363,7 +397,9 @@ function NewStockForm({ medicines, lists, type, setType, uniqueID }) {
                 <input
                   type="date"
                   name="mfgDate"
-                  {...register(`stocks.${index}.mfgDate`)}
+                  {...register(`stocks.${index}.mfgDate`, {
+                    required: "Mfg Date is required",
+                  })}
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                 />
                 <input
@@ -388,6 +424,7 @@ function NewStockForm({ medicines, lists, type, setType, uniqueID }) {
                     type="number"
                     {...register(`stocks.${index}.availableQuantity`, {
                       required: true,
+                      min: 0,
                     })}
                     placeholder="Avl Strips or Pcs"
                     className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-slate-800 ring-2 ring-offset-1 ring-red-700"
