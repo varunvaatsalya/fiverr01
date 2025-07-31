@@ -239,17 +239,17 @@ export async function POST(req) {
   } = await req.json();
 
   const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
+  console.log(stocks);
 
   // const Model = getModel(sectionType);
   try {
     const newPendingPurchaseInvoice = new PendingPurchaseInvoice({
       stocks: stocks.map((stock) => {
-        let initialQuantity = stock.quantity || 0;
-        let offer = stock.offer || 0;
+        let initialQuantity = Number(stock.quantity) || 0;
+        let avlQuantity = Number(stock.availableQuantity) || 0;
+        let offer = Number(stock.offer) || 0;
         let currentQuantity = isBackDated
-          ? typeof stock.availableQuantity === "number"
-            ? stock.availableQuantity
-            : initialQuantity + offer
+          ? avlQuantity
           : initialQuantity + offer;
         return {
           medicine: stock.medicine,
@@ -259,11 +259,11 @@ export async function POST(req) {
           currentQuantity,
           initialQuantity,
           offer,
-          sellingPrice: stock.sellingPrice || 0,
-          purchasePrice: stock.purchasePrice || 0,
-          sgst: stock.sgst || 0,
-          cgst: stock.cgst || 0,
-          discount: stock.discount || 0,
+          sellingPrice: Number(stock.sellingPrice) || 0,
+          purchasePrice: Number(stock.purchasePrice) || 0,
+          sgst: Number(stock.sgst) || 0,
+          cgst: Number(stock.cgst) || 0,
+          discount: Number(stock.discount) || 0,
         };
       }),
       invoiceNumber,

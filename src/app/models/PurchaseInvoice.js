@@ -52,6 +52,7 @@ const purchaseInvoiceSchema = new mongoose.Schema({
       },
     },
   ],
+  isBackDated: { type: Boolean },
   isPaid: { type: Boolean, default: false },
   invoiceDate: { type: Date, required: true },
   receivedDate: { type: Date, required: true },

@@ -304,7 +304,12 @@ function NewStockForm({ medicines, lists, type, setType, uniqueID }) {
               <div className="flex-1 min-w-28 text-center">Expiry</div>
               <div className="flex-1 min-w-28 text-center">Qty or Pcs</div>
               {isBackDated && (
-                <div className="flex-1 min-w-28 text-center">Avl Qty</div>
+                <div
+                  title="Not yet used quantity from this purchase!"
+                  className="flex-1 min-w-28 text-center"
+                >
+                  Avl Qty(Pack)
+                </div>
               )}
               <div className="flex-1 min-w-28 text-center">Offer/Extra</div>
               <div className="flex-1 min-w-28 text-center">MRP</div>
@@ -426,7 +431,7 @@ function NewStockForm({ medicines, lists, type, setType, uniqueID }) {
                       required: true,
                       min: 0,
                     })}
-                    placeholder="Avl Strips or Pcs"
+                    placeholder="Not yet used"
                     className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-slate-800 ring-2 ring-offset-1 ring-red-700"
                     min={0}
                   />
