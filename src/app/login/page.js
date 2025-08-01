@@ -5,9 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Loading from "../components/Loading";
+import { useAuth } from "../context/AuthContext";
 
 function Page() {
   const router = useRouter();
+  const { setUser } = useAuth();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
   const {
@@ -37,6 +39,7 @@ function Page() {
       // Check if login was successful
       if (result.success) {
         console.log("Login successful, redirecting...", result.route);
+        setUser(result.user);
         router.replace(result.route);
       } else {
         setMessage(result.message);

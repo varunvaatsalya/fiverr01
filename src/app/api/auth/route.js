@@ -91,15 +91,15 @@ export async function POST(req) {
           { status: 401 }
         );
       }
-
-      const token = await generateToken({
+      const user = {
         _id: admin._id,
         name: admin.name,
         email,
-        password,
         role,
         editPermission: true,
-      });
+      };
+
+      const token = await generateToken(user);
 
       cookies().set({
         name: "authToken",
@@ -112,8 +112,7 @@ export async function POST(req) {
       return NextResponse.json({
         messages: "Login successful",
         route: redirect || userRole.admin,
-        editPermission: true,
-        role,
+        user,
         success: true,
       });
     }
@@ -145,7 +144,15 @@ export async function POST(req) {
       );
     }
 
-    const token = await generateToken(user);
+    const filteredUser = {
+      _id: user._id,
+      name: user.name,
+      email,
+      role,
+      editPermission: user.editPermission,
+    };
+
+    const token = await generateToken(filteredUser);
 
     cookies().set({
       name: "authToken",
@@ -158,8 +165,7 @@ export async function POST(req) {
     return NextResponse.json(
       {
         message: "Login successful",
-        role: user.role,
-        editPermission: user.editPermission,
+        user: filteredUser,
         route: redirect || userRole[user.role],
         success: true,
       },

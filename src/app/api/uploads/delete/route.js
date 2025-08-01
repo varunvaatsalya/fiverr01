@@ -17,7 +17,7 @@ export async function POST(req) {
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
-  const userEditPermission = decoded?.editPermission;
+  // const userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -27,11 +27,7 @@ export async function POST(req) {
     return res;
   }
 
-  if (
-    userRole !== "admin" &&
-    userRole !== "owner" &&
-    (userRole !== "stockist" || !userEditPermission)
-  ) {
+  if (userRole !== "admin" && userRole !== "owner" && userRole !== "stockist") {
     return NextResponse.json(
       { message: "Access denied. Admins only.", success: false },
       { status: 403 }
