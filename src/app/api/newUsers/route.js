@@ -9,6 +9,7 @@ function generateUID() {
 
 export async function GET(req) {
   await dbConnect();
+  const id = req.nextUrl.searchParams.get("id");
   const role = req.nextUrl.searchParams.get("role");
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -39,6 +40,10 @@ export async function GET(req) {
   }
 
   try {
+    if (id) {
+      let user = await User.findById(id);
+      return NextResponse.json({ user, success: true }, { status: 200 });
+    }
     const query = role ? { role } : {};
     const users = await User.find(query).sort({ _id: -1 });
     return NextResponse.json(
@@ -110,7 +115,10 @@ export async function POST(req) {
     await newUser.save();
 
     // Send response with UID
-    return NextResponse.json({ user: newUser, success: true }, { status: 201 });
+    return NextResponse.json(
+      { message: "User created successfully", user: newUser, success: true },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error during registration:", error);
     return NextResponse.json(
@@ -119,7 +127,6 @@ export async function POST(req) {
     );
   }
 }
-
 
 export async function PUT(req) {
   await dbConnect();
@@ -150,8 +157,8 @@ export async function PUT(req) {
     );
   }
 
-  const { id } = await req.json();
-  if (!id) {
+  const { _id, name, email, password, editPermission } = await req.json();
+  if (!_id) {
     return NextResponse.json(
       { message: "User ID required", success: false },
       { status: 400 }
@@ -160,14 +167,14 @@ export async function PUT(req) {
 
   try {
     const updatedUser = await User.findByIdAndUpdate(
-      id,
+      _id,
       {
-        $set: {
-          "logout.lastLogoutByAdmin": new Date(),
-          "logout.isLogoutPending": true,
-        },
+        ...(name && { name }),
+        ...(email && { email }),
+        ...(password && { password }),
+        ...(editPermission !== undefined && { editPermission }),
       },
-      { new: true } // return updated doc
+      { new: true }
     );
 
     if (!updatedUser) {
@@ -179,7 +186,7 @@ export async function PUT(req) {
 
     return NextResponse.json(
       {
-        message: "Logout info updated successfully",
+        message: "User updated successfully",
         success: true,
         user: updatedUser,
       },
@@ -222,7 +229,7 @@ export async function DELETE(req) {
       { status: 403 }
     );
   }
-  
+
   const { id } = await req.json();
 
   try {

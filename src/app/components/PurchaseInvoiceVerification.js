@@ -378,7 +378,11 @@ function PurchaseInvoiceVerification() {
                                     : ""}
                                 </div>
                                 <div>
-                                  <b>Quantity:</b> ₹{stock.quantity}
+                                  <b>Quantity:</b> {stock.quantity}
+                                </div>
+                                <div>
+                                  <b>MRP:</b> ₹
+                                  {stock.sellingPrice.toFixed(2)}
                                 </div>
                                 <div>
                                   <b>Initial Purchase Rate:</b> ₹

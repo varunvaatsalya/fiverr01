@@ -5,7 +5,7 @@ import { generateToken, verifyTokenWithLogout } from "../../utils/jwt";
 
 import User from "../../models/Users";
 import Admin from "../../models/Admins";
-import { credentials } from "../../credentials";
+import { credentials as DEFAULT_ADMIN } from "@/app/credentials";
 import LoginHistory from "@/app/models/LoginHistory";
 // import LoginInfo from "../../models/LoginInfo";
 
@@ -21,7 +21,7 @@ export async function GET(req) {
   }
 
   const decoded = await verifyTokenWithLogout(token.value);
-  console.log(decoded);
+  // console.log(decoded);
   // const decoded = null;
   const userRole = decoded?.role;
   if (!decoded || !userRole) {
@@ -31,10 +31,7 @@ export async function GET(req) {
     );
   }
 
-  return NextResponse.json(
-    { route: `/dashboard-${userRole}`, success: true },
-    { status: 200 }
-  );
+  return NextResponse.json({ user: decoded, success: true }, { status: 200 });
 }
 
 export async function POST(req) {
@@ -74,8 +71,9 @@ export async function POST(req) {
   try {
     if (role === "admin") {
       let admin;
-      if (email == credentials.email) {
-        admin = credentials;
+      if (email === DEFAULT_ADMIN.email) {
+        admin = DEFAULT_ADMIN;
+        admin._id = DEFAULT_ADMIN.id || "0";
       } else {
         admin = await Admin.findOne({ email });
         if (!admin) {
@@ -95,7 +93,8 @@ export async function POST(req) {
       }
 
       const token = await generateToken({
-        _id: credentials.id,
+        _id: admin._id,
+        name: admin.name,
         email,
         password,
         role,

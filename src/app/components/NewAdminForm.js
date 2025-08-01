@@ -57,10 +57,27 @@ function NewAdminForm({ setNewUserSection, setAdmins }) {
 
       <form onSubmit={handleSubmit(onSubmit)} className="w-3/4 mx-auto my-2">
         <input
+          id="name"
+          type="text"
+          maxLength={20}
+          placeholder={"Enter the Admin's name"}
+          {...register("name", { required: "Name is required" })}
+          className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
+        />
+        <div className=" py-1 text-sm text-red-500 text-start px-2">
+          {errors.name ? "* " + errors.name.message : ""}
+        </div>
+        <input
           id="email"
           type="email"
           placeholder={"Enter the Admin's email"}
-          {...register("email", { required: "Email is required" })}
+          {...register("email", {
+            required: "Email is required",
+            onChange: (e) => {
+              e.target.value = e.target.value.toLowerCase(); // convert to lowercase
+              return e;
+            },
+          })}
           className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />
         <div className=" py-1 text-sm text-red-500 text-start px-2">

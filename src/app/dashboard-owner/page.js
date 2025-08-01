@@ -14,9 +14,11 @@ import { IoMdAnalytics } from "react-icons/io";
 import { IoLogOut } from "react-icons/io5";
 import { GiMedicines } from "react-icons/gi";
 import { AiOutlineAudit } from "react-icons/ai";
+import { useAuth } from "../context/AuthContext";
 
 function Page() {
   const router = useRouter();
+  const { setUser } = useAuth();
   const Works = [
     {
       name: "Prescription",
@@ -106,6 +108,7 @@ function Page() {
           })}
           <button
             onClick={() => {
+              setUser(null);
               document.cookie =
                 "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
               router.push("/login");

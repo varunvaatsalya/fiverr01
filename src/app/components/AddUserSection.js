@@ -1,7 +1,7 @@
 import React from "react";
 import NewUserForm from "./NewUserForm";
 
-function AddUser({ setNewUserSection, role, updateUsers }) {
+function AddUser({ setNewUserSection, role, updateUsers, editUserId }) {
   return (
     <>
       <div className="absolute top-0 left-0">
@@ -11,6 +11,7 @@ function AddUser({ setNewUserSection, role, updateUsers }) {
               setNewUserSection={setNewUserSection}
               role={role}
               updateUsers={updateUsers}
+              editUserId={editUserId}
             />
           </div>
         </div>

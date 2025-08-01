@@ -10,6 +10,7 @@ const secret = new TextEncoder().encode(JWT_SECRET);
 export const generateToken = async (user) => {
   const token = await new SignJWT({
     _id: user._id,
+    name: user.name || "User",
     email: user.email,
     role: user.role,
     editPermission: user.editPermission,

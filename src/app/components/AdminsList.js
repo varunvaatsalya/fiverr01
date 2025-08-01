@@ -92,8 +92,9 @@ function AdminsList({ admins, setAdmins, credentials }) {
               <div className="md:w-[8%] justify-center px-2 flex items-center pl-2">
                 No.
               </div>
+              <div className="w-1/5 flex items-center">Name</div>
               <div className="w-2/5 flex items-center">Email</div>
-              <div className="w-2/5 flex items-center justify-center">
+              <div className="w-1/5 flex items-center justify-center">
                 Password
               </div>
               <div className="flex items-center">Delete</div>
@@ -107,8 +108,9 @@ function AdminsList({ admins, setAdmins, credentials }) {
                   <div className="w-[8%] px-2 flex items-center justify-center">
                     {index + 1}
                   </div>
+                  <div className="w-1/5 flex items-center">{admin.name || "N/A"}</div>
                   <div className="w-2/5 flex items-center">{admin.email}</div>
-                  <div className="w-2/5 flex items-center justify-center">
+                  <div className="w-1/5 flex items-center justify-center">
                     {admin.password}
                   </div>
                   <button
@@ -129,15 +131,18 @@ function AdminsList({ admins, setAdmins, credentials }) {
                   setIsDefaultAdminVisible(!isDefaultAdminVisible)
                 }
                 key={"default"}
-                title={!isDefaultAdminVisible ? "Double click to view":""}
+                title={!isDefaultAdminVisible ? "Double click to view" : ""}
               >
                 <div className="w-[8%] px-2 flex items-center justify-center">
                   {admins.length + 1}
                 </div>
+                <div className="w-1/5 flex items-center">
+                  {isDefaultAdminVisible ? credentials.name : "*********"}
+                </div>
                 <div className="w-2/5 flex items-center">
                   {isDefaultAdminVisible ? credentials.email : "************"}
                 </div>
-                <div className="w-2/5 flex items-center justify-center">
+                <div className="w-1/5 flex items-center justify-center">
                   {isDefaultAdminVisible ? credentials.password : "**********"}
                 </div>
                 <div className="flex items-center">Default</div>

@@ -75,7 +75,7 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { email, password } = await req.json();
+  const { name, email, password } = await req.json();
 
   try {
     // Check if email is unique
@@ -91,6 +91,7 @@ export async function POST(req) {
 
     // Create new user
     const newAdmin = new Admin({
+      name,
       email,
       password,
     });

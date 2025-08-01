@@ -20,9 +20,11 @@ import {
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { IoLogOut } from "react-icons/io5";
+import { useAuth } from "../context/AuthContext";
 
 function Page() {
   const router = useRouter();
+  const { setUser } = useAuth();
   const Works = [
     {
       name: "Purchase Invoice",
@@ -130,6 +132,7 @@ function Page() {
         })}
         <button
           onClick={() => {
+            setUser(null);
             document.cookie =
               "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             router.push("/login");

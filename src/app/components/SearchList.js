@@ -10,6 +10,7 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
   const [newUserSection, setNewUserSection] = useState(false);
   const [activeIndex, setActiveIndex] = useState(null);
   const [resData, setResData] = useState(users);
+  const [editUserId, setEditUserId] = useState(null);
 
   useEffect(() => {
     setResData(users);
@@ -52,7 +53,7 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
     let confirm = window.confirm("Do you want to logout this user!");
     if (!confirm) return;
     try {
-      const response = await fetch(`/api/newUsers`, {
+      const response = await fetch(`/api/newUsers/logout`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -78,6 +79,7 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
           setNewUserSection={setNewUserSection}
           role={role}
           updateUsers={updateUsers}
+          editUserId={editUserId}
         />
       ) : (
         <></>
@@ -147,33 +149,50 @@ function SearchList({ users, updateUsers, role, accessInfo }) {
                         Password:{" "}
                         <span className="text-red-500">{user.password}</span>
                       </div>
-                      <button
-                        onClick={() => {
-                          removeUser(user._id);
-                        }}
-                        className="py-2 px-4 text-red-700 border border-red-700 rounded-lg font-semibold flex gap-1 items-center"
-                      >
-                        Delete
-                      </button>
-                      <button
-                        onClick={() => {
-                          logoutUser(user._id);
-                        }}
-                        disabled={user.logout && user.logout.isLogoutPending}
-                        className="py-2 px-4 text-white bg-red-700 disabled:bg-gray-600 rounded-lg font-semibold flex gap-1 items-center"
-                      >
-                        {user.logout && user.logout.isLogoutPending
-                          ? "Logout Pending..."
-                          : "Logout"}
-                      </button>
-                      {user.logout && user.logout.lastLogoutByAdmin && (
-                        <div className="text-sm text-gray-700">
-                          Last Logout by admin:{" "}
-                          <span className="text-red-600">
-                            {formatDateTimeToIST(user.logout.lastLogoutByAdmin)}
-                          </span>
+                      <div className="w-full flex justify-between items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              removeUser(user._id);
+                            }}
+                            className="py-2 px-4 text-red-700 border border-red-700 rounded-lg font-semibold flex gap-1 items-center"
+                          >
+                            Delete
+                          </button>
+                          <button
+                            onClick={() => {
+                              logoutUser(user._id);
+                            }}
+                            disabled={
+                              user.logout && user.logout.isLogoutPending
+                            }
+                            className="py-2 px-4 text-white bg-red-700 disabled:bg-gray-600 rounded-lg font-semibold flex gap-1 items-center"
+                          >
+                            {user.logout && user.logout.isLogoutPending
+                              ? "Logout Pending..."
+                              : "Logout"}
+                          </button>
+                          {user.logout && user.logout.lastLogoutByAdmin && (
+                            <div className="text-sm text-gray-700">
+                              Last Logout by admin:{" "}
+                              <span className="text-red-600">
+                                {formatDateTimeToIST(
+                                  user.logout.lastLogoutByAdmin
+                                )}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      )}
+                        <button
+                          onClick={() => {
+                            setEditUserId(user._id);
+                            setNewUserSection((newUserSection) => !newUserSection);
+                          }}
+                          className="py-2 px-4 text-white bg-blue-700 disabled:bg-gray-600 rounded-lg font-semibold flex gap-1 items-center"
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

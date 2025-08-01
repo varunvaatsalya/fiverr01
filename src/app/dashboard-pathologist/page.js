@@ -7,30 +7,29 @@ import { IoLogOut } from "react-icons/io5";
 import { TbReportMedical } from "react-icons/tb";
 import { GrDocumentTest } from "react-icons/gr";
 import { MdRebaseEdit } from "react-icons/md";
+import { useAuth } from "../context/AuthContext";
 
 function Page() {
   const router = useRouter();
+  const { setUser } = useAuth();
   const Works = [
     {
       name: "Lab Test report",
-      description:
-        "You can see all the reports",
+      description: "You can see all the reports",
       icon: <GrDocumentTest size={50} />,
       link: "/dashboard-pathologist/labReport",
       color: "bg-blue-700",
     },
     {
       name: "Reports",
-      description:
-        "You can see all pathology reports and print",
+      description: "You can see all pathology reports and print",
       icon: <TbReportMedical size={50} />,
       link: "/dashboard-pathologist/reports",
       color: "bg-orange-500",
     },
     {
       name: "Edit Test report",
-      description:
-        "You can see & edit all the reports",
+      description: "You can see & edit all the reports",
       icon: <MdRebaseEdit size={50} />,
       link: "/dashboard-pathologist/editLabReport",
       color: "bg-gray-700",
@@ -58,6 +57,7 @@ function Page() {
           })}
           <button
             onClick={() => {
+              setUser(null);
               document.cookie =
                 "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
               router.push("/login");

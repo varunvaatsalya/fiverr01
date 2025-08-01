@@ -1,15 +1,33 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { showError, showSuccess } from "@/app/utils/toast";
 import Loading from "./Loading";
 
-function NewUserForm({ setNewUserSection, role, updateUsers }) {
+function NewUserForm({ setNewUserSection, role, updateUsers, editUserId }) {
   // const router = useRouter();
   const {
     register,
     handleSubmit,
+    reset,
+    watch,
     formState: { errors },
   } = useForm();
+
+  useEffect(() => {
+    async function fetchUser() {
+      let res = await fetch(`/api/newUsers?id=${editUserId}`);
+      res = await res.json();
+      if (res.success) {
+        reset(res.user);
+      } else {
+        showError("user not found");
+        setNewUserSection(false);
+      }
+    }
+    if (editUserId) fetchUser();
+  }, [editUserId]);
+
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -17,7 +35,7 @@ function NewUserForm({ setNewUserSection, role, updateUsers }) {
     setSubmitting(true);
     try {
       let result = await fetch("/api/newUsers", {
-        method: "POST",
+        method: editUserId ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json", // Set the header for JSON
         },
@@ -28,8 +46,18 @@ function NewUserForm({ setNewUserSection, role, updateUsers }) {
       result = await result.json();
       // Check if login was successful
       if (result.success) {
-        updateUsers((prevUsers) => [result.user, ...prevUsers]);
+        if (editUserId) {
+          updateUsers((prevUsers) =>
+            prevUsers.map((user) =>
+              user._id === editUserId ? result.user : user
+            )
+          );
+        } else {
+          updateUsers((prevUsers) => [result.user, ...prevUsers]);
+        }
+
         setNewUserSection((prev) => !prev);
+        showSuccess(result.message);
       } else {
         setMessage(result.message);
       }
@@ -42,13 +70,13 @@ function NewUserForm({ setNewUserSection, role, updateUsers }) {
   return (
     <div>
       <h2 className="font-bold text-2xl text-white">
-        Details of new <span className="text-blue-500">{role}</span>
+        Details of {editUserId ? "edit" : "new"}{" "}
+        <span className="text-blue-500">{role}</span>
       </h2>
       <hr className="border border-slate-800 w-full my-2" />
       {message && (
         <div className="my-1 text-center text-red-500">{message}</div>
       )}
-
       <form onSubmit={handleSubmit(onSubmit)} className="w-3/4 mx-auto my-2">
         <input
           id="name"
@@ -79,7 +107,7 @@ function NewUserForm({ setNewUserSection, role, updateUsers }) {
           {...register("password", { required: "Password is required" })}
           className="mt-1 block text-white w-full px-4 py-3 bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
         />
-        {(role == "salesman" || role == "stockist"|| role == "dispenser") && (
+        {(role == "salesman" || role == "stockist" || role == "dispenser") && (
           <>
             <div className=" py-1 text-sm text-blue-500 text-start px-2">
               Permission of Edit Invoice
@@ -116,7 +144,7 @@ function NewUserForm({ setNewUserSection, role, updateUsers }) {
             disabled={submitting}
           >
             {submitting ? <Loading size={15} /> : <></>}
-            {submitting ? "Wait..." : "Confirm"}
+            {submitting ? "Wait..." : editUserId ? "Update" : "Confirm"}
           </button>
         </div>
       </form>
