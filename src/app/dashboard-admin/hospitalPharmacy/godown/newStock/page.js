@@ -45,6 +45,7 @@ function Page() {
         type={type}
         setType={setType}
         uniqueID={uniqueID}
+        setUniqueID={setUniqueID}
       />
     </div>
   );

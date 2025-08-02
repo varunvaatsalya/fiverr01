@@ -8,7 +8,14 @@ import { RiLoader2Line } from "react-icons/ri";
 import { showError, showInfo } from "../utils/toast";
 import ImageDropUploader from "./ImageDropUploader";
 
-function NewStockForm({ medicines, lists, type, setType, uniqueID }) {
+function NewStockForm({
+  medicines,
+  lists,
+  type,
+  setType,
+  uniqueID,
+  setUniqueID,
+}) {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -97,6 +104,7 @@ function NewStockForm({ medicines, lists, type, setType, uniqueID }) {
       setResult(result.savedStocks);
       if (result.success) {
         reset();
+        setUniqueID(result.newUniqueId);
       }
     } catch (error) {
       console.error("Error submitting application:", error);

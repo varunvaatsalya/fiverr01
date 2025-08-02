@@ -285,10 +285,15 @@ export async function POST(req) {
     // // Save user to the database
     await newPendingPurchaseInvoice.save();
 
-    console.log("New Purchase Invoice created:", newPendingPurchaseInvoice);
+    // console.log("New Purchase Invoice created:", newPendingPurchaseInvoice);
     // Send response with UID
+    const prefix = sectionType === "hospital" ? "HI" : "PI";
+    let uniqueDigit = generateUID();
+    let newUniqueId = `${prefix}${uniqueDigit}`;
+
     return NextResponse.json(
       {
+        newUniqueId,
         newPendingPurchaseInvoice,
         message: "Invoice Created Successfully!",
         success: true,
