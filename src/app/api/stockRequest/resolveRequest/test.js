@@ -4,45 +4,45 @@ import { verifyTokenWithLogout } from "@/app/utils/jwt";
 import { Stock, HospitalStock } from "@/app/models/Stock";
 import Request, { HospitalRequest } from "@/app/models/Request";
 
-async function allocateStocks(request, StockModel) {
-  const { medicine, requestedQuantity } = request;
-  const packetSize = medicine.packetSize;
+// async function allocateStocks(request, StockModel) {
+//   const { medicine, requestedQuantity } = request;
+//   const packetSize = medicine.packetSize;
 
-  const stocks = await StockModel.find({
-    medicine: medicine._id,
-    "quantity.totalStrips": { $gt: 0 },
-  })
-    .sort({ expiryDate: 1 })
-    .lean();
+//   const stocks = await StockModel.find({
+//     medicine: medicine._id,
+//     "quantity.totalStrips": { $gt: 0 },
+//   })
+//     .sort({ expiryDate: 1 })
+//     .lean();
 
-  let allocatedStocks = [];
-  let remainingStrips = requestedQuantity;
+//   let allocatedStocks = [];
+//   let remainingStrips = requestedQuantity;
 
-  for (let stock of stocks) {
-    if (remainingStrips <= 0) break;
+//   for (let stock of stocks) {
+//     if (remainingStrips <= 0) break;
 
-    const available = stock.quantity.totalStrips;
-    const transferQuantity = Math.min(remainingStrips, available);
+//     const available = stock.quantity.totalStrips;
+//     const transferQuantity = Math.min(remainingStrips, available);
 
-    allocatedStocks.push({
-      stockId: stock._id,
-      batchName: stock.batchName,
-      expiryDate: stock.expiryDate,
-      packetSize,
-      quantity: {
-        boxes: Math.floor(transferQuantity / packetSize.strips),
-        extra: transferQuantity % packetSize.strips,
-        totalStrips: transferQuantity,
-      },
-      purchasePrice: stock.purchasePrice,
-      sellingPrice: stock.sellingPrice,
-    });
+//     allocatedStocks.push({
+//       stockId: stock._id,
+//       batchName: stock.batchName,
+//       expiryDate: stock.expiryDate,
+//       packetSize,
+//       quantity: {
+//         boxes: Math.floor(transferQuantity / packetSize.strips),
+//         extra: transferQuantity % packetSize.strips,
+//         totalStrips: transferQuantity,
+//       },
+//       purchasePrice: stock.purchasePrice,
+//       sellingPrice: stock.sellingPrice,
+//     });
 
-    remainingStrips -= transferQuantity;
-  }
+//     remainingStrips -= transferQuantity;
+//   }
 
-  return { allocatedStocks, remainingStrips };
-}
+//   return { allocatedStocks, remainingStrips };
+// }
 
 export async function POST(req) {
   await dbConnect();
