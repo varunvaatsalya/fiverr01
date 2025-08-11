@@ -44,7 +44,7 @@ import Request, { HospitalRequest } from "@/app/models/Request";
 //   return { allocatedStocks, remainingStrips };
 // }
 
-export async function POST(req) {
+export async function GET(req) {
   await dbConnect();
 
   const token = req.cookies.get("authToken");
