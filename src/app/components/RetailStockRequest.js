@@ -25,22 +25,54 @@ function RetailStockRequest({
     setSelectedMedicine([]);
   }, [filteredMedicines]);
 
+  const isAnyInvalidRequest = () => {
+    const firstInvalid = selectedMedicine.find((med) => {
+      const hasValidId = typeof med._id === "string" && med._id.trim() !== "";
+      const hasValidName =
+        typeof med.name === "string" && med.name.trim() !== "";
+      const isValidRequestedQty =
+        Number.isInteger(med.requestedQuantity) && med.requestedQuantity > 0;
+      const isValidRemainingQty =
+        Number.isInteger(med.enteredRemainingQuantity) &&
+        med.enteredRemainingQuantity >= 0;
+
+      return !(
+        hasValidId &&
+        hasValidName &&
+        isValidRequestedQty &&
+        isValidRemainingQty
+      );
+    });
+    return firstInvalid;
+  };
+
   async function handleCreateRequest() {
     setSubmitting(true);
+    const inValidReq = isAnyInvalidRequest();
+    if (inValidReq) {
+      showError(
+        `"${
+          inValidReq.name || "Unknown Medicine"
+        }" entry is wrong. Please check quantity and details.`
+      );
+      setSubmitting(false);
+      return;
+    }
+    let requestedData = selectedMedicine.map((med) => ({
+      medicine: med._id,
+      medicineName: med.name,
+      requestedQuantity: med.requestedQuantity,
+      enteredRemainingQuantity: med.enteredRemainingQuantity,
+    }));
     try {
-      console.log(selectedMedicine);
+      // console.log(selectedMedicine);
       let result = await fetch("/api/stockRequest", {
         method: "POST",
         headers: {
           "Content-Type": "application/json", // Set the header for JSON
         },
         body: JSON.stringify({
-          requests: selectedMedicine.map((med) => ({
-            medicine: med._id,
-            medicineName: med.name,
-            requestedQuantity: med.requestedQuantity,
-            enteredRemainingQuantity: med.enteredRemainingQuantity,
-          })),
+          requests: requestedData,
           sectionType,
         }),
       });
@@ -80,8 +112,8 @@ function RetailStockRequest({
   }
 
   async function handleResolveRequest(status, id, medId) {
-    if (status === "rejected") {
-      if (!window.confirm("Do you want to reject this medicine!")) return;
+    if (status === "returned") {
+      if (!window.confirm("Do you want to reject/return this medicine!")) return;
     }
     setIsReceiving(true);
     try {
@@ -149,9 +181,9 @@ function RetailStockRequest({
                     return !medicine.requests || medicine.requests.length === 0;
                   })
                   .map((medicine) => {
-                    const min = medicine.minimumStockCount?.retails;
-                    const max = medicine.maximumStockCount?.retails;
-                    const current = medicine.totalRetailStock;
+                    const min = medicine.minimumStockCount;
+                    const max = medicine.maximumStockCount;
+                    const current = medicine.totalStrips;
 
                     const shouldCalculate =
                       min !== undefined &&
@@ -160,10 +192,13 @@ function RetailStockRequest({
                       min >= current &&
                       max > current;
 
+                    const reqQty = shouldCalculate ? max - current : "";
+
                     return {
                       ...medicine,
                       enteredRemainingQuantity: "",
-                      requestedQuantity: shouldCalculate ? max - current : "",
+                      requestedQuantity: reqQty,
+                      presetRequestedQuantity: reqQty,
                     };
                   });
 
@@ -330,9 +365,9 @@ function RetailStockRequest({
                             )
                           );
                         } else {
-                          const min = medicine.minimumStockCount?.retails;
-                          const max = medicine.maximumStockCount?.retails;
-                          const current = medicine.totalRetailStock;
+                          const min = medicine.minimumStockCount;
+                          const max = medicine.maximumStockCount;
+                          const current = medicine.totalStrips;
 
                           const shouldCalculate =
                             min !== undefined &&
@@ -384,9 +419,9 @@ function RetailStockRequest({
               medicine.requests && medicine.requests.length > 0;
             const latestRequest = hasRequest ? medicine.requests[0] : null;
 
-            const min = medicine.minimumStockCount?.retails;
-            const max = medicine.maximumStockCount?.retails;
-            const current = medicine.totalRetailStock;
+            const min = medicine.minimumStockCount;
+            const max = medicine.maximumStockCount;
+            const current = medicine.totalStrips;
 
             const shouldCalculate =
               typeof min === "number" &&
@@ -394,6 +429,8 @@ function RetailStockRequest({
               max >= min &&
               min >= current &&
               max > current;
+
+            const reqQty = shouldCalculate ? max - current : "";
 
             // Combined packet info
             const packetInfo = medicine.isTablets
@@ -434,9 +471,8 @@ function RetailStockRequest({
                             {
                               ...medicine,
                               enteredRemainingQuantity: "",
-                              requestedQuantity: shouldCalculate
-                                ? max - current
-                                : "",
+                              requestedQuantity: reqQty,
+                              presetRequestedQuantity: reqQty,
                             },
                           ]);
                         }
@@ -456,10 +492,15 @@ function RetailStockRequest({
                   <div className="bg-white border-t px-4 py-2 text-sm text-gray-700">
                     {latestRequest.status === "Pending" ? (
                       <div className="text-yellow-700 bg-yellow-100 rounded-md px-3 py-1 inline-block">
-                        Pending request on{" "}
-                        <span className="font-semibold uppercase">
-                          {formatDateTimeToIST(latestRequest.createdAt)}
-                        </span>
+                        Pending request{" "}
+                        {latestRequest.createdAt && (
+                          <>
+                            on{" "}
+                            <span className="font-semibold uppercase">
+                              {formatDateTimeToIST(latestRequest.createdAt)}
+                            </span>
+                          </>
+                        )}
                       </div>
                     ) : (
                       <div>
@@ -477,7 +518,7 @@ function RetailStockRequest({
                                 disabled={isReceiving}
                                 onDoubleClick={() => {
                                   handleResolveRequest(
-                                    "rejected",
+                                    "returned",
                                     latestRequest?._id,
                                     medicine._id
                                   );
@@ -517,7 +558,7 @@ function RetailStockRequest({
                             <div>
                               Qty:{" "}
                               <span className="font-medium">
-                                {stock.quantity?.boxes || 0} Boxes
+                                {stock.quantity?.totalStrips || 0} Strips
                               </span>
                             </div>
                             <div>
@@ -590,19 +631,23 @@ function RetailStockRequest({
                             <div className="flex gap-2">
                               <input
                                 type="number"
-                                min={0}
-                                hidden={Boolean(
-                                  requestedMedicine.requestedQuantity
-                                )}
+                                min={1}
+                                hidden={
+                                  Boolean(
+                                    requestedMedicine.requestedQuantity
+                                  ) &&
+                                  requestedMedicine.requestedQuantity ===
+                                    requestedMedicine.presetRequestedQuantity
+                                }
                                 value={requestedMedicine.requestedQuantity}
                                 onChange={(e) => {
                                   handleQuantityChange(
                                     requestedMedicine._id,
-                                    e.target.value
+                                    parseFloat(e.target.value)
                                   );
                                 }}
                                 className="px-2 py-1 text-sm rounded-lg focus:outline-gray-700 w-48 bg-gray-700 text-gray-300"
-                                placeholder="Enter Box Quantity"
+                                placeholder="Enter Strips Quantity"
                               />
                               <input
                                 type="number"
@@ -613,11 +658,11 @@ function RetailStockRequest({
                                 onChange={(e) => {
                                   handleRemainingQuantityChange(
                                     requestedMedicine._id,
-                                    e.target.value
+                                    parseFloat(e.target.value)
                                   );
                                 }}
                                 className="px-2 py-1 text-sm rounded-lg focus:outline-gray-700 w-48 bg-gray-700 text-gray-300"
-                                placeholder="Current Box Quantity"
+                                placeholder="Current Total Strips"
                               />
                             </div>
                           </div>

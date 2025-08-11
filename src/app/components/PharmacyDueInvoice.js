@@ -134,7 +134,7 @@ export default function PharmacyDueInvoice() {
     const lowerTerm = term.toLowerCase();
     const filtered = invoices.filter(
       (group) =>
-        group.source.name.toLowerCase().includes(lowerTerm) ||
+        group.source?.name.toLowerCase().includes(lowerTerm) ||
         group.invoices.some((inv) =>
           inv.invoiceNumber.toLowerCase().includes(lowerTerm)
         )
@@ -240,11 +240,11 @@ export default function PharmacyDueInvoice() {
 
         return (
           <div
-            key={group.source._id}
+            key={group.source?._id}
             className="border rounded-lg shadow-sm p-3 bg-white"
           >
             <div className="flex justify-between items-center bg-black text-white p-3 rounded">
-              <div className="font-semibold">{group.source.name}</div>
+              <div className="font-semibold">{group.source?.name}</div>
               <div className="space-x-4 text-sm">
                 <span>Total: ₹{parseFloat(group.totalAmount.toFixed(2))}</span>
                 <span>Paid: ₹{parseFloat(group.paidAmount.toFixed(2))}</span>
@@ -313,8 +313,8 @@ export default function PharmacyDueInvoice() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={null}>--Select Bank--</SelectItem>
-                      {group.source.bankDetails?.length > 0 ? (
-                        group.source.bankDetails.map((bank) => (
+                      {group.source?.bankDetails?.length > 0 ? (
+                        group.source?.bankDetails.map((bank) => (
                           <SelectItem key={bank._id} value={bank}>
                             {`${bank.accountNo} - ${bank.bankName} (${bank.branch})`}
                           </SelectItem>
@@ -377,7 +377,7 @@ export default function PharmacyDueInvoice() {
                       <Checkbox
                         checked={selected}
                         onCheckedChange={() =>
-                          handleCheckboxChange(invoice._id, group.source._id)
+                          handleCheckboxChange(invoice._id, group.source?._id)
                         }
                       />
                     </div>

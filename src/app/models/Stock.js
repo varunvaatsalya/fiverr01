@@ -103,6 +103,8 @@ const stockSchema = new mongoose.Schema({
   },
 });
 
+stockSchema.index({ medicine: 1, "quantity.totalStrips": 1, expiryDate: 1 });
+
 // stockSchema.post("save", async function (doc) {
 //   const Model = this.constructor;
 

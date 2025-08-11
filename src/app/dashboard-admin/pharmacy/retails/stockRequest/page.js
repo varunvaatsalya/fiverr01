@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import RetailStockRequest from "@/app/components/RetailStockRequest";
 import { useStockType } from "@/app/context/StockTypeContext";
+import { showError } from "@/app/utils/toast";
 
 function Page() {
   const sectionType = useStockType();
@@ -21,8 +22,7 @@ function Page() {
       .then((data) => {
         if (data.success) {
           setMedicineStock(data.medicines);
-          console.log(data.medicines);
-        } else console.log(data.message);
+        } else showError(data.message || "Stock Details Fetch Error");
       });
     setFinding(false);
   }, [selectedLetter]);
@@ -51,7 +51,7 @@ function Page() {
       }
 
       if (filterType === "outofstock") {
-        return med.totalRetailStock < (med.minimumStockCount?.retails || 0);
+        return med.totalStrips < (med.minimumStockCount || 0);
       }
 
       return true;

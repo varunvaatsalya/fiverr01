@@ -63,6 +63,38 @@ export default function EditStockForm() {
     });
   };
 
+  const handleMRPChange = (medicineId, stockId, mrp) => {
+    let sellingPrice = parseFloat((mrp || 0)?.toFixed(2));
+    setStocks((prev) =>
+      prev.map((med) =>
+        med.medicineId === medicineId
+          ? {
+              ...med,
+              stocks: med.stocks.map((stock) =>
+                stock._id === stockId
+                  ? {
+                      ...stock,
+                      sellingPrice,
+                    }
+                  : stock
+              ),
+            }
+          : med
+      )
+    );
+
+    setChangedStocks((prev) => {
+      const exists = prev.find((p) => p.stockId === stockId);
+      if (exists) {
+        return prev.map((p) =>
+          p.stockId === stockId ? { ...p, sellingPrice } : p
+        );
+      } else {
+        return [...prev, { stockId, sellingPrice }];
+      }
+    });
+  };
+
   async function handleUpdate() {
     setSubmitting(true);
     try {
@@ -121,9 +153,10 @@ export default function EditStockForm() {
             </p>
           </div>
 
-          <div className="grid grid-cols-4 gap-4 font-semibold text-sm text-gray-700 border-b pb-2">
+          <div className="grid grid-cols-5 gap-4 font-semibold text-sm text-gray-700 border-b pb-2">
             <div>Batch</div>
             <div>Expiry</div>
+            <div>MRP</div>
             <div>Total Strips</div>
             <div>Qty (Box + Extra)</div>
           </div>
@@ -131,7 +164,7 @@ export default function EditStockForm() {
             {med.stocks.map((stock) => (
               <div
                 key={stock._id}
-                className="grid grid-cols-4 gap-2 items-center py-1"
+                className="grid grid-cols-5 gap-2 items-center py-1"
               >
                 <div>{stock.batchName}</div>
                 <div>{formatDateToIST(stock.expiryDate)}</div>
@@ -140,7 +173,21 @@ export default function EditStockForm() {
                   <Input
                     type="number"
                     className="w-full"
-                    value={stock.quantity.totalStrips}
+                    value={stock.sellingPrice || ""}
+                    onChange={(e) =>
+                      handleMRPChange(
+                        med.medicineId,
+                        stock._id,
+                        parseFloat(e.target.value || 0)
+                      )
+                    }
+                  />
+                </div>
+                <div className="flex justify-between items-center gap-2">
+                  <Input
+                    type="number"
+                    className="w-full"
+                    value={stock.quantity.totalStrips || ""}
                     onChange={(e) =>
                       handleStripsChange(
                         med.medicineId,

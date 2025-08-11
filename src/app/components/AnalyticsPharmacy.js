@@ -219,20 +219,6 @@ const AnalyticsPharmacy = () => {
 
       {/* Filters */}
       <div className="w-full flex flex-wrap items-center justify-center gap-4 bg-zinc-900 p-4 rounded-xl text-white mb-4">
-        {/* Uncomment if salesman filter needed */}
-        {/* <Select onValueChange={setSelectedSalesman}>
-          <SelectTrigger className="w-[200px] bg-zinc-800 text-white border border-zinc-700">
-            <SelectValue placeholder="Select Salesman" />
-          </SelectTrigger>
-          <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-            {salesmen.map((sales) => (
-              <SelectItem key={sales._id} value={sales._id}>
-                {sales.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select> */}
-
         <Select
           onValueChange={setSelectedPaymentMode}
           defaultValue={selectedPaymentMode}
@@ -244,6 +230,11 @@ const AnalyticsPharmacy = () => {
             <SelectItem value="Card">Card</SelectItem>
             <SelectItem value="Cash">Cash</SelectItem>
             <SelectItem value="UPI">UPI</SelectItem>
+            <SelectItem value="Credit-Insurance">Credit-Insurance</SelectItem>
+            <SelectItem value="Credit-Doctor">Credit-Doctor</SelectItem>
+            <SelectItem value="Credit-Society">Credit-Society</SelectItem>
+            <SelectItem value="Credit-Others">Credit-Others</SelectItem>
+            <SelectItem value="Package-Discount">Package-Discount</SelectItem>
             <SelectItem value="mixed">Mixed</SelectItem>
           </SelectContent>
         </Select>

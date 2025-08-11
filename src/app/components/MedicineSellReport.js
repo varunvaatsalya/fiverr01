@@ -16,20 +16,58 @@ function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
       });
   }, []);
 
+  const baseColumns = [
+    "name",
+    "manufacturer",
+    "salts",
+    "netRevenue",
+    "netStripsSold",
+  ];
+
+  const uniquePaymentModes = [
+    "Cash",
+    "UPI",
+    "Card",
+    "Credit-Insurance",
+    "Credit-Doctor",
+    "Credit-Society",
+    "Credit-Others",
+    "Package-Discount",
+    "mixed",
+  ];
+
+  const dynamicColumns = uniquePaymentModes.map(
+    (mode) => `paymentBreakdown.${mode}`
+  );
+
+  const allColumns = [...baseColumns, ...dynamicColumns];
+
   const sortedMedicines = useMemo(() => {
     let sortable = [...medicineData];
+
     if (sortConfig.key) {
       sortable.sort((a, b) => {
-        let valA = a[sortConfig.key];
-        let valB = b[sortConfig.key];
+        let valA, valB;
 
-        // If it's an array like 'salts', compare stringified
-        if (Array.isArray(valA)) valA = valA.join(", ");
-        if (Array.isArray(valB)) valB = valB.join(", ");
+        if (sortConfig.key.startsWith("paymentBreakdown.")) {
+          const mode = sortConfig.key.split(".")[1];
+          const getRevenue = (med) =>
+            med.paymentBreakdown?.find((p) => p.paymentMode === mode)
+              ?.revenue || 0;
 
-        if (typeof valA === "string") {
-          valA = valA.toLowerCase();
-          valB = valB.toLowerCase();
+          valA = getRevenue(a);
+          valB = getRevenue(b);
+        } else {
+          valA = a[sortConfig.key];
+          valB = b[sortConfig.key];
+
+          if (Array.isArray(valA)) valA = valA.join(", ");
+          if (Array.isArray(valB)) valB = valB.join(", ");
+
+          if (typeof valA === "string") {
+            valA = valA.toLowerCase();
+            valB = valB.toLowerCase();
+          }
         }
 
         if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
@@ -37,6 +75,7 @@ function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
         return 0;
       });
     }
+
     return sortable;
   }, [medicineData, sortConfig]);
 
@@ -102,20 +141,14 @@ function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
         <table className="min-w-full table-auto text-sm">
           <thead className="bg-gray-100">
             <tr>
-              {[
-                "name",
-                "manufacturer",
-                "salts",
-                "netRevenue",
-                "netStripsSold",
-              ].map((col) => (
+              {allColumns.map((col) => (
                 <th
                   key={col}
                   onClick={() => handleSort(col)}
                   className="py-2 px-4 text-left cursor-pointer select-none hover:bg-gray-200 font-semibold transition whitespace-nowrap"
                 >
                   <div className="flex items-center gap-2">
-                    {col.toUpperCase()}
+                    {col.toUpperCase().replace("PAYMENTBREAKDOWN.", "REV-")}
                     {sortConfig.key === col &&
                       (sortConfig.direction === "asc" ? (
                         <FaChevronCircleUp />
@@ -133,15 +166,34 @@ function MedicineSellReport({ setPayload, medicineData, loading, fetchData }) {
                 key={med._id}
                 className="border-t hover:bg-gray-50 transition whitespace-nowrap"
               >
-                <td className="py-2 px-4">{med.name}</td>
-                <td className="py-2 px-4">{med.manufacturer}</td>
-                <td className="py-2 px-4">{med.salts.join(", ")}</td>
-                <td className="py-2 px-4">
-                  ₹{parseFloat(med.netRevenue.toFixed(2))}
-                </td>
-                <td className="py-2 px-4">
-                  {parseFloat(med.netStripsSold?.toFixed(2))}
-                </td>
+                {allColumns.map((col) => {
+                  if (col.startsWith("paymentBreakdown.")) {
+                    const mode = col.split(".")[1];
+                    const data = med.paymentBreakdown?.find(
+                      (p) => p.paymentMode === mode
+                    );
+                    return (
+                      <td key={col} className="py-2 px-4">
+                        ₹{parseFloat(data?.revenue?.toFixed(2) ?? 0)}
+                        <div className="text-xs text-gray-500">
+                          {parseFloat(data?.strips?.toFixed(2) ?? 0)} strips
+                        </div>
+                      </td>
+                    );
+                  }
+
+                  let value = med[col];
+                  if (Array.isArray(value)) value = value.join(", ");
+                  if (typeof value === "number")
+                    value = parseFloat(value.toFixed(2));
+                  if (col === "netRevenue") value = `₹${value}`;
+
+                  return (
+                    <td key={col} className="py-2 px-4">
+                      {value}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

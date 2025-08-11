@@ -69,6 +69,24 @@ export async function GET(req) {
         },
       },
       {
+        // Lookup manufacturer
+        $lookup: {
+          from: "manufacturers", // manufacturer collection ka naam
+          localField: "manufacturer",
+          foreignField: "_id",
+          as: "manufacturerDoc",
+        },
+      },
+      {
+        // Lookup salts
+        $lookup: {
+          from: "salts", // salts collection ka naam
+          localField: "salts",
+          foreignField: "_id",
+          as: "saltDocs",
+        },
+      },
+      {
         // Calculate totalStrips
         $addFields: {
           totalStrips: {
@@ -244,8 +262,8 @@ export async function GET(req) {
           _id: 1,
           name: 1,
           packetSize: 1,
-          manufacturer: 1,
-          salts: 1,
+          manufacturer: "$manufacturerDoc.name",
+          salts: "$saltDocs.name",
           totalBoxes: 1,
           medicineType: 1,
           minimumStockCount: {

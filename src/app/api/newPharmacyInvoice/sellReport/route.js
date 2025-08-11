@@ -64,174 +64,12 @@ export async function POST(req) {
       },
     };
 
-    // const pipeline = [
-    //   {
-    //     $match: {
-    //       ...matchStage,
-    //       isDelivered: { $ne: null },
-    //       paymentMode: { $ne: "Credit-Others" },
-    //     },
-    //   },
-
-    //   { $unwind: "$medicines" },
-    //   { $unwind: "$medicines.allocatedStock" },
-
-    //   {
-    //     $lookup: {
-    //       from: "medicines",
-    //       localField: "medicines.medicineId",
-    //       foreignField: "_id",
-    //       as: "medicineDetails",
-    //     },
-    //   },
-    //   { $unwind: "$medicineDetails" },
-    //   {
-    //     $lookup: {
-    //       from: "manufacturers",
-    //       localField: "medicineDetails.manufacturer",
-    //       foreignField: "_id",
-    //       as: "manufacturerDetails",
-    //     },
-    //   },
-    //   {
-    //     $unwind: {
-    //       path: "$manufacturerDetails",
-    //       preserveNullAndEmptyArrays: true,
-    //     },
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "salts",
-    //       localField: "medicineDetails.salts",
-    //       foreignField: "_id",
-    //       as: "saltDetails",
-    //     },
-    //   },
-
-    //   ...(manufacturerId
-    //     ? [
-    //         {
-    //           $match: {
-    //             "medicineDetails.manufacturer": new mongoose.Types.ObjectId(
-    //               manufacturerId
-    //             ),
-    //           },
-    //         },
-    //       ]
-    //     : []),
-    //   ...(saltId
-    //     ? [
-    //         {
-    //           $match: {
-    //             "medicineDetails.salts": new mongoose.Types.ObjectId(saltId),
-    //           },
-    //         },
-    //       ]
-    //     : []),
-
-    //   {
-    //     $group: {
-    //       _id: "$medicines.medicineId",
-    //       medId: { $first: "$medicineDetails._id" },
-    //       name: { $first: "$medicineDetails.name" },
-    //       manufacturer: { $first: "$manufacturerDetails.name" },
-    //       salts: { $first: "$saltDetails.name" },
-    //       totalStripsSold: {
-    //         $sum: "$medicines.allocatedStock.quantity.strips",
-    //       },
-    //       totalRevenue: {
-    //         $sum: {
-    //           $multiply: [
-    //             "$medicines.allocatedStock.sellingPrice",
-    //             "$medicines.allocatedStock.quantity.strips",
-    //           ],
-    //         },
-    //       },
-    //     },
-    //   },
-
-    //   // Returns adjustment
-    //   {
-    //     $lookup: {
-    //       from: "pharmacyinvoices",
-    //       let: { medicineId: "$_id" },
-    //       pipeline: [
-    //         { $unwind: "$returns" },
-    //         { $unwind: "$returns.medicines" },
-    //         {
-    //           $match: {
-    //             $expr: {
-    //               $eq: ["$returns.medicines.medicineId", "$$medicineId"],
-    //             },
-    //           },
-    //         },
-    //         { $unwind: "$returns.medicines.returnStock" },
-    //         {
-    //           $group: {
-    //             _id: null,
-    //             totalReturnRevenue: {
-    //               $sum: {
-    //                 $multiply: [
-    //                   "$returns.medicines.returnStock.sellingPrice",
-    //                   "$returns.medicines.returnStock.quantity.strips",
-    //                 ],
-    //               },
-    //             },
-    //             totalReturnStrips: {
-    //               $sum: "$returns.medicines.returnStock.quantity.strips",
-    //             },
-    //           },
-    //         },
-    //       ],
-    //       as: "returnsInfo",
-    //     },
-    //   },
-
-    //   {
-    //     $addFields: {
-    //       totalReturnRevenue: {
-    //         $ifNull: [
-    //           { $arrayElemAt: ["$returnsInfo.totalReturnRevenue", 0] },
-    //           0,
-    //         ],
-    //       },
-    //       totalReturnStrips: {
-    //         $ifNull: [
-    //           { $arrayElemAt: ["$returnsInfo.totalReturnStrips", 0] },
-    //           0,
-    //         ],
-    //       },
-    //     },
-    //   },
-
-    //   {
-    //     $addFields: {
-    //       netRevenue: { $subtract: ["$totalRevenue", "$totalReturnRevenue"] },
-    //       netStripsSold: {
-    //         $subtract: ["$totalStripsSold", "$totalReturnStrips"],
-    //       },
-    //     },
-    //   },
-
-    //   {
-    //     $project: {
-    //       _id: 1,
-    //       medId: 1,
-    //       name: 1,
-    //       manufacturer: 1,
-    //       salts: 1,
-    //       netRevenue: 1,
-    //       netStripsSold: 1,
-    //     },
-    //   },
-    // ];
-
     const pipeline = [
       {
         $match: {
           ...matchStage,
           // isDelivered: { $ne: null },
-          paymentMode: { $ne: "Credit-Others" },
+          // paymentMode: { $ne: "Credit-Others" },
         },
       },
       { $unwind: "$medicines" },
@@ -327,15 +165,39 @@ export async function POST(req) {
       },
 
       // Group by medicine
+      // First group by medicine + paymentMode
       {
         $group: {
-          _id: "$medicines.medicineId",
+          _id: {
+            medicineId: "$medicines.medicineId",
+            paymentMode: "$paymentMode",
+          },
           medId: { $first: "$medicineDetails._id" },
           name: { $first: "$medicineDetails.name" },
           manufacturer: { $first: "$manufacturerDetails.name" },
           salts: { $first: "$saltDetails.name" },
-          netStripsSold: { $sum: "$equivalentStrips" },
+          stripsSold: { $sum: "$equivalentStrips" },
+          revenue: { $sum: "$revenue" },
+        },
+      },
+
+      // Then group by medicineId and accumulate paymentMode breakdown
+      {
+        $group: {
+          _id: "$_id.medicineId",
+          medId: { $first: "$medId" },
+          name: { $first: "$name" },
+          manufacturer: { $first: "$manufacturer" },
+          salts: { $first: "$salts" },
+          netStripsSold: { $sum: "$stripsSold" },
           netRevenue: { $sum: "$revenue" },
+          paymentBreakdown: {
+            $push: {
+              paymentMode: "$_id.paymentMode",
+              strips: "$stripsSold",
+              revenue: "$revenue",
+            },
+          },
         },
       },
 
@@ -349,10 +211,225 @@ export async function POST(req) {
           salts: 1,
           netRevenue: 1,
           netStripsSold: 1,
+          paymentBreakdown: 1,
         },
       },
     ];
 
+    // const pipeline = [
+    //   // 1. Match invoices within date range
+    //   {
+    //     $match: matchStage,
+    //   },
+
+    //   // 2. Unwind medicines and their allocated stock
+    //   { $unwind: "$medicines" },
+    //   { $unwind: "$medicines.allocatedStock" },
+
+    //   // 3. Lookup medicine details
+    //   {
+    //     $lookup: {
+    //       from: "medicines",
+    //       localField: "medicines.medicineId",
+    //       foreignField: "_id",
+    //       as: "medicineDetails",
+    //     },
+    //   },
+    //   { $unwind: "$medicineDetails" },
+
+    //   // 4. Lookup manufacturer
+    //   {
+    //     $lookup: {
+    //       from: "manufacturers",
+    //       localField: "medicineDetails.manufacturer",
+    //       foreignField: "_id",
+    //       as: "manufacturerDetails",
+    //     },
+    //   },
+    //   {
+    //     $unwind: {
+    //       path: "$manufacturerDetails",
+    //       preserveNullAndEmptyArrays: true,
+    //     },
+    //   },
+
+    //   // 5. Lookup salts
+    //   {
+    //     $lookup: {
+    //       from: "salts",
+    //       localField: "medicineDetails.salts",
+    //       foreignField: "_id",
+    //       as: "saltDetails",
+    //     },
+    //   },
+
+    //   // 6. Optional filters
+    //   ...(manufacturerId
+    //     ? [
+    //         {
+    //           $match: {
+    //             "medicineDetails.manufacturer": new mongoose.Types.ObjectId(
+    //               manufacturerId
+    //             ),
+    //           },
+    //         },
+    //       ]
+    //     : []),
+    //   ...(saltId
+    //     ? [
+    //         {
+    //           $match: {
+    //             "medicineDetails.salts": new mongoose.Types.ObjectId(saltId),
+    //           },
+    //         },
+    //       ]
+    //     : []),
+
+    //   // 7. Flatten relevant fields
+    //   {
+    //     $addFields: {
+    //       strips: "$medicines.allocatedStock.quantity.strips",
+    //       tablets: "$medicines.allocatedStock.quantity.tablets",
+    //       tabletsPerStrip:
+    //         "$medicines.allocatedStock.packetSize.tabletsPerStrip",
+    //       sellingPrice: "$medicines.allocatedStock.sellingPrice",
+    //     },
+    //   },
+
+    //   // 8. Calculate equivalent strips
+    //   {
+    //     $addFields: {
+    //       equivalentStrips: {
+    //         $add: [
+    //           { $ifNull: ["$strips", 0] },
+    //           {
+    //             $cond: [
+    //               { $gt: ["$tabletsPerStrip", 0] },
+    //               {
+    //                 $divide: [{ $ifNull: ["$tablets", 0] }, "$tabletsPerStrip"],
+    //               },
+    //               0,
+    //             ],
+    //           },
+    //         ],
+    //       },
+    //     },
+    //   },
+
+    //   // 9. Calculate revenue
+    //   {
+    //     $addFields: {
+    //       revenue: {
+    //         $multiply: ["$equivalentStrips", "$sellingPrice"],
+    //       },
+    //     },
+    //   },
+
+    //   // 10. Unwind payments for breakdown
+    //   {
+    //     $unwind: {
+    //       path: "$payments",
+    //       preserveNullAndEmptyArrays: true,
+    //     },
+    //   },
+
+    //   // 11. Group by medicine + payment mode
+    //   {
+    //     $group: {
+    //       _id: {
+    //         medicineId: "$medicines.medicineId",
+    //         paymentMode: "$payments.type",
+    //       },
+    //       medId: { $first: "$medicineDetails._id" },
+    //       name: { $first: "$medicineDetails.name" },
+    //       manufacturer: { $first: "$manufacturerDetails.name" },
+    //       salts: { $first: "$saltDetails.name" },
+    //       paymentAmount: { $sum: "$payments.amount" },
+
+    //       // Only include non-"Credit-Others" in totals
+    //       netStripsSold: {
+    //         $sum: {
+    //           $cond: [
+    //             { $ne: ["$paymentMode", "Credit-Others"] },
+    //             "$equivalentStrips",
+    //             0,
+    //           ],
+    //         },
+    //       },
+    //       netRevenue: {
+    //         $sum: {
+    //           $cond: [
+    //             { $ne: ["$paymentMode", "Credit-Others"] },
+    //             "$revenue",
+    //             0,
+    //           ],
+    //         },
+    //       },
+    //     },
+    //   },
+
+    //   // 12. Group again by medicine to build paymentModeBreakdown safely
+    //   {
+    //     $group: {
+    //       _id: "$_id.medicineId",
+    //       medId: { $first: "$medId" },
+    //       name: { $first: "$name" },
+    //       manufacturer: { $first: "$manufacturer" },
+    //       salts: { $first: "$salts" },
+    //       netStripsSold: { $sum: "$netStripsSold" },
+    //       netRevenue: { $sum: "$netRevenue" },
+    //       rawPayments: {
+    //         $push: {
+    //           mode: "$_id.paymentMode",
+    //           amount: "$paymentAmount",
+    //         },
+    //       },
+    //     },
+    //   },
+
+    //   // 13. Convert rawPayments to object with only valid k/v entries
+    //   {
+    //     $addFields: {
+    //       paymentModeBreakdown: {
+    //         $arrayToObject: {
+    //           $map: {
+    //             input: {
+    //               $filter: {
+    //                 input: "$rawPayments",
+    //                 as: "pm",
+    //                 cond: {
+    //                   $and: [
+    //                     { $ne: ["$$pm.mode", null] },
+    //                     { $ne: ["$$pm.amount", null] },
+    //                   ],
+    //                 },
+    //               },
+    //             },
+    //             as: "item",
+    //             in: {
+    //               k: "$$item.mode",
+    //               v: "$$item.amount",
+    //             },
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+
+    //   // 14. Final projection
+    //   {
+    //     $project: {
+    //       _id: 1,
+    //       medId: 1,
+    //       name: 1,
+    //       manufacturer: 1,
+    //       salts: 1,
+    //       netStripsSold: 1,
+    //       netRevenue: 1,
+    //       paymentModeBreakdown: 1,
+    //     },
+    //   },
+    // ];
     let reports = await PharmacyInvoice.aggregate(pipeline);
 
     return NextResponse.json(

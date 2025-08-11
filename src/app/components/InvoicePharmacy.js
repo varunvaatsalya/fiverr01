@@ -238,9 +238,6 @@ function InvoicePharmacy({
                               )}
                             </td>
                             <td className="py-1 px-2 font-semibold border border-black text-end w-28">
-                              {item.isDiscountApplicable &&
-                                printInvoice.price.discount &&
-                                "% "}
                               {parseFloat(totalPrice.toFixed(2))}
                             </td>
                           </>
@@ -256,7 +253,7 @@ function InvoicePharmacy({
                   (isToken ? "items-start" : "items-end")
                 }
               >
-                {printInvoice.price.discount && (
+                {printInvoice.price.discount>0 && (
                   <>
                     <p className="font-semibold text-base">
                       Sub Total: ₹{" "}

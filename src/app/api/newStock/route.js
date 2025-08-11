@@ -71,6 +71,7 @@ export async function GET(req) {
                 _id: "$_id",
                 batchName: "$batchName",
                 expiryDate: "$expiryDate",
+                sellingPrice: "$sellingPrice",
                 quantity: "$quantity",
               },
             },
@@ -548,7 +549,10 @@ export async function PUT(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  if (userRole !== "admin" && (userRole !== "stockist" || !userEditPermission)) {
+  if (
+    userRole !== "admin" &&
+    (userRole !== "stockist" || !userEditPermission)
+  ) {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
       { status: 403 }
@@ -561,34 +565,40 @@ export async function PUT(req) {
   try {
     const failedMedicineNames = [];
 
-    for (const { stockId, totalStrips } of stocks) {
+    for (const { stockId, sellingPrice, totalStrips } of stocks) {
       try {
         const stock = await Model.findById(stockId).populate({
           path: "medicine",
           select: "name packetSize",
         });
+        console.log(stockId, stock, sellingPrice, totalStrips);
 
         if (!stock || !stock.medicine) {
           failedMedicineNames.push(stock?.medicine?.name || "Unknown Medicine");
           continue;
         }
 
-        const stripsPerBox = stock.medicine.packetSize?.strips;
+        if (totalStrips) {
+          const stripsPerBox = stock.medicine.packetSize?.strips;
 
-        if (!stripsPerBox || stripsPerBox <= 0) {
-          failedMedicineNames.push(stock.medicine.name);
-          continue;
+          if (!stripsPerBox || stripsPerBox <= 0) {
+            failedMedicineNames.push(stock.medicine.name);
+            continue;
+          }
+
+          const boxes = Math.floor(totalStrips / stripsPerBox);
+          const extra = totalStrips % stripsPerBox;
+
+          stock.quantity = {
+            ...stock.quantity,
+            totalStrips,
+            boxes,
+            extra,
+          };
         }
 
-        const boxes = Math.floor(totalStrips / stripsPerBox);
-        const extra = totalStrips % stripsPerBox;
-
-        stock.quantity = {
-          ...stock.quantity,
-          totalStrips,
-          boxes,
-          extra,
-        };
+        if (sellingPrice)
+          stock.sellingPrice = parseFloat(sellingPrice.toFixed(2));
 
         await stock.save();
       } catch (err) {

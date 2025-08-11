@@ -1,19 +1,60 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../../utils/jwt";
-import { Stock, HospitalStock } from "../../../models/Stock";
-import Request, { HospitalRequest } from "../../../models/Request";
-// import RetailStock from "../../../models/RetailStock";
-// import Medicine from "../../..//models/Medicine";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import { Stock, HospitalStock } from "@/app/models/Stock";
+import Request, { HospitalRequest } from "@/app/models/Request";
+
+async function allocateStocks(medicine, requestedQuantity, StockModel) {
+  const packetSize = medicine.packetSize;
+
+  // FIFO: Expiry-date ascending
+  const stocks = await StockModel.find({
+    medicine: medicine._id,
+    "quantity.totalStrips": { $gt: 0 },
+  })
+    .sort({ expiryDate: 1 })
+    .lean();
+
+  let allocatedStocks = [];
+  let remainingStrips = requestedQuantity;
+
+  for (let stock of stocks) {
+    if (remainingStrips <= 0) break;
+
+    const available = stock.quantity.totalStrips;
+    const transferQuantity = Math.min(remainingStrips, available);
+
+    allocatedStocks.push({
+      stockId: stock._id,
+      batchName: stock.batchName,
+      mfgDate: stock.mfgDate,
+      expiryDate: stock.expiryDate,
+      packetSize,
+      available: {
+        boxes: Math.floor(available / packetSize.strips),
+        extra: available % packetSize.strips,
+        totalStrips: available,
+      },
+      quantity: {
+        boxes: Math.floor(transferQuantity / packetSize.strips),
+        extra: transferQuantity % packetSize.strips,
+        totalStrips: transferQuantity,
+      },
+      purchasePrice: stock.purchasePrice,
+      sellingPrice: stock.sellingPrice,
+    });
+
+    remainingStrips -= transferQuantity;
+  }
+
+  return { allocatedStocks, remainingStrips };
+}
 
 export async function POST(req) {
-  // let manufacturer = req.nextUrl.searchParams.get("manufacturer");
-
   await dbConnect();
 
   const token = req.cookies.get("authToken");
   if (!token) {
-    console.log("Token not found. Redirecting to login.");
     return NextResponse.json(
       { message: "Access denied. No token provided.", success: false },
       { status: 401 }
@@ -30,137 +71,181 @@ export async function POST(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  // if (userRole !== "admin" && userRole !== "retailer") {
-  //   return NextResponse.json(
-  //     { message: "Access denied. admins only.", success: false },
-  //     { status: 403 }
-  //   );
-  // }
 
-  const { requestId, sectionType } = await req.json();
+  const { requests, sectionType } = await req.json();
+
+  if (!Array.isArray(requests) || requests.length === 0) {
+    return NextResponse.json(
+      { message: "Requests array required", success: false },
+      { status: 400 }
+    );
+  }
 
   const RequestModel = sectionType === "hospital" ? HospitalRequest : Request;
   const StockModel = sectionType === "hospital" ? HospitalStock : Stock;
 
   try {
-    if (!requestId) {
-      return NextResponse.json(
-        {
-          message: "Request ID is required",
-          success: false,
-        },
-        { status: 400 }
-      );
-    }
+    let results = [];
 
-    // Find the request by ID
-    const request = await RequestModel.findById(requestId).populate("medicine");
-    if (!request) {
-      return NextResponse.json(
-        {
-          message: "Request not found",
-          success: false,
-        },
-        { status: 404 }
-      );
-    }
+    for (const reqItem of requests) {
+      const { requestId, enteredTransferQty } = reqItem;
 
-    if (request.status !== "Pending") {
-      return NextResponse.json(
-        {
-          message: "Request is already processed",
-          success: false,
-        },
-        { status: 400 }
-      );
-    }
+      const requestDoc = await RequestModel.findById(requestId).populate({
+        path: "medicine",
+        select: "_id name packetSize salts",
+        populate: { path: "salts", select: "name" },
+      });
 
-    const { medicine, requestedQuantity } = request;
-
-    // Fetch available godown stock for the requested medicine, sorted by expiryDate
-    let stocks = await StockModel.find({ medicine }).sort({ expiryDate: 1 });
-    const packetSize = medicine.packetSize;
-
-    // let approvedBoxes = 0;
-    // let approvedExtra = 0;
-    // let approvedTotalStrips = 0;
-
-    let transferredStocks = [];
-    let remainingQuantity = requestedQuantity * packetSize.strips;
-
-    // Fulfill the request by transferring stocks`
-    for (let stock of stocks) {
-      if (remainingQuantity <= 0) break;
-
-      const availableQuantity = stock.quantity.totalStrips;
-      // Strips and tabletsPerStrip
-
-      if (availableQuantity > 0) {
-        let transferQuantity = Math.min(remainingQuantity, availableQuantity);
-
-        transferredStocks.push({
-          stockId: stock._id,
-          batchName: stock.batchName,
-          expiryDate: stock.expiryDate,
-          packetSize,
-          quantity: {
-            boxes: Math.floor(transferQuantity / packetSize.strips),
-            extra: transferQuantity % packetSize.strips,
-            totalStrips: transferQuantity,
-          },
-          purchasePrice: stock.purchasePrice,
-          sellingPrice: stock.sellingPrice,
-        });
-
-        // approvedBoxes += transferBoxes;
-        // approvedExtra += extraStrips;
-        // approvedTotalStrips += totalStrips;
-
-        remainingQuantity -= transferQuantity;
-
-        // Update stock in godown
-        (stock.quantity.boxes -= Math.floor(
-          transferQuantity / packetSize.strips
-        )),
-          (stock.quantity.extra -= transferQuantity % packetSize.strips),
-          (stock.quantity.totalStrips -= transferQuantity);
-
-        await stock.save();
+      if (!requestDoc) {
+        results.push({ requestId, error: "Request not found" });
+        continue;
       }
+
+      // Quantity: modified or original
+      const requestedQuantity =
+        enteredTransferQty || requestDoc.requestedQuantity;
+
+      // FIFO Allocation
+      const { allocatedStocks, remainingStrips } = await allocateStocks(
+        requestDoc.medicine,
+        requestedQuantity,
+        StockModel
+      );
+
+      results.push({
+        requestId,
+        medicine: requestDoc.medicine.name,
+        allocatedStocks,
+        remainingStrips,
+        status: "Preview",
+      });
     }
-
-    // Create or update RetailStock for the medicine
-    // let retailStock = await RetailStock.findOne({ medicine });
-
-    // if (!retailStock) {
-    //   retailStock = new RetailStock({
-    //     medicine,
-    //     stocks: transferredStocks,
-    //   });
-    // } else {
-    //   retailStock.stocks.push(...transferredStocks);
-    // }
-
-    // await retailStock.save();
-
-    // Update the request status and approved quantity
-    request.status = "Approved";
-    request.approvedAt = new Date();
-
-    request.approvedQuantity = transferredStocks;
-    await request.save();
 
     return NextResponse.json(
       {
-        message: "Stock transfer successful",
         success: true,
-        transferredStocks,
-        request,
+        message: "Preview fetched",
+        stockResults: results,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error handling stock transfer:", error);
+    console.error("Error handling allocation:", error);
+    return NextResponse.json(
+      {
+        message: "Internal server error",
+        success: false,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req) {
+  let status = req.nextUrl.searchParams.get("status");
+  await dbConnect();
+
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
+
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
+  if (!decoded || !userRole) {
+    let res = NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+    res.cookies.delete("authToken");
+    return res;
+  }
+
+  const { requestId, enteredTransferQty, sectionType } = await req.json();
+
+  if (!requestId || !sectionType) {
+    return NextResponse.json(
+      { message: "Request details required", success: false },
+      { status: 400 }
+    );
+  }
+
+  const RequestModel = sectionType === "hospital" ? HospitalRequest : Request;
+  const StockModel = sectionType === "hospital" ? HospitalStock : Stock;
+
+  try {
+    const requestDoc = await RequestModel.findById(requestId).populate({
+      path: "medicine",
+      select: "_id name packetSize salts",
+      populate: { path: "salts", select: "name" },
+    });
+
+    if (!requestDoc) {
+      return NextResponse.json(
+        { message: "Request not found", success: false },
+        { status: 404 }
+      );
+    }
+
+    if (requestDoc.status != "Pending") {
+      return NextResponse.json(
+        { message: "Request is not eligible for processed!", success: false },
+        { status: 400 }
+      );
+    }
+    if (status === "rejected") {
+      requestDoc.status = "Rejected";
+      await requestDoc.save();
+      return NextResponse.json(
+        { message: "Request Rejected!", success: true },
+        { status: 200 }
+      );
+    }
+
+    const requestedQuantity =
+      enteredTransferQty || requestDoc.requestedQuantity;
+
+    // FIFO Allocation
+    const { allocatedStocks, remainingStrips } = await allocateStocks(
+      requestDoc.medicine,
+      requestedQuantity,
+      StockModel
+    );
+    requestDoc.status = "Approved";
+    requestDoc.approvedQuantity = allocatedStocks;
+    requestDoc.approvedAt = Date.now();
+    await requestDoc.save();
+
+    const bulkOps = allocatedStocks.map((stock) => ({
+      updateOne: {
+        filter: { _id: stock.stockId },
+        update: {
+          $inc: {
+            "quantity.boxes": -stock.quantity.boxes,
+            "quantity.extra": -stock.quantity.extra,
+            "quantity.totalStrips": -stock.quantity.totalStrips,
+          },
+        },
+      },
+    }));
+
+    if (bulkOps.length > 0) {
+      await StockModel.bulkWrite(bulkOps);
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        request: requestDoc,
+        message: "Stock approved successfully!",
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error handling allocation:", error);
     return NextResponse.json(
       {
         message: "Internal server error",

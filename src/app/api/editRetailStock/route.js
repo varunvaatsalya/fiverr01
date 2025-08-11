@@ -128,7 +128,7 @@ export async function POST(req) {
 
       medicineStock.stocks.forEach((stock) => {
         // Check if all required fields exist
-        console.log(stock, 111);
+        // console.log(stock, 111);
         if (
           !stock.batchName ||
           !stock.expiryDate ||

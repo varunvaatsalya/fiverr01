@@ -2,22 +2,18 @@
 import React, { useEffect, useState } from "react";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import { formatDateTimeToIST } from "../utils/date";
+import { format } from "date-fns";
 
-function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
-  const [filteredRequests, setFilteredRequests] = useState([]);
+function RequestSearchList({
+  stockRequests,
+  page,
+  setPage,
+  query,
+  setQuery,
+  selectedStatus,
+  setSelectedStatus,
+}) {
   const [selectedIndex, setSelectedIndex] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState("All");
-
-  useEffect(() => {
-    setFilteredRequests(stockRequests);
-  }, [stockRequests]);
-
-  useEffect(() => {
-    let statusFilteredMedicines = stockRequests.filter((medReq) =>
-      selectedStatus === "All" ? true : medReq.status === selectedStatus
-    );
-    setFilteredRequests(statusFilteredMedicines);
-  }, [selectedStatus]);
 
   const statuses = [
     {
@@ -31,6 +27,12 @@ function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
       value: "Fulfilled",
       border: "border-green-500",
       text: "text-green-500",
+    },
+    {
+      label: "Fulfilled (Partial)",
+      value: "Fulfilled (Partial)",
+      border: "border-teal-500",
+      text: "text-teal-500",
     },
     {
       label: "Pending",
@@ -66,6 +68,7 @@ function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
 
   const statusStyle = {
     Fulfilled: "bg-green-200 text-green-700",
+    "Fulfilled (Partial)": "bg-teal-200 text-teal-800",
     Pending: "bg-yellow-200 text-yellow-500",
     Approved: "bg-violet-200 text-violet-500",
     Returned: "bg-pink-200 text-pink-500",
@@ -73,22 +76,8 @@ function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
     Disputed: "bg-rose-200 text-rose-500",
   };
 
-  function updatedata(query) {
-    let lowerCaseQuery = query.toLowerCase();
-    let filterRes = stockRequests.filter(
-      (req) =>
-        req.medicine.name.toLowerCase().includes(lowerCaseQuery) ||
-        req.medicine.manufacturer.name.toLowerCase().includes(lowerCaseQuery)
-    );
-    let statusFilteredMedicines = filterRes.filter((medReq) =>
-      selectedStatus === "All" ? true : medReq.status === selectedStatus
-    );
-    
-    setFilteredRequests(statusFilteredMedicines);
-  }
-
   const handleNextPage = () => {
-    if (page < totalPages) {
+    if (stockRequests.length === 50) {
       setPage(page + 1);
     }
   };
@@ -104,8 +93,9 @@ function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
       <input
         type="text"
         placeholder="Search"
+        value={query}
         onChange={(e) => {
-          updatedata(e.target.value);
+          setQuery(e.target.value);
         }}
         className="h-full w-full lg:w-3/4 text-black text-xl font-medium px-4 py-2 rounded-full outline-none bg-gray-200 border-b-2 border-gray-400 focus:bg-gray-300"
       />
@@ -126,8 +116,8 @@ function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
         ))}
       </div>
       <div className="flex-1 w-full p-2 overflow-y-auto flex flex-col items-center gap-1">
-        {filteredRequests.length > 0 ? (
-          filteredRequests.map((req, index) => (
+        {stockRequests.length > 0 ? (
+          stockRequests.map((req, index) => (
             <div key={index} className="w-full md:w-4/5 lg:w-3/4">
               <div
                 onClick={() =>
@@ -141,7 +131,7 @@ function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
                 }
               >
                 <div className="w-[5%]">{index + 1 + "."}</div>
-                <div className="w-[50%] px-3">{req.medicine.name}</div>
+                <div className="w-[50%] px-3">{req.medicineData.name}</div>
                 <div className={` px-3 rounded-lg ${statusStyle[req.status]}`}>
                   {req.status}
                 </div>
@@ -151,7 +141,7 @@ function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
                   <div className="font-semibold text-gray-900">
                     Manufacturer:{" "}
                     <span className="text-blue-500">
-                      {req.medicine.manufacturer.name}
+                      {req.manufacturerData.name}
                     </span>
                   </div>
                   <div className="font-semibold text-gray-900">
@@ -210,7 +200,7 @@ function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
                         >
                           <div className="lg:w-[15%]">{stock.batchName}</div>
                           <div className="lg:w-[30%]">
-                            {formatDateTimeToIST(stock.expiryDate)}
+                            {"Expiry: "+format(new Date(stock.expiryDate), "MM/yy")}
                           </div>
                           {stock.quantity && (
                             <div className="lg:w-[45%]">
@@ -222,7 +212,9 @@ function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
                                 " Total"}
                             </div>
                           )}
-                          <div className="lg:w-[10%]">{stock.sellingPrice}</div>
+                          <div className="lg:w-[10%]">
+                            {"MRP: " + stock.sellingPrice}
+                          </div>
                         </div>
                       ))
                     ) : (
@@ -251,11 +243,11 @@ function RequestSearchList({ stockRequests, page,setPage, totalPages }) {
             <FaArrowLeft size={20} />
           </button>
           <span className="text-white border-x border-white p-3">
-            Page {page} of {totalPages}
+            Page {page}
           </span>
           <button
             onClick={handleNextPage}
-            disabled={page === totalPages}
+            disabled={stockRequests.length < 50}
             className="p-3"
           >
             <FaArrowRight size={20} />

@@ -7,6 +7,7 @@ import Loading from "./Loading";
 import { IoIosRemoveCircle } from "react-icons/io";
 import { showError, showSuccess } from "../utils/toast";
 import { useStockType } from "../context/StockTypeContext";
+import { format } from "date-fns";
 
 function RetailStock({
   medicineStock,
@@ -429,7 +430,11 @@ function RetailStock({
                           " Boxes"}
                       </div>
                       <div className="">
-                        {"Requested Date: " + request.createdAt.split("T")[0]}
+                        {"Requested Date: " +
+                          format(
+                            new Date(request?.createdAt),
+                            "dd/MM/yy | hh:mm a"
+                          )}
                       </div>
                       <div className="px-2 py-1 rounded-lg bg-yellow-400 text-yellow-800 text-sm font-semibold">
                         {request.status}

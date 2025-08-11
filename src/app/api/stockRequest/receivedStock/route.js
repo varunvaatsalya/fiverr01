@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../../utils/jwt";
-import { Stock, HospitalStock } from "../../../models/Stock";
-import Request, { HospitalRequest } from "../../../models/Request";
-import RetailStock, { HospitalRetailStock } from "../../../models/RetailStock";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import { Stock, HospitalStock } from "@/app/models/Stock";
+import Request, { HospitalRequest } from "@/app/models/Request";
+import RetailStock, { HospitalRetailStock } from "@/app/models/RetailStock";
 
 export async function POST(req) {
   let status = req.nextUrl.searchParams.get("status");
@@ -78,7 +78,7 @@ export async function POST(req) {
 
     const { medicine, requestedQuantity, approvedQuantity } = request;
 
-    if (!status) {
+    if (status !== "received" && status !== "returned") {
       return NextResponse.json(
         {
           message: "Invalid params",
@@ -95,10 +95,8 @@ export async function POST(req) {
           medicine,
           stocks: approvedQuantity,
         });
-        console.log("new");
       } else {
         retailStock.stocks.push(...approvedQuantity);
-        console.log("push");
       }
 
       await retailStock.save();
@@ -106,7 +104,7 @@ export async function POST(req) {
       let approvedBoxQuantity = 0;
 
       approvedQuantity.forEach((stock) => {
-        approvedBoxQuantity += stock.quantity.boxes;
+        approvedBoxQuantity += stock.quantity.totalStrips;
       });
 
       request.receivedStatus = "Fully Received";
@@ -126,7 +124,7 @@ export async function POST(req) {
         },
         { status: 200 }
       );
-    } else if (status === "rejected") {
+    } else if (status === "returned") {
       for (const stock of approvedQuantity) {
         await StockModel.findByIdAndUpdate(stock.stockId, {
           $inc: {

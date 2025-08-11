@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../utils/jwt";
-import Medicine from "../../models/Medicine";
-import { Stock, HospitalStock } from "../../models/Stock";
-import Request, { HospitalRequest } from "../../models/Request";
-import { Manufacturer } from "../../models/MedicineMetaData";
-import RetailStock, { HospitalRetailStock } from "../../models/RetailStock";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import Medicine from "@/app/models/Medicine";
+import { Stock, HospitalStock } from "@/app/models/Stock";
+import Request, { HospitalRequest } from "@/app/models/Request";
+import { Manufacturer } from "@/app/models/MedicineMetaData";
+import RetailStock, { HospitalRetailStock } from "@/app/models/RetailStock";
+import mongoose from "mongoose";
 
 export async function GET(req) {
   await dbConnect();
-  let id = req.nextUrl.searchParams.get("id");
   let pending = req.nextUrl.searchParams.get("pending");
   let page = req.nextUrl.searchParams.get("page");
+  let status = req.nextUrl.searchParams.get("status");
+  let query = req.nextUrl.searchParams.get("query");
   let sectionType = req.nextUrl.searchParams.get("sectionType");
 
   const token = req.cookies.get("authToken");
@@ -25,8 +27,6 @@ export async function GET(req) {
 
   const RequestModel = sectionType === "hospital" ? HospitalRequest : Request;
 
-  const StockModel = sectionType === "hospital" ? HospitalStock : Stock;
-
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
   if (!decoded || !userRole) {
@@ -39,94 +39,6 @@ export async function GET(req) {
   }
 
   try {
-    if (id) {
-      // Step 1: Fetch the request details
-      const request = await RequestModel.findById(id).populate({
-        path: "medicine",
-        populate: { path: "salts", select: "name" },
-      });
-      if (!request) {
-        return NextResponse.json(
-          {
-            message: "Request not found",
-            success: false,
-          },
-          { status: 404 }
-        );
-      }
-
-      const { requestedQuantity, medicine } = request;
-
-      // Fetch the total quantity requested (converted into strips)
-      const packetSize = medicine.packetSize.strips;
-      const totalRequestedStrips = requestedQuantity * packetSize;
-
-      // Step 2: Fetch all stocks for the given medicine, sorted by oldest first (FIFO)
-      const stocks = await StockModel.find({
-        medicine: medicine._id,
-        "quantity.totalStrips": { $gt: 0 },
-      })
-        .sort({ createdAt: 1 })
-        .select("quantity remainingStrips batchName expiryDate createdAt");
-
-      if (!stocks || stocks.length === 0) {
-        return NextResponse.json(
-          {
-            message: "No stock available for this medicine",
-            success: false,
-          },
-          { status: 404 }
-        );
-      }
-
-      let remainingStrips = totalRequestedStrips;
-      const allocatedStocks = [];
-
-      // Step 3: Allocate the quantity from stocks using FIFO logic
-      for (const stock of stocks) {
-        if (remainingStrips <= 0) break;
-
-        const availableStrips = stock.quantity.totalStrips;
-        const allocatedStrips = Math.min(availableStrips, remainingStrips);
-
-        allocatedStocks.push({
-          stockId: stock._id,
-          batchName: stock.batchName,
-          expiryDate: stock.expiryDate,
-          createdAt: stock.createdAt,
-          allocatedQuantity: {
-            totalStrips: allocatedStrips,
-            boxes: Math.floor(allocatedStrips / packetSize),
-            extraStrips: allocatedStrips % packetSize,
-          },
-        });
-
-        remainingStrips -= allocatedStrips;
-      }
-
-      // if (remainingStrips > 0) {
-      //   return NextResponse.json(
-      //     {
-      //       message: "Insufficient stock to fulfill this request",
-      //       success: false,
-      //     },
-      //     { status: 400 }
-      //   );
-      // }
-
-      // Step 4: Respond with the allocation details
-      return NextResponse.json(
-        {
-          allocatedStocks,
-          request,
-          status: remainingStrips > 0 ? "Partially Fullfilled" : "Fullfilled",
-          message: "Allocation details fetched successfully",
-          success: true,
-        },
-        { status: 200 }
-      );
-    }
-
     if (pending === "1") {
       let query = { status: { $in: ["Pending", "Approved"] } };
 
@@ -136,6 +48,7 @@ export async function GET(req) {
         populate: {
           path: "manufacturer",
           model: Manufacturer,
+          select: "_id name",
         },
       });
 
@@ -151,26 +64,73 @@ export async function GET(req) {
     page = parseInt(page) || 1;
     const limit = 50;
     const skip = (page - 1) * limit;
+    query = query || "";
 
-    let requests = await RequestModel.find()
-      .sort({ _id: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate({
-        path: "medicine",
-        select: "name _id",
-        populate: {
-          path: "manufacturer",
-          model: Manufacturer,
+    const matchStage = query
+      ? {
+          "medicineData.name": { $regex: query, $options: "i" },
+        }
+      : {};
+
+    if (
+      status &&
+      [
+        "Pending",
+        "Approved",
+        "Rejected",
+        "Disputed",
+        "Returned",
+        "Fulfilled",
+        "Fulfilled (Partial)",
+      ].includes(status)
+    ) {
+      matchStage["status"] = status;
+    }
+
+    const pipeline = [
+      {
+        $sort: { _id: -1 },
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $lookup: {
+          from: "medicines",
+          localField: "medicine",
+          foreignField: "_id",
+          as: "medicineData",
         },
-      });
+      },
+      { $unwind: "$medicineData" },
+      {
+        $lookup: {
+          from: "manufacturers",
+          localField: "medicineData.manufacturer",
+          foreignField: "_id",
+          as: "manufacturerData",
+        },
+      },
+      {
+        $unwind: {
+          path: "$manufacturerData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $match: matchStage,
+      },
+    ];
 
-    const totalRequests = await RequestModel.countDocuments();
+    let requests = await RequestModel.aggregate(pipeline);
+    // const totalRequests = await RequestModel.countDocuments();
 
     return NextResponse.json(
       {
         requests,
-        totalPages: Math.ceil(totalRequests / limit),
         success: true,
       },
       { status: 200 }
@@ -227,8 +187,54 @@ export async function POST(req) {
 
     let responses = [];
 
+    const medicineIds = requests.map(
+      (r) => new mongoose.Types.ObjectId(r.medicine)
+    );
+
+    const medicinesData = await Medicine.find({
+      _id: { $in: medicineIds },
+    }).lean();
+    const medicineMap = new Map(
+      medicinesData.map((m) => [m._id.toString(), m])
+    );
+
+    const StockModel = sectionType === "hospital" ? HospitalStock : Stock;
+    const stockData = await StockModel.aggregate([
+      { $match: { medicine: { $in: medicineIds } } },
+      {
+        $group: {
+          _id: "$medicine",
+          totalAvailableStrips: { $sum: "$quantity.totalStrips" },
+        },
+      },
+    ]);
+    console.log(medicineIds, stockData);
+
+    const stockMap = new Map(
+      stockData.map((s) => [s._id.toString(), s.totalAvailableStrips])
+    );
+
+    const RetailStockModel =
+      sectionType === "hospital" ? HospitalRetailStock : RetailStock;
+    const retailStocks = await RetailStockModel.find({
+      medicine: { $in: medicineIds },
+    }).lean();
+
+    const retailMap = new Map();
+    for (const retail of retailStocks) {
+      const medId = retail.medicine.toString();
+      const totalStrips = retail.stocks.reduce(
+        (sum, s) => sum + (s.quantity?.totalStrips || 0),
+        0
+      );
+      retailMap.set(medId, (retailMap.get(medId) || 0) + totalStrips);
+    }
+
+    const RequestModel = sectionType === "hospital" ? HospitalRequest : Request;
+    const docsToInsert = [];
+
     for (const request of requests) {
-      const {
+      let {
         medicine,
         medicineName,
         enteredRemainingQuantity,
@@ -236,7 +242,11 @@ export async function POST(req) {
         notes,
       } = request;
 
-      if (!medicine || !requestedQuantity || !enteredRemainingQuantity) {
+      enteredRemainingQuantity = Number(enteredRemainingQuantity);
+      requestedQuantity = Number(requestedQuantity);
+      console.log(request);
+
+      if (!medicine || !requestedQuantity || enteredRemainingQuantity == null) {
         responses.push({
           medicine,
           medicineName,
@@ -246,9 +256,9 @@ export async function POST(req) {
         continue;
       }
 
-      let medicineData = await Medicine.findById(medicine);
-      console.log(medicine, medicineData);
-      if (!medicineData) {
+      const medIdStr = medicine.toString();
+
+      if (!medicineMap.has(medIdStr)) {
         responses.push({
           medicine,
           medicineName,
@@ -258,24 +268,7 @@ export async function POST(req) {
         continue;
       }
 
-      const StockModel = sectionType === "hospital" ? HospitalStock : Stock;
-
-      const stocks = await StockModel.find({ medicine });
-
-      if (!stocks || stocks.length === 0) {
-        responses.push({
-          medicine,
-          medicineName,
-          message: "No stock available in godown for this medicine",
-          success: false,
-        });
-        continue;
-      }
-
-      const totalAvailableStrips = stocks.reduce((total, stock) => {
-        return total + stock.quantity.totalStrips;
-      }, 0);
-
+      const totalAvailableStrips = stockMap.get(medIdStr) || 0;
       if (totalAvailableStrips === 0) {
         responses.push({
           medicine,
@@ -286,46 +279,33 @@ export async function POST(req) {
         continue;
       }
 
-      const RetailStockModel = sectionType === "hospital" ? HospitalRetailStock : RetailStock;
-
-      const retailStocks = await RetailStockModel.find({ medicine });
-      const totalRetailBoxes = retailStocks.reduce((total, retailStock) => {
-        return (
-          total +
-          retailStock.stocks.reduce(
-            (boxSum, stock) => boxSum + stock.quantity.boxes,
-            0
-          )
-        );
-      }, 0);
-      console.log(enteredRemainingQuantity, totalRetailBoxes);
-
-      let isDisputed = Number(enteredRemainingQuantity) != totalRetailBoxes;
+      const totalRetailStrips = retailMap.get(medIdStr) || 0;
+      let isDisputed = enteredRemainingQuantity != totalRetailStrips;
       let status = isDisputed ? "Disputed" : "Pending";
 
-      const RequestModel =
-        sectionType === "hospital" ? HospitalRequest : Request;
-
-      let newMedicineStockRequest = new RequestModel({
+      const doc = {
         medicine,
         enteredRemainingQuantity,
-        actualRemainingQuantity: totalRetailBoxes,
+        actualRemainingQuantity: totalRetailStrips,
         requestedQuantity,
         notes,
         status,
-      });
-
-      await newMedicineStockRequest.save();
+      };
+      docsToInsert.push(doc);
 
       responses.push({
         medicine,
         medicineName,
-        newMedicineStockRequest,
+        newMedicineStockRequest: doc,
         message: isDisputed
           ? "Error in request please contact to admin or owner."
           : "Request Created Successfully!",
-        success: isDisputed ? false : true,
+        success: !isDisputed,
       });
+    }
+
+    if (docsToInsert.length > 0) {
+      await RequestModel.insertMany(docsToInsert);
     }
 
     return NextResponse.json({ responses, success: true }, { status: 201 });
@@ -339,16 +319,6 @@ export async function POST(req) {
 }
 
 export async function DELETE(req) {
-  let id = req.nextUrl.searchParams.get("id");
-  let sectionType = req.nextUrl.searchParams.get("sectionType");
-
-  if (!sectionType) {
-    return NextResponse.json(
-      { message: "Invalid Params.", success: false },
-      { status: 404 }
-    );
-  }
-
   await dbConnect();
 
   const token = req.cookies.get("authToken");
@@ -370,42 +340,41 @@ export async function DELETE(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  const RequestModel = sectionType === "hospital" ? HospitalRequest : Request;
-  try {
-    if (id) {
-      let request = await RequestModel.findByIdAndUpdate(
-        id,
-        { status: "Rejected" },
-        { new: true } // Return the updated document
-      );
 
-      if (!request) {
-        return NextResponse.json(
-          {
-            message: "Request not found",
-            success: false,
-          },
-          { status: 404 }
-        );
-      } else {
-        return NextResponse.json(
-          {
-            message: "Request status updated to Rejected successfully",
-            success: true,
-            request,
-          },
-          { status: 200 }
-        );
-      }
-    } else {
+  const { requestId, sectionType } = await req.json();
+
+  if (!requestId || !sectionType) {
+    return NextResponse.json(
+      { message: "Invalid Request Data.", success: false },
+      { status: 401 }
+    );
+  }
+  const RequestModel = sectionType === "hospital" ? HospitalRequest : Request;
+
+  try {
+    let request = await RequestModel.findByIdAndUpdate(
+      requestId,
+      { status: "Rejected" },
+      { new: true } // Return the updated document
+    );
+
+    if (!request) {
       return NextResponse.json(
         {
-          message: "Request ID is missing",
+          message: "Request not found",
           success: false,
         },
-        { status: 400 }
+        { status: 404 }
       );
     }
+    return NextResponse.json(
+      {
+        message: "Request status updated to Rejected successfully",
+        success: true,
+        request,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error updating request status:", error);
     return NextResponse.json(
