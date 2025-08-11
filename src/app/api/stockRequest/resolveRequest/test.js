@@ -241,11 +241,11 @@ export async function PUT(req) {
   }
 }
 
-import { NextResponse } from "next/server";
-import dbConnect from "@/app/lib/Mongodb";
-import { verifyTokenWithLogout } from "@/app/utils/jwt";
-import { Stock, HospitalStock } from "@/app/models/Stock";
-import Request, { HospitalRequest } from "@/app/models/Request";
+// import { NextResponse } from "next/server";
+// import dbConnect from "@/app/lib/Mongodb";
+// import { verifyTokenWithLogout } from "@/app/utils/jwt";
+// import { Stock, HospitalStock } from "@/app/models/Stock";
+// import Request, { HospitalRequest } from "@/app/models/Request";
 
 /**
  * FIFO allocation function
