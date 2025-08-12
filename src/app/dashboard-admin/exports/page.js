@@ -57,9 +57,8 @@ function Page() {
       name: "Retail Stocks",
       description: "You can filter & exports the prescriptions data here",
       icon: <FaPersonArrowUpFromLine size={50} />,
-      link: "/dashboard-admin/exports/prescriptions",
-      // color: "bg-teal-700",
-      color: "bg-gray-700",
+      link: "/dashboard-admin/exports/retailStocks",
+      color: "bg-teal-700",
     },
     {
       name: "Godown Stocks",
