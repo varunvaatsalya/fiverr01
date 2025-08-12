@@ -95,6 +95,7 @@ const medicineSchema = new mongoose.Schema({
     {
       buyingQty: { type: Number },
       offerQty: { type: Number },
+      agreedRate: { type: Number },
       createdAt: { type: Date },
     },
   ],

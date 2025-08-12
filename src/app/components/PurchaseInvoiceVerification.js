@@ -337,7 +337,7 @@ function PurchaseInvoiceVerification() {
                 <hr />
 
                 <div className="text-md font-semibold">Stock Summary</div>
-                <ScrollArea className="max-h-60">
+                <div className="max-h-[30vh] overflow-y-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left border-b">
@@ -381,8 +381,7 @@ function PurchaseInvoiceVerification() {
                                   <b>Quantity:</b> {stock.quantity}
                                 </div>
                                 <div>
-                                  <b>MRP:</b> ₹
-                                  {stock.sellingPrice.toFixed(2)}
+                                  <b>MRP:</b> ₹{stock.sellingPrice.toFixed(2)}
                                 </div>
                                 <div>
                                   <b>Initial Purchase Rate:</b> ₹
@@ -413,7 +412,7 @@ function PurchaseInvoiceVerification() {
                       ))}
                     </tbody>
                   </table>
-                </ScrollArea>
+                </div>
 
                 <div className="text-right font-semibold text-md">
                   Grand Total: ₹{grandTotal.toFixed(2)}
