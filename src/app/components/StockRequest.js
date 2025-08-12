@@ -29,7 +29,9 @@ function StockRequest({
   const [rejecting, setRejecting] = useState(false);
 
   const stockList = useMemo(() => {
-    return isOpenApprovedSection ? approvedStockRequest : stockRequest;
+    let d = isOpenApprovedSection ? approvedStockRequest : stockRequest;
+    console.log(d);
+    return d;
   }, [isOpenApprovedSection, approvedStockRequest, stockRequest]);
 
   const sectionType = useStockType();
@@ -171,7 +173,7 @@ function StockRequest({
         setStockRequests((prev) =>
           prev.filter((stockrequest) => stockrequest._id !== result.request._id)
         );
-        setApprovedStockRequests((prev) => [result.request, prev]);
+        setApprovedStockRequests((prev) => [result.request, ...prev]);
         setSelectedReqs((prev) => prev.filter((r) => r._id != id));
       }
     } catch (error) {
@@ -299,7 +301,7 @@ function StockRequest({
                   <div>{index + 1}</div>
                 </div>
                 <div className="w-full px-2 flex items-center">
-                  {request.medicine.name}
+                  {request?.medicine?.name}
                 </div>
                 <div className="w-[25%] px-2 flex items-center max-md:hidden">
                   {format(

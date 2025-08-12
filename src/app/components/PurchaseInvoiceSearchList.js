@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import PharmacySectionComponent from "./PharmacySectionComponent";
-import { IoCreate } from "react-icons/io5";
 import NewPurchaseInvoice from "./NewPurchaseInvoice";
 // import EditPharmacyInvoice from "./EditPharmacyInvoice";
 import StockDetails from "./StockDetails";
@@ -24,7 +23,9 @@ function PurchaseInvoiceSearchList({
     useState(false);
   const [activeIndex, setActiveIndex] = useState(null);
   const [stockDetails, setStockDetails] = useState(null);
+  const [searchedPurchaseInvoices, setSearchedPurchaseInvoices] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [advSearch, setAdvSearch] = useState(false);
 
   const sectionType = useStockType();
 
@@ -99,19 +100,6 @@ function PurchaseInvoiceSearchList({
             // }}
             className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
           />
-          {/* {
-            <button
-              onClick={() => {
-                setNewPurchaseInvoiceSection(
-                  (newPurchaseInvoiceSection) => !newPurchaseInvoiceSection
-                );
-              }}
-              className="flex justify-center items-center gap-2 bg-black hover:bg-gray-800 text-white px-8 h-full rounded-full font-semibold"
-            >
-              <IoCreate className="size-6" />
-              <div>Add</div>
-            </button>
-          } */}
         </div>
         <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 md:w-4/5 lg:w-3/4 mx-auto bg-black text-white">
           List of all the Purchase Invoices
@@ -261,38 +249,38 @@ function PurchaseInvoiceSearchList({
         </div>
       </div>
       <div className="flex justify-end gap-2 pr-4 ">
-        {/* <div
+        <div
           className="px-4 py-3 bg-gray-900 text-white text-lg rounded-lg font-bold cursor-pointer"
           onClick={() => {
             if (advSearch) {
-              setSearchedPrescription(null);
+              setSearchedPurchaseInvoices(null);
             }
             setAdvSearch(!advSearch);
           }}
         >
           {advSearch ? "Close" : "Advanced Search"}
-        </div> */}
-        {/* {!advSearch && ( */}
-        <div className="bg-gray-900 rounded-lg">
-          <button
-            onClick={handlePreviousPage}
-            disabled={page === 1}
-            className="p-3"
-          >
-            <FaArrowLeft size={20} />
-          </button>
-          <span className="text-white border-x border-white p-3">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={handleNextPage}
-            disabled={page === totalPages}
-            className="p-3"
-          >
-            <FaArrowRight size={20} />
-          </button>
         </div>
-        {/* )} */}
+        {!advSearch && (
+          <div className="bg-gray-900 rounded-lg">
+            <button
+              onClick={handlePreviousPage}
+              disabled={page === 1}
+              className="p-3"
+            >
+              <FaArrowLeft size={20} />
+            </button>
+            <span className="text-white border-x border-white p-3">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={page === totalPages}
+              className="p-3"
+            >
+              <FaArrowRight size={20} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
