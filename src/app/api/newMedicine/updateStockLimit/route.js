@@ -50,7 +50,7 @@ export async function GET(req) {
 
   try {
     // 1. Get sales data of last 49 days (max of both windows)
-    const fromDate = new Date(Date.now() - 105 * 24 * 60 * 60 * 1000);
+    const fromDate = new Date(Date.now() - 70 * 24 * 60 * 60 * 1000);
 
     const soldMedicines = await PharmacyInvoice.aggregate([
       {
@@ -90,11 +90,11 @@ export async function GET(req) {
       let retailsTotalTablets = 0;
 
       const now = Date.now();
-      const minGodownCutoff = now - 21 * 24 * 60 * 60 * 1000;
-      const maxGodownCutoff = now - 49 * 24 * 60 * 60 * 1000;
+      const minGodownCutoff = now - 42 * 24 * 60 * 60 * 1000;
+      const maxGodownCutoff = now - 70 * 24 * 60 * 60 * 1000;
       // const minRetailCutoff = now - 10 * 24 * 60 * 60 * 1000;
       // const maxRetailCutoff = now - 14 * 24 * 60 * 60 * 1000;
-      const retailCutoff = now - 105 * 24 * 60 * 60 * 1000;
+      const retailCutoff = now - 42 * 24 * 60 * 60 * 1000;
 
       for (const entry of item.entries) {
         const time = new Date(entry.createdAt).getTime();
