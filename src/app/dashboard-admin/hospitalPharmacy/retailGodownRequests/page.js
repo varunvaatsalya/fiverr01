@@ -5,6 +5,7 @@ import RequestSearchList from "@/app/components/RequestSearchList";
 
 function Page() {
   const [stockRequests, setStockRequests] = useState([]);
+  const [limit, setLimit] = useState(50);
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -31,7 +32,7 @@ function Page() {
           .then((data) => {
             if (data.success) {
               setStockRequests(data.requests);
-              console.log(data.requests);
+              if (data.limit) setLimit(data.limit);
             } else console.log(data.message);
           });
       } catch (err) {
@@ -45,6 +46,7 @@ function Page() {
       <Navbar route={["Pharmacy", "Requests"]} />
       <RequestSearchList
         stockRequests={stockRequests}
+        limit={limit}
         page={page}
         setPage={setPage}
         query={query}

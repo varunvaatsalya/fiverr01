@@ -190,13 +190,13 @@ function GodownStock({ medicineStock, query }) {
                     <div className="py-1 px-4 ">
                       Manufacturer:{" "}
                       <span className="text-blue-500 font-semibold">
-                        {medicine.manufacturer?.name}
+                        {medicine.manufacturer}
                       </span>
                     </div>
                     <div className="py-1 px-4 ">
                       Salts:{" "}
                       <span className="text-blue-500 font-semibold">
-                        {medicine.salts[0]?.name}
+                        {medicine.salts}
                       </span>
                     </div>
                     <div className="py-1 px-4 ">

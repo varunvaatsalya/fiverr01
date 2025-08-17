@@ -1,12 +1,13 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import { formatDateTimeToIST } from "../utils/date";
 import { format } from "date-fns";
 
 function RequestSearchList({
   stockRequests,
-  page,
+  limit = 50,
+  page = 1,
   setPage,
   query,
   setQuery,
@@ -77,7 +78,7 @@ function RequestSearchList({
   };
 
   const handleNextPage = () => {
-    if (stockRequests.length === 50) {
+    if (stockRequests.length === limit) {
       setPage(page + 1);
     }
   };
@@ -87,6 +88,8 @@ function RequestSearchList({
       setPage(page - 1);
     }
   };
+
+  const offset = useMemo(() => limit * (page - 1), [limit, page]);
 
   return (
     <div className="px-2 py-1 flex flex-col justify-center items-center flex-1">
@@ -103,7 +106,10 @@ function RequestSearchList({
         {statuses.map((status) => (
           <button
             key={status.value}
-            onClick={() => setSelectedStatus(status.value)}
+            onClick={() => {
+              setSelectedStatus(status.value);
+              setPage(1);
+            }}
             className={
               "px-3 py-2 border-b-2 " +
               (selectedStatus === status.value
@@ -130,7 +136,7 @@ function RequestSearchList({
                     : "bg-gray-200 text-gray-900")
                 }
               >
-                <div className="w-[5%]">{index + 1 + "."}</div>
+                <div className="w-[5%]">{offset + index + 1 + "."}</div>
                 <div className="w-[50%] px-3">{req.medicineData.name}</div>
                 <div className={` px-3 rounded-lg ${statusStyle[req.status]}`}>
                   {req.status}
@@ -200,7 +206,8 @@ function RequestSearchList({
                         >
                           <div className="lg:w-[15%]">{stock.batchName}</div>
                           <div className="lg:w-[30%]">
-                            {"Expiry: "+format(new Date(stock.expiryDate), "MM/yy")}
+                            {"Expiry: " +
+                              format(new Date(stock.expiryDate), "MM/yy")}
                           </div>
                           {stock.quantity && (
                             <div className="lg:w-[45%]">
@@ -247,7 +254,7 @@ function RequestSearchList({
           </span>
           <button
             onClick={handleNextPage}
-            disabled={stockRequests.length < 50}
+            disabled={stockRequests.length < limit}
             className="p-3"
           >
             <FaArrowRight size={20} />

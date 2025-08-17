@@ -78,15 +78,6 @@ export async function POST(req) {
 
     const { medicine, requestedQuantity, approvedQuantity } = request;
 
-    if (status !== "received" && status !== "returned") {
-      return NextResponse.json(
-        {
-          message: "Invalid params",
-          success: false,
-        },
-        { status: 400 }
-      );
-    }
     if (status === "received") {
       let retailStock = await RetailStockModel.findOne({ medicine });
 
@@ -125,15 +116,38 @@ export async function POST(req) {
         { status: 200 }
       );
     } else if (status === "returned") {
-      for (const stock of approvedQuantity) {
-        await StockModel.findByIdAndUpdate(stock.stockId, {
-          $inc: {
-            "quantity.boxes": stock.quantity.boxes,
-            "quantity.extra": stock.quantity.extra || 0,
-            "quantity.totalStrips": stock.quantity.totalStrips,
-          },
-        });
+      const invalid = approvedQuantity.some(
+        (s) => !s.available || s.available.totalStrips == null
+      );
+
+      if (invalid) {
+        return NextResponse.json(
+          { message: "Available quantity missing in request", success: false },
+          { status: 400 }
+        );
       }
+
+      const bulkOps = approvedQuantity.map((stock) => {
+        const initialTotalStrips = stock.available.totalStrips;
+        const initialBoxes = Math.floor(
+          initialTotalStrips / stock.packetSize.strips
+        );
+        const initialExtra = initialTotalStrips % stock.packetSize.strips;
+
+        return {
+          updateOne: {
+            filter: { _id: stock.stockId },
+            update: {
+              $set: {
+                "quantity.totalStrips": initialTotalStrips,
+                "quantity.boxes": initialBoxes,
+                "quantity.extra": initialExtra,
+              },
+            },
+          },
+        };
+      });
+      await StockModel.bulkWrite(bulkOps);
 
       request.status = "Returned";
       request.receivedStatus = "Rejected";
@@ -146,6 +160,14 @@ export async function POST(req) {
           success: true,
         },
         { status: 200 }
+      );
+    } else {
+      return NextResponse.json(
+        {
+          message: "Invalid params",
+          success: false,
+        },
+        { status: 400 }
       );
     }
   } catch (error) {

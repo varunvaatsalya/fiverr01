@@ -86,17 +86,9 @@ export async function GET(req) {
     ) {
       matchStage["status"] = status;
     }
+    console.log(matchStage);
 
     const pipeline = [
-      {
-        $sort: { _id: -1 },
-      },
-      {
-        $skip: skip,
-      },
-      {
-        $limit: limit,
-      },
       {
         $lookup: {
           from: "medicines",
@@ -120,9 +112,10 @@ export async function GET(req) {
           preserveNullAndEmptyArrays: true,
         },
       },
-      {
-        $match: matchStage,
-      },
+      { $match: matchStage },
+      { $sort: { _id: -1 } },
+      { $skip: skip },
+      { $limit: limit },
     ];
 
     let requests = await RequestModel.aggregate(pipeline);
@@ -131,6 +124,7 @@ export async function GET(req) {
     return NextResponse.json(
       {
         requests,
+        limit,
         success: true,
       },
       { status: 200 }

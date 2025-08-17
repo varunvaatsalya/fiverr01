@@ -88,7 +88,7 @@ function StockOrder({ manufacturers, vendors }) {
       if (stockType === "belowMinstockCount") {
         if (
           item.minimumStockCount?.godown === undefined ||
-          item.totalBoxes > item.minimumStockCount.godown
+          item.totalStrips > item.minimumStockCount.godown
         )
           return false;
       } else if (stockType === "minStockCountNotSet") {
@@ -96,7 +96,7 @@ function StockOrder({ manufacturers, vendors }) {
       } else if (stockType === "aboveMinstockCount") {
         if (
           item.minimumStockCount?.godown === undefined ||
-          item.totalBoxes <= item.minimumStockCount.godown
+          item.totalStrips <= item.minimumStockCount.godown
         )
           return false;
       }
@@ -118,7 +118,7 @@ function StockOrder({ manufacturers, vendors }) {
       if (isRemoveAllZero) {
         const min = item.minimumStockCount?.godown;
         const max = item.maximumStockCount?.godown;
-        const total = item.totalBoxes;
+        const total = item.totalStrips;
 
         const isInvalidMin = min === undefined || min === null || min === 0;
         const isInvalidMax = max === undefined || max === null || max === 0;
@@ -137,8 +137,8 @@ function StockOrder({ manufacturers, vendors }) {
     if (query.trim() !== "") {
       const updatedSearchedMedicines = filteredData.filter(
         (medicine) =>
-          medicine.latestSource?.name
-            ?.toLowerCase()
+          (medicine.manufacturer?.[0] || "")
+            .toLowerCase()
             .includes(query.toLowerCase()) ||
           medicine.name.toLowerCase().includes(query.toLowerCase())
       );
@@ -205,9 +205,9 @@ function StockOrder({ manufacturers, vendors }) {
       const calculatedQty =
         medicine.minimumStockCount &&
         medicine.maximumStockCount &&
-        medicine.maximumStockCount?.godown >= medicine.totalBoxes &&
+        medicine.maximumStockCount?.godown >= medicine.totalStrips &&
         medicine.maximumStockCount?.godown >= medicine.minimumStockCount?.godown
-          ? parseInt(medicine.maximumStockCount?.godown - medicine.totalBoxes)
+          ? parseInt(medicine.maximumStockCount?.godown - medicine.totalStrips)
           : "";
 
       setSelectedMedicines((prev) => [
@@ -277,9 +277,9 @@ function StockOrder({ manufacturers, vendors }) {
       quantity:
         medicine.minimumStockCount &&
         medicine.maximumStockCount &&
-        medicine.minimumStockCount?.godown >= medicine.totalBoxes &&
+        medicine.minimumStockCount?.godown >= medicine.totalStrips &&
         medicine.maximumStockCount?.godown >= medicine.minimumStockCount?.godown
-          ? medicine.maximumStockCount?.godown - medicine.totalBoxes
+          ? medicine.maximumStockCount?.godown - medicine.totalStrips
           : "",
     }));
     setSelectedMedicines(newSelectedMedicines);
@@ -346,8 +346,20 @@ Here is the list of medicines and the required quantities:
 `;
 
     group.items.forEach((medicine) => {
+      const totalStrips = medicine.quantity;
+      const stripsPerBox = medicine.packetSize?.strips;
+      const boxes = Math.floor(totalStrips / stripsPerBox);
+      const extras = totalStrips % stripsPerBox;
+      let qtyStr = "";
+      if (boxes > 0) {
+        qtyStr += `${boxes} Box${boxes > 1 ? "es" : ""}`;
+      }
+      if (extras > 0) {
+        if (boxes > 0) qtyStr += " + ";
+        qtyStr += `${extras} Unit${extras > 1 ? "s" : ""}`;
+      }
       message += `Medicine Name: *${medicine.name}*
-Required Quantity: *${medicine.quantity}* units
+Required Quantity: *${qtyStr}*
 
 `;
     });
@@ -394,7 +406,7 @@ Required Quantity: *${medicine.quantity}* units
       "Strips per Box": item.packetSize?.strips || "",
       "Tablets per Strip": item.packetSize?.tabletsPerStrip || "",
       "Min Strips": item.minimumStockCount?.godown || 0,
-      "Total Strips": item.totalBoxes || 0,
+      "Total Strips": item.totalStrips || 0,
       "Max Strips": item.maximumStockCount?.godown || 0,
       "Latest Source": item.latestSource?.name || "",
       "Source Type": item.latestSource?.type || "",
@@ -569,7 +581,7 @@ Required Quantity: *${medicine.quantity}* units
                   <div className="w-[10%] flex justify-end gap-2 items-center px-2">
                     {(details.minimumStockCount?.godown === undefined ||
                       details.minimumStockCount?.godown >=
-                        details.totalBoxes) && (
+                        details.totalStrips) && (
                       <FaRegDotCircle className="size-4 animate-pulse text-red-600" />
                     )}
                     <input
@@ -585,7 +597,9 @@ Required Quantity: *${medicine.quantity}* units
                       ? details.minimumStockCount.godown
                       : "N/A"}
                   </div>
-                  <div className="w-[5%] text-center">{details.totalBoxes}</div>
+                  <div className="w-[5%] text-center">
+                    {details.totalStrips}
+                  </div>
                   <div className="w-[5%] text-center">
                     {details.maximumStockCount?.godown !== undefined
                       ? details.maximumStockCount.godown
@@ -653,14 +667,14 @@ Required Quantity: *${medicine.quantity}* units
               {selectedMedicines.length > 0 && (
                 <div className="bg-gray-950 text-gray-100 font-semibold text-sm rounded-lg flex flex-wrap items-center p-1">
                   <div className="w-[5%] text-center">Sr No.</div>
-                  <div className="w-[35%] text-center">Medicine</div>
+                  <div className="w-[30%] text-center">Medicine</div>
                   <div className="w-[15%] text-center">Mfg</div>
-                  <div className="w-[5%] text-center">Box Size</div>
                   <div className="w-[5%] text-center">Min Qty</div>
                   <div className="w-[5%] text-center">Avl Qty</div>
                   <div className="w-[5%] text-center">Max Qty</div>
                   <div className="w-[10%] text-center">Offers</div>
-                  <div className="w-[15%] text-center">Qunatity</div>
+                  <div className="w-[5%] text-center">Box Size</div>
+                  <div className="w-[20%] text-center">Qunatity</div>
                 </div>
               )}
               <div className="px-2 my-2 max-h-[80vh] overflow-y-auto space-y-3">
@@ -790,22 +804,20 @@ Required Quantity: *${medicine.quantity}* units
                             <div className="w-[5%] text-center">
                               {index + 1}
                             </div>
-                            <div className="w-[35%] text-center">
+                            <div className="w-[30%] text-center">
                               {details.name}
                             </div>
                             <div className="w-[15%] text-center">
                               {details.manufacturer}
                             </div>
-                            <div className="w-[5%] text-center">
-                              {`${details.packetSize?.strips}*${details.packetSize?.tabletsPerStrip}`}
-                            </div>
+
                             <div className="w-[5%] text-center">
                               {details.minimumStockCount?.godown !== undefined
                                 ? details.minimumStockCount.godown
                                 : "N/A"}
                             </div>
                             <div className="w-[5%] text-center">
-                              {details.totalBoxes}
+                              {details.totalStrips}
                             </div>
                             <div className="w-[5%] text-center">
                               {details.maximumStockCount?.godown !== undefined
@@ -823,7 +835,10 @@ Required Quantity: *${medicine.quantity}* units
                                 "--"
                               )}
                             </div>
-                            <div className="w-[15%] flex justify-center gap-2 items-center">
+                            <div className="w-[5%] text-center">
+                              {`${details.packetSize?.strips}*${details.packetSize?.tabletsPerStrip}`}
+                            </div>
+                            <div className="w-[20%] flex justify-center gap-2 items-center">
                               <input
                                 type="number"
                                 value={details.quantity}
@@ -836,6 +851,11 @@ Required Quantity: *${medicine.quantity}* units
                                 }
                                 className="w-20 text-sm text-gray-100 bg-gray-900 outline-none focus:ring-1 ring-gray-700 rounded-lg py-1 px-2"
                               />
+                              <div className="text-xs font-semibold italic">{`= ${Math.floor(
+                                details.quantity / details.packetSize?.strips
+                              )} Boxes + ${
+                                details.quantity % details.packetSize?.strips
+                              } Extras`}</div>
                               <CiCircleRemove
                                 onClick={() => removeMedicine(details._id)}
                                 className="text-red-600 hover:text-red-500 size-5"

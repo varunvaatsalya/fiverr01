@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../utils/jwt";
-import OrderHistory, { HospitalOrderHistory } from "../../models/OrderHistory";
-import Medicine from "../../models/Medicine";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import OrderHistory, { HospitalOrderHistory } from "@/app/models/OrderHistory";
+import Medicine from "@/app/models/Medicine";
 
 export async function GET(req) {
   await dbConnect();
@@ -222,42 +222,6 @@ export async function GET(req) {
         },
       },
       {
-        $addFields: {
-          packetStrips: "$packetSize.strips",
-        },
-      },
-      {
-        $addFields: {
-          totalBoxes: {
-            $round: {
-              $cond: [
-                { $gt: ["$packetStrips", 0] },
-                { $divide: ["$totalStrips", "$packetStrips"] },
-                0,
-              ],
-            },
-          },
-          minimumBoxes: {
-            $ceil: {
-              $cond: [
-                { $gt: ["$packetStrips", 0] },
-                { $divide: ["$minimumStockCount.godown", "$packetStrips"] },
-                0,
-              ],
-            },
-          },
-          maximumBoxes: {
-            $ceil: {
-              $cond: [
-                { $gt: ["$packetStrips", 0] },
-                { $divide: ["$maximumStockCount.godown", "$packetStrips"] },
-                0,
-              ],
-            },
-          },
-        },
-      },
-      {
         $project: {
           _id: 1,
           name: 1,
@@ -265,13 +229,10 @@ export async function GET(req) {
           manufacturer: "$manufacturerDoc.name",
           salts: "$saltDocs.name",
           totalBoxes: 1,
+          totalStrips: 1,
           medicineType: 1,
-          minimumStockCount: {
-            godown: "$minimumBoxes",
-          },
-          maximumStockCount: {
-            godown: "$maximumBoxes",
-          },
+          minimumStockCount: 1,
+          maximumStockCount: 1,
           stockOrderInfo: 1,
           latestSource: 1,
           latestOffer: 1,

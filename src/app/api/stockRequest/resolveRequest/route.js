@@ -219,18 +219,24 @@ export async function PUT(req) {
     requestDoc.approvedAt = Date.now();
     await requestDoc.save();
 
-    const bulkOps = allocatedStocks.map((stock) => ({
-      updateOne: {
-        filter: { _id: stock.stockId },
-        update: {
-          $inc: {
-            "quantity.boxes": -stock.quantity.boxes,
-            "quantity.extra": -stock.quantity.extra,
-            "quantity.totalStrips": -stock.quantity.totalStrips,
+    const bulkOps = allocatedStocks.map((stock) => {
+      const newTotalStrips =
+        stock.available.totalStrips - stock.quantity.totalStrips;
+      const newBoxes = Math.floor(newTotalStrips / stock.packetSize.strips);
+      const newExtra = newTotalStrips % stock.packetSize.strips;
+      return {
+        updateOne: {
+          filter: { _id: stock.stockId },
+          update: {
+            $set: {
+              "quantity.totalStrips": newTotalStrips,
+              "quantity.boxes": newBoxes,
+              "quantity.extra": newExtra,
+            },
           },
         },
-      },
-    }));
+      };
+    });
 
     if (bulkOps.length > 0) {
       await StockModel.bulkWrite(bulkOps);

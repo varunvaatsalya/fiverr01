@@ -20,6 +20,7 @@ export async function GET(req) {
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
+  const userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -27,6 +28,12 @@ export async function GET(req) {
     );
     res.cookies.delete("authToken");
     return res;
+  }
+  if (userRole === "stockist" && !userEditPermission) {
+    return NextResponse.json(
+      { message: "Access denied.", success: false },
+      { status: 403 }
+    );
   }
 
   const retailstockCollection =

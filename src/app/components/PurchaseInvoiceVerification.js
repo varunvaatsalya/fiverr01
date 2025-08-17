@@ -214,6 +214,19 @@ function PurchaseInvoiceVerification() {
       return updated;
     });
   };
+  const handleSendForEdit = () => {
+    // setPendingInvoices((prev) => {
+    //   const updated = [...prev];
+    //   updated.splice(currentIndex, 1);
+
+    //   // Adjust index safely
+    //   if (currentIndex >= updated.length && updated.length > 0) {
+    //     setCurrentIndex(updated.length - 1); // move to previous item if at end
+    //   }
+
+    //   return updated;
+    // });
+  };
 
   const handlePrev = () => {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
@@ -236,6 +249,7 @@ function PurchaseInvoiceVerification() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
+
   return (
     <div>
       {rejectedInvoiceCount > 0 && (
@@ -341,6 +355,7 @@ function PurchaseInvoiceVerification() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left border-b">
+                        <th>Sr.</th>
                         <th>Medicine</th>
                         <th>Qty(U)</th>
                         <th>Avl Qty(U)</th>
@@ -351,6 +366,7 @@ function PurchaseInvoiceVerification() {
                     <tbody>
                       {processedStocks.map((stock, idx) => (
                         <tr key={idx} className="border-b">
+                          <td>{idx + 1 + "."}</td>
                           <td>{stock.medicine.name}</td>
                           <td>{`${stock.quantity}+${stock.offer}`}</td>
                           <td>{stock.currentQuantity}</td>
@@ -418,19 +434,24 @@ function PurchaseInvoiceVerification() {
                   Grand Total: ₹{grandTotal.toFixed(2)}
                 </div>
 
-                <div className="flex justify-end gap-4">
-                  <Button
-                    variant="destructive"
-                    onClick={() => setShowRejectDialog(true)}
-                  >
-                    Reject
+                <div className="flex justify-between gap-4">
+                  <Button variant="outline" onClick={handleSendForEdit}>
+                    Send for Edit
                   </Button>
-                  <Button
-                    disabled={submitting}
-                    onClick={() => handleInvoiceAction("approved")}
-                  >
-                    {submitting ? "Processing..." : "Approve"}
-                  </Button>
+                  <div className="flex justify-end gap-4">
+                    <Button
+                      variant="destructive"
+                      onClick={() => setShowRejectDialog(true)}
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      disabled={submitting}
+                      onClick={() => handleInvoiceAction("approved")}
+                    >
+                      {submitting ? "Processing..." : "Approve"}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

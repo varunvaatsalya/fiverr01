@@ -62,6 +62,17 @@ const requestSchema = new mongoose.Schema(
             type: Number,
           },
         },
+        available: {
+          boxes: {
+            type: Number,
+          },
+          extra: {
+            type: Number,
+          },
+          totalStrips: {
+            type: Number,
+          },
+        },
         quantity: {
           boxes: {
             type: Number,
