@@ -3,6 +3,7 @@ import { jwtVerify, SignJWT } from "jose";
 import Users from "../models/Users";
 import RoleLogout from "../models/RoleLogouts";
 import dbConnect from "../lib/Mongodb";
+import { startLogDump } from "../lib/startLogDump";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const secret = new TextEncoder().encode(JWT_SECRET);
@@ -24,6 +25,7 @@ export const generateToken = async (user) => {
 };
 
 export const verifyTokenWithLogout = async (token) => {
+  startLogDump();
   try {
     const { payload } = await jwtVerify(token, secret); // Verify the token
 

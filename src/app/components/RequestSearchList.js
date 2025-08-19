@@ -92,7 +92,7 @@ function RequestSearchList({
   const offset = useMemo(() => limit * (page - 1), [limit, page]);
 
   return (
-    <div className="px-2 py-1 flex flex-col justify-center items-center flex-1">
+    <div className="px-2 py-1 flex flex-col justify-center items-center flex-1 bg-gray-100">
       <input
         type="text"
         placeholder="Search"
@@ -100,7 +100,7 @@ function RequestSearchList({
         onChange={(e) => {
           setQuery(e.target.value);
         }}
-        className="h-full w-full lg:w-3/4 text-black text-xl font-medium px-4 py-2 rounded-full outline-none bg-gray-200 border-b-2 border-gray-400 focus:bg-gray-300"
+        className="h-full w-full lg:w-3/4 text-black text-lg px-4 py-2 rounded-full outline-none bg-gray-200 border-b-2 border-gray-400 focus:bg-gray-300"
       />
       <div className="flex justify-center items-center border-b border-gray-400 text-gray-800 font-semibold">
         {statuses.map((status) => (
@@ -140,6 +140,13 @@ function RequestSearchList({
                 <div className="w-[50%] px-3">{req.medicineData.name}</div>
                 <div className={` px-3 rounded-lg ${statusStyle[req.status]}`}>
                   {req.status}
+                </div>
+                <div className="flex-1">
+                  <div className="w-24 ml-auto text-sm italic">
+                    {req.approvedQuantity.length > 0
+                      ? `${req.approvedQuantity.length} Batch(s)`
+                      : ""}
+                  </div>
                 </div>
               </div>
               {selectedIndex === index && (
