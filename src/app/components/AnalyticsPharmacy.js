@@ -93,7 +93,7 @@ const AnalyticsPharmacy = () => {
 
     // Process the invoices
     filteredPrescriptions.forEach((invoice) => {
-      if (invoice.paymentMode.startsWith("Credit")) return;
+      // if (invoice.paymentMode.startsWith("Credit")) return;
       // Summing total, subtotal, and discount
       totalCount++;
       totalAmount += invoice.price.total || 0;
