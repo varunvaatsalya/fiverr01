@@ -1,7 +1,7 @@
 // lib/mongodb.js
 import mongoose from "mongoose";
 import "../models";
-import { insertLog } from "./logger";
+// import { insertLog } from "./logger";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -21,19 +21,19 @@ if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
-mongoose.set("debug", function (collection, method) {
-  const start = Date.now();
+// mongoose.set("debug", function (collection, method) {
+//   const start = Date.now();
 
-  process.nextTick(() => {
-    const duration = Date.now() - start;
-    insertLog({
-      type: "db",
-      path: `${collection}.${method}`,
-      duration,
-      timestamp: new Date(),
-    });
-  });
-});
+//   process.nextTick(() => {
+//     const duration = Date.now() - start;
+//     insertLog({
+//       type: "db",
+//       path: `${collection}.${method}`,
+//       duration,
+//       timestamp: new Date(),
+//     });
+//   });
+// });
 
 async function dbConnect() {
   if (cached.conn) {
