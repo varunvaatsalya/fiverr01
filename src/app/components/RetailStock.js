@@ -8,6 +8,7 @@ import { IoIosRemoveCircle } from "react-icons/io";
 import { showError, showSuccess } from "../utils/toast";
 import { useStockType } from "../context/StockTypeContext";
 import { format } from "date-fns";
+import { FaFire } from "react-icons/fa6";
 
 function RetailStock({
   medicineStock,
@@ -261,9 +262,12 @@ function RetailStock({
                 </div>
                 {medicine.retailStocks.length > 0 &&
                   totalStrips < medicine.maximumStockCount?.retails &&
-                  totalStrips <= medicine.minimumStockCount?.retails && (
-                    <TiWarning className="text-red-900 size-6 animate-pulse" />
-                  )}
+                  totalStrips <= medicine.minimumStockCount?.retails &&
+                  (totalStrips <= medicine.minimumStockCount?.retails / 2 ? (
+                    <FaFire className="text-red-600 size-5 animate-pulse" />
+                  ) : (
+                    <TiWarning className="text-amber-600 size-6 animate-pulse" />
+                  ))}
                 {medicine.requests.length ? (
                   <div className="text-red-900 text-lg">
                     <ImBoxRemove />

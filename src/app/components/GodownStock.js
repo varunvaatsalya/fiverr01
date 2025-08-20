@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { ImBoxRemove } from "react-icons/im";
 import { BiInjection } from "react-icons/bi";
 import { TiWarning } from "react-icons/ti";
-import { FaSquarePen } from "react-icons/fa6";
+import { FaFire, FaSquarePen } from "react-icons/fa6";
 import { IoIosRemoveCircle } from "react-icons/io";
 import { showError } from "../utils/toast";
 import { useStockType } from "../context/StockTypeContext";
@@ -173,9 +173,12 @@ function GodownStock({ medicineStock, query }) {
                     : "--"}
                 </div>
                 {medicine.minimumStockCount?.godown !== undefined ? (
-                  totalStrips < medicine.minimumStockCount?.godown && (
-                    <TiWarning className="text-red-900 size-6 animate-pulse" />
-                  )
+                  totalStrips < medicine.minimumStockCount?.godown &&
+                  (totalStrips <= medicine.minimumStockCount?.godown / 2 ? (
+                    <FaFire className="text-red-600 size-5 animate-pulse" />
+                  ) : (
+                    <TiWarning className="text-amber-600 size-6 animate-pulse" />
+                  ))
                 ) : (
                   <FaSquarePen className="text-red-900 size-6 animate-pulse" />
                 )}

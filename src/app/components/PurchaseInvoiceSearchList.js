@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import Navbar from "./Navbar";
 import PharmacySectionComponent from "./PharmacySectionComponent";
 import NewPurchaseInvoice from "./NewPurchaseInvoice";
-// import EditPharmacyInvoice from "./EditPharmacyInvoice";
+import AdvPurchaseInvoiceSearch from "./AdvPurchaseInvoiceSearch";
 import StockDetails from "./StockDetails";
 import { formatDateTimeToIST, formatDateToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
@@ -18,20 +18,22 @@ function PurchaseInvoiceSearchList({
   setPurchaseInvoices,
   accessInfo,
 }) {
-  const [resData, setResData] = useState([]);
   const [newPurchaseInvoiceSection, setNewPurchaseInvoiceSection] =
     useState(false);
   const [activeIndex, setActiveIndex] = useState(null);
   const [stockDetails, setStockDetails] = useState(null);
-  const [searchedPurchaseInvoices, setSearchedPurchaseInvoices] = useState(null);
+  const [searchedPurchaseInvoices, setSearchedPurchaseInvoices] =
+    useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [advSearch, setAdvSearch] = useState(false);
 
-  const sectionType = useStockType();
+  const copyInvoices = useMemo(() => {
+    return searchedPurchaseInvoices
+      ? searchedPurchaseInvoices
+      : purchaseInvoices;
+  }, [searchedPurchaseInvoices, purchaseInvoices]);
 
-  useEffect(() => {
-    setResData(purchaseInvoices);
-  }, [purchaseInvoices]);
+  const sectionType = useStockType();
 
   const handleNextPage = () => {
     if (page < totalPages) {
@@ -105,8 +107,8 @@ function PurchaseInvoiceSearchList({
           List of all the Purchase Invoices
         </div>
         <div className="flex flex-wrap justify-center items-center mx-auto">
-          {resData.length > 0 ? (
-            resData.map((invoice, index) => (
+          {copyInvoices.length > 0 ? (
+            copyInvoices.map((invoice, index) => (
               <div
                 key={index}
                 className="text-black w-full px-2 md:w-4/5 lg:w-3/4 mx-auto"
@@ -282,6 +284,9 @@ function PurchaseInvoiceSearchList({
           </div>
         )}
       </div>
+      {advSearch && (
+        <AdvPurchaseInvoiceSearch setSearchedPurchaseInvoices={setSearchedPurchaseInvoices} />
+      )}
     </div>
   );
 }

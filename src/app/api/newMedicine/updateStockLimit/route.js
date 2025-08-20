@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../../utils/jwt";
-import PharmacyInvoice from "../../../models/PharmacyInvoice";
-import Medicine from "../../../models/Medicine";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import PharmacyInvoice from "@/app/models/PharmacyInvoice";
+import Medicine from "@/app/models/Medicine";
 
 let cache = {
   timestamp: 0,
@@ -50,7 +50,10 @@ export async function GET(req) {
 
   try {
     // 1. Get sales data of last 49 days (max of both windows)
-    const fromDate = new Date(Date.now() - 70 * 24 * 60 * 60 * 1000);
+    const MAX_CUTOFF_DAYS = 56; // 28 + 28 days
+    const MAX_CUTOFF_TIME_MS = MAX_CUTOFF_DAYS * 24 * 60 * 60 * 1000;
+
+    const fromDate = new Date(Date.now() - MAX_CUTOFF_TIME_MS);
 
     const soldMedicines = await PharmacyInvoice.aggregate([
       {
@@ -90,15 +93,16 @@ export async function GET(req) {
       let retailsTotalTablets = 0;
 
       const now = Date.now();
-      const minGodownCutoff = now - 42 * 24 * 60 * 60 * 1000;
-      const maxGodownCutoff = now - 70 * 24 * 60 * 60 * 1000;
+      const minGodownCutoff = now - MAX_CUTOFF_TIME_MS / 2;
+      const maxGodownCutoff = now - MAX_CUTOFF_TIME_MS;
       // const minRetailCutoff = now - 10 * 24 * 60 * 60 * 1000;
       // const maxRetailCutoff = now - 14 * 24 * 60 * 60 * 1000;
-      const retailCutoff = now - 42 * 24 * 60 * 60 * 1000;
+      const retailCutoff = now - MAX_CUTOFF_TIME_MS;
 
       for (const entry of item.entries) {
         const time = new Date(entry.createdAt).getTime();
-        const total = (entry.strips ?? 0) * tabletsPerStrip + (entry.tablets ?? 0);
+        const total =
+          (entry.strips ?? 0) * tabletsPerStrip + (entry.tablets ?? 0);
 
         if (time >= minGodownCutoff) minGodownTotalTablets += total;
         if (time >= maxGodownCutoff) maxGodownTotalTablets += total;
@@ -107,12 +111,20 @@ export async function GET(req) {
         if (time >= retailCutoff) retailsTotalTablets += total;
       }
 
-      const minGodownStrips = Math.round(minGodownTotalTablets / tabletsPerStrip);
-      const maxGodownStrips = Math.round(maxGodownTotalTablets / tabletsPerStrip);
+      const minGodownStrips = Math.round(
+        minGodownTotalTablets / tabletsPerStrip
+      );
+      const maxGodownStrips = Math.round(
+        maxGodownTotalTablets / tabletsPerStrip
+      );
       // const minRetailStrips = Math.round(retailsTotalTablets / tabletsPerStrip);
       // const maxRetailStrips = Math.round(maxRetailTotalTablets / tabletsPerStrip);
-      const minRetailStrips = Math.round(retailsTotalTablets / (tabletsPerStrip * 3));
-      const maxRetailStrips = Math.round(retailsTotalTablets / (tabletsPerStrip * 2));
+      const minRetailStrips = Math.round(
+        retailsTotalTablets / (tabletsPerStrip * 8)
+      );
+      const maxRetailStrips = Math.round(
+        retailsTotalTablets / (tabletsPerStrip * 4)
+      );
 
       await Medicine.findByIdAndUpdate(item._id, {
         $set: {

@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 
 function StockOrder({ manufacturers, vendors }) {
   const [message, setMessage] = useState("");
-  const [stockType, setStockType] = useState("belowMinstockCount");
+  const [stockType, setStockType] = useState("outofstock");
   const [vendorId, setVendorId] = useState("");
   const [orderStatus, setOrderStatus] = useState("yetToBeOrdered");
   const [data, setData] = useState([]);
@@ -85,7 +85,13 @@ function StockOrder({ manufacturers, vendors }) {
   function filterData() {
     let updatedData = data.filter((item) => {
       // Stock Type Filter
-      if (stockType === "belowMinstockCount") {
+      if (stockType === "outofstock") {
+        if (
+          item.minimumStockCount?.godown === undefined ||
+          item.totalStrips > item.minimumStockCount.godown / 2
+        )
+          return false;
+      } else if (stockType === "belowMinstockCount") {
         if (
           item.minimumStockCount?.godown === undefined ||
           item.totalStrips > item.minimumStockCount.godown
@@ -454,6 +460,7 @@ Required Quantity: *${qtyStr}*
                 className="bg-gray-700 rounded-lg text-white px-2 py-1"
               >
                 <option value="all">All</option>
+                <option value="outofstock">Out of Stock</option>
                 <option value="belowMinstockCount">
                   Below Min stock Count
                 </option>
