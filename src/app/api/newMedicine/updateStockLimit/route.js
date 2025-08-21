@@ -49,17 +49,18 @@ export async function GET(req) {
   }
 
   try {
-    // 1. Get sales data of last 49 days (max of both windows)
-    const MAX_CUTOFF_DAYS = 56; // 28 + 28 days
-    const MAX_CUTOFF_TIME_MS = MAX_CUTOFF_DAYS * 24 * 60 * 60 * 1000;
+    // Cutoff for 140 days and 28 days
+    const LONG_TERM_DAYS = 140;
+    const SHORT_TERM_DAYS = 28;
 
-    const fromDate = new Date(Date.now() - MAX_CUTOFF_TIME_MS);
+    const longTermFrom = new Date(Date.now() - LONG_TERM_DAYS * 24 * 60 * 60 * 1000);
+    const shortTermFrom = new Date(Date.now() - SHORT_TERM_DAYS * 24 * 60 * 60 * 1000);
 
     const soldMedicines = await PharmacyInvoice.aggregate([
       {
         $match: {
           paymentMode: { $ne: "Credit-Others" },
-          createdAt: { $gte: fromDate },
+          createdAt: { $gte: longTermFrom },
         },
       },
       { $unwind: "$medicines" },
@@ -67,7 +68,7 @@ export async function GET(req) {
       {
         $group: {
           _id: "$medicines.medicineId",
-          entries: {
+          sales: {
             $push: {
               createdAt: "$createdAt",
               strips: "$medicines.allocatedStock.quantity.strips",
@@ -86,45 +87,36 @@ export async function GET(req) {
 
       const tabletsPerStrip = medicine.packetSize.tabletsPerStrip || 1;
 
-      let minGodownTotalTablets = 0;
-      let maxGodownTotalTablets = 0;
-      // let minRetailTotalTablets = 0;
-      // let maxRetailTotalTablets = 0;
-      let retailsTotalTablets = 0;
+      let longTermTotal = 0;
+      let shortTermTotal = 0;
 
-      const now = Date.now();
-      const minGodownCutoff = now - MAX_CUTOFF_TIME_MS / 2;
-      const maxGodownCutoff = now - MAX_CUTOFF_TIME_MS;
-      // const minRetailCutoff = now - 10 * 24 * 60 * 60 * 1000;
-      // const maxRetailCutoff = now - 14 * 24 * 60 * 60 * 1000;
-      const retailCutoff = now - MAX_CUTOFF_TIME_MS;
-
-      for (const entry of item.entries) {
+      for (const entry of item.sales) {
         const time = new Date(entry.createdAt).getTime();
         const total =
           (entry.strips ?? 0) * tabletsPerStrip + (entry.tablets ?? 0);
 
-        if (time >= minGodownCutoff) minGodownTotalTablets += total;
-        if (time >= maxGodownCutoff) maxGodownTotalTablets += total;
-        // if (time >= minRetailCutoff) minRetailTotalTablets += total;
-        // if (time >= maxRetailCutoff) maxRetailTotalTablets += total;
-        if (time >= retailCutoff) retailsTotalTablets += total;
+        if (time >= longTermFrom.getTime()) longTermTotal += total;
+        if (time >= shortTermFrom.getTime()) shortTermTotal += total;
       }
 
-      const minGodownStrips = Math.round(
-        minGodownTotalTablets / tabletsPerStrip
-      );
-      const maxGodownStrips = Math.round(
-        maxGodownTotalTablets / tabletsPerStrip
-      );
-      // const minRetailStrips = Math.round(retailsTotalTablets / tabletsPerStrip);
-      // const maxRetailStrips = Math.round(maxRetailTotalTablets / tabletsPerStrip);
-      const minRetailStrips = Math.round(
-        retailsTotalTablets / (tabletsPerStrip * 8)
-      );
-      const maxRetailStrips = Math.round(
-        retailsTotalTablets / (tabletsPerStrip * 4)
-      );
+      // weekly averages
+      const s = longTermTotal / 20; // 140 days = 20 weeks
+      const t = shortTermTotal / 4; // 28 days = 4 weeks
+
+      let forecast = (s + t) / 2;
+
+      // spike/crash adjustment
+      if (t > 1.5 * s) forecast = t;
+      if (t < 0.5 * s) forecast = s;
+
+      // convert forecast (tablets/week) -> strips/week
+      const forecastStrips = Math.round(forecast / tabletsPerStrip);
+
+      // stock levels
+      const minGodownStrips = forecastStrips * 4; // 4 weeks
+      const maxGodownStrips = forecastStrips * 8; // 8 weeks
+      const minRetailStrips = forecastStrips * 1; // 1 week
+      const maxRetailStrips = forecastStrips * 2; // 2 weeks
 
       await Medicine.findByIdAndUpdate(item._id, {
         $set: {
@@ -138,7 +130,7 @@ export async function GET(req) {
       updatedMedicineIds.push(item._id.toString());
     }
 
-    // 2. Set zero for rest of the medicines
+    // Zero stock for medicines not sold
     await Medicine.updateMany(
       { _id: { $nin: updatedMedicineIds } },
       {
