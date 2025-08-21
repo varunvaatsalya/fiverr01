@@ -106,8 +106,8 @@ export async function GET(req) {
       let forecast = (s + t) / 2;
 
       // spike/crash adjustment
-      if (t > 1.5 * s) forecast = t;
-      if (t < 0.5 * s) forecast = s;
+      // if (t > 1.5 * s) forecast = t;
+      // if (t < 0.5 * s) forecast = s;
 
       // convert forecast (tablets/week) -> strips/week
       const forecastStrips = Math.round(forecast / tabletsPerStrip);
