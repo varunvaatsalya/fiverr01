@@ -662,8 +662,8 @@ function NewPharmacyInvoice({
                     <div className="w-[5%]"></div>
                     <div className="w-[45%] text-start">Name</div>
                     <div className="w-[25%] text-start">Qty</div>
-                    <div className="w-[10%]">MRP</div>
-                    <div className="w-[15%] text-end">Total</div>
+                    {/* <div className="w-[10%]">MRP</div> */}
+                    <div className="w-[25%] text-end">Total</div>
                   </div>
                 </div>
                 <div className="py-1 text-white">
@@ -689,14 +689,14 @@ function NewPharmacyInvoice({
                           0
                         )
                       : "--";
-                    const MRP =
-                      medicine.allocatedQuantities?.length > 0
-                        ? parseFloat(
-                            medicine.allocatedQuantities[0].sellingPrice?.toFixed(
-                              2
-                            )
-                          )
-                        : "--";
+                    // const MRP =
+                    //   medicine.allocatedQuantities?.length > 0
+                    //     ? parseFloat(
+                    //         medicine.allocatedQuantities[0].sellingPrice?.toFixed(
+                    //           2
+                    //         )
+                    //       )
+                    //     : "--";
                     return (
                       <div key={index}>
                         <div
@@ -726,7 +726,7 @@ function NewPharmacyInvoice({
 
                           <div
                             title={medicineDetails?.name}
-                            className="w-[42%] text-start px-1 line-clamp-1"
+                            className="w-[45%] text-start px-1 line-clamp-1"
                           >
                             {medicineDetails?.name}
                           </div>
@@ -746,10 +746,10 @@ function NewPharmacyInvoice({
                               <>{totalStripsAllocated + " Pcs"}</>
                             )}
                           </div>
-                          <div className="text-center w-[10%]">
+                          {/* <div className="text-center w-[10%]">
                             {MRP + "/-"}
-                          </div>
-                          <div className=" w-[15%] flex items-center justify-end gap-1">
+                          </div> */}
+                          <div className=" w-[25%] flex items-center justify-end gap-1">
                             {medicine.isDiscountApplicable && discount && (
                               <RiDiscountPercentFill className="text-blue-400 size-4" />
                             )}

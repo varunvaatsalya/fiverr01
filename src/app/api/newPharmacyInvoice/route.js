@@ -478,8 +478,8 @@ export async function POST(req) {
     // Otherwise, save changes to the database and create an invoice
     if (selectedPaymentMode !== "Credit-Others") {
       await Promise.all(
-        retailStock.map((stock) =>
-          RetailStock.findByIdAndUpdate(stock._id, { stocks: stock.stocks })
+        retailStock.map((med) =>
+          RetailStock.findByIdAndUpdate(med._id, { stocks: med.stocks })
         )
       );
     }

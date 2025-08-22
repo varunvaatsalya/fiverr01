@@ -132,7 +132,8 @@ function RetailStockEdit() {
 
   const handleStockChange = (medicineIndex, stockIndex, field, value) => {
     setFormTypeErrMessage("");
-    if (value == "") {
+    console.log(value);
+    if (value === "") {
       setFormTypeErrMessage("No value should be blank!");
     }
     setDetails((prevDetails) => {
@@ -278,10 +279,14 @@ function RetailStockEdit() {
         <div className="bg-gray-900 rounded-lg flex flex-wrap items-center justify-around gap-1 font-semibold text-sm py-1 px-2 text-white">
           <div className="flex-1 min-w-28 text-center">Batch</div>
           <div className="flex-1 min-w-28 text-center">Expiry</div>
-          <div className="flex-1 min-w-28 text-center">{"Current Stock (Strps or Pack)"}</div>
+          <div className="flex-1 min-w-28 text-center">
+            {"Current Stock (Strps or Pack)"}
+          </div>
           <div className="flex-1 min-w-28 text-center">Tablets</div>
           <div className="flex-1 min-w-28 text-center">MRP</div>
-          <div className="flex-1 min-w-28 text-center">{"(Qty or Strps) per Box"}</div>
+          <div className="flex-1 min-w-28 text-center">
+            {"(Qty or Strps) per Box"}
+          </div>
           <div className="flex-1 min-w-28 text-center">Tbs/Strp</div>
           <div className="flex-1 min-w-28 text-center">{"Totals"}</div>
           <div className="flex-1 min-w-28 text-center">Remove</div>
@@ -368,11 +373,12 @@ function RetailStockEdit() {
                         type="number"
                         value={stock.quantity.totalStrips}
                         onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
                           handleStockChange(
                             it,
                             index,
                             "quantity.totalStrips",
-                            parseInt(e.target.value)
+                            value
                           );
                         }}
                         placeholder="Total Strips"
@@ -384,7 +390,7 @@ function RetailStockEdit() {
                             type="number"
                             value={stock.quantity.tablets}
                             onChange={(e) => {
-                              const value = parseInt(e.target.value);
+                              const value = parseInt(e.target.value) || 0;
                               handleStockChange(
                                 it,
                                 index,
@@ -400,12 +406,8 @@ function RetailStockEdit() {
                         type="number"
                         value={stock.sellingPrice}
                         onChange={(e) => {
-                          handleStockChange(
-                            it,
-                            index,
-                            "sellingPrice",
-                            parseInt(e.target.value)
-                          );
+                          const value = parseInt(e.target.value) || 0;
+                          handleStockChange(it, index, "sellingPrice", value);
                         }}
                         className="px-2 rounded flex-1 min-w-28"
                       />
@@ -413,11 +415,12 @@ function RetailStockEdit() {
                         type="number"
                         value={stock.packetSize.strips}
                         onChange={(e) => {
+                          const value = parseInt(e.target.value) || 1;
                           handleStockChange(
                             it,
                             index,
                             "packetSize.strips",
-                            parseInt(e.target.value)
+                            value
                           );
                         }}
                         className="px-2 rounded flex-1 min-w-28"
@@ -428,10 +431,7 @@ function RetailStockEdit() {
                             type="number"
                             value={stock.packetSize.tabletsPerStrip}
                             onChange={(e) => {
-                              const value =
-                                e.target.value === ""
-                                  ? 1
-                                  : parseInt(e.target.value);
+                              const value = parseInt(e.target.value) || 1;
                               handleStockChange(
                                 it,
                                 index,

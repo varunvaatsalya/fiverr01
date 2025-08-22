@@ -106,6 +106,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { format } from "date-fns";
 import { Info } from "lucide-react";
 import Image from "next/image";
 
@@ -122,6 +123,7 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
     grandTotal,
     isPaid,
     billImageId,
+    createdAt,
   } = stockDetails;
 
   return (
@@ -133,8 +135,8 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
               Invoice #{invoiceNumber}
             </DialogTitle>
             <DialogDescription>
-              Date: {new Date(invoiceDate).toLocaleDateString()} | Received:{" "}
-              {new Date(receivedDate).toLocaleDateString()}
+              Added on: {format(new Date(createdAt), "dd/MM/yy")} | Received:{" "}
+              {format(new Date(receivedDate), "dd/MM/yy")}
             </DialogDescription>
           </div>
 
@@ -193,6 +195,9 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
             </p>
             <p>
               <strong>Address:</strong> {vendor ? vendor.address : "-"}
+            </p>
+            <p>
+              <strong>Invoice Date:</strong> {format(new Date(invoiceDate), "dd/MM/yy")}
             </p>
           </div>
           {billImageId && billImageId.filepath && (

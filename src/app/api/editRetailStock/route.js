@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../utils/jwt";
-import Medicine from "../../models/Medicine";
-import RetailStock from "../../models/RetailStock";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import Medicine from "@/app/models/Medicine";
+import RetailStock from "@/app/models/RetailStock";
 
 export async function GET(req) {
   await dbConnect();
@@ -118,7 +118,6 @@ export async function POST(req) {
     let missingFieldsMedicines = [];
 
     for (const medicineStock of data) {
-      // Check if stocks exist and have all required fields
       if (!medicineStock.stocks || medicineStock.stocks.length === 0) {
         missingFieldsMedicines.push(medicineStock.medicine.name);
         continue;
@@ -127,8 +126,6 @@ export async function POST(req) {
       let isValid = true;
 
       medicineStock.stocks.forEach((stock) => {
-        // Check if all required fields exist
-        // console.log(stock, 111);
         if (
           !stock.batchName ||
           !stock.expiryDate ||

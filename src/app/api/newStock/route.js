@@ -48,6 +48,7 @@ export async function GET(req) {
 
   try {
     if (batchInfo === "1") {
+      if (!letter) letter = "A";
       const stocks = await Model.aggregate([
         {
           $lookup: {
@@ -58,6 +59,14 @@ export async function GET(req) {
           },
         },
         { $unwind: "$medicineDetails" },
+        {
+          $match: {
+            "medicineDetails.name": {
+              $regex: `^${letter}`,
+              $options: "i",
+            },
+          },
+        },
         {
           $group: {
             _id: {
@@ -200,6 +209,7 @@ export async function GET(req) {
             quantity: 1,
             purchasePrice: 1,
             sellingPrice: 1,
+            invoiceId: 1,
             createdAt: 1,
           },
           requests: {

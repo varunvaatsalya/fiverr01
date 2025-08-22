@@ -7,18 +7,48 @@ import { FaFire, FaSquarePen } from "react-icons/fa6";
 import { IoIosRemoveCircle } from "react-icons/io";
 import { showError } from "../utils/toast";
 import { useStockType } from "../context/StockTypeContext";
+import StockDetails from "./StockDetails";
+import { Button } from "@/components/ui/button";
 
 function GodownStock({ medicineStock, query }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [stockDetails, setStockDetails] = useState(null);
   const [minQty, setMinQty] = useState("");
   const [maxQty, setMaxQty] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [onlyInStock, setOnlyInStock] = useState(false);
+  const [findingInvoice, setFindingInvoice] = useState(false);
   const [filteredMedicines, setFilteredMedicines] = useState(
     medicineStock?.medicines
   );
 
   const sectionType = useStockType();
+
+  async function handleGetPurchaseInvocie(invoiceId, stockId) {
+    try {
+      setFindingInvoice(true);
+      let result = await fetch(
+        `/api/newPurchaseInvoice/getInvoice?invoiceId=${invoiceId}&stockId=${stockId}&sectionType=${sectionType}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      result = await result.json();
+      if (result.success) {
+        setStockDetails(result.purchaseInvoice);
+      } else {
+        showError(result.message);
+      }
+    } catch (error) {
+      console.error("Error fetching purchase invoice:", error);
+      showError("Failed to fetch purchase invoice.");
+    } finally {
+      setFindingInvoice(false);
+    }
+  }
 
   useEffect(() => {
     setFilteredMedicines(medicineStock?.medicines);
@@ -344,10 +374,10 @@ function GodownStock({ medicineStock, query }) {
                               " Strips"}
                           </div>
                           <div className="w-[10%]">
-                            {"P: " + stock.purchasePrice}
+                            {"P: " + parseFloat(stock.purchasePrice?.toFixed(2))}
                           </div>
                           <div className="w-[10%]">
-                            {"S: " + stock.sellingPrice}
+                            {"S: " + parseFloat(stock.sellingPrice?.toFixed(2))}
                           </div>
                           <div className="w-1/5">
                             {"Mfg: " +
@@ -356,9 +386,30 @@ function GodownStock({ medicineStock, query }) {
                                 : "Not set")}
                           </div>
                         </div>
+                        <div className="flex justify-center gap-4 items-center">
                         <div className="text-sm text-center text-gray-500 font-semibold">
                           {"Stock Added on: " + stock.createdAt.split("T")[0]}
                         </div>
+                          <Button
+                            variant="link"
+                            onClick={() =>
+                              handleGetPurchaseInvocie(
+                                stock.invoiceId,
+                                stock._id
+                              )
+                            }
+                            className="text-blue-600 hover:text-blue-800"
+                            disabled={findingInvoice}
+                          >
+                            {findingInvoice ? "Fetching Details..." : "Get Invoice Details"}
+                          </Button>
+                        </div>
+                        {stockDetails && (
+                          <StockDetails
+                            stockDetails={stockDetails}
+                            setStockDetails={setStockDetails}
+                          />
+                        )}
                       </div>
                     ))}
                   </div>

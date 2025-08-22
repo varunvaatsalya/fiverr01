@@ -7,20 +7,24 @@ import { formatDateToIST } from "@/app/utils/date";
 import { showSuccess, showError } from "@/app/utils/toast";
 import { Button } from "@/components/ui/button";
 
+const alphabets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+
 export default function EditStockForm() {
   const [stocks, setStocks] = useState([]);
   const [changedStocks, setChangedStocks] = useState([]);
+  const [selectedLetter, setSelectedLetter] = useState("A");
   const [submitting, setSubmitting] = useState(false);
   const [accessInfo, setAccessInfo] = useState(null);
 
   useEffect(() => {
-    fetch(`/api/newStock?batchInfo=1`)
+    setChangedStocks([]);
+    fetch(`/api/newStock?batchInfo=1&letter=${selectedLetter}`)
       .then((res) => res.json())
       .then((data) => {
         setStocks(data.stocks);
         setAccessInfo(data.accessInfo);
       });
-  }, []);
+  }, [selectedLetter]);
 
   const calculateBoxesAndExtra = (strips, stripsPerBox) => {
     const boxes = Math.floor(strips / stripsPerBox);
@@ -133,13 +137,35 @@ export default function EditStockForm() {
 
   return (
     <div className="p-4 space-y-2">
-      <Button
-        onClick={handleUpdate}
-        disabled={submitting || changedStocks.length === 0}
-      >
-        {submitting ? "Wait..." : "Update"}
-      </Button>
-      {stocks.map((med) => (
+      <div className="flex justify-between items-center gap-2 px-2">
+        <div className="flex flex-wrap justify-center items-center w-2/5 gap-2">
+          {alphabets.map((letter) => {
+            return (
+              <button
+                key={letter}
+                onClick={() => {
+                  setSelectedLetter(letter);
+                }}
+                className={
+                  "w-6 text-xs aspect-square border relative border-gray-900 text-black hover:bg-gray-800 hover:text-gray-100 rounded flex justify-center items-center" +
+                  (selectedLetter === letter
+                    ? " bg-gray-800 text-gray-100"
+                    : "")
+                }
+              >
+                {letter}
+              </button>
+            );
+          })}
+        </div>
+        <Button
+          onClick={handleUpdate}
+          disabled={submitting || changedStocks.length === 0}
+        >
+          {submitting ? "Wait..." : "Update"}
+        </Button>
+      </div>
+      {stocks.length > 0 ? stocks.map((med) => (
         <Card key={med.medicineId} className="p-4 space-y-2 border">
           <div className="flex items-center justify-start px-4 gap-4">
             <h2 className="text-lg font-bold">{med.medicine}</h2>
@@ -211,7 +237,7 @@ export default function EditStockForm() {
             ))}
           </div>
         </Card>
-      ))}
+      )):<div className="text-red-500 italic text-center font-semibold">*No Stock Found</div>}
     </div>
   );
 }

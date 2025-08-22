@@ -60,6 +60,12 @@ const purchaseInvoiceSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "FileAsset", // if you're storing bill photo
   },
+  billImageIds: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "FileAsset",
+    },
+  ],
   createdByRole: {
     type: String,
   },

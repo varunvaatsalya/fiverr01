@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { formatDateTimeToIST, formatDateToIST } from "../utils/date";
 import { PharmacyDetails } from "../HospitalDeatils";
 import { RiDiscountPercentFill } from "react-icons/ri";
+import { format } from "date-fns";
 
 function InvoicePharmacy({
   printInvoice,
@@ -178,7 +179,7 @@ function InvoicePharmacy({
                         <th className="py-1 px-2 border border-black w-24">
                           Batch
                         </th>
-                        <th className="p-1 border border-black w-28">Expiry</th>
+                        <th className="p-1 border border-black w-24">Expiry</th>
                         <th className="p-1 border border-black w-28">
                           Price (₹)
                         </th>
@@ -188,62 +189,68 @@ function InvoicePharmacy({
                 </thead>
                 <tbody>
                   {printInvoice.medicines.map((item, index) => {
-                    const total = item.allocatedStock.reduce(
-                      (sum, stock) => {
-                        sum.strips += stock.quantity.strips;
-                        sum.tablets += stock.quantity.tablets;
-                        return sum;
-                      },
-                      { strips: 0, tablets: 0 }
-                    );
-                    const totalPrice = item.allocatedStock.reduce(
-                      (sum, stock) => {
-                        const stripPrice =
-                          stock.quantity.strips * stock.sellingPrice;
-                        const tabletPrice =
-                          stock.quantity.tablets *
-                          (stock.sellingPrice /
-                            item.medicineId.packetSize.tabletsPerStrip);
+                    return item.allocatedStock.map((stock, batchIndex) => {
+                      const stripPrice =
+                        stock.quantity.strips * stock.sellingPrice;
+                      const tabletPrice =
+                        stock.quantity.tablets *
+                        (stock.sellingPrice /
+                          item.medicineId.packetSize.tabletsPerStrip);
 
-                        return sum + stripPrice + tabletPrice;
-                      },
-                      0
-                    );
+                      const totalQty =
+                        stock.quantity.strips +
+                        (stock.quantity.tablets
+                          ? `S/${stock.quantity.tablets}T`
+                          : "");
 
-                    return (
-                      <tr key={index} className="text-xs">
-                        <td className="p-1 border border-black text-center w-12">
-                          {index + 1 + "."}
-                        </td>
-                        <td className={"p-1 border border-black text-start"}>
-                          {item.medicineId.name}
-                        </td>
-                        {!isToken && (
-                          <>
-                            <td className="p-1 border border-black text-center w-16">
-                              {total.strips +
-                                (total.tablets
-                                  ? "S/" + total.tablets + "T"
-                                  : "")}
+                      const totalPrice = parseFloat(
+                        (stripPrice + tabletPrice).toFixed(2)
+                      );
+
+                      return (
+                        <tr key={`${index}-${batchIndex}`} className="text-xs">
+                          {/* Sr. no. with rowspan */}
+                          {batchIndex === 0 && (
+                            <td
+                              rowSpan={item.allocatedStock.length}
+                              className="p-1 border border-black text-center w-12 align-top"
+                            >
+                              {index + 1}.
                             </td>
-                            <td className="py-1 px-2 border border-black text-center w-24">
-                              {item.allocatedStock[0].sellingPrice}
+                          )}
+
+                          {/* Medicine name with rowspan */}
+                          {batchIndex === 0 && (
+                            <td
+                              rowSpan={item.allocatedStock.length}
+                              className="p-1 border border-black text-start align-top"
+                            >
+                              {item.medicineId.name}
                             </td>
-                            <td className="py-1 px-2 border border-black text-center w-24">
-                              {item.allocatedStock[0].batchName}
-                            </td>
-                            <td className="p-1 border border-black text-center w-28">
-                              {formatDateToIST(
-                                item.allocatedStock[0].expiryDate
-                              )}
-                            </td>
-                            <td className="py-1 px-2 font-semibold border border-black text-end w-28">
-                              {parseFloat(totalPrice.toFixed(2))}
-                            </td>
-                          </>
-                        )}
-                      </tr>
-                    );
+                          )}
+
+                          {!isToken && (
+                            <>
+                              <td className="p-1 border border-black text-center w-16">
+                                {totalQty}
+                              </td>
+                              <td className="py-1 px-2 border border-black text-center w-24">
+                                {stock.sellingPrice}
+                              </td>
+                              <td className="py-1 px-2 border border-black text-center w-24">
+                                {stock.batchName}
+                              </td>
+                              <td className="p-1 border border-black text-center w-24">
+                                {format(new Date(stock.expiryDate), "dd/MM/yy")}
+                              </td>
+                              <td className="py-1 px-2 font-semibold border border-black text-end w-28">
+                                {totalPrice}
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      );
+                    });
                   })}
                 </tbody>
               </table>
@@ -253,7 +260,7 @@ function InvoicePharmacy({
                   (isToken ? "items-start" : "items-end")
                 }
               >
-                {printInvoice.price.discount>0 && (
+                {printInvoice.price.discount > 0 && (
                   <>
                     <p className="font-semibold text-base">
                       Sub Total: ₹{" "}

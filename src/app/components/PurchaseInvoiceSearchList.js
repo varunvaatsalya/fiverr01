@@ -5,10 +5,10 @@ import PharmacySectionComponent from "./PharmacySectionComponent";
 import NewPurchaseInvoice from "./NewPurchaseInvoice";
 import AdvPurchaseInvoiceSearch from "./AdvPurchaseInvoiceSearch";
 import StockDetails from "./StockDetails";
-import { formatDateTimeToIST, formatDateToIST } from "../utils/date";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import { FaCheckCircle, FaFileInvoiceDollar } from "react-icons/fa";
 import { useStockType } from "../context/StockTypeContext";
+import { format } from "date-fns";
 
 function PurchaseInvoiceSearchList({
   page,
@@ -20,7 +20,7 @@ function PurchaseInvoiceSearchList({
 }) {
   const [newPurchaseInvoiceSection, setNewPurchaseInvoiceSection] =
     useState(false);
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [expandedRow, setExpandedRow] = useState(null);
   const [stockDetails, setStockDetails] = useState(null);
   const [searchedPurchaseInvoices, setSearchedPurchaseInvoices] =
     useState(null);
@@ -63,7 +63,6 @@ function PurchaseInvoiceSearchList({
 
       const result = await response.json();
       if (result.success) {
-        setActiveIndex(null);
         setPurchaseInvoices((prevs) =>
           prevs.filter((invoice) => invoice._id !== id)
         );
@@ -73,6 +72,17 @@ function PurchaseInvoiceSearchList({
     }
     setIsDeleting(false);
   }
+
+  const formatDate = (date) => {
+    if (!date) return "-";
+    return format(new Date(date), "dd-MM-yyyy");
+  };
+
+  // date + precise time
+  const formatDateTime = (date) => {
+    if (!date) return "-";
+    return format(new Date(date), "dd-MM-yyyy hh:mm:ss a");
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -91,158 +101,115 @@ function PurchaseInvoiceSearchList({
           setStockDetails={setStockDetails}
         />
       )}
-      <Navbar route={["Pharmacy Invoice"]} />
-      <div className="px-2 lg:px-4 w-full md:w-4/5 lg:w-3/4 mx-auto flex-1">
-        <div className="h-16 py-2 flex justify-center gap-2 items-center">
+      <Navbar route={["Purchase Invoice"]} />
+      <div className="px-2 lg:px-4 w-full md:w-4/5 mx-auto flex-1">
+        <div className="h-12 py-1 flex justify-center gap-2 items-center">
           <input
             type="text"
             placeholder="Search"
-            // onChange={(e) => {
-            //   updatedata(e.target.value);
-            // }}
-            className="h-full w-full my-3 text-black text-xl font-medium px-4 rounded-full outline-none bg-gray-300 border-b-2 border-gray-400 focus:bg-gray-400"
+            className="h-9 w-full md:w-1/2 text-black text-sm px-3 rounded-md outline-none bg-gray-200 border border-gray-400 focus:bg-gray-300"
           />
         </div>
-        <div className="h-12 flex justify-center items-center text-xl rounded-full w-full px-2 md:w-4/5 lg:w-3/4 mx-auto bg-black text-white">
+        <div className="h-9 flex justify-center items-center text-base rounded-md w-full md:w-4/5 lg:w-3/4 mx-auto bg-black text-white font-medium">
           List of all the Purchase Invoices
         </div>
         <div className="flex flex-wrap justify-center items-center mx-auto">
           {copyInvoices.length > 0 ? (
-            copyInvoices.map((invoice, index) => (
-              <div
-                key={index}
-                className="text-black w-full px-2 md:w-4/5 lg:w-3/4 mx-auto"
-              >
-                <div
-                  className="px-4 py-2 cursor-pointer border-b-2 border-gray-300 hover:rounded-full hover:bg-gray-300 flex justify-between items-center"
-                  onClick={() =>
-                    setActiveIndex(activeIndex === index ? null : index)
-                  }
-                >
-                  <div className="">{index + 1}</div>
-                  <h3 className="font-semibold text-lg capitalize">
-                    {invoice.manufacturer
-                      ? invoice.manufacturer?.name
-                      : invoice.vendor?.name}
-                  </h3>
-                  <div className="">{invoice.invoiceNumber}</div>
-                  <div className="flex justify-center items-center gap-2">
-                    {invoice.isPaid ? (
-                      <FaCheckCircle className="text-green-600 size-5" />
-                    ) : (
-                      <FaFileInvoiceDollar className="text-red-600 size-6" />
-                    )}
-                    <span className="text-gray-500 w-4 text-center">
-                      {activeIndex === index ? "-" : "+"}
-                    </span>
-                  </div>
-                </div>
+            <table className="w-full text-sm border border-gray-300 text-black">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border px-2 py-1">#</th>
+                  <th className="border px-2 py-1">Manufacturer/Vendor</th>
+                  <th className="border px-2 py-1">Invoice No</th>
+                  <th className="border px-2 py-1">Invoice Date</th>
+                  <th className="border px-2 py-1">Received Date</th>
+                  <th className="border px-2 py-1">Created At</th>
+                  <th className="border px-2 py-1">Created By</th>
+                  <th className="border px-2 py-1">Status</th>
+                  <th className="border px-2 py-1">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {copyInvoices.map((invoice, index) => (
+                  <tr key={invoice._id} className="hover:bg-gray-50">
+                    <td className="border px-2 py-1 text-center">
+                      {index + 1}
+                    </td>
+                    <td className="border px-2 py-1 capitalize">
+                      {invoice.manufacturer
+                        ? invoice.manufacturer?.name
+                        : invoice.vendor?.name}
+                    </td>
+                    <td className="border px-2 py-1">
+                      {invoice.invoiceNumber}
+                    </td>
+                    <td className="border px-2 py-1">
+                      {formatDate(invoice.invoiceDate)}
+                    </td>
+                    <td className="border px-2 py-1">
+                      {formatDate(invoice.receivedDate)}
+                    </td>
+                    <td className="border px-2 py-1">
+                      {formatDateTime(invoice.createdAt)}
+                    </td>
 
-                {/* Patient Items (Shown when expanded) */}
-                {activeIndex === index && (
-                  <div className="w-full px-3 pb-3 bg-gray-200 rounded-b-xl ">
-                    <div className="flex flex-wrap gap-x-4 justify-around border-b-2 border-gray-400 py-2">
-                      <div className="py-1 px-4 ">
-                        Invoice Date:{" "}
-                        <span className="text-blue-500 font-semibold uppercase">
-                          {formatDateToIST(invoice.invoiceDate)}
-                        </span>
-                      </div>
-                      <div className="py-1 px-4 ">
-                        Received Date:{" "}
-                        <span className="text-blue-500 font-semibold uppercase">
-                          {formatDateToIST(invoice.receivedDate)}
-                        </span>
-                      </div>
-                      <div className="py-1 px-4 ">
-                        Created At:{" "}
-                        <span className="text-blue-500 font-semibold uppercase">
-                          {formatDateTimeToIST(invoice.createdAt)}
-                        </span>
-                      </div>
-                      {invoice.createdByRole && (
-                        <div className="py-1 px-4 ">
-                          Created By Role:{" "}
-                          <span className="text-blue-500 font-semibold capitalize">
-                            {invoice.createdByRole}
-                          </span>
-                        </div>
-                      )}
-                      {invoice.createdBy &&
-                        invoice.createdByRole !== "admin" && (
-                          <div className="py-1 px-4 ">
-                            Created By Name:{" "}
-                            <span className="text-blue-500 font-semibold capitalize">
-                              {invoice.createdBy?.name}
-                            </span>
-                          </div>
-                        )}
-                    </div>
-                    {/* <div className="max-h-80 overflow-y-auto">
-                      {invoice.medicines.map((medicine, it) => {
-                        const calculateTotalAllocated =
-                          medicine.allocatedStock.reduce(
-                            (totals, stock) => {
-                              totals.strips += stock.quantity.strips;
-                              totals.tablets += stock.quantity.tablets;
-                              return totals;
-                            },
-                            { strips: 0, tablets: 0 }
-                          );
-
-                        return (
-                          <div
-                            className="border-b-2 w-full mx-auto border-gray-300 flex flex-wrap"
-                            key={it}
-                          >
-                            <div className="w-1/3 p-2 text-center">
-                              {medicine.medicineId.name}
-                            </div>
-                            <div className="w-1/3 p-2 text-center">
-                              {medicine.medicineId.salts.name}
-                            </div>
-                            <div className="w-1/3 p-2 text-center">
-                              {(calculateTotalAllocated.strips
-                                ? calculateTotalAllocated.strips + " Strips"
-                                : "") +
-                                " " +
-                                (calculateTotalAllocated.tablets
-                                  ? calculateTotalAllocated.tablets + " Tablets"
-                                  : "")}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div> */}
-                    <div className="flex justify-between items-center gap-2 mt-3">
-                      {accessInfo?.accessRole === "admin" ? (
-                        <button
-                          className="py-1 px-2 text-sm text-white bg-red-600 disabled:bg-gray-600 rounded-lg font-semibold flex gap-1 items-center"
-                          onClick={() => {
-                            removeInvoice(invoice._id);
-                          }}
-                          disabled={isDeleting}
-                        >
-                          {isDeleting ? "Deleting..." : "Delete"}
-                        </button>
+                    <td className="border px-2 py-1">
+                      {invoice.createdByRole === "admin"
+                        ? "Admin"
+                        : invoice.createdBy?.name || "-"}
+                    </td>
+                    <td className="border px-2 py-1 text-center">
+                      {invoice.isPaid ? (
+                        <FaCheckCircle className="text-green-600 mx-auto" />
                       ) : (
-                        <div className="text-red-600">
-                          Contact admin to delete the invoice.
-                        </div>
+                        <FaFileInvoiceDollar className="text-red-600 mx-auto" />
                       )}
-                      <button
-                        className="py-1 px-2 text-sm text-white bg-blue-600 disabled:bg-gray-600 rounded-lg font-semibold flex gap-1 items-center"
-                        onClick={() => {
-                          setStockDetails(invoice);
-                        }}
-                      >
-                        View Stock Details
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))
+                    </td>
+                    <td className="border px-2 py-1 text-center">
+                      <div className="flex justify-center gap-2">
+                        {/* Always visible */}
+                        <button
+                          className="py-0.5 px-2 text-xs text-white bg-blue-600 rounded hover:bg-blue-700"
+                          onClick={() => setStockDetails(invoice)}
+                        >
+                          View
+                        </button>
+
+                        {/* Delete toggle - only for admin */}
+                        {accessInfo?.accessRole === "admin" && (
+                          <>
+                            {expandedRow === invoice._id ? (
+                              <>
+                                <button
+                                  className="py-0.5 px-2 text-xs text-white bg-red-600 rounded hover:bg-red-700"
+                                  onClick={() => removeInvoice(invoice._id)}
+                                  disabled={isDeleting}
+                                >
+                                  {isDeleting ? "..." : "Delete"}
+                                </button>
+                                <button
+                                  className="py-0.5 px-2 text-xs bg-gray-300 rounded hover:bg-gray-400"
+                                  onClick={() => setExpandedRow(null)}
+                                >
+                                  Close
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                className="py-0.5 px-2 text-xs text-white bg-gray-700 rounded hover:bg-gray-800"
+                                onClick={() => setExpandedRow(invoice._id)}
+                              >
+                                More
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
             <div className="text-gray-500 font-semibold text-lg">
               *No Invoice Records
@@ -250,42 +217,43 @@ function PurchaseInvoiceSearchList({
           )}
         </div>
       </div>
-      <div className="flex justify-end gap-2 pr-4 ">
+      <div className="flex justify-end gap-2 pr-4 mt-2">
         <div
-          className="px-4 py-3 bg-gray-900 text-white text-lg rounded-lg font-bold cursor-pointer"
+          className="px-3 py-1 bg-gray-900 text-white text-sm rounded cursor-pointer"
           onClick={() => {
-            if (advSearch) {
-              setSearchedPurchaseInvoices(null);
-            }
+            if (advSearch) setSearchedPurchaseInvoices(null);
             setAdvSearch(!advSearch);
           }}
         >
           {advSearch ? "Close" : "Advanced Search"}
         </div>
+
         {!advSearch && (
-          <div className="bg-gray-900 rounded-lg">
+          <div className="bg-gray-900 text-white rounded flex items-center text-sm">
             <button
               onClick={handlePreviousPage}
               disabled={page === 1}
-              className="p-3"
+              className="px-2 py-1 disabled:opacity-50"
             >
-              <FaArrowLeft size={20} />
+              <FaArrowLeft size={14} />
             </button>
-            <span className="text-white border-x border-white p-3">
-              Page {page} of {totalPages}
+            <span className="border-x border-white px-3 py-1">
+              Page {page} / {totalPages}
             </span>
             <button
               onClick={handleNextPage}
               disabled={page === totalPages}
-              className="p-3"
+              className="px-2 py-1 disabled:opacity-50"
             >
-              <FaArrowRight size={20} />
+              <FaArrowRight size={14} />
             </button>
           </div>
         )}
       </div>
       {advSearch && (
-        <AdvPurchaseInvoiceSearch setSearchedPurchaseInvoices={setSearchedPurchaseInvoices} />
+        <AdvPurchaseInvoiceSearch
+          setSearchedPurchaseInvoices={setSearchedPurchaseInvoices}
+        />
       )}
     </div>
   );
