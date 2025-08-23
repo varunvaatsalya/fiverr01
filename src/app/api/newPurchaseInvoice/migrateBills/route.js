@@ -1,5 +1,5 @@
-import dbConnect from "@/lib/dbConnect";
-import PurchaseInvoice from "@/models/PurchaseInvoice";
+import dbConnect from "@/app/lib/Mongodb";
+import PurchaseInvoice from "@/app/models/PurchaseInvoice";
 
 export async function GET() {
   try {

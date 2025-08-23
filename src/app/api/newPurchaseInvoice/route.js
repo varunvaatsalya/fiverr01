@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../utils/jwt";
-import { Manufacturer, Vendor } from "../../models/MedicineMetaData";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import { Manufacturer, Vendor } from "@/app/models/MedicineMetaData";
 import PurchaseInvoice, {
   HospitalPurchaseInvoice,
 } from "@/app/models/PurchaseInvoice";
 import PendingPurchaseInvoice from "@/app/models/PendingPurchaseInvoice";
 
-import { generateUID } from "../../utils/counter";
+import { generateUID } from "@/app/utils/counter";
 import { Medicine } from "@/app/models";
 
 // function getGrandTotal(medicineDetails) {
