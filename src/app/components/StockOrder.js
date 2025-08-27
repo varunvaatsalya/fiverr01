@@ -224,35 +224,50 @@ function StockOrder({ manufacturers, vendors }) {
   };
 
   const groupedBySource = useMemo(() => {
-    if (isManualMode) {
-      return {
-        1: {
-          sourceId: "1",
-          sourceName: "Manual Mode",
-          items: selectedMedicines,
-        },
+  if (isManualMode) {
+    return {
+      1: {
+        sourceId: "1",
+        sourceName: "Manual Mode",
+        items: selectedMedicines,
+      },
+    };
+  }
+
+  const groups = selectedMedicines.reduce((acc, medicine) => {
+    const sourceId = medicine.latestSource?.id || "0";
+    const sourceName =
+      medicine.latestSource?.name || "Last Source Not Available!";
+    const sourceType = medicine.latestSource?.type || "";
+
+    if (!acc[sourceId]) {
+      acc[sourceId] = {
+        sourceId,
+        sourceType,
+        sourceName,
+        items: [],
       };
     }
 
-    return selectedMedicines.reduce((acc, medicine) => {
-      const sourceId = medicine.latestSource?.id || "0";
-      const sourceName =
-        medicine.latestSource?.name || "Last Source Not Available!";
-      const sourceType = medicine.latestSource?.type || "";
+    acc[sourceId].items.push(medicine);
+    return acc;
+  }, {});
 
-      if (!acc[sourceId]) {
-        acc[sourceId] = {
-          sourceId,
-          sourceType,
-          sourceName,
-          items: [],
-        };
-      }
+  const sortedEntries = Object.values(groups).sort((a, b) => {
+    if (a.sourceName === "Last Source Not Available!" && b.sourceName !== "Last Source Not Available!") {
+      return -1;
+    }
+    if (b.sourceName === "Last Source Not Available!" && a.sourceName !== "Last Source Not Available!") {
+      return 1;
+    }
+    return a.sourceName.localeCompare(b.sourceName);
+  });
+  return sortedEntries.reduce((acc, group) => {
+    acc[group.sourceId] = group;
+    return acc;
+  }, {});
+}, [selectedMedicines, isManualMode]);
 
-      acc[sourceId].items.push(medicine);
-      return acc;
-    }, {});
-  }, [selectedMedicines, isManualMode]);
 
   const toggleOpenCollapse = (sourceId) => {
     setOpenCollapsedSources((prev) => ({
