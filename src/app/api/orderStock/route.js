@@ -228,7 +228,7 @@ export async function GET(req) {
           packetSize: 1,
           manufacturer: "$manufacturerDoc.name",
           salts: "$saltDocs.name",
-          totalBoxes: 1,
+          // totalBoxes: 1,
           totalStrips: 1,
           medicineType: 1,
           minimumStockCount: 1,
@@ -293,7 +293,7 @@ export async function POST(req) {
   const { to, mrName, contact, medicines, sectionType } = await req.json();
 
   try {
-    console.log(to, mrName, contact, medicines, sectionType);
+    // console.log(to, mrName, contact, medicines, sectionType);
     if (!to || !contact) {
       return NextResponse.json(
         {

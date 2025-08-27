@@ -50,8 +50,11 @@ function Page() {
         return med.requests?.some((req) => req.status === "Approved");
       }
 
-      if (filterType === "outofstock") {
+      if (filterType === "belowminimum") {
         return med.totalStrips < (med.minimumStockCount || 0);
+      }
+      if (filterType === "outofstock") {
+        return med.totalStrips < (med.minimumStockCount / 2 || 0);
       }
 
       return true;
@@ -99,6 +102,7 @@ function Page() {
           >
             <option value="all">All</option>
             <option value="outofstock">Out of Stock</option>
+            <option value="belowminimum">Below Minimum</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
           </select>

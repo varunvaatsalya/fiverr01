@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import RetailStock from "@/app/components/RetailStock";
+import { showError } from "@/app/utils/toast";
 
 const alphabets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ#"];
 
@@ -45,9 +46,9 @@ function Page() {
       .then((data) => {
         if (data.success) {
           let groupdData = groupAndCountMedicines(data.medicines);
-          console.log(data.medicines);
+          // console.log(data.medicines);
           setMedicineStock(groupdData);
-        } else console.log(data.message);
+        } else showError(data.message);
       });
   }, [selectedLetter]);
 

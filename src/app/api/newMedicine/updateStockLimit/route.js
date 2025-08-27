@@ -110,7 +110,7 @@ export async function GET(req) {
       // if (t < 0.5 * s) forecast = s;
 
       // convert forecast (tablets/week) -> strips/week
-      const forecastStrips = Math.round(forecast / tabletsPerStrip);
+      const forecastStrips = Math.ceil(forecast / tabletsPerStrip); // floor 1.8->1, ceil 1.2->2
 
       // stock levels
       const minGodownStrips = forecastStrips * 4; // 4 weeks

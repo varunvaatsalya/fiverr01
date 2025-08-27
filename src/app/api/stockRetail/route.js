@@ -29,7 +29,10 @@ export async function GET(req) {
     res.cookies.delete("authToken");
     return res;
   }
-  if (userRole === "stockist" && !userEditPermission) {
+  if (
+    userRole !== "admin" &&
+    !(userRole === "stockist" && userEditPermission)
+  ) {
     return NextResponse.json(
       { message: "Access denied.", success: false },
       { status: 403 }

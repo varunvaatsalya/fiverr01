@@ -38,12 +38,12 @@ function StockOrder({ manufacturers, vendors }) {
   const [searchedMedicines, setSearchedMedicines] = useState([]);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
   const [availableSources, setAvailableSources] = useState([]);
-  const [isRemoveAllZero, setIsRemoveAllZero] = useState(false);
+  const [isRemoveAllZero, setIsRemoveAllZero] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isManualMode, setIsManualMode] = useState(false);
   const [selectedSource, setSelectedSource] = useState(null);
-  const [collapsedSources, setCollapsedSources] = useState({});
+  const [openCollapsedSources, setOpenCollapsedSources] = useState({});
 
   const sectionType = useStockType();
 
@@ -56,7 +56,7 @@ function StockOrder({ manufacturers, vendors }) {
           showError(data.message);
         }
         setData(data.medicinesWithStock);
-        console.log(data.medicinesWithStock);
+        // console.log(data.medicinesWithStock);
         let sources = Array.from(
           data?.medicinesWithStock
             ?.filter((item) => item.latestSource !== null)
@@ -254,8 +254,8 @@ function StockOrder({ manufacturers, vendors }) {
     }, {});
   }, [selectedMedicines, isManualMode]);
 
-  const toggleCollapse = (sourceId) => {
-    setCollapsedSources((prev) => ({
+  const toggleOpenCollapse = (sourceId) => {
+    setOpenCollapsedSources((prev) => ({
       ...prev,
       [sourceId]: !prev[sourceId],
     }));
@@ -694,19 +694,19 @@ Required Quantity: *${qtyStr}*
                       className="space-y-1 bg-gray-800 p-2 rounded-lg"
                     >
                       <div
-                        onClick={() => toggleCollapse(key)}
+                        onClick={() => toggleOpenCollapse(key)}
                         title={
-                          collapsedSources[key]
-                            ? "Click to Expand"
-                            : "Click to Collapse"
+                          openCollapsedSources[key]
+                            ? "Click to Collapse"
+                            : "Click to Expand"
                         }
                         className="flex justify-between items-center gap-4 px-1 cursor-pointer"
                       >
                         <div className="flex items-center gap-3">
-                          {collapsedSources[key] ? (
-                            <FaChevronRight className="size-4" />
-                          ) : (
+                          {openCollapsedSources[key] ? (
                             <FaChevronDown className="size-4" />
+                          ) : (
+                            <FaChevronRight className="size-4" />
                           )}
                           <div
                             className={
@@ -720,7 +720,7 @@ Required Quantity: *${qtyStr}*
                           >
                             {group.sourceName}
                           </div>
-                          {collapsedSources[key] && (
+                          {!openCollapsedSources[key] && (
                             <div className="italic font-semibold text-sm">{`${group.items.length} Medicines`}</div>
                           )}
                         </div>
@@ -802,7 +802,7 @@ Required Quantity: *${qtyStr}*
                           </>
                         )}
                       </div>
-                      {!collapsedSources[key] &&
+                      {openCollapsedSources[key] &&
                         group.items.map((details, index) => (
                           <div
                             key={index}

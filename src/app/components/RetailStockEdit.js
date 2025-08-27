@@ -27,36 +27,6 @@ function RetailStockEdit() {
     return grouped;
   };
 
-  // const handleSearchMedicine = async () => {
-  //   if (query) {
-  //     try {
-  //       setMessage(null);
-  //       setFinding(true);
-  //       let result = await fetch(`/api/searchMedicine`, {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({
-  //           query,
-  //         }),
-  //       });
-  //       result = await result.json();
-
-  //       if (result.success) {
-  //         setSearchedMedicinesList(result.medicines);
-  //       }
-  //       setMessage(result.message);
-  //     } catch (error) {
-  //       console.error("Error submitting application:", error);
-  //     } finally {
-  //       setFinding(false);
-  //       setTimeout(() => {
-  //         setMessage("");
-  //       }, 3500);
-  //     }
-  //   }
-  // };
 
   const fetchData = async () => {
     try {
