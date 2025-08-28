@@ -23,6 +23,7 @@ function GodownStock({ medicineStock, query }) {
   );
 
   const sectionType = useStockType();
+  console.log(medicineStock);
 
   async function handleGetPurchaseInvocie(invoiceId, stockId) {
     try {
@@ -194,7 +195,7 @@ function GodownStock({ medicineStock, query }) {
                 <div className="w-[45%] px-3">{medicine.name}</div>
                 <div className="w-[45%] text-center text-sm">
                   {medicine.stocks.length > 0
-                    ? "Total Strips: " +
+                    ? (medicine.isTablets ? "Total Strips: " : "Total Unit: ") +
                       totalStrips +
                       " = Boxes: " +
                       totalBoxes +
@@ -233,17 +234,19 @@ function GodownStock({ medicineStock, query }) {
                       </span>
                     </div>
                     <div className="py-1 px-4 ">
-                      Pack:{" "}
+                      {medicine.isTablets ? "Strips " : "Unit "}
                       <span className="text-blue-500 font-semibold">
                         {medicine.packetSize?.strips}
                       </span>
                     </div>
-                    <div className="py-1 px-4 ">
-                      Tablets per strip:{" "}
-                      <span className="text-blue-500 font-semibold">
-                        {medicine.packetSize?.tabletsPerStrip}
-                      </span>
-                    </div>
+                    {medicine.isTablets && (
+                      <div className="py-1 px-4 ">
+                        Tablets per strip:{" "}
+                        <span className="text-blue-500 font-semibold">
+                          {medicine.packetSize?.tabletsPerStrip}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-center items-center gap-2 mt-2">
                     {medicine.minimumStockCount &&
@@ -365,16 +368,26 @@ function GodownStock({ medicineStock, query }) {
                             {"Expiry: " + stock.expiryDate.split("T")[0]}
                           </div>
                           <div className="w-[25%]">
-                            {stock.quantity.boxes +
+                            {(medicine.isTablets
+                              ? "Total Strips: "
+                              : "Total Unit: ") +
+                              stock.quantity.totalStrips + " = " +
+                              stock.quantity.boxes +
+                              " Boxes " +
+                              (stock.quantity.extra
+                                ? stock.quantity.extra + " Extra "
+                                : "")}
+                            {/* {stock.quantity.boxes +
                               " Boxes " +
                               (stock.quantity.extra
                                 ? stock.quantity.extra + " Extra "
                                 : "") +
                               stock.quantity.totalStrips +
-                              " Strips"}
+                              " Strips"} */}
                           </div>
                           <div className="w-[10%]">
-                            {"P: " + parseFloat(stock.purchasePrice?.toFixed(2))}
+                            {"P: " +
+                              parseFloat(stock.purchasePrice?.toFixed(2))}
                           </div>
                           <div className="w-[10%]">
                             {"S: " + parseFloat(stock.sellingPrice?.toFixed(2))}
@@ -387,9 +400,9 @@ function GodownStock({ medicineStock, query }) {
                           </div>
                         </div>
                         <div className="flex justify-center gap-4 items-center">
-                        <div className="text-sm text-center text-gray-500 font-semibold">
-                          {"Stock Added on: " + stock.createdAt.split("T")[0]}
-                        </div>
+                          <div className="text-sm text-center text-gray-500 font-semibold">
+                            {"Stock Added on: " + stock.createdAt.split("T")[0]}
+                          </div>
                           <Button
                             variant="link"
                             onClick={() =>
@@ -401,7 +414,9 @@ function GodownStock({ medicineStock, query }) {
                             className="text-blue-600 hover:text-blue-800"
                             disabled={findingInvoice}
                           >
-                            {findingInvoice ? "Fetching Details..." : "Get Invoice Details"}
+                            {findingInvoice
+                              ? "Fetching Details..."
+                              : "Get Invoice Details"}
                           </Button>
                         </div>
                         {stockDetails && (
