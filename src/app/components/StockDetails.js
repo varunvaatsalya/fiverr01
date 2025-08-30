@@ -109,8 +109,11 @@ import {
 import { format } from "date-fns";
 import { Info } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
+import { FaExpandArrowsAlt } from "react-icons/fa";
 
 export default function StockDetails({ stockDetails, setStockDetails }) {
+  const [expandBillImage, setExpandBillImage] = useState(false);
   const {
     invoiceNumber,
     vendorInvoiceId,
@@ -127,166 +130,190 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
   } = stockDetails;
 
   return (
-    <Dialog open={!!stockDetails} onOpenChange={() => setStockDetails(null)}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden text-black">
-        <DialogHeader className="flex flex-row justify-between items-center">
-          <div>
-            <DialogTitle className="text-xl">
-              Invoice #{invoiceNumber}
-            </DialogTitle>
-            <DialogDescription>
-              Added on: {format(new Date(createdAt), "dd/MM/yy")} | Received:{" "}
-              {format(new Date(receivedDate), "dd/MM/yy")}
-            </DialogDescription>
+    <>
+      <Dialog open={!!stockDetails} onOpenChange={() => setStockDetails(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden text-black">
+          <DialogHeader className="flex flex-row justify-between items-center">
+            <div>
+              <DialogTitle className="text-xl">
+                Invoice #{invoiceNumber}
+              </DialogTitle>
+              <DialogDescription>
+                Added on: {format(new Date(createdAt), "dd/MM/yy")} | Received:{" "}
+                {format(new Date(receivedDate), "dd/MM/yy")}
+              </DialogDescription>
+            </div>
+
+            {/* ℹ️ Info tooltip */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="text-muted-foreground">
+                    <Info className="w-5 h-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm text-xs">
+                  <p>
+                    <strong>Purchase Price:</strong> Final buying price (after
+                    taxes/discount)
+                  </p>
+                  <p>
+                    <strong>Purchase Rate:</strong> Raw base rate before
+                    discount/taxes
+                  </p>
+                  <p>
+                    <strong>Cost Price:</strong> What it costs with all charges
+                  </p>
+                  <p>
+                    <strong>Selling Price:</strong> Your MRP to sell
+                  </p>
+                  <p>
+                    <strong>Discount:</strong> % off on base rate
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </DialogHeader>
+
+          <Dialog open={expandBillImage} onOpenChange={setExpandBillImage}>
+            <DialogContent className="max-w-4xl max-h-[80vh] text-black p-4 flex flex-col justify-center items-center">
+              <DialogHeader>
+                <DialogTitle>Logo Preview</DialogTitle>
+              </DialogHeader>
+              {billImageId && billImageId.filepath && (
+                <img
+                  src={`/api${billImageId.filepath}`}
+                  alt="Expanded Logo"
+                  className="object-contain"
+                />
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Vendor Info */}
+          <div className="mb-4 text-sm flex justify-between gap-3 items-center">
+            <div>
+              <p>
+                <strong>Vendor Invoice Id:</strong> {vendorInvoiceId}
+              </p>
+              {vendor && (
+                <p>
+                  <strong>Vendor:</strong> {vendor?.name}
+                </p>
+              )}
+              {manufacturer && (
+                <p>
+                  <strong>Manufacturer:</strong> {manufacturer?.name}
+                </p>
+              )}
+              <p>
+                <strong>Contact:</strong>{" "}
+                {vendor
+                  ? vendor.contact
+                  : manufacturer?.medicalRepresentator?.contact}
+              </p>
+              <p>
+                <strong>Address:</strong> {vendor ? vendor.address : "-"}
+              </p>
+              <p>
+                <strong>Invoice Date:</strong>{" "}
+                {format(new Date(invoiceDate), "dd/MM/yy")}
+              </p>
+            </div>
+            {billImageId && billImageId.filepath && (
+              <div className="h-40 aspect-video relative border">
+                <Image
+                  height={800}
+                  width={800}
+                  src={`/api${billImageId.filepath}`}
+                  className="w-full h-full object-contain "
+                />
+                <div
+                  onClick={() => setExpandBillImage(true)}
+                  className="h-6 w-6 rounded-full flex justify-center items-center bg-gray-700 hover:bg-gray-800 cursor-pointer text-white absolute -bottom-2 -right-2"
+                >
+                  <FaExpandArrowsAlt className="w-4 h-4" />
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* ℹ️ Info tooltip */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="text-muted-foreground">
-                  <Info className="w-5 h-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-sm text-xs">
-                <p>
-                  <strong>Purchase Price:</strong> Final buying price (after
-                  taxes/discount)
-                </p>
-                <p>
-                  <strong>Purchase Rate:</strong> Raw base rate before
-                  discount/taxes
-                </p>
-                <p>
-                  <strong>Cost Price:</strong> What it costs with all charges
-                </p>
-                <p>
-                  <strong>Selling Price:</strong> Your MRP to sell
-                </p>
-                <p>
-                  <strong>Discount:</strong> % off on base rate
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </DialogHeader>
-
-        {/* Vendor Info */}
-        <div className="mb-4 text-sm flex justify-between gap-3 items-center">
-          <div>
-            <p>
-              <strong>Vendor Invoice Id:</strong> {vendorInvoiceId}
-            </p>
-            {vendor && (
-              <p>
-                <strong>Vendor:</strong> {vendor?.name}
-              </p>
-            )}
-            {manufacturer && (
-              <p>
-                <strong>Manufacturer:</strong> {manufacturer?.name}
-              </p>
-            )}
-            <p>
-              <strong>Contact:</strong>{" "}
-              {vendor
-                ? vendor.contact
-                : manufacturer?.medicalRepresentator?.contact}
-            </p>
-            <p>
-              <strong>Address:</strong> {vendor ? vendor.address : "-"}
-            </p>
-            <p>
-              <strong>Invoice Date:</strong> {format(new Date(invoiceDate), "dd/MM/yy")}
-            </p>
+          {/* Payment Info */}
+          <div className="mb-4 text-sm">
+            <h4 className="font-semibold">Payments</h4>
+            {payments.map((pay) => (
+              <div key={pay._id} className="text-muted-foreground mb-1">
+                {new Date(pay.date).toLocaleDateString()} - {pay.mode} - ₹
+                {pay.amount} {pay.referenceNumber && `(${pay.referenceNumber})`}
+              </div>
+            ))}
           </div>
-          {billImageId && billImageId.filepath && (
-            <div className="h-40 aspect-video">
-              <Image
-                height={800}
-                width={800}
-                src={`/api${billImageId.filepath}`}
-                className="w-full h-full object-contain "
-              />
-            </div>
-          )}
-        </div>
 
-        {/* Payment Info */}
-        <div className="mb-4 text-sm">
-          <h4 className="font-semibold">Payments</h4>
-          {payments.map((pay) => (
-            <div key={pay._id} className="text-muted-foreground mb-1">
-              {new Date(pay.date).toLocaleDateString()} - {pay.mode} - ₹
-              {pay.amount} {pay.referenceNumber && `(${pay.referenceNumber})`}
-            </div>
-          ))}
-        </div>
+          {/* Stocks Table */}
+          <ScrollArea className="max-h-[280px] border rounded-md">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Medicine</TableHead>
+                  <TableHead>Batch</TableHead>
+                  <TableHead>Expiry</TableHead>
+                  <TableHead>Qty</TableHead>
+                  <TableHead>Prices</TableHead>
+                  <TableHead>Taxes</TableHead>
+                  <TableHead>Subtotal</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stocks.map((item) => {
+                  const stock = item.stockId;
+                  const qtyStr = `${stock.quantity.totalStrips} (${
+                    stock.quantity.extra ? "~" : ""
+                  }${stock.quantity.boxes} Boxes)`;
 
-        {/* Stocks Table */}
-        <ScrollArea className="max-h-[280px] border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Medicine</TableHead>
-                <TableHead>Batch</TableHead>
-                <TableHead>Expiry</TableHead>
-                <TableHead>Qty</TableHead>
-                <TableHead>Prices</TableHead>
-                <TableHead>Taxes</TableHead>
-                <TableHead>Subtotal</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {stocks.map((item) => {
-                const stock = item.stockId;
-                const qtyStr = `${stock.quantity.totalStrips} (${
-                  stock.quantity.extra ? "~" : ""
-                }${stock.quantity.boxes} Boxes)`;
-
-                return (
-                  <TableRow key={stock._id}>
-                    <TableCell>{stock.medicine.name}</TableCell>
-                    <TableCell>{stock.batchName}</TableCell>
-                    <TableCell>
-                      {new Date(stock.expiryDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <div>{qtyStr}</div>
-                      {<div>offer: {stock.offer ?? "-"}</div>}
-                    </TableCell>
-                    <TableCell className="text-sm leading-tight">
-                      <div>PP: ₹{stock.purchasePrice ?? "-"}</div>
-                      <div>PR: ₹{stock.purchaseRate ?? "-"}</div>
-                      <div>CP: ₹{stock.costPrice ?? "-"}</div>
-                      <div>SP: ₹{stock.sellingPrice ?? "-"}</div>
-                      <div>Disc: {stock.discount ?? 0}%</div>
-                    </TableCell>
-                    <TableCell>
-                      {(stock.taxes?.sgst ?? 0) + (stock.taxes?.cgst ?? 0)}%
-                      <br />
-                      <span className="text-xs text-muted-foreground">
-                        ({stock.taxes?.sgst ?? 0}% SGST +{" "}
-                        {stock.taxes?.cgst ?? 0}% CGST)
-                      </span>
-                    </TableCell>
-                    <TableCell>₹{stock.totalAmount ?? "-"}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-        <DialogFooter className="mt-4 flex flex-col items-end gap-1 text-sm font-medium">
-          <p>
-            Status:{" "}
-            <span className={isPaid ? "text-green-600" : "text-red-600"}>
-              {isPaid ? "Paid" : "Unpaid"}
-            </span>
-          </p>
-          <p>Total: ₹{grandTotal}</p>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+                  return (
+                    <TableRow key={stock._id}>
+                      <TableCell>{stock.medicine.name}</TableCell>
+                      <TableCell>{stock.batchName}</TableCell>
+                      <TableCell>
+                        {new Date(stock.expiryDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div>{qtyStr}</div>
+                        {<div>offer: {stock.offer ?? "-"}</div>}
+                      </TableCell>
+                      <TableCell className="text-sm leading-tight">
+                        <div>PP: ₹{stock.purchasePrice ?? "-"}</div>
+                        <div>PR: ₹{stock.purchaseRate ?? "-"}</div>
+                        <div>CP: ₹{stock.costPrice ?? "-"}</div>
+                        <div>SP: ₹{stock.sellingPrice ?? "-"}</div>
+                        <div>Disc: {stock.discount ?? 0}%</div>
+                      </TableCell>
+                      <TableCell>
+                        {(stock.taxes?.sgst ?? 0) + (stock.taxes?.cgst ?? 0)}%
+                        <br />
+                        <span className="text-xs text-muted-foreground">
+                          ({stock.taxes?.sgst ?? 0}% SGST +{" "}
+                          {stock.taxes?.cgst ?? 0}% CGST)
+                        </span>
+                      </TableCell>
+                      <TableCell>₹{stock.totalAmount ?? "-"}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+          <DialogFooter className="mt-4 flex flex-col items-end gap-1 text-sm font-medium">
+            <p>
+              Status:{" "}
+              <span className={isPaid ? "text-green-600" : "text-red-600"}>
+                {isPaid ? "Paid" : "Unpaid"}
+              </span>
+            </p>
+            <p>Total: ₹{grandTotal}</p>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

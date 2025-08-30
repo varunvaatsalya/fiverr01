@@ -215,7 +215,7 @@ export default function PurchaseInvoiceReport() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Vendor</TableHead>
+                        <TableHead className="w-1/2">Vendor</TableHead>
                         <TableHead>Count</TableHead>
                         <TableHead>Boxes</TableHead>
                         <TableHead>Strips</TableHead>
