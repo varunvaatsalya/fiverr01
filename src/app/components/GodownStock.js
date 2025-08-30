@@ -371,7 +371,8 @@ function GodownStock({ medicineStock, query }) {
                             {(medicine.isTablets
                               ? "Total Strips: "
                               : "Total Unit: ") +
-                              stock.quantity.totalStrips + " = " +
+                              stock.quantity.totalStrips +
+                              " = " +
                               stock.quantity.boxes +
                               " Boxes " +
                               (stock.quantity.extra
@@ -399,9 +400,13 @@ function GodownStock({ medicineStock, query }) {
                                 : "Not set")}
                           </div>
                         </div>
-                        <div className="flex justify-center gap-4 items-center">
+                        <div className="flex justify-center gap-x-4 items-center">
                           <div className="text-sm text-center text-gray-500 font-semibold">
                             {"Stock Added on: " + stock.createdAt.split("T")[0]}
+                          </div>
+                          <div className="text-sm text-center text-gray-500 font-semibold">
+                            {"Added Qty: " +
+                              stock.initialQuantity?.totalStrips || "--"}
                           </div>
                           <Button
                             variant="link"

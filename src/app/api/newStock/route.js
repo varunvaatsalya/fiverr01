@@ -208,6 +208,7 @@ export async function GET(req) {
             mfgDate: 1,
             expiryDate: 1,
             quantity: 1,
+            initialQuantity: 1,
             purchasePrice: 1,
             sellingPrice: 1,
             invoiceId: 1,
@@ -582,7 +583,7 @@ export async function PUT(req) {
           path: "medicine",
           select: "name packetSize",
         });
-        console.log(stockId, stock, sellingPrice, totalStrips);
+        // console.log(stockId, stock, sellingPrice, totalStrips);
 
         if (!stock || !stock.medicine) {
           failedMedicineNames.push(stock?.medicine?.name || "Unknown Medicine");
