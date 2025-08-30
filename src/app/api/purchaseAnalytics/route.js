@@ -27,25 +27,25 @@ export async function GET(req) {
   const Model =
     sectionType === "hospital" ? HospitalPurchaseInvoice : PurchaseInvoice;
 
-  // const token = req.cookies.get("authToken");
-  // if (!token) {
-  //   console.log("Token not found. Redirecting to login.");
-  //   return NextResponse.json(
-  //     { message: "Access denied. No token provided.", success: false },
-  //     { status: 401 }
-  //   );
-  // }
+  const token = req.cookies.get("authToken");
+  if (!token) {
+    console.log("Token not found. Redirecting to login.");
+    return NextResponse.json(
+      { message: "Access denied. No token provided.", success: false },
+      { status: 401 }
+    );
+  }
 
-  // const decoded = await verifyTokenWithLogout(token.value);
-  // const userRole = decoded?.role;
-  // if (!decoded || !userRole) {
-  //   let res = NextResponse.json(
-  //     { message: "Invalid token.", success: false },
-  //     { status: 403 }
-  //   );
-  //   res.cookies.delete("authToken");
-  //   return res;
-  // }
+  const decoded = await verifyTokenWithLogout(token.value);
+  const userRole = decoded?.role;
+  if (!decoded || !userRole) {
+    let res = NextResponse.json(
+      { message: "Invalid token.", success: false },
+      { status: 403 }
+    );
+    res.cookies.delete("authToken");
+    return res;
+  }
 
   try {
     let startDate = new Date(start);
@@ -104,12 +104,12 @@ export async function GET(req) {
               vendorName: "$vendor.name",
             },
             purchaseCount: { $sum: 1 },
-            totalQtyBoxes: { $sum: "$stockDetails.quantity.boxes" },
-            totalQtyStrips: { $sum: "$stockDetails.quantity.totalStrips" },
+            totalQtyBoxes: { $sum: "$stockDetails.initialQuantity.boxes" },
+            totalQtyStrips: { $sum: "$stockDetails.initialQuantity.totalStrips" },
             totalAmount: {
               $sum: {
                 $multiply: [
-                  "$stockDetails.quantity.totalStrips",
+                  "$stockDetails.initialQuantity.totalStrips",
                   "$stockDetails.purchasePrice",
                 ],
               },
