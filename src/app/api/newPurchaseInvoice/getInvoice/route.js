@@ -71,6 +71,9 @@ export async function GET(req) {
         path: "billImageId",
       })
       .populate({
+        path: "billImageIds",
+      })
+      .populate({
         path: "createdBy",
         select: "name email",
       })

@@ -6,7 +6,7 @@ import Loading from "./Loading";
 import { useStockType } from "../context/StockTypeContext";
 import { RiLoader2Line } from "react-icons/ri";
 import { showError, showInfo } from "../utils/toast";
-import ImageDropUploader from "./ImageDropUploader";
+import MultiImageUploader from "./MultiImageUploader";
 
 function NewStockForm({
   medicines,
@@ -18,31 +18,65 @@ function NewStockForm({
 }) {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [editInvoices, setEditInvoices] = useState([]);
+  const [selectedEditInvoice, setSelectedEditInvoice] = useState(null);
 
   const sectionType = useStockType();
 
-  const { register, handleSubmit, control, setValue, watch, reset } = useForm({
-    defaultValues: {
-      invoiceNumber: uniqueID || "",
-      vendorInvoiceId: "",
-      type: type || "vendor",
-      source: "",
-      invoiceDate: "",
-      receivedDate: "",
-      stocks: [],
-      billImageId: "",
-      isBackDated: false,
-    },
-  });
+  useEffect(() => {
+    async function fetchEditInvoices() {
+      try {
+        let result = await fetch(
+          "/api/newPurchaseInvoice?editInvoice=1&sectionType=" + sectionType
+        );
+        result = await result.json();
+        if (result.success) {
+          setEditInvoices(result.editInvoices || []);
+        }
+      } catch (err) {
+        console.log("error: ", err);
+      }
+    }
+    fetchEditInvoices();
+  }, []);
+
+  const defaultValues = {
+    invoiceNumber: uniqueID || "",
+    vendorInvoiceId: "",
+    type: type || "vendor",
+    source: "",
+    invoiceDate: "",
+    receivedDate: "",
+    stocks: [],
+    // billImageId: "",
+    billImageIds: [],
+    isBackDated: false,
+  };
+
+  const { register, handleSubmit, control, setValue, watch, reset, getValues } =
+    useForm({
+      defaultValues,
+    });
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "stocks",
   });
 
+  const {
+    fields: bills, // [{id, url}]
+    append: appendBill, // {id, url}
+    remove: removeBill, // (id) => {}
+    update: updateBill,
+  } = useFieldArray({
+    control,
+    name: "billImageIds",
+  });
+
   const stocks = watch("stocks") || [];
-  useEffect(() => {
-    console.log("Updated Stocks:", stocks);
-  }, [stocks]);
+  // useEffect(() => {
+  //   console.log("Updated Stocks:", stocks);
+  // }, [stocks]);
   useEffect(() => {
     if (uniqueID) {
       setValue("invoiceNumber", uniqueID);
@@ -50,14 +84,11 @@ function NewStockForm({
   }, [uniqueID, setValue]);
 
   async function onSubmit(data) {
-    console.log("Submitting data:", data);
-    if (!data.billImageId) {
-      showInfo("Please upload a bill image.");
-      return;
-    }
+    // console.log("Submitting data:", data);
+    // if (selectedEditInvoice) return;
+
     for (let i = 0; i < data.stocks.length; i++) {
       const stock = data.stocks[i];
-
       const qty = Number(stock.quantity || 0);
       const offer = Number(stock.offer || 0);
       const avlQty = Number(stock.availableQuantity || 0);
@@ -89,22 +120,55 @@ function NewStockForm({
         return;
       }
     }
+    // data.invoiceNumber = uniqueID;
+    const finalIds = data.billImageIds
+      .filter((img) => !(img.used && img.markForDelete))
+      .map((img) => img._id);
+
+    if (finalIds.length === 0) {
+      showError("At least one bill image is required");
+      return;
+    }
     setSubmitting(true);
-    data.invoiceNumber = uniqueID;
     try {
-      let result = await fetch("/api/newPurchaseInvoice", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...data, sectionType }),
-      });
+      let result = await fetch(
+        `/api/newPurchaseInvoice${selectedEditInvoice ? "?editMode=1" : ""}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...data,
+            billImageIds: finalIds,
+            sectionType,
+          }),
+        }
+      );
       result = await result.json();
       showInfo(result.message);
-      setResult(result.savedStocks);
+      // setResult(result.savedStocks);
       if (result.success) {
-        reset();
-        setUniqueID(result.newUniqueId);
+        const deleteExistingIds = data.billImageIds
+          .filter((img) => img.used && img.markForDelete)
+          .map((img) => img._id);
+
+        if (deleteExistingIds.length) {
+          await fetch("/api/uploads/delete?multiple=1", {
+            method: "POST",
+            body: JSON.stringify({ ids: deleteExistingIds }),
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        if (result.newUniqueId) setUniqueID(result.newUniqueId);
+        if (selectedEditInvoice) {
+          setEditInvoices((prev) =>
+            prev.filter((inv) => inv._id !== selectedEditInvoice)
+          );
+        }
+        setSelectedEditInvoice(null);
+        reset(defaultValues);
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -113,15 +177,58 @@ function NewStockForm({
     }
   }
   let isBackDated = watch("isBackDated");
+  let UniqueIdInvoiceNumber = watch("invoiceNumber");
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="w-full px-4 py-2 space-y-2 text-black rounded shadow"
     >
-      <h2 className="text-xl font-bold text-center">New Purchase Invoice</h2>
+      <div className="flex items-center justify-between px-3">
+        <h2 className="text-xl font-bold">New Purchase Invoice</h2>
+        <select
+          name="editInvoice"
+          id="editInvoice"
+          value={selectedEditInvoice || ""}
+          onChange={(e) => {
+            const selectedInvoice = editInvoices.find(
+              (inv) => inv._id === e.target.value
+            );
+            if (selectedInvoice) {
+              setType(selectedInvoice.type || "vendor");
+              selectedInvoice.billImageIds =
+                selectedInvoice.billImageIds?.map((img) => ({
+                  ...img,
+                  used: true,
+                  markForDelete: false,
+                })) || [];
+              setTimeout(() => {
+                reset(selectedInvoice);
+              }, 800);
+              setSelectedEditInvoice(selectedInvoice._id);
+            } else {
+              setSelectedEditInvoice(null);
+              reset(defaultValues);
+              setType("vendor");
+            }
+            console.log(getValues());
+          }}
+          className="border border-gray-300 rounded px-2 py-1 bg-gray-50"
+        >
+          <option value={""}>--Select Invoice To Edit--</option>
+          {editInvoices.length > 0 ? (
+            editInvoices.map((inv, idx) => (
+              <option key={idx} value={inv._id}>
+                {inv.invoiceNumber}
+              </option>
+            ))
+          ) : (
+            <option disabled>No Invoice for edit</option>
+          )}
+        </select>
+      </div>
       <hr className="border border-gray-300" />
 
-      <div className="w-full flex flex-col md:flex-row items-center gap-3">
+      <div className="w-full flex flex-col md:flex-row items-start gap-3">
         <div className="space-y-2 w-1/2">
           <div className="flex flex-wrap gap-4">
             <div>
@@ -129,8 +236,8 @@ function NewStockForm({
                 Auto Invoice ID
               </label>
               <div className="w-48 border border-gray-300 rounded px-2 py-1 text-center font-semibold bg-gray-100">
-                {uniqueID ? (
-                  uniqueID
+                {UniqueIdInvoiceNumber ? (
+                  UniqueIdInvoiceNumber
                 ) : (
                   <RiLoader2Line className="animate-spin mx-auto" />
                 )}
@@ -235,17 +342,24 @@ function NewStockForm({
             </div>
           </div>
         </div>
-        <div className="w-1/2 p-2 border-l border-gray-700 flex flex-col justify-center items-center gap-2">
+        <div className="w-1/2 px-2 space-y-2 border-t md:border-t-0 md:border-l border-gray-700">
           <label className="text-sm font-semibold">Upload Bill Image</label>
-          <div className="w-full md:w-2/5">
-            <ImageDropUploader
-              imageId={watch("billImageId")}
-              setImageId={(id) => setValue("billImageId", id)}
-              folder={
-                sectionType === "hospital"
-                  ? "hospitalPurchaseInvoice"
-                  : "pharmacyPurchaseInvoice"
-              }
+          <div className="w-full max-h-72 overflow-y-auto">
+            <MultiImageUploader
+              imageIds={watch("billImageIds") || []}
+              setImageIds={(ids) => setValue("billImageIds", ids)}
+              images={bills}
+              addImage={appendBill} // {id, url}
+              removeImage={removeBill} // (id) => {}
+              updateImage={updateBill} // (index, {id, url}) => {}
+              limit={10}
+              multiple={true}
+              // folder={
+              //   sectionType === "hospital"
+              //     ? "hospitalPurchaseInvoice"
+              //     : "pharmacyPurchaseInvoice"
+              // }
+              folder={"testFolder"}
               purpose={`invoice-${uniqueID}`}
             />
           </div>
@@ -295,6 +409,7 @@ function NewStockForm({
             </li>
           ))}
           <button
+            type="button"
             onClick={() => setResult(null)}
             className="text-white bg-blue-600 rounded-lg px-4 py-2 hover:bg-blue-700"
           >
@@ -547,7 +662,11 @@ function NewStockForm({
               className="bg-blue-600 hover:bg-blue-800 text-white py-2 px-4 rounded-lg font-semibold flex items-center gap-1"
             >
               {submitting ? <Loading size={15} /> : <></>}
-              {submitting ? "Wait..." : "Save Stock"}
+              {submitting
+                ? "Wait..."
+                : selectedEditInvoice
+                ? "Update Stock"
+                : "Save Stock"}
             </button>
           )}
         </div>

@@ -42,6 +42,7 @@ export async function GET(req) {
   let pending = req.nextUrl.searchParams.get("pending");
   let sectionType = req.nextUrl.searchParams.get("sectionType");
   let pendingInvoices = req.nextUrl.searchParams.get("pendingInvoices");
+  let editInvoice = req.nextUrl.searchParams.get("editInvoice");
 
   const Model = getModel(sectionType);
 
@@ -67,6 +68,66 @@ export async function GET(req) {
   }
 
   try {
+    if (editInvoice === "1" && sectionType) {
+      const rawEditInvoices = await PendingPurchaseInvoice.find({
+        status: "editing",
+        sectionType,
+      })
+        .sort({ _id: 1 })
+        .populate({
+          path: "billImageIds",
+        });
+      let editInvoices = rawEditInvoices.map((invoice) => ({
+        _id: invoice._id,
+        invoiceNumber: invoice.invoiceNumber || "",
+        vendorInvoiceId: invoice.vendorInvoiceId || "",
+        type: invoice.type?.toLowerCase() || "vendor",
+        source: invoice.source || "",
+        invoiceDate: invoice.invoiceDate
+          ? new Date(invoice.invoiceDate).toISOString().substring(0, 10)
+          : "",
+        receivedDate: invoice.receivedDate
+          ? new Date(invoice.receivedDate).toISOString().substring(0, 10)
+          : "",
+        stocks:
+          (invoice.stocks || []).map((stock) => ({
+            medicine: stock.medicine || "",
+            batchName: stock.batchName || "",
+            mfgDate: stock.mfgDate
+              ? new Date(stock.mfgDate).toISOString().substring(0, 10)
+              : "",
+            expiryDate: stock.expiryDate
+              ? new Date(stock.expiryDate).toISOString().substring(0, 10)
+              : "",
+            availableQuantity: invoice.isBackDated
+              ? stock.currentQuantity
+              : null,
+            quantity: stock.initialQuantity || null,
+            offer: stock.offer || null,
+            sellingPrice: stock.sellingPrice || null,
+            purchasePrice: stock.purchasePrice || null,
+            discount: stock.discount || null,
+            sgst: stock.sgst || null,
+            cgst: stock.cgst || null,
+          })) || [],
+        // billImageId: invoice.billImageId || "",
+        billImageIds:
+          (invoice.billImageIds || []).map((img) => ({
+            _id: img._id,
+            url: img.filepath,
+          })) || [],
+        isBackDated: invoice.isBackDated || false,
+      }));
+
+      return NextResponse.json(
+        {
+          editInvoices,
+          success: true,
+        },
+        { status: 200 }
+      );
+    }
+
     if (sourceType === "manufacturer" || sourceType === "vendor") {
       let response = { lists: [] };
       if (sourceType === "manufacturer") {
@@ -119,7 +180,13 @@ export async function GET(req) {
         })
         .populate({
           path: "billImageId",
+        })
+        .populate({
+          path: "billImageIds",
         });
+      const editingCount = await PendingPurchaseInvoice.countDocuments({
+        status: "editing",
+      });
       const rejectedCount = await PendingPurchaseInvoice.countDocuments({
         status: "rejected",
       });
@@ -128,6 +195,7 @@ export async function GET(req) {
         {
           pendingInvoices,
           rejectedCount,
+          editingCount,
           success: true,
         },
         { status: 200 }
@@ -165,6 +233,9 @@ export async function GET(req) {
         path: "billImageId",
       })
       .populate({
+        path: "billImageIds",
+      })
+      .populate({
         path: "createdBy",
         select: "name email",
       })
@@ -196,6 +267,8 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
+  let editMode = req.nextUrl.searchParams.get("editMode");
+
   await dbConnect();
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -222,10 +295,8 @@ export async function POST(req) {
     );
   }
 
-  // const { invoiceNumber, type, name, invoiceDate, receivedDate, sectionType } =
-  //   await req.json();
-
   const {
+    _id,
     stocks,
     invoiceNumber,
     vendorInvoiceId,
@@ -234,59 +305,90 @@ export async function POST(req) {
     invoiceDate,
     receivedDate,
     isBackDated,
-    billImageId,
+    // billImageId,
+    billImageIds,
     sectionType,
   } = await req.json();
 
   const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
-  console.log(stocks);
 
-  // const Model = getModel(sectionType);
+  let invoice = {
+    stocks: stocks.map((stock) => {
+      let initialQuantity = Number(stock.quantity) || 0;
+      let avlQuantity = Number(stock.availableQuantity) || 0;
+      let offer = Number(stock.offer) || 0;
+      let currentQuantity = isBackDated ? avlQuantity : initialQuantity + offer;
+      return {
+        medicine: stock.medicine,
+        batchName: stock.batchName || "N/A",
+        mfgDate: stock.mfgDate || "",
+        expiryDate: stock.expiryDate || "",
+        currentQuantity,
+        initialQuantity,
+        offer,
+        sellingPrice: Number(stock.sellingPrice) || 0,
+        purchasePrice: Number(stock.purchasePrice) || 0,
+        sgst: Number(stock.sgst) || 0,
+        cgst: Number(stock.cgst) || 0,
+        discount: Number(stock.discount) || 0,
+      };
+    }),
+    invoiceNumber,
+    vendorInvoiceId,
+    type: formattedType,
+    source,
+    invoiceDate,
+    receivedDate,
+    isBackDated,
+    billImageIds: billImageIds || [],
+    sectionType,
+    submittedBy: {
+      id: decoded._id,
+      email: decoded.email,
+      role: decoded.role,
+    },
+    status: "pending",
+  };
   try {
-    const newPendingPurchaseInvoice = new PendingPurchaseInvoice({
-      stocks: stocks.map((stock) => {
-        let initialQuantity = Number(stock.quantity) || 0;
-        let avlQuantity = Number(stock.availableQuantity) || 0;
-        let offer = Number(stock.offer) || 0;
-        let currentQuantity = isBackDated
-          ? avlQuantity
-          : initialQuantity + offer;
-        return {
-          medicine: stock.medicine,
-          batchName: stock.batchName || "N/A",
-          mfgDate: stock.mfgDate || "",
-          expiryDate: stock.expiryDate || "",
-          currentQuantity,
-          initialQuantity,
-          offer,
-          sellingPrice: Number(stock.sellingPrice) || 0,
-          purchasePrice: Number(stock.purchasePrice) || 0,
-          sgst: Number(stock.sgst) || 0,
-          cgst: Number(stock.cgst) || 0,
-          discount: Number(stock.discount) || 0,
-        };
-      }),
-      invoiceNumber,
-      vendorInvoiceId,
-      type: formattedType,
-      source,
-      invoiceDate,
-      receivedDate,
-      isBackDated,
-      billImageId,
-      sectionType,
-      submittedBy: {
-        id: decoded._id,
-        email: decoded.email,
-        role: decoded.role,
-      },
-    });
+    if (editMode === "1" && _id) {
+      let existingInvoice = await PendingPurchaseInvoice.findById(_id);
+      if (!existingInvoice) {
+        return NextResponse.json(
+          { message: "Invoice not found.", success: false },
+          { status: 404 }
+        );
+      }
+      if (existingInvoice.status !== "editing") {
+        return NextResponse.json(
+          {
+            message: "Only invoices in 'editing' status can be updated.",
+            success: false,
+          },
+          { status: 400 }
+        );
+      }
+      if (existingInvoice.sectionType !== sectionType) {
+        return NextResponse.json(
+          { message: "Section type cannot be changed.", success: false },
+          { status: 400 }
+        );
+      }
+      // update fields
+      Object.assign(existingInvoice, invoice);
+      await existingInvoice.save();
+      return NextResponse.json(
+        {
+          message: "Invoice updated successfully.",
+          success: true,
+          updatedInvoice: existingInvoice,
+        },
+        { status: 200 }
+      );
+    }
+    const newPendingPurchaseInvoice = new PendingPurchaseInvoice(invoice);
 
-    // // Save user to the database
     await newPendingPurchaseInvoice.save();
 
-    // console.log("New Purchase Invoice created:", newPendingPurchaseInvoice);
-    // Send response with UID
     const prefix = sectionType === "hospital" ? "HI" : "PI";
     let uniqueDigit = generateUID();
     let newUniqueId = `${prefix}${uniqueDigit}`;

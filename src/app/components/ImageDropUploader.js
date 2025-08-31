@@ -8,10 +8,12 @@ import imageCompression from "browser-image-compression";
 
 function ImageDropUploader({
   imageId,
-  setImageId,
+  addImage,
   folder = "general",
   purpose = "form-upload",
+  removeImage,
 }) {
+  console.log("uploader", imageId);
   const fileInputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const router = useRouter();
@@ -58,7 +60,7 @@ function ImageDropUploader({
       const data = await res.json();
       if (data.success) {
         setPreviewUrl(data.filepath);
-        setImageId(data.imageId);
+        addImage(data.imageId);
         // setTempImageId(data.imageId);
       } else {
         showError(data.message || "Image upload failed");
@@ -81,7 +83,7 @@ function ImageDropUploader({
       const body = JSON.stringify({ id: imageId });
       const blob = new Blob([body], { type: "application/json" });
       setPreviewUrl("");
-      setImageId(null);
+      removeImage(imageId);
       navigator.sendBeacon("/api/uploads/delete", blob);
     }
   };
@@ -115,59 +117,57 @@ function ImageDropUploader({
   const handleDragLeave = () => setIsDragging(false);
 
   return (
-    <>
-      <div className="flex items-start gap-1 w-full">
-        <div className="flex-1 aspect-video border-2 border-dashed rounded-md">
-          {previewUrl ? (
-            <Image
-              src={`/api${previewUrl}`}
-              alt="Preview"
-              width={256}
-              height={160}
-              className="w-full h-full object-contain rounded"
-            />
-          ) : (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              className={`w-full h-full flex justify-center items-center cursor-pointer ${
-                isDragging ? "border-blue-500 bg-blue-50" : "border-gray-400"
-              }`}
-            >
-              <p className="text-gray-400">
-                {isDragging
-                  ? "Drop image here"
-                  : uploading
-                  ? "Uploading..."
-                  : "Click or drag & drop image"}
-              </p>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </div>
-          )}
-        </div>
-
-        {previewUrl && (
-          <button
-            className="p-2 bg-red-600 text-white text-xs rounded-full"
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              deleteTempImage();
-            }}
+    <div className="flex items-start gap-1">
+      <div className="flex-1 aspect-video border-2 border-dashed rounded-md">
+        {previewUrl ? (
+          <Image
+            src={`/api${previewUrl}`}
+            alt="Preview"
+            width={256}
+            height={160}
+            className="w-full h-full object-contain rounded"
+          />
+        ) : (
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            className={`w-full h-full flex justify-center items-center cursor-pointer ${
+              isDragging ? "border-blue-500 bg-blue-50" : "border-gray-400"
+            }`}
           >
-            ✕
-          </button>
+            <p className="text-gray-400">
+              {isDragging
+                ? "Drop image here"
+                : uploading
+                ? "Uploading..."
+                : "Click or drag & drop image"}
+            </p>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </div>
         )}
       </div>
-    </>
+
+      {previewUrl && imageId && (
+        <button
+          className="p-2 bg-red-600 text-white text-xs rounded-full"
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            deleteTempImage();
+          }}
+        >
+          ✕
+        </button>
+      )}
+    </div>
   );
 }
 

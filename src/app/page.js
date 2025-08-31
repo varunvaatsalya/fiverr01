@@ -62,3 +62,31 @@ export default function Home() {
     </div>
   );
 }
+
+// Error handling stock transfer: Error: RetailStock validation failed: stocks.0.quantity.totalStrips: Path `quantity.totalStrips` is required.
+//     at ValidationError.inspect (/root/fiverr01/node_modules/mongoose/lib/error/validation.js:52:26)
+//     at formatValue (node:internal/util/inspect:805:19)
+//     at inspect (node:internal/util/inspect:364:10)
+//     at formatWithOptionsInternal (node:internal/util/inspect:2279:40)
+//     at formatWithOptions (node:internal/util/inspect:2141:10)
+//     at console.value (node:internal/console/constructor:352:14)
+//     at console.warn (node:internal/console/constructor:385:61)
+//     at m (/root/fiverr01/.next/server/app/api/stockRequest/receivedStock/route.js:1:2962)
+//     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+//     at async /root/fiverr01/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36957 {
+//   errors: {
+//     'stocks.0.quantity.totalStrips': ValidatorError: Path `quantity.totalStrips` is required.
+//         at validate (/root/fiverr01/node_modules/mongoose/lib/schemaType.js:1385:13)
+//         at SchemaType.doValidate (/root/fiverr01/node_modules/mongoose/lib/schemaType.js:1369:7)
+//         at /root/fiverr01/node_modules/mongoose/lib/document.js:3071:18
+//         at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+//       properties: [Object],
+//       kind: 'required',
+//       path: 'quantity.totalStrips',
+//       value: null,
+//       reason: undefined,
+//       [Symbol(mongoose#validatorError)]: true
+//     }
+//   },
+//   _message: 'RetailStock validation failed'
+// }

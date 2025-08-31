@@ -285,7 +285,7 @@ export async function POST(req) {
       { status: 400 }
     );
   }
-  if (!["approved", "rejected"].includes(status)) {
+  if (!["approved", "rejected", "editing"].includes(status)) {
     return NextResponse.json(
       { message: "Invalid status value", success: false },
       { status: 400 }
@@ -310,6 +310,15 @@ export async function POST(req) {
       { status: 400 }
     );
   }
+  if (status === "editing") {
+    pendingInvoice.status = "editing";
+    await pendingInvoice.save();
+    return NextResponse.json(
+      { message: "Invoice sent for editing successfully", success: true },
+      { status: 200 }
+    );
+  }
+
   if (status === "rejected") {
     pendingInvoice.status = "rejected";
     pendingInvoice.rejectionReason = rejectionReason;
@@ -332,6 +341,7 @@ export async function POST(req) {
     sectionType,
     stocks,
     billImageId,
+    billImageIds,
     submittedBy,
   } = pendingInvoice;
 
@@ -504,6 +514,7 @@ export async function POST(req) {
       stocks: insertedStocks,
       grandTotal,
       billImageId,
+      billImageIds,
       invoiceDate,
       receivedDate,
       createdByRole: submittedBy.role,

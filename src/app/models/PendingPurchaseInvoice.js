@@ -42,7 +42,12 @@ const PendingPurchaseInvoiceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "FileAsset", // if you're storing bill photo
     },
-
+    billImageIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "FileAsset",
+      },
+    ],
     submittedBy: {
       id: String,
       email: String,
@@ -50,7 +55,7 @@ const PendingPurchaseInvoiceSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "approved", "rejected", "editing"],
       default: "pending",
     },
     rejectionReason: { type: String },

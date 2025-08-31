@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, FileImage, Info } from "lucide-react";
 import { showError, showInfo, showSuccess } from "@/app/utils/toast";
@@ -24,67 +23,23 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
-// const sampleInvoices = [
-//   {
-//     _id: "1",
-//     invoiceNumber: "INV-001",
-//     vendorInvoiceId: "VEN-123",
-//     type: "vendor",
-//     name: "HealthCorp Pvt Ltd",
-//     invoiceDate: "2025-07-22",
-//     receivedDate: "2025-07-24",
-//     isBackDated: false,
-//     status: "pending",
-//     billImagePath: "/api/uploads/temp/sample1.jpg",
-//     stocks: [
-//       {
-//         medicine: "Paracetamol 500mg",
-//         quantity: 20,
-//         purchasePrice: 4.5,
-//         discount: 0.2,
-//       },
-//       {
-//         medicine: "Amoxicillin 250mg",
-//         quantity: 10,
-//         purchasePrice: 12.0,
-//         discount: 0,
-//       },
-//     ],
-//   },
-//   {
-//     _id: "2",
-//     invoiceNumber: "INV-002",
-//     vendorInvoiceId: "VEN-456",
-//     type: "manufacturer",
-//     name: "MediLife Inc.",
-//     invoiceDate: "2025-07-23",
-//     receivedDate: "2025-07-25",
-//     isBackDated: true,
-//     status: "pending",
-//     billImagePath: "/api/uploads/temp/sample2.jpg",
-//     stocks: [
-//       {
-//         medicine: "Cetirizine",
-//         quantity: 15,
-//         purchasePrice: 3,
-//         discount: 0,
-//       },
-//     ],
-//   },
-// ];
 
 function PurchaseInvoiceVerification() {
   const rotationSteps = [0, 90, 180, -90];
   const [rotate, setRotate] = useState(0);
   const [pendingInvoices, setPendingInvoices] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const [rejectedInvoiceCount, setRejectedInvoiceCount] = useState(0);
+  const [editingInvoiceCount, setEditingInvoiceCount] = useState(0);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const invoice = pendingInvoices[currentIndex] ?? null;
+  console.log(invoice);
 
   const rotateClass = {
     0: "rotate-0",
@@ -152,6 +107,7 @@ function PurchaseInvoiceVerification() {
         if (res.success) {
           setPendingInvoices(res.pendingInvoices || []);
           setRejectedInvoiceCount(res.rejectedCount || 0);
+          setEditingInvoiceCount(res.editingCount || 0);
         } else showError(res.message || "Failed to fetch invoices");
       } catch (error) {
         console.error("Failed to fetch pending invoices:", error);
@@ -209,32 +165,54 @@ function PurchaseInvoiceVerification() {
       // Adjust index safely
       if (currentIndex >= updated.length && updated.length > 0) {
         setCurrentIndex(updated.length - 1); // move to previous item if at end
+        setCurrentImgIndex(0);
       }
 
       return updated;
     });
   };
-  const handleSendForEdit = () => {
-    // setPendingInvoices((prev) => {
-    //   const updated = [...prev];
-    //   updated.splice(currentIndex, 1);
 
-    //   // Adjust index safely
-    //   if (currentIndex >= updated.length && updated.length > 0) {
-    //     setCurrentIndex(updated.length - 1); // move to previous item if at end
-    //   }
+  const handleSendForEdit = async () => {
+    setSubmitting(true);
 
-    //   return updated;
-    // });
+    try {
+      const res = await fetch("/api/newStock", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pendingInvoiceId: invoice._id,
+          status: "editing",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        showInfo(
+          data.message || `Invoice ${invoice.invoiceNumber} is send for edit.`
+        );
+        handleRemoveInvoice();
+      } else {
+        showError(data.message || `forwarding failed.`);
+      }
+    } catch (err) {
+      showError(`Something went wrong during sending invoice for edit.`);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handlePrev = () => {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
+    setCurrentImgIndex(0);
   };
 
   const handleNext = () => {
     if (currentIndex < pendingInvoices.length - 1)
       setCurrentIndex((i) => i + 1);
+    setCurrentImgIndex(0);
   };
 
   const handleKeyDown = useCallback(
@@ -252,9 +230,14 @@ function PurchaseInvoiceVerification() {
 
   return (
     <div>
-      {rejectedInvoiceCount > 0 && (
-        <div className="font-semibold text-center text-red-500">{`(${rejectedInvoiceCount} Rejected Invoice)`}</div>
-      )}
+      <div className="flex justify-center gap-2">
+        {rejectedInvoiceCount > 0 && (
+          <div className="font-semibold text-center text-red-500">{`(${rejectedInvoiceCount} Rejected Invoice)`}</div>
+        )}
+        {editingInvoiceCount > 0 && (
+          <div className="font-semibold text-center text-blue-500">{`(${editingInvoiceCount} Invoice is sent for Editing)`}</div>
+        )}
+      </div>
       {!invoice ? (
         <div className="text-center text-red-600 text-lg p-4">
           No Pending Invoice
@@ -284,27 +267,61 @@ function PurchaseInvoiceVerification() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
             {/* Left - Bill Image */}
             <Card className="flex items-center justify-center overflow-hidden h-full relative">
-              {invoice?.billImageId?.filepath ? (
+              {invoice?.billImageIds && invoice.billImageIds.length > 0 ? (
                 <div className="w-3/4 aspect-square">
                   <Image
-                    src={`/api${invoice.billImageId.filepath}`}
+                    src={`/api${invoice.billImageIds[currentImgIndex].filepath}`}
                     alt="Bill Image"
                     width={600}
                     height={800}
                     className={`object-contain w-full h-full transition-transform duration-300 ${rotateClass}`}
                   />
-                  <Button
-                    variant="outline"
-                    className="absolute right-2 top-2 text-black opacity-30 hover:opacity-90"
-                    onClick={() => {
-                      const currentIndex = rotationSteps.indexOf(rotate);
-                      const nextIndex =
-                        (currentIndex + 1) % rotationSteps.length;
-                      setRotate(rotationSteps[nextIndex]);
-                    }}
-                  >
-                    <FaArrowRotateRight className="size-5" />
-                  </Button>
+                  <div className="absolute right-2 top-2 flex flex-col gap-2">
+                    {/* Rotate */}
+                    <Button
+                      variant="outline"
+                      className="text-black opacity-30 hover:opacity-90"
+                      onClick={() => {
+                        const current = rotationSteps.indexOf(rotate);
+                        const next = (current + 1) % rotationSteps.length;
+                        setRotate(rotationSteps[next]);
+                      }}
+                    >
+                      <FaArrowRotateRight className="size-5" />
+                    </Button>
+
+                    {/* Prev */}
+                    <Button
+                      variant="outline"
+                      className="text-black opacity-30 hover:opacity-90"
+                      onClick={() => {
+                        setCurrentImgIndex((prev) =>
+                          prev > 0 ? prev - 1 : invoice.billImageIds.length - 1
+                        );
+                      }}
+                    >
+                      <FaArrowLeft className="size-5" />
+                    </Button>
+
+                    {/* Next */}
+                    <Button
+                      variant="outline"
+                      className="text-black opacity-30 hover:opacity-90"
+                      onClick={() => {
+                        setCurrentImgIndex(
+                          (prev) => (prev + 1) % invoice.billImageIds.length
+                        );
+                      }}
+                    >
+                      <FaArrowRight className="size-5" />
+                    </Button>
+                    <div
+                      className="bg-white shadow-md rounded-lg border border-muted opacity-40 hover:opacity-80 text-center font-semibold"
+                      variant="secondary"
+                    >
+                      {`${currentImgIndex + 1}/${invoice.billImageIds.length}`}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center text-gray-400">

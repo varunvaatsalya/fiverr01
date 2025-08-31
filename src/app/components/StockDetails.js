@@ -83,6 +83,7 @@
 
 // components/InvoiceModal.tsx
 
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -110,9 +111,13 @@ import { format } from "date-fns";
 import { Info } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { FaExpandArrowsAlt } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaExpandArrowsAlt } from "react-icons/fa";
+import { FaArrowRotateRight } from "react-icons/fa6";
 
 export default function StockDetails({ stockDetails, setStockDetails }) {
+  const rotationSteps = [0, 90, 180, -90];
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [rotate, setRotate] = useState(0);
   const [expandBillImage, setExpandBillImage] = useState(false);
   const {
     invoiceNumber,
@@ -126,8 +131,16 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
     grandTotal,
     isPaid,
     billImageId,
+    billImageIds,
     createdAt,
   } = stockDetails;
+
+  const rotateClass = {
+    0: "rotate-0",
+    90: "rotate-90",
+    180: "rotate-180",
+    [-90]: "-rotate-90",
+  }[rotate];
 
   return (
     <>
@@ -144,7 +157,6 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
               </DialogDescription>
             </div>
 
-            {/* ℹ️ Info tooltip */}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -175,18 +187,107 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
             </TooltipProvider>
           </DialogHeader>
 
-          <Dialog open={expandBillImage} onOpenChange={setExpandBillImage}>
-            <DialogContent className="max-w-4xl max-h-[80vh] text-black p-4 flex flex-col justify-center items-center">
-              <DialogHeader>
-                <DialogTitle>Logo Preview</DialogTitle>
+          {/* <Dialog open={expandBillImage} onOpenChange={setExpandBillImage}>
+            <DialogContent className="max-w-4xl h-[80vh] min-h-0 text-black p-4 flex flex-col">
+              <DialogHeader className="shrink-0">
+                <DialogTitle>Bill Preview</DialogTitle>
               </DialogHeader>
-              {billImageId && billImageId.filepath && (
-                <img
-                  src={`/api${billImageId.filepath}`}
-                  alt="Expanded Logo"
-                  className="object-contain"
-                />
-              )}
+
+              <div className="flex-1 min-h-0 overflow-auto">
+                {billImageId?.filepath && (
+                  <Image
+                    height={800}
+                    width={800}
+                    src={`/api${billImageId.filepath}`}
+                    alt="Expanded Logo"
+                    className={`object-contain w-full h-full transition-transform duration-300 ${rotateClass}`}
+                  />
+                )}
+              </div>
+
+              <div className="shrink-0 flex justify-center z-50">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-black"
+                  onClick={() => {
+                    const currentIndex = rotationSteps.indexOf(rotate);
+                    const nextIndex = (currentIndex + 1) % rotationSteps.length;
+                    setRotate(rotationSteps[nextIndex]);
+                  }}
+                >
+                  <FaArrowRotateRight className="size-5" />
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog> */}
+          <Dialog open={expandBillImage} onOpenChange={setExpandBillImage}>
+            <DialogContent className="max-w-4xl h-[80vh] min-h-0 text-black p-4 flex flex-col">
+              <DialogHeader className="shrink-0">
+                <DialogTitle>Bill Preview</DialogTitle>
+              </DialogHeader>
+
+              {/* Image container */}
+              <div className="flex-1 min-h-0 overflow-auto flex items-center justify-center">
+                {billImageIds && billImageIds.length > 0 && (
+                  <Image
+                    height={800}
+                    width={800}
+                    src={`/api${billImageIds[currentIndex].filepath}`}
+                    alt={`Expanded Bill ${currentIndex + 1}`}
+                    className={`object-contain w-full h-full transition-transform duration-300 ${rotateClass}`}
+                  />
+                )}
+              </div>
+
+              {/* Navigation + Rotate buttons */}
+              <div className="shrink-0 flex justify-center gap-2 mt-2">
+                {/* Rotate */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-black"
+                  onClick={() => {
+                    const current = rotationSteps.indexOf(rotate);
+                    const next = (current + 1) % rotationSteps.length;
+                    setRotate(rotationSteps[next]);
+                  }}
+                >
+                  <FaArrowRotateRight className="size-5" />
+                </Button>
+
+                {/* Prev */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-black"
+                  onClick={() =>
+                    setCurrentIndex((prev) =>
+                      prev > 0 ? prev - 1 : billImageIds.length - 1
+                    )
+                  }
+                >
+                  <FaArrowLeft className="size-5" />
+                </Button>
+
+                {/* Next */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-black"
+                  onClick={() =>
+                    setCurrentIndex((prev) => (prev + 1) % billImageIds.length)
+                  }
+                >
+                  <FaArrowRight className="size-5" />
+                </Button>
+                <div
+                  className="bg-white shadow-md rounded-lg border border-muted text-center font-semibold px-2"
+                  variant="secondary"
+                >
+                  {`${currentIndex + 1}/${billImageIds.length}`}
+                </div>
+              </div>
             </DialogContent>
           </Dialog>
 
@@ -220,19 +321,29 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
                 {format(new Date(invoiceDate), "dd/MM/yy")}
               </p>
             </div>
-            {billImageId && billImageId.filepath && (
-              <div className="h-40 aspect-video relative border">
-                <Image
-                  height={800}
-                  width={800}
-                  src={`/api${billImageId.filepath}`}
-                  className="w-full h-full object-contain "
-                />
-                <div
-                  onClick={() => setExpandBillImage(true)}
-                  className="h-6 w-6 rounded-full flex justify-center items-center bg-gray-700 hover:bg-gray-800 cursor-pointer text-white absolute -bottom-2 -right-2"
-                >
-                  <FaExpandArrowsAlt className="w-4 h-4" />
+            {billImageIds && billImageIds.length > 0 && (
+              <div className="flex items-center gap-2">
+                {/* First image preview */}
+                <div className="h-40 aspect-video relative border">
+                  <Image
+                    height={800}
+                    width={800}
+                    src={`/api${billImageIds[0].filepath}`}
+                    className="w-full h-full object-contain"
+                  />
+                  <div className="flex items-center gap-2 justify-end px-2 py-0.5">
+                    {billImageIds.length > 1 && (
+                      <p className="text-sm font-medium text-gray-700">
+                        +{billImageIds.length - 1} more
+                      </p>
+                    )}
+                    <div
+                      onClick={() => setExpandBillImage(true)}
+                      className="h-6 w-6 rounded-full flex justify-center items-center bg-gray-700 hover:bg-gray-800 cursor-pointer text-white"
+                    >
+                      <FaExpandArrowsAlt className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

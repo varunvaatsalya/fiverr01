@@ -46,6 +46,45 @@ export async function POST(req) {
       );
     }
 
+    const { searchParams } = new URL(req.url);
+    const multiple = searchParams.get("multiple") === "1";
+
+    if (multiple) {
+      const { ids = [] } = body || {};
+      if (!Array.isArray(ids) || !ids.length) {
+        return NextResponse.json(
+          { success: false, message: "No ids provided" },
+          { status: 400 }
+        );
+      }
+
+      const images = await FileAssets.find({ _id: { $in: ids } });
+
+      if (!images.length) {
+        return NextResponse.json(
+          { success: false, message: "No matching images found" },
+          { status: 404 }
+        );
+      }
+
+      for (const image of images) {
+        try {
+          const filePath = path.join(process.cwd(), image.filepath);
+          await fs.access(filePath);
+          await fs.unlink(filePath);
+        } catch (err) {
+          console.warn(`File for ${image._id} missing, skipping`);
+        }
+      }
+
+      await FileAssets.deleteMany({ _id: { $in: ids } });
+
+      return NextResponse.json({
+        success: true,
+        message: `Deleted ${images.length} images`,
+      });
+    }
+
     const { id } = body || {};
 
     const image = await FileAssets.findById(id);
