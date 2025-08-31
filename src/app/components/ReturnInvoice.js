@@ -225,6 +225,7 @@ function ReturnInvoice({
                           {formatDateTimeToIST(invoice.isReturnAmtPaid)}
                         </span>
                       ) : accessInfo.accessRole === "salesman" ||
+                        accessInfo.accessRole === "dispenser" ||
                         accessInfo.accessRole === "admin" ? (
                         <button
                           onClick={() => {

@@ -310,6 +310,13 @@ export async function POST(req) {
     sectionType,
   } = await req.json();
 
+  if (sectionType !== "hospital" && sectionType !== "pharmacy") {
+    return NextResponse.json(
+      { message: "Invalid section type.", success: false },
+      { status: 400 }
+    );
+  }
+
   const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
 
   let invoice = {
@@ -383,6 +390,30 @@ export async function POST(req) {
           updatedInvoice: existingInvoice,
         },
         { status: 200 }
+      );
+    }
+    const existingInvoice = await PendingPurchaseInvoice.findOne({
+      vendorInvoiceId,
+    });
+    if (existingInvoice) {
+      return NextResponse.json(
+        {
+          message: "Invoice with this Vendor Invoice ID already exists.",
+          success: false,
+        },
+        { status: 400 }
+      );
+    }
+    const Model = getModel(sectionType);
+    const existingInMain = await Model.findOne({ vendorInvoiceId });
+    if (existingInMain) {
+      return NextResponse.json(
+        {
+          message:
+            "Invoice with this Vendor Invoice ID already exists in main records.",
+          success: false,
+        },
+        { status: 400 }
       );
     }
     const newPendingPurchaseInvoice = new PendingPurchaseInvoice(invoice);
