@@ -354,12 +354,12 @@ function NewStockForm({
               updateImage={updateBill} // (index, {id, url}) => {}
               limit={10}
               multiple={true}
-              // folder={
-              //   sectionType === "hospital"
-              //     ? "hospitalPurchaseInvoice"
-              //     : "pharmacyPurchaseInvoice"
-              // }
-              folder={"testFolder"}
+              folder={
+                sectionType === "hospital"
+                  ? "hospitalPurchaseInvoice"
+                  : "pharmacyPurchaseInvoice"
+              }
+              // folder={"testFolder"}
               purpose={`invoice-${uniqueID}`}
             />
           </div>
