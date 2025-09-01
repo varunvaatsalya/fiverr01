@@ -39,7 +39,7 @@ function RetailStockEdit() {
     let editedMedicineStocks = medicineStock
       .filter((medicine) => medicine.isEdit)
       .map(({ isEdit, ...medicineWithoutEdit }) => medicineWithoutEdit);
-    if (data.length === 0) return;
+    if (editedMedicineStocks.length === 0) return;
     try {
       setSaving(true);
       let result = await fetch(`/api/editRetailStock`, {
