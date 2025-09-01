@@ -6,6 +6,7 @@ import RetailStock from "@/app/models/RetailStock";
 
 export async function GET(req) {
   await dbConnect();
+  let letter = req.nextUrl.searchParams.get("letter");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -39,26 +40,36 @@ export async function GET(req) {
   }
 
   try {
-    let allMedicines = await Medicine.find({}, "_id name isTablets").sort({
-      name: 1,
-    });
-    let retailStocks = await RetailStock.find().populate({
-      path: "medicine",
-      select: "_id name isTablets",
-    });
-    let stockMap = new Map(
-      retailStocks.map((stock) => [stock.medicine._id.toString(), stock])
-    );
+    let finalStockList = await Medicine.aggregate([
+      {
+        $match: { name: { $regex: `^${letter || "A"}`, $options: "i" } },
+      },
+      {
+        $sort: { name: 1 },
+      },
+      {
+        $lookup: {
+          from: "retailstocks", // collection ka naam exactly jo DB me hai
+          localField: "_id",
+          foreignField: "medicine",
+          as: "stocksData",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          isTablets: 1,
+          stocks: {
+            $ifNull: [
+              { $arrayElemAt: ["$stocksData.stocks", 0] },
+              [],
+            ],
+          },
+        },
+      },
+    ]);
 
-    // Step 4: Create the final list with the same structure as RetailStock.find()
-    let finalStockList = allMedicines.map((med) => {
-      return (
-        stockMap.get(med._id.toString()) || {
-          medicine: { _id: med._id, name: med.name, isTablets: med.isTablets }, // Include medicine name
-          stocks: [],
-        }
-      );
-    });
     return NextResponse.json(
       { stocks: finalStockList, userEditPermission, success: true },
       { status: 200 }
@@ -118,7 +129,7 @@ export async function POST(req) {
     let missingFieldsMedicines = [];
 
     for (const medicineStock of data) {
-      if (!medicineStock.stocks || medicineStock.stocks.length === 0) {
+      if (!medicineStock.stocks) {
         missingFieldsMedicines.push(medicineStock.medicine.name);
         continue;
       }
