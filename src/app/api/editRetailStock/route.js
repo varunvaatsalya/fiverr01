@@ -61,10 +61,7 @@ export async function GET(req) {
           name: 1,
           isTablets: 1,
           stocks: {
-            $ifNull: [
-              { $arrayElemAt: ["$stocksData.stocks", 0] },
-              [],
-            ],
+            $ifNull: [{ $arrayElemAt: ["$stocksData.stocks", 0] }, []],
           },
         },
       },
@@ -111,26 +108,14 @@ export async function POST(req) {
     );
   }
 
-  const { data } = await req.json();
+  const { editedMedicineStocks } = await req.json();
 
   try {
-    // for (const medicineStock of data) {
-    //   medicineStock.stocks.forEach((stock) => {
-    //     stock.quantity.totalStrips =
-    //       stock.quantity.boxes * stock.packetSize.strips + stock.quantity.extra;
-    //   });
-
-    //   await RetailStock.findOneAndUpdate(
-    //     { medicine: medicineStock.medicine },
-    //     { stocks: medicineStock.stocks },
-    //     { upsert: true, new: true }
-    //   );
-    // }
     let missingFieldsMedicines = [];
 
-    for (const medicineStock of data) {
+    for (const medicineStock of editedMedicineStocks) {
       if (!medicineStock.stocks) {
-        missingFieldsMedicines.push(medicineStock.medicine.name);
+        missingFieldsMedicines.push(medicineStock.name);
         continue;
       }
 
@@ -159,16 +144,20 @@ export async function POST(req) {
       });
 
       if (!isValid) {
-        missingFieldsMedicines.push(medicineStock.medicine.name);
+        missingFieldsMedicines.push(medicineStock.name);
         continue;
       }
 
       // Update or Insert the retail stock
-      await RetailStock.findOneAndUpdate(
-        { medicine: medicineStock.medicine._id },
-        { medicine: medicineStock.medicine, stocks: medicineStock.stocks },
-        { upsert: true, new: true }
+      const updatedStock = await RetailStock.findOneAndUpdate(
+        { medicine: medicineStock._id },
+        { $set: { stocks: medicineStock.stocks } },
+        { new: true }
       );
+
+      if (!updatedStock) {
+        missingFieldsMedicines.push(medicineStock.name);
+      }
     }
 
     if (missingFieldsMedicines.length > 0) {

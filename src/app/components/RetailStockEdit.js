@@ -36,7 +36,7 @@ function RetailStockEdit() {
   }, [selectedLetter]);
 
   const handleSave = async () => {
-    let data = medicineStock
+    let editedMedicineStocks = medicineStock
       .filter((medicine) => medicine.isEdit)
       .map(({ isEdit, ...medicineWithoutEdit }) => medicineWithoutEdit);
     if (data.length === 0) return;
@@ -48,7 +48,7 @@ function RetailStockEdit() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          data,
+          editedMedicineStocks,
         }),
       });
       result = await result.json();
