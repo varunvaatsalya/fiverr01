@@ -588,7 +588,7 @@ export async function PUT(req) {
   try {
     const failedMedicineNames = [];
 
-    for (const { stockId, sellingPrice, totalStrips } of stocks) {
+    for (const { stockId, sellingPrice, totalStrips, expiryDate } of stocks) {
       try {
         const stock = await Model.findById(stockId).populate({
           path: "medicine",
@@ -620,8 +620,13 @@ export async function PUT(req) {
           };
         }
 
-        if (sellingPrice)
+        if (sellingPrice) {
           stock.sellingPrice = parseFloat(sellingPrice.toFixed(2));
+        }
+
+        if (expiryDate) {
+          stock.expiryDate = new Date(expiryDate); // ensure Date type
+        }
 
         await stock.save();
       } catch (err) {

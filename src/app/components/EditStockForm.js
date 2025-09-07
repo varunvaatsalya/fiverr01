@@ -99,6 +99,37 @@ export default function EditStockForm() {
     });
   };
 
+  const handleExpiryChange = (medicineId, stockId, expiryDate) => {
+    setStocks((prev) =>
+      prev.map((med) =>
+        med.medicineId === medicineId
+          ? {
+              ...med,
+              stocks: med.stocks.map((stock) =>
+                stock._id === stockId
+                  ? {
+                      ...stock,
+                      expiryDate,
+                    }
+                  : stock
+              ),
+            }
+          : med
+      )
+    );
+
+    setChangedStocks((prev) => {
+      const exists = prev.find((p) => p.stockId === stockId);
+      if (exists) {
+        return prev.map((p) =>
+          p.stockId === stockId ? { ...p, expiryDate } : p
+        );
+      } else {
+        return [...prev, { stockId, expiryDate }];
+      }
+    });
+  };
+
   async function handleUpdate() {
     setSubmitting(true);
     try {
@@ -165,79 +196,101 @@ export default function EditStockForm() {
           {submitting ? "Wait..." : "Update"}
         </Button>
       </div>
-      {stocks.length > 0 ? stocks.map((med) => (
-        <Card key={med.medicineId} className="p-4 space-y-2 border">
-          <div className="flex items-center justify-start px-4 gap-4">
-            <h2 className="text-lg font-bold">{med.medicine}</h2>
-            <p className="text-sm text-gray-600">
-              Packet Size: {med.packetSize.strips}{" "}
-              {med.isTablets
-                ? "strips/box, " +
-                  med.packetSize.tabletsPerStrip +
-                  " tablets/strip"
-                : "units/box"}
-            </p>
-          </div>
+      {stocks.length > 0 ? (
+        stocks.map((med) => (
+          <Card key={med.medicineId} className="p-4 space-y-2 border">
+            <div className="flex items-center justify-start px-4 gap-4">
+              <h2 className="text-lg font-bold">{med.medicine}</h2>
+              <p className="text-sm text-gray-600">
+                Packet Size: {med.packetSize.strips}{" "}
+                {med.isTablets
+                  ? "strips/box, " +
+                    med.packetSize.tabletsPerStrip +
+                    " tablets/strip"
+                  : "units/box"}
+              </p>
+            </div>
 
-          <div className="grid grid-cols-5 gap-4 font-semibold text-sm text-gray-700 border-b pb-2">
-            <div>Batch</div>
-            <div>Expiry</div>
-            <div>MRP</div>
-            <div>Total Strips</div>
-            <div>Qty (Box + Extra)</div>
-          </div>
-          <div className="space-y-1">
-            {med.stocks.map((stock) => (
-              <div
-                key={stock._id}
-                className="grid grid-cols-5 gap-2 items-center py-1"
-              >
-                <div>{stock.batchName}</div>
-                <div>{formatDateToIST(stock.expiryDate)}</div>
+            <div className="grid grid-cols-5 gap-4 font-semibold text-sm text-gray-700 border-b pb-2">
+              <div>Batch</div>
+              <div>Expiry</div>
+              <div>MRP</div>
+              <div>Total Strips</div>
+              <div>Qty (Box + Extra)</div>
+            </div>
+            <div className="space-y-1">
+              {med.stocks.map((stock) => (
+                <div
+                  key={stock._id}
+                  className="grid grid-cols-5 gap-2 items-center py-1"
+                >
+                  <div>{stock.batchName}</div>
+                  {/* <div>{formatDateToIST(stock.expiryDate)}</div> */}
+                  <div className="flex justify-between items-center gap-2">
+                    <Input
+                      type="date"
+                      className="w-full"
+                      value={
+                        stock.expiryDate ? stock.expiryDate.split("T")[0] : ""
+                      }
+                      onChange={(e) =>
+                        handleExpiryChange(
+                          med.medicineId,
+                          stock._id,
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
 
-                <div className="flex justify-between items-center gap-2">
-                  <Input
-                    type="number"
-                    className="w-full"
-                    value={stock.sellingPrice || ""}
-                    onChange={(e) =>
-                      handleMRPChange(
-                        med.medicineId,
-                        stock._id,
-                        parseFloat(e.target.value || 0)
-                      )
-                    }
-                  />
-                </div>
-                <div className="flex justify-between items-center gap-2">
-                  <Input
-                    type="number"
-                    className="w-full"
-                    value={stock.quantity.totalStrips || ""}
-                    onChange={(e) =>
-                      handleStripsChange(
-                        med.medicineId,
-                        stock._id,
-                        parseInt(e.target.value || "0"),
-                        med.packetSize.strips
-                      )
-                    }
-                  />
-                  {changedStocks.some((stk) => stk.stockId === stock._id) && (
-                    <div className="rounded px-2 text-sm bg-red-200 text-red-800 font-semibold">
-                      Edited
-                    </div>
-                  )}
-                </div>
+                  <div className="flex justify-between items-center gap-2">
+                    <Input
+                      type="number"
+                      className="w-full"
+                      value={stock.sellingPrice || ""}
+                      onChange={(e) =>
+                        handleMRPChange(
+                          med.medicineId,
+                          stock._id,
+                          parseFloat(e.target.value || 0)
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="flex justify-between items-center gap-2">
+                    <Input
+                      type="number"
+                      className="w-full"
+                      value={stock.quantity.totalStrips || ""}
+                      onChange={(e) =>
+                        handleStripsChange(
+                          med.medicineId,
+                          stock._id,
+                          parseInt(e.target.value || "0"),
+                          med.packetSize.strips
+                        )
+                      }
+                    />
+                    {changedStocks.some((stk) => stk.stockId === stock._id) && (
+                      <div className="rounded px-2 text-sm bg-red-200 text-red-800 font-semibold">
+                        Edited
+                      </div>
+                    )}
+                  </div>
 
-                <div className="text-sm text-gray-800">
-                  {stock.quantity.boxes} box + {stock.quantity.extra} extra
+                  <div className="text-sm text-gray-800">
+                    {stock.quantity.boxes} box + {stock.quantity.extra} extra
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )):<div className="text-red-500 italic text-center font-semibold">*No Stock Found</div>}
+              ))}
+            </div>
+          </Card>
+        ))
+      ) : (
+        <div className="text-red-500 italic text-center font-semibold">
+          *No Stock Found
+        </div>
+      )}
     </div>
   );
 }
