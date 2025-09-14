@@ -20,12 +20,14 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { IoReceiptOutline } from "react-icons/io5";
 import { FaTruckMedical } from "react-icons/fa6";
 import { GrMoney } from "react-icons/gr";
 import { ToWords } from "to-words";
 import { useStockType } from "../context/StockTypeContext";
+import { Label } from "@/components/ui/label";
 
 export default function PharmacyDueInvoice() {
   const router = useRouter();
@@ -44,6 +46,14 @@ export default function PharmacyDueInvoice() {
   const [isValidPaymentEntry, setIsValidPaymentEntry] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [filters, setFilters] = useState({
+    invoiceStart: "",
+    invoiceEnd: "",
+    receivedStart: "",
+    receivedEnd: "",
+    dateLogic: "OR",
+  });
 
   const sectionType = useStockType();
 
@@ -69,8 +79,22 @@ export default function PharmacyDueInvoice() {
   // /api/newPurchaseInvoice/dueInvoices/fix
   // /api/medicineMetaData/fix
   async function fetchData() {
+    setFetching(true);
     try {
-      let result = await fetch(`/api/newPurchaseInvoice/dueInvoices?sectionType=${sectionType}`);
+      const params = new URLSearchParams({ sectionType });
+
+      if (filters.invoiceStart)
+        params.append("invoiceStart", filters.invoiceStart);
+      if (filters.invoiceEnd) params.append("invoiceEnd", filters.invoiceEnd);
+      if (filters.receivedStart)
+        params.append("receivedStart", filters.receivedStart);
+      if (filters.receivedEnd)
+        params.append("receivedEnd", filters.receivedEnd);
+      params.append("dateLogic", filters.dateLogic);
+
+      const url = `/api/newPurchaseInvoice/dueInvoices?${params.toString()}`;
+      let result = await fetch(url);
+
       result = await result.json();
       if (result.success) {
         setInvoices(result.dueInvoices);
@@ -81,13 +105,18 @@ export default function PharmacyDueInvoice() {
       }
     } catch (err) {
       console.log("error: ", err);
+    } finally {
+      setFetching(false);
     }
   }
   useEffect(() => {
     fetchData();
   }, []);
 
-  useEffect(() => {}, [isValidPaymentEntry]);
+  // useEffect(() => {}, [isValidPaymentEntry]);
+  const handleChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleCheckboxChange = (invoiceId, sourceId) => {
     if (selectedSourceId && selectedSourceId !== sourceId) return;
@@ -210,6 +239,65 @@ export default function PharmacyDueInvoice() {
           className="w-full sm:w-[250px] bg-gray-50"
           onChange={(e) => handleSearch(e.target.value)}
         />
+
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">Filter Invoices</Button>
+          </DialogTrigger>
+          <DialogContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-black">
+              <div>
+                <Label className="text-sm font-medium">Invoice Start</Label>
+                <Input
+                  type="datetime-local"
+                  value={filters.invoiceStart}
+                  onChange={(e) => handleChange("invoiceStart", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Invoice End</Label>
+                <Input
+                  type="datetime-local"
+                  value={filters.invoiceEnd}
+                  onChange={(e) => handleChange("invoiceEnd", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Received Start</Label>
+                <Input
+                  type="datetime-local"
+                  value={filters.receivedStart}
+                  onChange={(e) =>
+                    handleChange("receivedStart", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Received End</Label>
+                <Input
+                  type="datetime-local"
+                  value={filters.receivedEnd}
+                  onChange={(e) => handleChange("receivedEnd", e.target.value)}
+                />
+              </div>
+              <Select
+                value={filters.dateLogic}
+                onValueChange={(value) => handleChange("dateLogic", value)}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Logic" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AND">AND</SelectItem>
+                  <SelectItem value="OR">OR</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button disabled={fetching} onClick={fetchData}>
+              {fetching ? "Wait..." : "Apply Filters"}
+            </Button>
+          </DialogContent>
+        </Dialog>
 
         <div className="flex flex-wrap gap-4 text-sm text-gray-700 justify-end">
           <div className="px-3 py-1 bg-white rounded flex items-center gap-1">

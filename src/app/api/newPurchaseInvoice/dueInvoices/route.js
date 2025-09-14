@@ -9,6 +9,11 @@ export async function GET(req) {
   await dbConnect();
 
   let sectionType = req.nextUrl.searchParams.get("sectionType");
+  let invoiceStart = req.nextUrl.searchParams.get("invoiceStart");
+  let invoiceEnd = req.nextUrl.searchParams.get("invoiceEnd");
+  let receivedStart = req.nextUrl.searchParams.get("receivedStart");
+  let receivedEnd = req.nextUrl.searchParams.get("receivedEnd");
+  let dateLogic = req.nextUrl.searchParams.get("dateLogic");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -34,9 +39,42 @@ export async function GET(req) {
     sectionType === "hospital" ? HospitalPurchaseInvoice : PurchaseInvoice;
 
   try {
+    const match = { isPaid: false };
+
+    const invoiceCondition =
+      invoiceStart && invoiceEnd
+        ? {
+            invoiceDate: {
+              $gte: new Date(invoiceStart),
+              $lte: new Date(invoiceEnd),
+            },
+          }
+        : null;
+
+    const receivedCondition =
+      receivedStart && receivedEnd
+        ? {
+            receivedDate: {
+              $gte: new Date(receivedStart),
+              $lte: new Date(receivedEnd),
+            },
+          }
+        : null;
+
+    if (dateLogic === "AND") {
+      if (invoiceCondition) Object.assign(match, invoiceCondition);
+      if (receivedCondition) Object.assign(match, receivedCondition);
+    } else if (dateLogic === "OR") {
+      match.$or = [];
+      if (invoiceCondition) match.$or.push(invoiceCondition);
+      if (receivedCondition) match.$or.push(receivedCondition);
+
+      if (match.$or.length === 0) delete match.$or;
+    }
+
     const dueInvoices = await Model.aggregate([
       {
-        $match: { isPaid: false },
+        $match: match,
       },
       {
         $addFields: {
@@ -140,7 +178,12 @@ export async function GET(req) {
           dueAmount: 1,
           invoices: {
             $map: {
-              input: "$invoices",
+              input: {
+                $sortArray: {
+                  input: "$invoices",
+                  sortBy: { invoiceDate: -1 },
+                },
+              },
               as: "inv",
               in: {
                 _id: "$$inv._id",
