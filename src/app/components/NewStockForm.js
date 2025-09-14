@@ -7,6 +7,7 @@ import { useStockType } from "../context/StockTypeContext";
 import { RiLoader2Line } from "react-icons/ri";
 import { showError, showInfo } from "../utils/toast";
 import MultiImageUploader from "./MultiImageUploader";
+import { format } from "date-fns";
 
 function NewStockForm({
   medicines,
@@ -20,6 +21,7 @@ function NewStockForm({
   const [result, setResult] = useState(null);
   const [editInvoices, setEditInvoices] = useState([]);
   const [selectedEditInvoice, setSelectedEditInvoice] = useState(null);
+  const [recentStock, setRecentStock] = useState({});
 
   const sectionType = useStockType();
 
@@ -82,6 +84,87 @@ function NewStockForm({
       setValue("invoiceNumber", uniqueID);
     }
   }, [uniqueID, setValue]);
+
+  const handleGetMedStocksMetaDetails = async (medicineId) => {
+    if (!medicineId || recentStock[medicineId]) return;
+
+    try {
+      const res = await fetch(
+        `/api/newPurchaseInvoice/stockOfferDetails?id=${medicineId}`
+      );
+      const data = await res.json();
+
+      if (data.success) {
+        setRecentStock((prev) => ({
+          ...prev,
+          [medicineId]: data.latestStock,
+        }));
+      }
+    } catch (err) {
+      console.error("Error fetching recent stock:", err);
+    }
+  };
+
+  function calculateStockValues(stock) {
+    let quantity = parseFloat(stock?.quantity || 0);
+    let offer = parseFloat(stock?.offer || 0);
+    let purchasePrice = parseFloat(stock?.purchasePrice || 0);
+    let discount = parseFloat(stock?.discount || 0);
+    let sgst = parseFloat(stock?.sgst || 0);
+    let cgst = parseFloat(stock?.cgst || 0);
+
+    // Base amount
+    let baseAmount = quantity * purchasePrice;
+
+    // Discount calculation
+    let discountAmount = baseAmount * (discount / 100);
+    let discountedAmount = baseAmount - discountAmount;
+
+    // GST calculation
+    let totalGSTPercent = sgst + cgst;
+    let gstAmount = discountedAmount * (totalGSTPercent / 100);
+
+    // Final amount paid to vendor
+    let filedTotalAmount = discountedAmount + gstAmount;
+
+    // Net Purchase Rate (quantity + offer)
+    let totalUnitsReceived = quantity + offer;
+    let netPurchaseRate =
+      totalUnitsReceived > 0
+        ? parseFloat((filedTotalAmount / totalUnitsReceived).toFixed(2))
+        : 0;
+
+    // Cost Price per strip (excluding offer)
+    let costPriceBeforeTax = quantity > 0 ? discountedAmount / quantity : 0;
+    let costPrice = quantity > 0 ? filedTotalAmount / quantity : 0;
+
+    // Total Amount (based on cost price and quantity)
+    let totalAmountBeforeTax = parseFloat(
+      (costPriceBeforeTax * quantity).toFixed(2)
+    );
+    let totalAmount = parseFloat((costPrice * quantity).toFixed(2));
+
+    return {
+      // baseAmount,
+      // discountAmount,
+      // discountedAmount,
+      // gstAmount,
+      // filedTotalAmount,
+      // netPurchaseRate,
+
+      netPurchaseRate,
+      costPrice,
+      totalAmountBeforeTax,
+      gstAmount,
+      totalAmount,
+      totalUnitsReceived,
+    };
+  }
+
+  const grandTotal = stocks.reduce(
+    (acc, stock) => acc + calculateStockValues(stock).totalAmount,
+    0
+  );
 
   async function onSubmit(data) {
     // console.log("Submitting data:", data);
@@ -397,6 +480,12 @@ function NewStockForm({
             medicines.
           </div>
         </div>
+        <div className="font-semibold px-2">
+          Grand Total:{" "}
+          <span className="text-blue-600 font-bold">{`${parseFloat(
+            grandTotal.toFixed(2)
+          )}/-`}</span>
+        </div>
       </div>
       {result && result.length > 0 && (
         <ol className="w-full text-center">
@@ -447,62 +536,126 @@ function NewStockForm({
         )}
         {fields.map((field, index) => {
           const medicineId = stocks[index]?.medicine;
-
-          let quantity = parseFloat(stocks[index]?.quantity || 0);
-          let offer = parseFloat(stocks[index]?.offer || 0);
-          let purchasePrice = parseFloat(stocks[index]?.purchasePrice || 0);
-          let discount = parseFloat(stocks[index]?.discount || 0);
-          let sgst = parseFloat(stocks[index]?.sgst || 0);
-          let cgst = parseFloat(stocks[index]?.cgst || 0);
-
           const medicine = medicines.find((med) => med._id === medicineId);
           const medicineIsTablets = medicine?.isTablets;
           const packetSize = medicine?.packetSize;
 
-          let baseAmount = quantity * purchasePrice;
+          let offers = medicine?.offers?.[0] || null;
 
-          // Discount calculation
-          let discountAmount = baseAmount * (discount / 100);
-          let discountedAmount = baseAmount - discountAmount;
+          const stock = stocks[index] || {};
+          const {
+            netPurchaseRate,
+            costPrice,
+            totalAmountBeforeTax,
+            gstAmount,
+            totalAmount,
+            totalUnitsReceived,
+          } = calculateStockValues(stock);
 
-          // GST calculation
-          let totalGSTPercent = sgst + cgst;
-          let gstAmount = discountedAmount * (totalGSTPercent / 100);
+          // let quantity = parseFloat(stocks[index]?.quantity || 0);
+          // let offer = parseFloat(stocks[index]?.offer || 0);
+          // let purchasePrice = parseFloat(stocks[index]?.purchasePrice || 0);
+          // let discount = parseFloat(stocks[index]?.discount || 0);
+          // let sgst = parseFloat(stocks[index]?.sgst || 0);
+          // let cgst = parseFloat(stocks[index]?.cgst || 0);
 
-          // Final amount paid to vendor
-          let filedTotalAmount = discountedAmount + gstAmount;
+          // let baseAmount = quantity * purchasePrice;
 
-          // Net Purchase Rate (quantity + offer)
-          let totalUnitsReceived = quantity + offer;
-          let netPurchaseRate =
-            totalUnitsReceived > 0
-              ? parseFloat((filedTotalAmount / totalUnitsReceived).toFixed(2))
-              : 0;
+          // // Discount calculation
+          // let discountAmount = baseAmount * (discount / 100);
+          // let discountedAmount = baseAmount - discountAmount;
 
-          // Cost Price per strip (excluding offer)
-          let costPriceBeforeTax =
-            quantity > 0 ? discountedAmount / quantity : 0;
-          let costPrice = quantity > 0 ? filedTotalAmount / quantity : 0;
+          // // GST calculation
+          // let totalGSTPercent = sgst + cgst;
+          // let gstAmount = discountedAmount * (totalGSTPercent / 100);
 
-          // Total Amount (based on cost price and quantity)
-          let totalAmountBeforeTax = parseFloat(
-            (costPriceBeforeTax * quantity).toFixed(2)
-          );
-          let totalAmount = parseFloat((costPrice * quantity).toFixed(2));
+          // // Final amount paid to vendor
+          // let filedTotalAmount = discountedAmount + gstAmount;
+
+          // // Net Purchase Rate (quantity + offer)
+          // let totalUnitsReceived = quantity + offer;
+          // let netPurchaseRate =
+          //   totalUnitsReceived > 0
+          //     ? parseFloat((filedTotalAmount / totalUnitsReceived).toFixed(2))
+          //     : 0;
+
+          // // Cost Price per strip (excluding offer)
+          // let costPriceBeforeTax =
+          //   quantity > 0 ? discountedAmount / quantity : 0;
+          // let costPrice = quantity > 0 ? filedTotalAmount / quantity : 0;
+
+          // // Total Amount (based on cost price and quantity)
+          // let totalAmountBeforeTax = parseFloat(
+          //   (costPriceBeforeTax * quantity).toFixed(2)
+          // );
+          // let totalAmount = parseFloat((costPrice * quantity).toFixed(2));
 
           return (
             <div
               key={field.id}
-              className=" my-2 bg-gray-300 text-white rounded-lg py-1 px-2"
+              className=" my-2 bg-gray-300 text-white rounded-lg py-1 px-2 relative group"
             >
-              <div
-                key={field.id}
-                className="flex flex-wrap items-center text-sm gap-1"
-              >
+              <div className="absolute z-50 left-0 top-full mt-1 hidden group-hover:block group-focus-within:block transition">
+                <div className="flex items-start gap-2 ">
+                  {recentStock[medicineId] && (
+                    <div className="max-w-2xl border border-gray-500 bg-gray-800 text-white text-sm rounded-md shadow-md p-2">
+                      <p className="font-bold">Recent Stock</p>
+                      <div className="grid grid-cols-2 gap-x-1">
+                        <p className="font-semibold">Batch:</p>
+                        <p>{recentStock[medicineId].batchName}</p>
+                        <p className="font-semibold">Expiry:</p>
+                        <p>
+                          {format(
+                            new Date(recentStock[medicineId].expiryDate),
+                            "MM/yy"
+                          )}
+                        </p>
+                        <p className="font-semibold">MRP:</p>
+                        <p>₹{recentStock[medicineId].sellingPrice}</p>
+
+                        <p className="font-semibold">Purchase:</p>
+                        <p>₹{recentStock[medicineId].purchasePrice}</p>
+                        <p className="font-semibold">Added on:</p>
+                        <p>
+                          {format(
+                            new Date(recentStock[medicineId].createdAt),
+                            "MM/yy"
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {offers && (
+                    <div className="max-w-2xl border border-gray-500 bg-gray-800 text-white text-sm rounded-md shadow-md p-2">
+                      <p className="font-bold">Offer Details</p>
+                      <div className="grid grid-cols-2 gap-x-1">
+                        <p className="font-semibold">Buying Qty:</p>
+                        <p>{offers.buyingQty || "-"}</p>
+                        <p className="font-semibold">Offer Qty:</p>
+                        <p>{offers.offerQty || "-"}</p>
+                        <p className="font-semibold">Agreed Rate:</p>
+                        <p>{offers.agreedRate || "-"}</p>
+                        <p className="font-semibold">Date:</p>
+                        <p>
+                          {offers.createdAt
+                            ? format(
+                                new Date(offers.createdAt),
+                                "dd/MM/yy hh:mm a"
+                              )
+                            : "-"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center text-sm gap-1">
                 <select
                   id="medicine"
                   {...register(`stocks.${index}.medicine`, {
                     required: "Medicine is required",
+                    onChange: (e) =>
+                      handleGetMedStocksMetaDetails(e.target.value),
                   })}
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                 >

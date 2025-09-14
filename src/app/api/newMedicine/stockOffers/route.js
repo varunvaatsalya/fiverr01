@@ -79,6 +79,7 @@ export async function POST(req) {
         offers: {
           $each: [{ buyingQty, offerQty, agreedRate, createdAt: new Date() }],
           $position: 0,
+          $slice: 5,
         },
       },
     });

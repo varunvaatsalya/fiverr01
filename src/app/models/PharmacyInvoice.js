@@ -130,6 +130,7 @@ const pharmacyInvoiceSchema = new mongoose.Schema({
   },
 });
 
+pharmacyInvoiceSchema.index({ "medicines.medicineId": 1, createdAt: -1 });
 pharmacyInvoiceSchema.index({ "returns.createdAt": 1 });
 
 export default mongoose.models.PharmacyInvoice ||
