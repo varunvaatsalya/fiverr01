@@ -238,6 +238,23 @@ function RetailStock({
             (acc, stock) => acc + stock.quantity.tablets,
             0
           );
+          let label0 = medicine.unitLabels?.level0
+            ? `${medicine.unitLabels.level0}s`
+            : "tablets";
+
+          let label1 = medicine.unitLabels?.level1
+            ? `${medicine.unitLabels.level1}s`
+            : medicine.isTablets
+            ? "strips"
+            : "units";
+
+          let label2 = medicine.unitLabels?.level2
+            ? medicine.unitLabels.level2
+            : "Boxes";
+
+          let stockText = `Total ${label1}: ${totalStrips} = ${label2}: ${totalBoxes}, Extra: ${totalExtra}${
+            totalTablets > 0 ? `, ${label0}: ${totalExtra}` : ""
+          }`;
           return (
             <div key={index} className="w-full">
               <div
@@ -249,16 +266,7 @@ function RetailStock({
                 <div className="w-[10%] px-1">{index + 1 + "."}</div>
                 <div className="w-[45%] px-3">{medicine.name}</div>
                 <div className="w-[40%] text-center">
-                  {medicine.retailStocks.length > 0
-                    ? "Total Strips: " +
-                      totalStrips +
-                      " = Boxes: " +
-                      totalBoxes +
-                      ", Extra: " +
-                      totalExtra +
-                      ", Tablets: " +
-                      totalTablets
-                    : "--"}
+                  {medicine.retailStocks.length > 0 ? stockText : "--"}
                 </div>
                 {medicine.retailStocks.length > 0 &&
                   totalStrips < medicine.maximumStockCount?.retails &&
@@ -292,17 +300,19 @@ function RetailStock({
                       </span>
                     </div>
                     <div className="py-1 px-4 ">
-                      Pack:{" "}
+                      {`${label1}: `}
                       <span className="text-blue-500 font-semibold">
                         {medicine.packetSize?.strips}
                       </span>
                     </div>
-                    <div className="py-1 px-4 ">
-                      Tablets per strip:{" "}
-                      <span className="text-blue-500 font-semibold">
-                        {medicine.packetSize?.tabletsPerStrip}
-                      </span>
-                    </div>
+                    {medicine.isTablets && (
+                      <div className="py-1 px-4 ">
+                        {`${label0} per ${label1}: `}
+                        <span className="text-blue-500 font-semibold">
+                          {medicine.packetSize?.tabletsPerStrip}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-around items-center mt-2 w-full">
                     {medicine.minimumStockCount &&
@@ -477,8 +487,17 @@ function RetailStock({
                       )}
                     </div>
                   ))}
-                  {medicine.retailStocks[0]?.stocks?.map((stock, index1) => (
-                    <>
+                  {medicine.retailStocks[0]?.stocks?.map((stock, index1) => {
+                    let batchStockText = `Total ${label1}: ${
+                      stock.quantity.totalStrips
+                    } = ${label2}: ${stock.quantity.boxes}, Extra: ${
+                      stock.quantity.extra
+                    }${
+                      stock.quantity.tablets > 0
+                        ? `, ${label0}: ${stock.quantity.tablets}`
+                        : ""
+                    }`;
+                    return (
                       <div
                         key={index1}
                         className="w-full rounded-xl my-1 bg-gray-300 p-2 flex flex-wrap gap-3 justify-around items-center"
@@ -488,24 +507,13 @@ function RetailStock({
                           {"Expiry: " + stock.expiryDate.split("T")[0]}
                         </div>
                         <div className="">{"MRP: " + stock.sellingPrice}</div>
-                        <div className="">
-                          {stock.quantity.totalStrips +
-                            " Strips = " +
-                            stock.quantity.boxes +
-                            " Boxes"}
-                          {stock.quantity.extra
-                            ? ", " + stock.quantity.extra + " Extra"
-                            : ""}
-                          {stock.quantity.tablets
-                            ? ", " + stock.quantity.tablets + " Tablets"
-                            : ""}
-                        </div>
+                        <div className="">{batchStockText}</div>
                         {/* <div className="w-[10%]">
                         {"P: " + stock.purchasePrice}
                       </div> */}
                       </div>
-                    </>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

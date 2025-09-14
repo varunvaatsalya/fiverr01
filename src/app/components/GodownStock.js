@@ -184,6 +184,21 @@ function GodownStock({ medicineStock, query }) {
             (acc, stock) => acc + stock.quantity.extra,
             0
           );
+          let label0 = medicine.unitLabels?.level0
+            ? `${medicine.unitLabels.level0}s`
+            : "tablets";
+
+          let label1 = medicine.unitLabels?.level1
+            ? `${medicine.unitLabels.level1}s`
+            : medicine.isTablets
+            ? "strips"
+            : "units";
+
+          let label2 = medicine.unitLabels?.level2
+            ? medicine.unitLabels.level2
+            : "Boxes";
+
+          let stockText = `Total ${label1}: ${totalStrips} = ${label2}: ${totalBoxes}, Extra: ${totalExtra}`;
           return (
             <div className="w-full" key={index}>
               <div
@@ -194,14 +209,7 @@ function GodownStock({ medicineStock, query }) {
               >
                 <div className="w-[45%] px-3">{medicine.name}</div>
                 <div className="w-[45%] text-center text-sm">
-                  {medicine.stocks.length > 0
-                    ? (medicine.isTablets ? "Total Strips: " : "Total Unit: ") +
-                      totalStrips +
-                      " = Boxes: " +
-                      totalBoxes +
-                      ", Extra: " +
-                      totalExtra
-                    : "--"}
+                  {medicine.stocks.length > 0 ? stockText : "--"}
                 </div>
                 {medicine.minimumStockCount?.godown !== undefined ? (
                   totalStrips < medicine.minimumStockCount?.godown &&
@@ -234,14 +242,14 @@ function GodownStock({ medicineStock, query }) {
                       </span>
                     </div>
                     <div className="py-1 px-4 ">
-                      {medicine.isTablets ? "Strips " : "Unit "}
+                      {`${label1}: `}
                       <span className="text-blue-500 font-semibold">
                         {medicine.packetSize?.strips}
                       </span>
                     </div>
                     {medicine.isTablets && (
                       <div className="py-1 px-4 ">
-                        Tablets per strip:{" "}
+                        {`${label0} per ${label1}: `}
                         <span className="text-blue-500 font-semibold">
                           {medicine.packetSize?.tabletsPerStrip}
                         </span>
@@ -357,81 +365,74 @@ function GodownStock({ medicineStock, query }) {
                     )}
                   </div>
                   <div className="py-1 max-h-48 overflow-y-auto">
-                    {medicine.stocks.map((stock, it) => (
-                      <div
-                        key={it}
-                        className="w-full rounded-xl my-1 bg-gray-300 p-2 "
-                      >
-                        <div className="flex justify-around items-center">
-                          <div className="w-[10%]">{stock.batchName}</div>
-                          <div className="w-1/5">
-                            {"Expiry: " + stock.expiryDate.split("T")[0]}
+                    {medicine.stocks.map((stock, it) => {
+                      let batchStockText = `Total ${label1}: ${
+                        stock.quantity.totalStrips
+                      } = ${label2}: ${stock.quantity.boxes}${
+                        stock.quantity.extra
+                          ? `, Extra: ${stock.quantity.extra}`
+                          : ""
+                      }`;
+                      return (
+                        <div
+                          key={it}
+                          className="w-full rounded-xl my-1 bg-gray-300 p-2 "
+                        >
+                          <div className="flex justify-around items-center">
+                            <div className="w-[10%]">{stock.batchName}</div>
+                            <div className="w-1/5">
+                              {"Expiry: " + stock.expiryDate.split("T")[0]}
+                            </div>
+                            <div className="w-[25%]">{batchStockText}</div>
+                            <div className="w-[10%]">
+                              {"P: " +
+                                parseFloat(stock.purchasePrice?.toFixed(2))}
+                            </div>
+                            <div className="w-[10%]">
+                              {"S: " +
+                                parseFloat(stock.sellingPrice?.toFixed(2))}
+                            </div>
+                            <div className="w-1/5">
+                              {"Mfg: " +
+                                (stock.mfgDate
+                                  ? stock.mfgDate.split("T")[0]
+                                  : "Not set")}
+                            </div>
                           </div>
-                          <div className="w-[25%]">
-                            {(medicine.isTablets
-                              ? "Total Strips: "
-                              : "Total Unit: ") +
-                              stock.quantity.totalStrips +
-                              " = " +
-                              stock.quantity.boxes +
-                              " Boxes " +
-                              (stock.quantity.extra
-                                ? stock.quantity.extra + " Extra "
-                                : "")}
-                            {/* {stock.quantity.boxes +
-                              " Boxes " +
-                              (stock.quantity.extra
-                                ? stock.quantity.extra + " Extra "
-                                : "") +
-                              stock.quantity.totalStrips +
-                              " Strips"} */}
+                          <div className="flex justify-center gap-x-4 items-center">
+                            <div className="text-sm text-center text-gray-500 font-semibold">
+                              {"Stock Added on: " +
+                                stock.createdAt.split("T")[0]}
+                            </div>
+                            <div className="text-sm text-center text-gray-500 font-semibold">
+                              {"Added Qty: " +
+                                stock.initialQuantity?.totalStrips || "--"}
+                            </div>
+                            <Button
+                              variant="link"
+                              onClick={() =>
+                                handleGetPurchaseInvocie(
+                                  stock.invoiceId,
+                                  stock._id
+                                )
+                              }
+                              className="text-blue-600 hover:text-blue-800"
+                              disabled={findingInvoice}
+                            >
+                              {findingInvoice
+                                ? "Fetching Details..."
+                                : "Get Invoice Details"}
+                            </Button>
                           </div>
-                          <div className="w-[10%]">
-                            {"P: " +
-                              parseFloat(stock.purchasePrice?.toFixed(2))}
-                          </div>
-                          <div className="w-[10%]">
-                            {"S: " + parseFloat(stock.sellingPrice?.toFixed(2))}
-                          </div>
-                          <div className="w-1/5">
-                            {"Mfg: " +
-                              (stock.mfgDate
-                                ? stock.mfgDate.split("T")[0]
-                                : "Not set")}
-                          </div>
+                          {stockDetails && (
+                            <StockDetails
+                              stockDetails={stockDetails}
+                              setStockDetails={setStockDetails}
+                            />
+                          )}
                         </div>
-                        <div className="flex justify-center gap-x-4 items-center">
-                          <div className="text-sm text-center text-gray-500 font-semibold">
-                            {"Stock Added on: " + stock.createdAt.split("T")[0]}
-                          </div>
-                          <div className="text-sm text-center text-gray-500 font-semibold">
-                            {"Added Qty: " +
-                              stock.initialQuantity?.totalStrips || "--"}
-                          </div>
-                          <Button
-                            variant="link"
-                            onClick={() =>
-                              handleGetPurchaseInvocie(
-                                stock.invoiceId,
-                                stock._id
-                              )
-                            }
-                            className="text-blue-600 hover:text-blue-800"
-                            disabled={findingInvoice}
-                          >
-                            {findingInvoice
-                              ? "Fetching Details..."
-                              : "Get Invoice Details"}
-                          </Button>
-                        </div>
-                        {stockDetails && (
-                          <StockDetails
-                            stockDetails={stockDetails}
-                            setStockDetails={setStockDetails}
-                          />
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

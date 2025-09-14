@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../lib/Mongodb";
 import { verifyTokenWithLogout } from "../../utils/jwt";
 import Medicine from "../../models/Medicine";
-import { Stock } from "../../models/Stock";
-import RetailStock from "../../models/RetailStock";
+// import { Stock } from "../../models/Stock";
+// import RetailStock from "../../models/RetailStock";
 import { Manufacturer, Salt } from "@/app/models";
 
 export async function GET(req) {
@@ -47,7 +47,7 @@ export async function GET(req) {
 
     const medicines = await Medicine.find({ name: { $regex: regex } })
       .select(
-        "name isTablets medicineType packetSize manufacturer salts minimumStockCount maximumStockCount"
+        "name isTablets medicineType packetSize unitLabels manufacturer salts minimumStockCount maximumStockCount"
       )
       .populate("manufacturer", "name")
       .populate("salts", "name");

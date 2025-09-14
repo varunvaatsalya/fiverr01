@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -17,10 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from "@/app/utils/toast";
+import { FaEdit } from "react-icons/fa";
 
 const alphabets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+
 function MedicineInfo() {
   const [selectedLetter, setSelectedLetter] = useState("A");
   const [medicines, setMedicines] = useState([]);
@@ -33,26 +34,27 @@ function MedicineInfo() {
   const [edited, setEdited] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        let encodedLetter = encodeURIComponent(selectedLetter);
-        let result = await fetch(
-          `/api/medicinesInfo?letter=${encodedLetter}${
-            metaData ? `&metaData=1` : ""
-          }`
-        );
-        result = await result.json();
-        if (result.success) {
-          setMedicines(result.medicines);
-          if (result.medicinesMetaInfo) setMetaData(result.medicinesMetaInfo);
-        } else {
-          setMessage(result.message);
-        }
-      } catch (err) {
-        console.log("error: ", err);
+  async function fetchData() {
+    try {
+      let encodedLetter = encodeURIComponent(selectedLetter);
+      let result = await fetch(
+        `/api/medicinesInfo?letter=${encodedLetter}${
+          metaData ? `&metaData=1` : ""
+        }`
+      );
+      result = await result.json();
+      if (result.success) {
+        setMedicines(result.medicines);
+        if (result.medicinesMetaInfo) setMetaData(result.medicinesMetaInfo);
+      } else {
+        setMessage(result.message);
       }
+    } catch (err) {
+      console.log("error: ", err);
     }
+  }
+
+  useEffect(() => {
     fetchData();
   }, [selectedLetter]);
 
@@ -75,6 +77,10 @@ function MedicineInfo() {
   }, [medicines, selectedLetter, search, selectedMfg, selectedSalt]);
 
   const handleEditChange = (id, field, value) => {
+    if (!editMode) {
+      showError("Enable Edit Mode, First!");
+      return;
+    }
     setEdited((prev) => ({
       ...prev,
       [id]: {
@@ -82,6 +88,12 @@ function MedicineInfo() {
         [field]: value,
       },
     }));
+  };
+
+  const deleteChanges = (medId) => {
+    const updated = { ...edited };
+    delete updated[medId];
+    setEdited(updated);
   };
 
   const handleSave = async () => {
@@ -106,6 +118,8 @@ function MedicineInfo() {
       result = await result.json();
       if (result.success) {
         showSuccess(`${result.modifiedCount} ${result.message}`);
+        setEdited({});
+        fetchData();
       } else {
         showError(result.message);
       }
@@ -116,14 +130,17 @@ function MedicineInfo() {
     }
   };
   return (
-    <div className="p-2 bg-white text-black flex-1 min-h-0">
+    <div className="p-2 bg-slate-100 text-black flex-1 min-h-0">
       <div className="flex flex-wrap gap-2 justify-center">
         {alphabets.map((char) => (
           <Button
             key={char}
             size="sm"
             variant={selectedLetter === char ? "default" : "outline"}
-            onClick={() => setSelectedLetter(char)}
+            onClick={() => {
+              setSelectedLetter(char);
+              setEdited({});
+            }}
           >
             {char}
           </Button>
@@ -131,7 +148,10 @@ function MedicineInfo() {
         <Button
           size="sm"
           variant={selectedLetter === "#" ? "default" : "outline"}
-          onClick={() => setSelectedLetter("#")}
+          onClick={() => {
+            setSelectedLetter("#");
+            setEdited({});
+          }}
         >
           #
         </Button>
@@ -142,14 +162,14 @@ function MedicineInfo() {
           placeholder="Search medicine..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-[200px]"
+          className="w-[200px] bg-white"
         />
 
         <Select
           onValueChange={(val) => setSelectedMfg(val === "all" ? "" : val)}
           value={selectedMfg}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] bg-white">
             <SelectValue placeholder="Manufacturer" />
           </SelectTrigger>
           <SelectContent>
@@ -166,7 +186,7 @@ function MedicineInfo() {
           onValueChange={(val) => setSelectedSalt(val === "all" ? "" : val)}
           value={selectedSalt}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] bg-white">
             <SelectValue placeholder="Salt" />
           </SelectTrigger>
           <SelectContent>
@@ -179,11 +199,14 @@ function MedicineInfo() {
           </SelectContent>
         </Select>
 
-        <Button variant="outline" onClick={() => setEditMode((prev) => !prev)}>
+        <Button
+          variant={editMode ? "default" : "outline"}
+          onClick={() => setEditMode((prev) => !prev)}
+        >
           {editMode ? "Disable Edit" : "Enable Edit"}
         </Button>
 
-        {editMode && (
+        {editMode && Object.keys(edited).length > 0 && (
           <Button
             onClick={handleSave}
             disabled={submitting}
@@ -197,166 +220,258 @@ function MedicineInfo() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Medicine</TableHead>
-              <TableHead>Manufacturer</TableHead>
-              <TableHead>Salts</TableHead>
-              <TableHead>IsTablets</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Packet Size</TableHead>
-              <TableHead>Min(G/R)</TableHead>
-              <TableHead>Max(G/R)</TableHead>
+              <TableHead className="w-8">Sr No.</TableHead>
+              <TableHead className="w-40">Medicine</TableHead>
+              <TableHead className="w-40">Manufacturer</TableHead>
+              <TableHead className="w-40">Salts</TableHead>
+              <TableHead className="w-24 text-center">IsTablets</TableHead>
+              <TableHead className="w-32">Type</TableHead>
+              <TableHead className="w-32 text-center">Min(G/R)</TableHead>
+              <TableHead className="w-32 text-center">Max(G/R)</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody className="text-black">
-            {filteredMeds.map((med) => {
+            {filteredMeds.map((med, index) => {
               const editedMed = edited[med._id] || {};
 
               return (
-                <TableRow key={med._id}>
-                  {/* Medicine Name */}
-                  <TableCell>
-                    <Input
-                      value={editedMed.name ?? med.name}
-                      onChange={(e) =>
-                        handleEditChange(med._id, "name", e.target.value)
-                      }
-                      disabled={!editMode}
-                    />
-                  </TableCell>
-
-                  {/* Manufacturer Dropdown */}
-                  <TableCell>
-                    <select
-                      value={editedMed.manufacturer ?? med.manufacturer._id}
-                      onChange={(e) =>
-                        handleEditChange(
-                          med._id,
-                          "manufacturer",
-                          e.target.value
-                        )
-                      }
-                      disabled={!editMode}
-                      className="bg-zinc-800 border border-zinc-600 text-white px-2 py-1 rounded w-full"
-                    >
-                      {metaData?.manufacturers.map((mfg) => (
-                        <option key={mfg._id} value={mfg._id}>
-                          {mfg.name}
-                        </option>
-                      ))}
-                    </select>
-                  </TableCell>
-
-                  {/* Salt Dropdown */}
-                  <TableCell>
-                    <select
-                      value={editedMed.salts ?? med.salts._id}
-                      onChange={(e) =>
-                        handleEditChange(med._id, "salts", e.target.value)
-                      }
-                      disabled={!editMode}
-                      className="bg-zinc-800 border border-zinc-600 text-white px-2 py-1 rounded w-full"
-                    >
-                      {metaData?.salts.map((salt) => (
-                        <option key={salt._id} value={salt._id}>
-                          {salt.name}
-                        </option>
-                      ))}
-                    </select>
-                  </TableCell>
-
-                  {/* isTablets Toggle */}
-                  <TableCell className="px-2">
-                    <Checkbox
-                      checked={editedMed.isTablets ?? med.isTablets}
-                      onCheckedChange={(checked) =>
-                        handleEditChange(med._id, "isTablets", checked)
-                      }
-                      disabled={!editMode}
-                      className="bg-zinc-800 border border-zinc-600 text-white size-5 mx-auto rounded"
-                    />
-                  </TableCell>
-
-                  {/* Type */}
-                  <TableCell>
-                    <Input
-                      value={editedMed.medicineType ?? med.medicineType ?? ""}
-                      onChange={(e) =>
-                        handleEditChange(
-                          med._id,
-                          "medicineType",
-                          e.target.value
-                        )
-                      }
-                      disabled={!editMode}
-                    />
-                  </TableCell>
-
-                  {/* Packet Size (strips + tabletsPerStrip) */}
-                  <TableCell>
-                    {med.isTablets ? (
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          value={
-                            editedMed.packetSize?.strips ??
-                            med.packetSize?.strips ??
-                            0
-                          }
-                          onChange={(e) =>
-                            handleEditChange(med._id, "packetSize", {
-                              ...med.packetSize,
-                              ...editedMed.packetSize,
-                              strips: Number(e.target.value),
-                            })
-                          }
-                          disabled={!editMode}
-                          className="w-20"
-                          placeholder="Strips"
-                        />
-                        <span className="text-black">x</span>
-                        <Input
-                          type="number"
-                          value={
-                            editedMed.packetSize?.tabletsPerStrip ??
-                            med.packetSize?.tabletsPerStrip ??
-                            0
-                          }
-                          onChange={(e) =>
-                            handleEditChange(med._id, "packetSize", {
-                              ...med.packetSize,
-                              ...editedMed.packetSize,
-                              tabletsPerStrip: Number(e.target.value),
-                            })
-                          }
-                          disabled={!editMode}
-                          className="w-24"
-                          placeholder="Tabs/Strip"
-                        />
-                      </div>
-                    ) : (
-                      <Input
-                        type="number"
-                        value={
-                          editedMed.packetSize?.strips ?? med.packetSize?.strips
-                        }
+                <Fragment key={med._id}>
+                  {/* -------- First Row: Medicine Info -------- */}
+                  <TableRow className="bg-white hover:bg-white">
+                    <TableCell className="w-8 text-center">
+                      {index + 1 + "."}
+                    </TableCell>
+                    <TableCell className="w-40">
+                      <input
+                        type="text"
+                        value={editedMed.name ?? med.name}
                         onChange={(e) =>
-                          handleEditChange(med._id, "packetSize", {
-                            strips: Number(e.target.value),
-                          })
+                          handleEditChange(med._id, "name", e.target.value)
                         }
-                        disabled={!editMode}
-                        className="w-24"
-                        placeholder="Units"
+                        // disabled={!editMode}
+                        className="border px-2 py-1 rounded w-full"
                       />
-                    )}
-                  </TableCell>
-                  <TableCell>{`${med.minimumStockCount?.godown || "-"}/${
-                    med.minimumStockCount?.retails || "-"
-                  }`}</TableCell>
-                  <TableCell>{`${med.maximumStockCount?.godown || "-"}/${
-                    med.maximumStockCount?.retails || "-"
-                  }`}</TableCell>
-                </TableRow>
+                    </TableCell>
+
+                    <TableCell className="w-40">
+                      <select
+                        value={editedMed.manufacturer ?? med.manufacturer._id}
+                        onChange={(e) =>
+                          handleEditChange(
+                            med._id,
+                            "manufacturer",
+                            e.target.value
+                          )
+                        }
+                        // disabled={!editMode}
+                        className="bg-zinc-800 border border-zinc-600 text-white px-2 py-1 rounded w-full"
+                      >
+                        {metaData?.manufacturers.map((mfg) => (
+                          <option key={mfg._id} value={mfg._id}>
+                            {mfg.name}
+                          </option>
+                        ))}
+                      </select>
+                    </TableCell>
+
+                    <TableCell className="w-40">
+                      <select
+                        value={editedMed.salts ?? med.salts._id}
+                        onChange={(e) =>
+                          handleEditChange(med._id, "salts", e.target.value)
+                        }
+                        // disabled={!editMode}
+                        className="bg-zinc-800 border border-zinc-600 text-white px-2 py-1 rounded w-full"
+                      >
+                        {metaData?.salts.map((salt) => (
+                          <option key={salt._id} value={salt._id}>
+                            {salt.name}
+                          </option>
+                        ))}
+                      </select>
+                    </TableCell>
+
+                    <TableCell className="w-24 text-center">
+                      <input
+                        type="checkbox"
+                        checked={editedMed.isTablets ?? med.isTablets}
+                        onChange={(e) =>
+                          handleEditChange(
+                            med._id,
+                            "isTablets",
+                            e.target.checked
+                          )
+                        }
+                        // disabled={!editMode}
+                        className="size-5 mx-auto"
+                      />
+                    </TableCell>
+
+                    <TableCell className="w-32">
+                      <input
+                        type="text"
+                        value={editedMed.medicineType ?? med.medicineType ?? ""}
+                        onChange={(e) =>
+                          handleEditChange(
+                            med._id,
+                            "medicineType",
+                            e.target.value
+                          )
+                        }
+                        // disabled={!editMode}
+                        className="border px-2 py-1 rounded w-full"
+                      />
+                    </TableCell>
+
+                    <TableCell className="w-32 text-center">
+                      {`${med.minimumStockCount?.godown || "-"}/${
+                        med.minimumStockCount?.retails || "-"
+                      }`}
+                    </TableCell>
+
+                    <TableCell className="w-32 text-center">
+                      {`${med.maximumStockCount?.godown || "-"}/${
+                        med.maximumStockCount?.retails || "-"
+                      }`}
+                    </TableCell>
+                  </TableRow>
+
+                  {/* -------- Second Row: Packet Size -------- */}
+                  <TableRow className="bg-white hover:bg-white">
+                    <TableCell colSpan={8}>
+                      <div className="flex items-center gap-4 py-0.5">
+                        <div className="font-semibold">Packet Size:</div>
+                        {/* Box */}
+                        <div className="flex gap-2 items-center px-2 py-1.5 bg-gray-100 rounded-lg border">
+                          <span>1</span>
+                          <input
+                            type="text"
+                            value={
+                              editedMed.unitLabels?.level2 ??
+                              med.unitLabels?.level2 ??
+                              "box"
+                            }
+                            onChange={(e) => {
+                              const value =
+                                e.target.value?.toLowerCase?.() || "";
+                              handleEditChange(med._id, "unitLabels", {
+                                ...med.unitLabels,
+                                ...editedMed.unitLabels,
+                                level2: value,
+                              });
+                            }}
+                            // disabled={!editMode}
+                            className="w-24 border px-2 py-1 rounded"
+                          />
+                          <span>=</span>
+                          <input
+                            type="number"
+                            value={
+                              editedMed.packetSize?.strips ??
+                              med.packetSize?.strips ??
+                              0
+                            }
+                            onChange={(e) =>
+                              handleEditChange(med._id, "packetSize", {
+                                ...med.packetSize,
+                                ...editedMed.packetSize,
+                                strips: Number(e.target.value),
+                              })
+                            }
+                            // disabled={!editMode}
+                            className="w-16 border px-2 py-1 rounded"
+                          />
+                          <input
+                            type="text"
+                            value={
+                              editedMed.unitLabels?.level1 ??
+                              med.unitLabels?.level1 ??
+                              "pack"
+                            }
+                            onChange={(e) => {
+                              const value =
+                                e.target.value?.toLowerCase?.() || "";
+                              handleEditChange(med._id, "unitLabels", {
+                                ...med.unitLabels,
+                                ...editedMed.unitLabels,
+                                level1: value,
+                              });
+                            }}
+                            // disabled={!editMode}
+                            className="w-24 border px-2 py-1 rounded"
+                          />
+                        </div>
+                        {med.isTablets && (
+                          <div className="flex gap-2 items-center px-2 py-1.5 bg-gray-100 rounded-lg border">
+                            <span>1</span>
+                            <div>
+                              {editedMed.unitLabels?.level1 ??
+                                med.unitLabels?.level1 ??
+                                "pack"}
+                            </div>
+                            <span>=</span>
+                            <input
+                              type="number"
+                              value={
+                                editedMed.packetSize?.tabletsPerStrip ??
+                                med.packetSize?.tabletsPerStrip ??
+                                0
+                              }
+                              onChange={(e) =>
+                                handleEditChange(med._id, "packetSize", {
+                                  ...med.packetSize,
+                                  ...editedMed.packetSize,
+                                  tabletsPerStrip: Number(e.target.value),
+                                })
+                              }
+                              // disabled={!editMode}
+                              className="w-16 border px-2 py-1 rounded"
+                            />
+                            <input
+                              type="text"
+                              value={
+                                editedMed.unitLabels?.level0 ??
+                                med.unitLabels?.level0 ??
+                                "unit"
+                              }
+                              onChange={(e) => {
+                                const value =
+                                  e.target.value?.toLowerCase?.() || "";
+                                handleEditChange(med._id, "unitLabels", {
+                                  ...med.unitLabels,
+                                  ...editedMed.unitLabels,
+                                  level0: value,
+                                });
+                              }}
+                              // disabled={!editMode}
+                              className="w-24 border px-2 py-1 rounded"
+                            />
+                          </div>
+                        )}
+                        {Object.keys(editedMed).length > 0 && (
+                          <>
+                            <div className="flex gap-1 items-center bg-red-600 text-white rounded px-2 py-1">
+                              <FaEdit className="size-4" />
+                              <span className="font-semibold text-sm">
+                                Edited
+                              </span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              onClick={() => deleteChanges(med._id)}
+                            >
+                              Delete Changes
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <td colSpan={10} className="h-4"></td>
+                  </TableRow>
+                </Fragment>
               );
             })}
           </TableBody>

@@ -32,6 +32,16 @@ const medicineSchema = new mongoose.Schema({
       required: true,
     },
   },
+  unitLabels: {
+    level2: { type: String, default: "box" },
+    level1: { type: String, default: "pack" },
+    level0: { type: String, default: "unit" },
+  },
+  status: {
+    type: String,
+    enum: ["active", "disable"],
+    default: "active",
+  },
   minimumStockCount: {
     godown: {
       type: Number,

@@ -1,6 +1,6 @@
 import React from 'react'
-import Navbar from '../../../../components/Navbar'
-import NewMedicineForm from '../../../../components/NewMedicineForm'
+import Navbar from '@/app/components/Navbar'
+import NewMedicineForm from '@/app/components/NewMedicineForm'
 
 function Page() {
   return (

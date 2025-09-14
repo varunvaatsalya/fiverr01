@@ -199,6 +199,7 @@ export async function GET(req) {
           manufacturer: { $arrayElemAt: ["$manufacturer.name", 0] },
           salts: { $arrayElemAt: ["$salts.name", 0] },
           packetSize: 1,
+          unitLabels: 1,
           isTablets: 1,
           minimumStockCount: 1,
           maximumStockCount: 1,

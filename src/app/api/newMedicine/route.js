@@ -132,7 +132,7 @@ export async function POST(req) {
     let savedMedicines = [];
 
     for (const med of medicines) {
-      const { name, manufacturer, medicineType, packetSize, isTablets, salts } =
+      const { name, manufacturer, medicineType, packetSize, unitLabels, isTablets, salts } =
         med;
 
       // Ensure tabletsPerStrip is not empty, default to 1
@@ -145,6 +145,7 @@ export async function POST(req) {
         name,
         manufacturer,
         packetSize: finalPacketSize,
+        unitLabels,
         isTablets,
         medicineType,
         salts,
@@ -229,6 +230,7 @@ export async function PUT(req) {
           manufacturer,
           medicineType,
           packetSize,
+          unitLabels,
           isTablets,
           salts,
         } = med;
@@ -242,6 +244,7 @@ export async function PUT(req) {
           name,
           manufacturer,
           packetSize,
+          unitLabels,
           medicineType,
           isTablets,
           salts,

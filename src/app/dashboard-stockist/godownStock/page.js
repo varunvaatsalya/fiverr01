@@ -48,7 +48,7 @@ function Page() {
       .then((data) => {
         if (data.success) {
           let groupdData = groupAndCountMedicines(data.medicineStock);
-          console.log(data.medicineStock);
+          // console.log(data.medicineStock);
           setMedicineStock(groupdData);
           // setSelectedLetter(Object.keys(groupdData)[0]);
         } else console.log(data.message);
