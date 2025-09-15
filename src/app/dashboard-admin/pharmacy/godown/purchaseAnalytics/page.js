@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import * as XLSX from "xlsx";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import Navbar from "@/app/components/Navbar";
 import { showError } from "@/app/utils/toast";
+import { format } from "date-fns";
 
 export default function PurchaseInvoiceReport() {
   const [startDate, setStartDate] = useState("");
@@ -44,6 +46,7 @@ export default function PurchaseInvoiceReport() {
 
       if (data.success) {
         setReport(data);
+        console.log(data);
       } else showError(data.message || "Fetch Error");
     } catch (err) {
       console.error("Failed to fetch:", err);
@@ -51,6 +54,117 @@ export default function PurchaseInvoiceReport() {
       setLoading(false);
     }
   };
+
+  function exportReportToExcel() {
+    if (!report) return;
+
+    const { range, medicineWise, vendorWise, summary } = report;
+    // Pehle ek array of arrays bana lete hain for worksheet
+    const wsData = [];
+
+    // Range mention kar dete hain upar
+    wsData.push([
+      `Report Date Range: ${format(
+        new Date(range.startDate),
+        "dd-MM-yyyy"
+      )} to ${format(new Date(range.endDateFinal), "dd-MM-yyyy")}`,
+    ]);
+    wsData.push([]); // blank row
+
+    if (medicineWise) {
+      // Max vendors count
+      const maxVendors = Math.max(
+        ...medicineWise.map((med) => med.vendors.length)
+      );
+
+      // Base headers
+      const headers = [
+        "Medicine Name",
+        "Manufacturer",
+        "Total Qty (Boxes)",
+        "Total Qty (Strips)",
+        "Total Amount",
+      ];
+
+      // Dynamic vendor headers
+      for (let i = 1; i <= maxVendors; i++) {
+        headers.push(
+          `Vendor ${i} Name`,
+          `Vendor ${i} Purchase Count`,
+          `Vendor ${i} Qty Boxes`,
+          `Vendor ${i} Qty Strips`,
+          `Vendor ${i} Amount`
+        );
+      }
+
+      wsData.push(headers);
+
+      // Rows
+      medicineWise.forEach((med) => {
+        const row = [
+          med.medicineName,
+          med.manufacturerName,
+          med.totalQtyBoxes,
+          med.totalQtyStrips,
+          med.totalAmount,
+        ];
+
+        med.vendors.forEach((v) => {
+          row.push(
+            v.name,
+            v.purchaseCount,
+            v.totalQtyBoxes,
+            v.totalQtyStrips,
+            v.totalAmount
+          );
+        });
+
+        // Agar vendor kam hai to blank columns fill karo
+        const missingVendors = maxVendors - med.vendors.length;
+        for (let j = 0; j < missingVendors; j++) {
+          row.push("", "", "", "", "");
+        }
+
+        wsData.push(row);
+      });
+    } else if (vendorWise) {
+      // Vendor-wise data
+      wsData.push([
+        "Vendor/Manufacturer",
+        "Total Invoices",
+        "Amount",
+        "Paid",
+        "Unpaid",
+      ]);
+
+      vendorWise.forEach((v) => {
+        wsData.push([v.name, v.totalInvoices, v.amount, v.paid, v.unpaid]);
+      });
+
+      wsData.push([]); // blank row
+      wsData.push(["Summary"]);
+      wsData.push([
+        "Total Invoices",
+        "Grand Total",
+        "Total Paid",
+        "Total Unpaid",
+      ]);
+      wsData.push([
+        summary.totalInvoices,
+        summary.grandTotal,
+        summary.totalPaid,
+        summary.totalUnpaid,
+      ]);
+    }
+
+    // Ab worksheet aur workbook bana lete hain
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Report");
+
+    // File download trigger
+    XLSX.writeFile(wb, "report.xlsx");
+  }
 
   return (
     <div className="">
@@ -94,6 +208,11 @@ export default function PurchaseInvoiceReport() {
           <Button onClick={fetchReport} disabled={loading}>
             {loading ? "Fetching..." : "Get Report"}
           </Button>
+          {report && (
+            <Button onClick={exportReportToExcel} disabled={loading}>
+              {loading ? "Wait..." : "Download Report"}
+            </Button>
+          )}
         </Card>
 
         {/* Loading state */}
