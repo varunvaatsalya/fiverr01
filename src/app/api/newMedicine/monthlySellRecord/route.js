@@ -101,6 +101,7 @@ export async function GET(req) {
           medicineName: { $first: "$medicine.name" },
           saltName: { $first: "$salt.name" },
           tabletsPerStrip: { $first: "$medicine.packetSize.tabletsPerStrip" },
+          unitLabelLevel1: { $first: "$medicine.unitLabels.level1" },
           monthlyData: {
             $push: {
               year: "$year",
@@ -116,6 +117,9 @@ export async function GET(req) {
         $project: {
           medicineName: 1,
           saltName: 1,
+          unitLabelLevel1: {
+            $ifNull: ["$unitLabelLevel1", "pack"],
+          },
           monthlyData: {
             $map: {
               input: "$monthlyData",
@@ -143,6 +147,7 @@ export async function GET(req) {
         $project: {
           medicineName: 1,
           saltName: 1,
+          unitLabelLevel1: 1,
           monthlyData: {
             $sortArray: {
               input: "$monthlyData",

@@ -238,6 +238,7 @@ function NewMedicineForm() {
         {fields.map((field, index) => {
           let isTablets = watch("medicines")[index]?.isTablets;
           let isDisable = watch("medicines")[index]?.status === "disable";
+          const status = watch(`medicines.${index}.status`);
           return (
             <div
               key={field.id}
@@ -300,19 +301,27 @@ function NewMedicineForm() {
                     {isDisable && <BadgeX className="text-red-600" />}
                     <div className="font-semibold">Status:</div>
                     <select
-                      {...register(`medicines.${index}.status`, {
-                        onChange: (e) => {
-                          const selectedValue = e.target.value;
-                          if (selectedValue === "disable") {
-                            const confirmed = window.confirm(
-                              "Are you sure you want to disable this medicine?"
-                            );
-                            if (!confirmed) {
-                              e.target.value = "active";
-                            }
-                          }
-                        },
-                      })}
+                      value={status}
+                      onChange={(e) => {
+                        const previousValue = status;
+                        const selectedValue = e.target.value;
+
+                        const confirmed = window.confirm(
+                          `Are you sure you want to change status from "${previousValue}" to "${selectedValue}"?`
+                        );
+
+                        if (confirmed) {
+                          setValue(`medicines.${index}.status`, selectedValue, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                        } else {
+                          setValue(`medicines.${index}.status`, previousValue, {
+                            shouldValidate: false,
+                            shouldDirty: false,
+                          });
+                        }
+                      }}
                       className="w-28 px-1 h-8 rounded-lg bg-gray-600 text-white"
                     >
                       <option value="active">Active</option>

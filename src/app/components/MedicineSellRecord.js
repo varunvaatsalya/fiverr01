@@ -150,7 +150,10 @@ function MedicineSellRecord({
                     return (
                       <TableCell key={`${trend._id}-${m.year}-${m.month}`}>
                         <div>
-                          <span className="font-medium">Tablets:</span> {strips}{" "}
+                          <span className="font-medium capitalize">
+                            {trend.unitLabelLevel1 || "Pack"}:
+                          </span>{" "}
+                          {strips}
                           {change}
                         </div>
                         <div>
