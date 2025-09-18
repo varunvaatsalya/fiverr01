@@ -41,7 +41,7 @@ function MedicineSellRecord({
   const filteredData = useMemo(() => {
     if (!search.trim()) return medicineData;
     const lowerSearch = search.toLowerCase();
-    return medicineData.filter(
+    return medicineData?.filter(
       (m) =>
         m.medicineName.toLowerCase().includes(lowerSearch) ||
         (m.saltName && m.saltName.toLowerCase().includes(lowerSearch))
@@ -83,86 +83,93 @@ function MedicineSellRecord({
       </div>
 
       {/* Table wrapper */}
-
-      <ScrollArea className="flex-1 rounded-lg border">
-        <Table className="min-w-[1000px]">
-          <TableHeader className="bg-gray-50 sticky top-0 z-10">
-            <TableRow>
-              <TableCell className="font-semibold text-sm">Medicine</TableCell>
-              <TableCell className="font-semibold text-sm">Salt</TableCell>
-              {monthYear.map((m) => (
-                <TableCell
-                  key={`${m.year}-${m.month}`}
-                  className="font-semibold text-sm"
-                >
-                  {monthNames[m.month - 1]} {m.year}
+      {loading ? (
+        <div className="text-center p-3">Please Wait...</div>
+      ) : (
+        <ScrollArea className="flex-1 rounded-lg border">
+          <Table className="min-w-[1000px]">
+            <TableHeader className="bg-gray-50 sticky top-0 z-10">
+              <TableRow>
+                <TableCell className="font-semibold text-sm">
+                  Medicine
                 </TableCell>
-              ))}
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {filteredData.map((trend) => (
-              <TableRow key={trend._id} className="hover:bg-gray-50">
-                <TableCell>{trend.medicineName}</TableCell>
-                <TableCell>{trend.saltName}</TableCell>
-                {monthYear.map((m, idx) => {
-                  const monthlyRecord = trend.monthlyData.find(
-                    (d) => d.year === m.year && d.month === m.month
-                  );
-
-                  const tablets = monthlyRecord?.totalSoldTablets || 0;
-                  const invoices = monthlyRecord?.totalInvoices || 0;
-                  const revenue =
-                    parseFloat(monthlyRecord?.totalRevenue?.toFixed(2)) || 0;
-                  const strips =
-                    parseFloat(monthlyRecord?.totalSoldStrips?.toFixed(2)) || 0;
-
-                  let change = null;
-                  if (idx > 0) {
-                    const prevRecord = trend.monthlyData.find(
-                      (d) =>
-                        d.year === monthYear[idx - 1].year &&
-                        d.month === monthYear[idx - 1].month
-                    );
-                    if (prevRecord) {
-                      const diff = tablets - prevRecord.totalSoldTablets;
-                      change =
-                        diff > 0 ? (
-                          <ArrowUp
-                            className="inline text-green-500 ml-1"
-                            size={16}
-                          />
-                        ) : diff < 0 ? (
-                          <ArrowDown
-                            className="inline text-red-500 ml-1"
-                            size={16}
-                          />
-                        ) : null;
-                    }
-                  }
-
-                  return (
-                    <TableCell key={`${trend._id}-${m.year}-${m.month}`}>
-                      <div>
-                        <span className="font-medium">Tablets:</span> {strips}{" "}
-                        {change}
-                      </div>
-                      <div>
-                        <span className="font-medium">Revenue:</span> ₹{revenue}
-                      </div>
-                      <div>
-                        <span className="font-medium">Invoices:</span>{" "}
-                        {invoices}
-                      </div>
-                    </TableCell>
-                  );
-                })}
+                <TableCell className="font-semibold text-sm">Salt</TableCell>
+                {monthYear?.map((m) => (
+                  <TableCell
+                    key={`${m.year}-${m.month}`}
+                    className="font-semibold text-sm"
+                  >
+                    {monthNames[m.month - 1]} {m.year}
+                  </TableCell>
+                ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </ScrollArea>
+            </TableHeader>
+
+            <TableBody>
+              {filteredData?.map((trend) => (
+                <TableRow key={trend._id} className="hover:bg-gray-50">
+                  <TableCell>{trend.medicineName}</TableCell>
+                  <TableCell>{trend.saltName}</TableCell>
+                  {monthYear?.map((m, idx) => {
+                    const monthlyRecord = trend.monthlyData.find(
+                      (d) => d.year === m.year && d.month === m.month
+                    );
+
+                    const tablets = monthlyRecord?.totalSoldTablets || 0;
+                    const invoices = monthlyRecord?.totalInvoices || 0;
+                    const revenue =
+                      parseFloat(monthlyRecord?.totalRevenue?.toFixed(2)) || 0;
+                    const strips =
+                      parseFloat(monthlyRecord?.totalSoldStrips?.toFixed(2)) ||
+                      0;
+
+                    let change = null;
+                    if (idx > 0) {
+                      const prevRecord = trend.monthlyData.find(
+                        (d) =>
+                          d.year === monthYear[idx - 1].year &&
+                          d.month === monthYear[idx - 1].month
+                      );
+                      if (prevRecord) {
+                        const diff = tablets - prevRecord.totalSoldTablets;
+                        change =
+                          diff > 0 ? (
+                            <ArrowUp
+                              className="inline text-green-500 ml-1"
+                              size={16}
+                            />
+                          ) : diff < 0 ? (
+                            <ArrowDown
+                              className="inline text-red-500 ml-1"
+                              size={16}
+                            />
+                          ) : null;
+                      }
+                    }
+
+                    return (
+                      <TableCell key={`${trend._id}-${m.year}-${m.month}`}>
+                        <div>
+                          <span className="font-medium">Tablets:</span> {strips}{" "}
+                          {change}
+                        </div>
+                        <div>
+                          <span className="font-medium">Revenue:</span> ₹
+                          {revenue}
+                        </div>
+                        <div>
+                          <span className="font-medium">Invoices:</span>{" "}
+                          {invoices}
+                        </div>
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      )}
     </div>
   );
 }
