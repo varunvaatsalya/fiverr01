@@ -47,7 +47,7 @@ export async function GET(req) {
 
     const medicines = await Medicine.find({ name: { $regex: regex } })
       .select(
-        "name isTablets medicineType packetSize unitLabels manufacturer salts minimumStockCount maximumStockCount"
+        "name isTablets medicineType packetSize status unitLabels manufacturer salts minimumStockCount maximumStockCount"
       )
       .populate("manufacturer", "name")
       .populate("salts", "name");

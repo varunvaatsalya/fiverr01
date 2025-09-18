@@ -28,6 +28,12 @@ import { GrMoney } from "react-icons/gr";
 import { ToWords } from "to-words";
 import { useStockType } from "../context/StockTypeContext";
 import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 export default function PharmacyDueInvoice() {
   const router = useRouter();
@@ -36,6 +42,7 @@ export default function PharmacyDueInvoice() {
   const [invoices, setInvoices] = useState([]);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [role, setRole] = useState("");
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const [sharedPaymentInfo, setSharedPaymentInfo] = useState({
     referenceNumber: "",
     date: "",
@@ -107,6 +114,7 @@ export default function PharmacyDueInvoice() {
       console.log("error: ", err);
     } finally {
       setFetching(false);
+      setFilterDialogOpen(false);
     }
   }
   useEffect(() => {
@@ -240,11 +248,14 @@ export default function PharmacyDueInvoice() {
           onChange={(e) => handleSearch(e.target.value)}
         />
 
-        <Dialog>
+        <Dialog open={filterDialogOpen} onOpenChange={setFilterDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline">Filter Invoices</Button>
           </DialogTrigger>
-          <DialogContent className="space-y-4">
+          <DialogContent className="text-black">
+            <DialogTitle className="text-lg font-semibold text-black">
+              Filter Invoices
+            </DialogTitle>
             <div className="grid grid-cols-2 gap-4 text-black">
               <div>
                 <Label className="text-sm font-medium">Invoice Start</Label>
@@ -432,7 +443,7 @@ export default function PharmacyDueInvoice() {
               <div className="grid grid-cols-8 font-semibold text-sm text-gray-700 px-2">
                 <div>Select</div>
                 <div>Invoice No</div>
-                <div>Date</div>
+                <div>Receive Date</div>
                 <div>{"Stock(s)"}</div>
                 <div>Grand Total</div>
                 <div className="text-right">Paid</div>
@@ -474,7 +485,35 @@ export default function PharmacyDueInvoice() {
                     <div className="truncate">{invoice.invoiceNumber}</div>
 
                     {/* Invoice Date */}
-                    <div>{formatDateToIST(invoice.invoiceDate)}</div>
+                    <div>
+                      {format(new Date(invoice.receivedDate), "dd/MM/yyyy")}{" "}
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <button className="text-blue-500 text-[10px] font-bold border rounded-full px-2 py-0.5 bg-blue-300 hover:bg-blue-200 transition">
+                            i
+                          </button>
+                        </HoverCardTrigger>
+                        <HoverCardContent className="text-sm bg-white border shadow-lg rounded-lg p-2">
+                          <div className="font-semibold mb-1 text-gray-800">
+                            More Dates:
+                          </div>
+                          <div>
+                            Invoice Date:{" "}
+                            {format(
+                              new Date(invoice.invoiceDate),
+                              "dd/MM/yyyy"
+                            )}
+                          </div>
+                          <div>
+                            Created Date:{" "}
+                            {format(
+                              new Date(invoice.createdAt),
+                              "dd/MM/yyyy, h:mm a"
+                            )}
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                    </div>
 
                     {/* Stock Count + Modal Trigger */}
                     <div>

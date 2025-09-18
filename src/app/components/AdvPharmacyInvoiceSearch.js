@@ -46,9 +46,8 @@ function AdvPharmacyInvoiceSearch({ setSearchedInvoices }) {
           ...(selected.length > 0 ? { selected, logic } : {}),
         }),
       });
-      console.time("jsonParse1", result);
       result = await result.json();
-      console.time("jsonParse2", result);
+      console.log("jsonParse2", result);
       if (result.success) {
         setSearchedInvoices(result.invoices);
         setSearchedLength(result.invoices.length);

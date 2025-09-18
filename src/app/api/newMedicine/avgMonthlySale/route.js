@@ -1,8 +1,11 @@
+// IMPORTANT
+// isko monthly sale data se replace kr diya gya hai
+
 import { NextResponse } from "next/server";
-import dbConnect from "../../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../../utils/jwt";
-import PharmacyInvoice from "../../../models/PharmacyInvoice";
-import Medicine from "../../../models/Medicine";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import PharmacyInvoice from "@/app/models/PharmacyInvoice";
+import Medicine from "@/app/models/Medicine";
 
 export async function GET(req) {
   await dbConnect();

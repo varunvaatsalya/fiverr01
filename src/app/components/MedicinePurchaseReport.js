@@ -8,6 +8,7 @@ function MedicinePurchaseReport({
   loading,
   fetchData,
 }) {
+  console.log(purchaseData);
   const [manufacturers, setManufacturers] = useState([]);
   const [salts, setSalts] = useState([]);
   const [vendors, setVendors] = useState([]);
@@ -127,7 +128,7 @@ function MedicinePurchaseReport({
                 "name",
                 "manufacturer",
                 "salts",
-                "totalPurchasedStrips",
+                "totalPurchasedQty",
                 "totalAmount",
               ].map((col) => (
                 <th
@@ -157,10 +158,10 @@ function MedicinePurchaseReport({
                 <td className="py-2 px-4">{med.name}</td>
                 <td className="py-2 px-4">{med.manufacturer}</td>
                 <td className="py-2 px-4">{med.salts}</td>
+                <td className="py-2 px-4">{med.totalPurchasedQty}</td>
                 <td className="py-2 px-4">
                   ₹{parseFloat(med.totalAmount.toFixed(2))}
                 </td>
-                <td className="py-2 px-4">{med.totalPurchasedStrips}</td>
               </tr>
             ))}
           </tbody>

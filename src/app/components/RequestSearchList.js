@@ -1,8 +1,24 @@
-"use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
-import { formatDateTimeToIST } from "../utils/date";
 import { format } from "date-fns";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 function RequestSearchList({
   stockRequests,
@@ -14,60 +30,43 @@ function RequestSearchList({
   selectedStatus,
   setSelectedStatus,
 }) {
-  const [selectedIndex, setSelectedIndex] = useState(null);
-
   const statuses = [
     {
       label: "All",
       value: "All",
-      border: "border-blue-500",
-      text: "text-blue-800",
     },
     {
       label: "Fulfilled",
       value: "Fulfilled",
-      border: "border-green-500",
-      text: "text-green-500",
     },
     {
       label: "Fulfilled (Partial)",
       value: "Fulfilled (Partial)",
-      border: "border-teal-500",
-      text: "text-teal-500",
     },
     {
       label: "Pending",
       value: "Pending",
-      border: "border-yellow-500",
-      text: "text-yellow-600",
     },
     {
       label: "Approved",
       value: "Approved",
-      border: "border-violet-600",
-      text: "text-violet-600",
     },
     {
       label: "Returned",
       value: "Returned",
-      border: "border-pink-600",
-      text: "text-pink-600",
     },
     {
       label: "Rejected",
       value: "Rejected",
-      border: "border-red-500",
-      text: "text-red-500",
     },
     {
       label: "Disputed",
       value: "Disputed",
-      border: "border-sky-600",
-      text: "text-sky-600",
     },
   ];
 
   const statusStyle = {
+    All: "bg-white text-black",
     Fulfilled: "bg-green-200 text-green-700",
     "Fulfilled (Partial)": "bg-teal-200 text-teal-800",
     Pending: "bg-yellow-200 text-yellow-500",
@@ -91,180 +90,209 @@ function RequestSearchList({
 
   const offset = useMemo(() => limit * (page - 1), [limit, page]);
 
+  const tableHeaderLables = [
+    "#",
+    "Medicine",
+    "Manufacturer",
+    "Status",
+    "Requested Qty",
+    "Remaining Qty",
+    "Approved At",
+    "Received Status",
+    "Received At",
+    "Requested Date",
+  ];
+
   return (
-    <div className="px-2 py-1 flex flex-col justify-center items-center flex-1 bg-gray-100">
-      <input
-        type="text"
-        placeholder="Search"
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-        }}
-        className="h-full w-full lg:w-3/4 text-black text-lg px-4 py-2 rounded-full outline-none bg-gray-200 border-b-2 border-gray-400 focus:bg-gray-300"
-      />
-      <div className="flex justify-center items-center border-b border-gray-400 text-gray-800 font-semibold">
-        {statuses.map((status) => (
-          <button
-            key={status.value}
-            onClick={() => {
-              setSelectedStatus(status.value);
+    <div className="flex-1 min-h-0 w-full flex flex-col bg-gray-100">
+      <div className="flex justify-between items-center gap-4 flew-wrap p-3 text-black">
+        <Input
+          type="text"
+          placeholder="Search medicine..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="lg:w-1/4 rounded-full"
+        />
+
+        <div className="flex gap-3 items-center font-semibold">
+          <Label htmlFor="status">Status:</Label>
+          <Select
+            id="status"
+            value={selectedStatus}
+            onValueChange={(value) => {
+              setSelectedStatus(value);
               setPage(1);
             }}
-            className={
-              "px-3 py-2 border-b-2 " +
-              (selectedStatus === status.value
-                ? `${status.border} ${status.text}`
-                : "border-gray-100")
-            }
           >
-            {status.label}
-          </button>
-        ))}
+            <SelectTrigger className={statusStyle[selectedStatus]}>
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {statuses.map((status) => (
+                <SelectItem key={status.value} value={status.value}>
+                  {status.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-      <div className="flex-1 w-full p-2 overflow-y-auto flex flex-col items-center gap-1">
+
+      <div className="flex-1 overflow-y-auto p-2">
         {stockRequests.length > 0 ? (
-          stockRequests.map((req, index) => (
-            <div key={index} className="w-full md:w-4/5 lg:w-3/4">
-              <div
-                onClick={() =>
-                  setSelectedIndex(selectedIndex === index ? null : index)
-                }
-                className={
-                  "flex font-semibold px-4 py-2 rounded-full cursor-pointer hover:bg-gray-300 " +
-                  (selectedIndex === index
-                    ? "bg-gray-300 text-blue-950"
-                    : "bg-gray-200 text-gray-900")
-                }
-              >
-                <div className="w-[5%]">{offset + index + 1 + "."}</div>
-                <div className="w-[50%] px-3">{req.medicineData.name}</div>
-                <div className={` px-3 rounded-lg ${statusStyle[req.status]}`}>
-                  {req.status}
-                </div>
-                <div className="flex-1">
-                  <div className="w-24 ml-auto text-sm italic">
-                    {req.approvedQuantity.length > 0
-                      ? `${req.approvedQuantity.length} Batch(s)`
-                      : ""}
-                  </div>
-                </div>
-              </div>
-              {selectedIndex === index && (
-                <div className="p-2 my-1 bg-slate-300 rounded-lg flex flex-col justify-around items-center">
-                  <div className="font-semibold text-gray-900">
-                    Manufacturer:{" "}
-                    <span className="text-blue-500">
-                      {req.manufacturerData.name}
-                    </span>
-                  </div>
-                  <div className="font-semibold text-gray-900">
-                    Requested Quantity:{" "}
-                    <span className="text-blue-500">
-                      {req.requestedQuantity}
-                    </span>
-                  </div>
-                  <div className="font-semibold text-gray-900">
-                    Entered Remaining Quantity:{" "}
-                    <span className="text-blue-500">
-                      {req.enteredRemainingQuantity}
-                    </span>
-                  </div>
-                  <div className="font-semibold text-gray-900">
-                    Actual Remaining Quantity:{" "}
-                    <span className="text-blue-500">
-                      {req.actualRemainingQuantity}
-                    </span>
-                  </div>
-                  {req.approvedAt && (
-                    <div className="font-semibold text-gray-900">
-                      Approved At:{" "}
-                      <span className="text-blue-500 uppercase">
-                        {formatDateTimeToIST(req.approvedAt)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="font-semibold text-gray-900">
-                    Retail Received Status:{" "}
-                    <span className="text-blue-500">{req.receivedStatus}</span>
-                  </div>
-                  <div className="font-semibold text-gray-900">
-                    Received/Rejected At:{" "}
-                    <span className="text-blue-500 uppercase">
-                      {req.receivedAt
-                        ? formatDateTimeToIST(req.receivedAt)
-                        : "--"}
-                    </span>
-                  </div>
-                  <div className="font-semibold text-gray-900">
-                    Requested Date:{" "}
-                    <span className="text-blue-500 uppercase">
-                      {formatDateTimeToIST(req.createdAt)}
-                    </span>
-                  </div>
-                  <div className="my-1 font-semibold text-violet-700 bg-violet-300 px-4 py-1 rounded-full">
-                    Approved Stocks
-                  </div>
-                  <div className="w-full flex flex-col itmes-center gap-2 px-2">
-                    {req.approvedQuantity.length > 0 ? (
-                      req.approvedQuantity.map((stock) => (
-                        <div
-                          key={stock._id}
-                          className="bg-gray-800 text-white rounded-full py-1 px-4 flex flex-col lg:flex-row justify-center items-center"
-                        >
-                          <div className="lg:w-[15%]">{stock.batchName}</div>
-                          <div className="lg:w-[30%]">
-                            {"Expiry: " +
-                              format(new Date(stock.expiryDate), "MM/yy")}
-                          </div>
-                          {stock.quantity && (
-                            <div className="lg:w-[45%]">
-                              {stock.quantity.boxes +
-                                " Boxes, " +
-                                stock.quantity.extra +
-                                " Extras, " +
-                                stock.quantity.totalStrips +
-                                " Total"}
-                            </div>
-                          )}
-                          <div className="lg:w-[10%]">
-                            {"MRP: " + stock.sellingPrice}
-                          </div>
+          <Table className="text-sm text-black border border-gray-300">
+            <TableCaption>Stock Requests with Allocations</TableCaption>
+            <TableHeader>
+              <TableRow className="bg-gray-200">
+                {tableHeaderLables.map((header, index) => (
+                  <TableHead
+                    key={index}
+                    className="sticky top-0 bg-gray-200 z-10"
+                  >
+                    {header}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {stockRequests.map((req, index) => {
+                let medicine = req.medicineData;
+                // let label0 = medicine.unitLabels?.level0
+                //   ? `${medicine.unitLabels.level0}s`
+                //   : "tablets";
+
+                let label1 = medicine.unitLabels?.level1
+                  ? `${medicine.unitLabels.level1}s`
+                  : medicine.isTablets
+                  ? "strips"
+                  : "units";
+
+                let label2 = medicine.unitLabels?.level2
+                  ? medicine.unitLabels.level2
+                  : "Boxes";
+
+                return (
+                  <>
+                    {/* Main Row */}
+                    <TableRow
+                      key={req._id}
+                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+                      <TableCell>{offset + index + 1 + "."}</TableCell>
+                      <TableCell className="font-semibold">
+                        {medicine?.name}
+                      </TableCell>
+                      <TableCell>{req.manufacturerData?.name}</TableCell>
+                      <TableCell>{req.status}</TableCell>
+                      <TableCell>{req.requestedQuantity}</TableCell>
+                      <TableCell>
+                        {req.enteredRemainingQuantity} /{" "}
+                        {req.actualRemainingQuantity}
+                      </TableCell>
+                      <TableCell>
+                        {req.approvedAt
+                          ? format(new Date(req.approvedAt), "dd/MM/yyyy HH:mm")
+                          : "--"}
+                      </TableCell>
+                      <TableCell>{req.receivedStatus}</TableCell>
+                      <TableCell>
+                        {req.receivedAt
+                          ? format(new Date(req.receivedAt), "dd/MM/yyyy HH:mm")
+                          : "--"}
+                      </TableCell>
+                      <TableCell>
+                        {req.createdAt
+                          ? format(new Date(req.createdAt), "dd/MM/yyyy HH:mm")
+                          : "--"}
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Approved Stocks Sub-Table */}
+                    <TableRow className="bg-gray-100/70">
+                      <TableCell colSpan={10}>
+                        <div className="font-semibold text-violet-700 mb-1">
+                          Approved Stocks
                         </div>
-                      ))
-                    ) : (
-                      <div className="font-semibold text-red-600 text-center">
-                        No any approved Stocks is available.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
+                        {req.approvedQuantity.length > 0 ? (
+                          <Table className="border">
+                            <TableHeader>
+                              <TableRow className="bg-gray-200">
+                                <TableHead>Batch</TableHead>
+                                <TableHead>MFG</TableHead>
+                                <TableHead>Expiry</TableHead>
+                                <TableHead>Quantity</TableHead>
+                                <TableHead>Purchase Price</TableHead>
+                                <TableHead>MRP</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {req.approvedQuantity.map((stock) => {
+                                const {
+                                  boxes = 0,
+                                  extra = 0,
+                                  totalStrips = 0,
+                                } = stock.quantity || {};
+                                let stockText = `Total ${label1}: ${totalStrips} = ${label2}: ${boxes}, Extra ${label1}: ${extra}`;
+                                return (
+                                  <TableRow key={stock._id}>
+                                    <TableCell>{stock.batchName}</TableCell>
+                                    <TableCell>
+                                      {stock.mfgDate
+                                        ? format(
+                                            new Date(stock.mfgDate),
+                                            "MM/yyyy"
+                                          )
+                                        : "--"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {format(
+                                        new Date(stock.expiryDate),
+                                        "MM/yyyy"
+                                      )}
+                                    </TableCell>
+                                    <TableCell>{stockText}</TableCell>
+                                    <TableCell>{stock.purchasePrice}</TableCell>
+                                    <TableCell>{stock.sellingPrice}</TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        ) : (
+                          <div className="text-red-600 font-medium">
+                            No approved stock available
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </>
+                );
+              })}
+            </TableBody>
+          </Table>
         ) : (
           <div className="font-semibold text-lg text-red-400 text-center">
             *No Requests Found
           </div>
         )}
       </div>
-      <div className="w-full flex justify-end gap-2 pr-4 ">
-        <div className="bg-gray-900 rounded-lg">
+
+      <div className="w-full flex justify-end py-2 px-4 border-t border-gray-300 bg-gray-100">
+        <div className="flex items-center bg-gray-900 text-white rounded-lg overflow-hidden">
           <button
             onClick={handlePreviousPage}
             disabled={page === 1}
-            className="p-3"
+            className="p-3 disabled:opacity-40"
           >
-            <FaArrowLeft size={20} />
+            <FaArrowLeft size={18} />
           </button>
-          <span className="text-white border-x border-white p-3">
-            Page {page}
-          </span>
+          <span className="px-4 py-2 border-x border-white">Page {page}</span>
           <button
             onClick={handleNextPage}
             disabled={stockRequests.length < limit}
-            className="p-3"
+            className="p-3 disabled:opacity-40"
           >
-            <FaArrowRight size={20} />
+            <FaArrowRight size={18} />
           </button>
         </div>
       </div>

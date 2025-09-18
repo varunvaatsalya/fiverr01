@@ -86,7 +86,7 @@ export async function GET(req) {
     ) {
       matchStage["status"] = status;
     }
-    console.log(matchStage);
+    // console.log(matchStage);
 
     const pipeline = [
       {
@@ -95,6 +95,17 @@ export async function GET(req) {
           localField: "medicine",
           foreignField: "_id",
           as: "medicineData",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                manufacturer: 1,
+                isTablets: 1,
+                unitLabels: 1,
+              },
+            },
+          ],
         },
       },
       { $unwind: "$medicineData" },
@@ -104,6 +115,14 @@ export async function GET(req) {
           localField: "medicineData.manufacturer",
           foreignField: "_id",
           as: "manufacturerData",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
         },
       },
       {

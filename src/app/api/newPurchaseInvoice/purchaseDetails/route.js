@@ -129,13 +129,13 @@ export async function POST(req) {
         $group: {
           _id: "$medicine._id",
           name: { $first: "$medicine.name" },
-          manufacturer: { $first: "$salt.name" },
-          salts: { $first: "$manufacturer.name" },
-          totalPurchasedStrips: { $sum: "$stock.quantity.totalStrips" },
+          manufacturer: { $first: "$manufacturer.name" },
+          salts: { $first: "$salt.name" },
+          totalPurchasedQty: { $sum: "$stock.initialQuantity.totalStrips" },
           totalAmount: {
             $sum: {
               $multiply: [
-                "$stock.quantity.totalStrips",
+                "$stock.initialQuantity.totalStrips",
                 "$stock.purchasePrice",
               ],
             },

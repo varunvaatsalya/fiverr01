@@ -1,4 +1,5 @@
 "use client";
+import { BadgeX } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 // import Loading from "./Loading";
@@ -74,6 +75,7 @@ function NewMedicineForm() {
                 strips: data.response.packetSize?.strips || 1,
                 tabletsPerStrip: data.response.packetSize?.tabletsPerStrip || 1,
               },
+              status: data.response.status || "active",
               unitLabels: {
                 level2: data.response.unitLabels.level2 || "box",
                 level1: data.response.unitLabels.level1 || "pack",
@@ -235,6 +237,7 @@ function NewMedicineForm() {
         )}
         {fields.map((field, index) => {
           let isTablets = watch("medicines")[index]?.isTablets;
+          let isDisable = watch("medicines")[index]?.status === "disable";
           return (
             <div
               key={field.id}
@@ -292,6 +295,31 @@ function NewMedicineForm() {
                 </select>
               </div>
               <div className="flex items-center gap-4">
+                {selectedMedicine && (
+                  <>
+                    {isDisable && <BadgeX className="text-red-600" />}
+                    <div className="font-semibold">Status:</div>
+                    <select
+                      {...register(`medicines.${index}.status`, {
+                        onChange: (e) => {
+                          const selectedValue = e.target.value;
+                          if (selectedValue === "disable") {
+                            const confirmed = window.confirm(
+                              "Are you sure you want to disable this medicine?"
+                            );
+                            if (!confirmed) {
+                              e.target.value = "active";
+                            }
+                          }
+                        },
+                      })}
+                      className="w-28 px-1 h-8 rounded-lg bg-gray-600 text-white"
+                    >
+                      <option value="active">Active</option>
+                      <option value="disable">Disable</option>
+                    </select>
+                  </>
+                )}
                 <div className="font-semibold">Packet Size:</div>
                 <div className="flex gap-2 items-center border border-gray-600 p-1 rounded-md">
                   <span>1</span>

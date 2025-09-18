@@ -377,9 +377,9 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
               <TableBody>
                 {stocks.map((item) => {
                   const stock = item.stockId;
-                  const qtyStr = `${stock.quantity.totalStrips} (${
-                    stock.quantity.extra ? "~" : ""
-                  }${stock.quantity.boxes} Boxes)`;
+                  const qtyStr = `${stock.initialQuantity.totalStrips} (${
+                    stock.initialQuantity.extra ? "~" : ""
+                  }${stock.initialQuantity.boxes} Boxes)`;
 
                   return (
                     <TableRow key={stock._id}>
@@ -390,7 +390,7 @@ export default function StockDetails({ stockDetails, setStockDetails }) {
                       </TableCell>
                       <TableCell>
                         <div>{qtyStr}</div>
-                        {<div>offer: {stock.offer ?? "-"}</div>}
+                        {<div>offer: {stock.initialQuantity?.offer ?? "-"}</div>}
                       </TableCell>
                       <TableCell className="text-sm leading-tight">
                         <div>PP: ₹{stock.purchasePrice ?? "-"}</div>

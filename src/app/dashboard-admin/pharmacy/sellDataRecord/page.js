@@ -1,19 +1,24 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Navbar from "../../../components/Navbar";
-import MedicineSellRecord from "../../../components/MedicineSellRecord";
-import { showError, showSuccess } from "../../../utils/toast";
+import Navbar from "@/app/components/Navbar";
+import MedicineSellRecord from "@/app/components/MedicineSellRecord";
+import { showError, showSuccess } from "@/app/utils/toast";
 
 function Page() {
   const [medicineData, setMedicineData] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [monthYear, setMonthYear] = useState([]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/newMedicine?sellRecord=1");
+      // const response = await fetch("/api/newMedicine?sellRecord=1");
+      const response = await fetch("/api/newMedicine/monthlySellRecord");
       const data = await response.json();
-      setMedicineData(data.records);
+      setMedicineData(data.trends);
+      setLastUpdated(data.lastUpdated);
+      setMonthYear(data.monthYear);
     } catch (error) {
       console.error("Error fetching data:", error);
       showError("Failed to fetch data. Please try again later.");
@@ -28,7 +33,10 @@ function Page() {
   const updateData = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/newMedicine/avgMonthlySale");
+      // const response = await fetch("/api/newMedicine/avgMonthlySale");
+      const response = await fetch("/api/newMedicine/monthlySellRecord", {
+        method: "PUT",
+      });
       const data = await response.json();
       if (data.success) {
         showSuccess(data.message);
@@ -42,7 +50,7 @@ function Page() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="w-full min-h-screen h-screen flex flex-col items-center">
@@ -51,6 +59,8 @@ function Page() {
       </div>
       <MedicineSellRecord
         medicineData={medicineData}
+        lastUpdated={lastUpdated}
+        monthYear={monthYear}
         loading={loading}
         updateData={updateData}
       />

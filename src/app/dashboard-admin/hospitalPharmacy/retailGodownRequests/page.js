@@ -42,7 +42,7 @@ function Page() {
     fetchData(page);
   }, [page, debouncedQuery, selectedStatus]);
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen h-screen flex flex-col">
       <Navbar route={["Pharmacy", "Requests"]} />
       <RequestSearchList
         stockRequests={stockRequests}

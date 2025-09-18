@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { showError, showSuccess } from "@/app/utils/toast";
 import { FaEdit } from "react-icons/fa";
+import { BadgeX } from "lucide-react";
 
 const alphabets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
 
@@ -201,7 +202,10 @@ function MedicineInfo() {
 
         <Button
           variant={editMode ? "default" : "outline"}
-          onClick={() => setEditMode((prev) => !prev)}
+          onClick={() => {
+            setEditMode((prev) => !prev);
+            setEdited({});
+          }}
         >
           {editMode ? "Disable Edit" : "Enable Edit"}
         </Button>
@@ -234,6 +238,7 @@ function MedicineInfo() {
           <TableBody className="text-black">
             {filteredMeds.map((med, index) => {
               const editedMed = edited[med._id] || {};
+              let status = editedMed.status ?? med.status ?? "active";
 
               return (
                 <Fragment key={med._id}>
@@ -250,6 +255,7 @@ function MedicineInfo() {
                           handleEditChange(med._id, "name", e.target.value)
                         }
                         // disabled={!editMode}
+                        placeholder="Enter medicine name"
                         className="border px-2 py-1 rounded w-full"
                       />
                     </TableCell>
@@ -319,6 +325,7 @@ function MedicineInfo() {
                             e.target.value
                           )
                         }
+                        placeholder="Enter medicine type"
                         // disabled={!editMode}
                         className="border px-2 py-1 rounded w-full"
                       />
@@ -341,6 +348,30 @@ function MedicineInfo() {
                   <TableRow className="bg-white hover:bg-white">
                     <TableCell colSpan={8}>
                       <div className="flex items-center gap-4 py-0.5">
+                        {status === "disable" && (
+                          <BadgeX className="text-red-600" />
+                        )}
+                        <div className="font-semibold">Status:</div>
+                        <select
+                          value={status}
+                          onChange={(e) => {
+                            const previousValue =
+                              editedMed.status ?? med.status ?? "active";
+                            const selectedValue = e.target.value;
+                            const confirmed = window.confirm(
+                              `Are you sure you want to change status from "${previousValue}" to "${selectedValue}"?`
+                            );
+                            if (!confirmed) {
+                              e.target.value = previousValue;
+                              return;
+                            }
+                            handleEditChange(med._id, "status", selectedValue);
+                          }}
+                          className="w-28 px-1 h-8 rounded-lg bg-gray-600 text-white"
+                        >
+                          <option value="active">Active</option>
+                          <option value="disable">Disable</option>
+                        </select>
                         <div className="font-semibold">Packet Size:</div>
                         {/* Box */}
                         <div className="flex gap-2 items-center px-2 py-1.5 bg-gray-100 rounded-lg border">
@@ -402,7 +433,7 @@ function MedicineInfo() {
                             className="w-24 border px-2 py-1 rounded"
                           />
                         </div>
-                        {med.isTablets && (
+                        {(editedMed.isTablets ?? med.isTablets) && (
                           <div className="flex gap-2 items-center px-2 py-1.5 bg-gray-100 rounded-lg border">
                             <span>1</span>
                             <div>

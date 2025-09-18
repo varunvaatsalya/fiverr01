@@ -132,8 +132,15 @@ export async function POST(req) {
     let savedMedicines = [];
 
     for (const med of medicines) {
-      const { name, manufacturer, medicineType, packetSize, unitLabels, isTablets, salts } =
-        med;
+      const {
+        name,
+        manufacturer,
+        medicineType,
+        packetSize,
+        unitLabels,
+        isTablets,
+        salts,
+      } = med;
 
       // Ensure tabletsPerStrip is not empty, default to 1
       const finalPacketSize = {
@@ -192,7 +199,7 @@ export async function PUT(req) {
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
-  // const userEditPermission = decoded?.editPermission;
+  const userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -221,8 +228,20 @@ export async function PUT(req) {
   try {
     let updatedMedicines = [];
 
+    const isAuthorized =
+      userRole === "admin" ||
+      userRole === "owner" ||
+      (userRole === "stockiest" && userEditPermission);
+
     if (medicines && Array.isArray(medicines)) {
       // Multiple medicines update
+      if (!isAuthorized) {
+        return NextResponse.json(
+          { message: "Access denied. contact to admins.", success: false },
+          { status: 403 }
+        );
+      }
+      
       for (const med of medicines) {
         const {
           id,
@@ -230,6 +249,7 @@ export async function PUT(req) {
           manufacturer,
           medicineType,
           packetSize,
+          status,
           unitLabels,
           isTablets,
           salts,
@@ -245,6 +265,7 @@ export async function PUT(req) {
           manufacturer,
           packetSize,
           unitLabels,
+          status,
           medicineType,
           isTablets,
           salts,

@@ -46,7 +46,7 @@ export default function PurchaseInvoiceReport() {
 
       if (data.success) {
         setReport(data);
-        console.log(data);
+        // console.log(data);
       } else showError(data.message || "Fetch Error");
     } catch (err) {
       console.error("Failed to fetch:", err);
