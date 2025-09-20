@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../utils/jwt";
-import Medicine from "../../models/Medicine";
-// import { Stock } from "../../models/Stock";
-// import RetailStock from "../../models/RetailStock";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import Medicine from "@/app/models/Medicine";
+// import { Stock } from "@/app/models/Stock";
+// import RetailStock from "@/app/models/RetailStock";
 import { Manufacturer, Salt } from "@/app/models";
 
 export async function GET(req) {
@@ -108,7 +108,7 @@ export async function GET(req) {
         success: true,
         // info: result,
         medicines,
-        medicinesMetaInfo,
+        ...(metaData === "1" ? { medicinesMetaInfo } : {}),
       },
       { status: 200 }
     );

@@ -356,7 +356,13 @@ export async function PUT(req) {
           coll: "pharmacyinvoices", // same collection
           pipeline: [
             // only invoices having returns
-            { $match: { returns: { $exists: true, $ne: [] } } },
+            {
+              $match: {
+                returns: { $exists: true, $ne: [] },
+                createdAt: { $gte: lastUpdatedDate },
+              },
+            },
+            // { $match: { returns: { $exists: true, $ne: [] } } },
 
             // unwind each return object, then its medicines and their returnStock
             { $unwind: "$returns" },

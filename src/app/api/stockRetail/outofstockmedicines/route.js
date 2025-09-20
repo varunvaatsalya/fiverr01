@@ -236,6 +236,8 @@ export async function GET(req) {
           salts: { $arrayElemAt: ["$salts.name", 0] },
           packetSize: 1,
           isTablets: 1,
+          unitLabels: 1,
+          status: 1,
           // minRequiredStrips: 1,
           // totalRetailStock: 1,
           minimumStockCount: 1,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../utils/jwt";
-import { Stock, HospitalStock } from "../../models/Stock";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import { Stock, HospitalStock } from "@/app/models/Stock";
 
 export async function GET(req) {
   await dbConnect();
@@ -31,14 +31,46 @@ export async function GET(req) {
 
   try {
     const today = new Date();
-    let targetDate = new Date();
+    let startDate = null;
+    let endDate = null;
 
-    if (days === "15") {
-      targetDate.setDate(today.getDate() + 15);
-    } else if (month === "1" || month === "3" || month === "6") {
-      targetDate.setMonth(today.getMonth() + parseInt(month));
-    } else if (year === "1") {
-      targetDate.setFullYear(today.getFullYear() + 1);
+    // Expired case
+    if (expired === "1") {
+      endDate = today; // purane stocks jo expire ho gaye
+    } else {
+      // Non-expired ranges
+      if (days === "15") {
+        startDate = today;
+        endDate = new Date(today);
+        endDate.setDate(today.getDate() + 15);
+      } else if (month === "1") {
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() + 15); // after 15 days
+        endDate = new Date(today);
+        endDate.setMonth(today.getMonth() + 1);
+      } else if (month === "3") {
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() + 1);
+        endDate = new Date(today);
+        endDate.setMonth(today.getMonth() + 3);
+      } else if (month === "6") {
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() + 3);
+        endDate = new Date(today);
+        endDate.setMonth(today.getMonth() + 6);
+      } else if (year === "1") {
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() + 6);
+        endDate = new Date(today);
+        endDate.setFullYear(today.getFullYear() + 1);
+      }
+    }
+
+    let dateFilter = {};
+    if (expired === "1") {
+      dateFilter = { $lt: endDate }; // sirf expire ho chuke
+    } else {
+      dateFilter = { $gte: startDate, $lte: endDate }; // beech wale
     }
 
     let Model = sectionType === "hospital" ? HospitalStock : Stock;
@@ -48,7 +80,7 @@ export async function GET(req) {
     const expiringStocks = await Model.aggregate([
       {
         $match: {
-          expiryDate: expired === "1" ? { $lt: today } : { $lte: targetDate },
+          expiryDate: dateFilter,
           "quantity.totalStrips": { $gt: 0 }, // Ensure available stock
         },
       },

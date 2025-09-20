@@ -201,6 +201,7 @@ export async function GET(req) {
           packetSize: 1,
           unitLabels: 1,
           isTablets: 1,
+          status: 1,
           minimumStockCount: 1,
           maximumStockCount: 1,
           stocks: {

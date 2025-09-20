@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../utils/jwt";
-import Medicine from "../../models/Medicine";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import Medicine from "@/app/models/Medicine";
 
 export async function GET(req) {
   await dbConnect();
@@ -127,6 +127,8 @@ export async function GET(req) {
           packetSize: 1,
           unitLabels: 1,
           isTablets: 1,
+          status: 1,
+          unitLabels: 1,
           minimumStockCount: 1,
           maximumStockCount: 1,
           retailStocks: {

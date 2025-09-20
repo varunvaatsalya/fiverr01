@@ -40,7 +40,7 @@ function MedicineInfo() {
       let encodedLetter = encodeURIComponent(selectedLetter);
       let result = await fetch(
         `/api/medicinesInfo?letter=${encodedLetter}${
-          metaData ? `&metaData=1` : ""
+          !metaData ? `&metaData=1` : ""
         }`
       );
       result = await result.json();

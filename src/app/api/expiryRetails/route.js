@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../utils/jwt";
-import RetailStock from "../../models/RetailStock";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import RetailStock from "@/app/models/RetailStock";
 
 export async function GET(req) {
   await dbConnect();
@@ -32,91 +32,120 @@ export async function GET(req) {
 
   try {
     const today = new Date();
-    let targetDate = new Date();
-    if (days === "15") targetDate.setDate(today.getDate() + 15);
-    else if (month === "1" || month === "3" || month === "6")
-      targetDate.setMonth(today.getMonth() + parseInt(month));
-    else if (year === "1") targetDate.setFullYear(today.getFullYear() + 1);
+    let startDate = null;
+    let endDate = null;
 
-    const matchStage =
-      expired === "1"
-        ? { "stocks.expiryDate": { $lt: today } }
-        : { "stocks.expiryDate": { $gte: today, $lte: targetDate } };
+    // Expired case
+    if (expired === "1") {
+      endDate = today; // purane stocks jo expire ho gaye
+    } else {
+      // Non-expired ranges
+      if (days === "15") {
+        startDate = today;
+        endDate = new Date(today);
+        endDate.setDate(today.getDate() + 15);
+      } else if (month === "1") {
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() + 15); // after 15 days
+        endDate = new Date(today);
+        endDate.setMonth(today.getMonth() + 1);
+      } else if (month === "3") {
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() + 1);
+        endDate = new Date(today);
+        endDate.setMonth(today.getMonth() + 3);
+      } else if (month === "6") {
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() + 3);
+        endDate = new Date(today);
+        endDate.setMonth(today.getMonth() + 6);
+      } else if (year === "1") {
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() + 6);
+        endDate = new Date(today);
+        endDate.setFullYear(today.getFullYear() + 1);
+      }
+    }
+
+    let dateFilter = {};
+    if (expired === "1") {
+      dateFilter = { $lt: endDate }; // sirf expire ho chuke
+    } else {
+      dateFilter = { $gte: startDate, $lte: endDate }; // beech wale
+    }
 
     const expiringStocks = await RetailStock.aggregate([
-        {
-          $match: matchStage, // Match documents having at least one stock in this range
-        },
-        {
-          $addFields: {
-            stocks: {
-              $filter: {
-                input: "$stocks",
-                as: "stock",
-                cond:
-                  expired === "1"
-                    ? {
-                        $and: [
-                          { $lt: ["$$stock.expiryDate", today] }, // Expired stocks only
-                          { $gt: ["$$stock.quantity.totalStrips", 0] }, // Only stocks where totalStrips > 0
-                        ],
-                      }
-                    : {
-                        $and: [
-                          { $gte: ["$$stock.expiryDate", today] },
-                          { $lte: ["$$stock.expiryDate", targetDate] },
-                          { $gt: ["$$stock.quantity.totalStrips", 0] }, // Only stocks where totalStrips > 0
-                        ],
-                      }, // Expiring stocks within range
-              },
+      {
+        $match: { "stocks.expiryDate": dateFilter }, // Match documents having at least one stock in this range
+      },
+      {
+        $addFields: {
+          stocks: {
+            $filter: {
+              input: "$stocks",
+              as: "stock",
+              cond:
+                expired === "1"
+                  ? {
+                      $and: [
+                        { $lt: ["$$stock.expiryDate", today] }, // Expired stocks only
+                        { $gt: ["$$stock.quantity.totalStrips", 0] }, // Only stocks where totalStrips > 0
+                      ],
+                    }
+                  : {
+                      $and: [
+                        { $gte: ["$$stock.expiryDate", startDate] },
+                        { $lte: ["$$stock.expiryDate", endDate] },
+                        { $gt: ["$$stock.quantity.totalStrips", 0] }, // Only stocks where totalStrips > 0
+                      ],
+                    }, // Expiring stocks within range
             },
           },
         },
-        {
-          $match: {
-            "stocks.0": { $exists: true }, // Remove documents where stocks array becomes empty after filtering
-          },
+      },
+      {
+        $match: {
+          "stocks.0": { $exists: true }, // Remove documents where stocks array becomes empty after filtering
         },
-        {
-          $lookup: {
-            from: "medicines",
-            localField: "medicine",
-            foreignField: "_id",
-            as: "medicine",
-          },
+      },
+      {
+        $lookup: {
+          from: "medicines",
+          localField: "medicine",
+          foreignField: "_id",
+          as: "medicine",
         },
-        {
-          $unwind: "$medicine",
+      },
+      {
+        $unwind: "$medicine",
+      },
+      {
+        $lookup: {
+          from: "manufacturers",
+          localField: "medicine.manufacturer",
+          foreignField: "_id",
+          as: "medicine.manufacturer",
         },
-        {
-          $lookup: {
-            from: "manufacturers",
-            localField: "medicine.manufacturer",
-            foreignField: "_id",
-            as: "medicine.manufacturer",
-          },
+      },
+      {
+        $lookup: {
+          from: "salts",
+          localField: "medicine.salts",
+          foreignField: "_id",
+          as: "medicine.salts",
         },
-        {
-          $lookup: {
-            from: "salts",
-            localField: "medicine.salts",
-            foreignField: "_id",
-            as: "medicine.salts",
-          },
+      },
+      {
+        $project: {
+          _id: 1,
+          "medicine._id": 1,
+          "medicine.name": 1,
+          "medicine.manufacturer": 1, // Full manufacturer object
+          "medicine.salts": 1, // Full salts array
+          stocks: 1,
         },
-        {
-          $project: {
-            "_id": 1,
-            "medicine._id": 1,
-            "medicine.name": 1,
-            "medicine.manufacturer": 1, // Full manufacturer object
-            "medicine.salts": 1, // Full salts array
-            "stocks": 1,
-          },
-        },
-      ]);
-      
-      
+      },
+    ]);
 
     return NextResponse.json(
       { message: "Successfully fetched", success: true, expiringStocks },

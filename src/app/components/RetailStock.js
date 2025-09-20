@@ -222,6 +222,7 @@ function RetailStock({
       </div>
       {filteredMedicines ? (
         filteredMedicines.map((medicine, index) => {
+          let isDisabled = medicine.status === "disable" || false;
           let totalBoxes = medicine.retailStocks[0]?.stocks.reduce(
             (acc, stock) => acc + stock.quantity.boxes,
             0
@@ -255,6 +256,7 @@ function RetailStock({
           let stockText = `Total ${label1}: ${totalStrips} = ${label2}: ${totalBoxes}, Extra: ${totalExtra}${
             totalTablets > 0 ? `, ${label0}: ${totalExtra}` : ""
           }`;
+
           return (
             <div key={index} className="w-full">
               <div
@@ -264,7 +266,14 @@ function RetailStock({
                 className="w-full hover:cursor-pointer rounded-full font-medium bg-gray-300 hover:bg-gray-400 p-2 my-1 flex items-center"
               >
                 <div className="w-[10%] px-1">{index + 1 + "."}</div>
-                <div className="w-[45%] px-3">{medicine.name}</div>
+                <div className="w-[45%] px-3 flex items-center gap-1">
+                  <div>{medicine.name}</div>
+                  {isDisabled && (
+                    <div className="px-2 py-0.5 rounded bg-red-600 text-white text-xs">
+                      Discontinued
+                    </div>
+                  )}
+                </div>
                 <div className="w-[40%] text-center">
                   {medicine.retailStocks.length > 0 ? stockText : "--"}
                 </div>

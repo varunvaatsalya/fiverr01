@@ -172,6 +172,7 @@ function GodownStock({ medicineStock, query }) {
       </div>
       {filteredMedicines ? (
         filteredMedicines.map((medicine, index) => {
+          let isDisabled = medicine.status === "disable" || false;
           let totalStrips = medicine.stocks.reduce(
             (acc, stock) => acc + stock.quantity.totalStrips,
             0
@@ -207,7 +208,14 @@ function GodownStock({ medicineStock, query }) {
                 }
                 className="w-full hover:cursor-pointer rounded-full font-medium bg-gray-300 hover:bg-gray-400 p-2 flex items-center my-1"
               >
-                <div className="w-[45%] px-3">{medicine.name}</div>
+                <div className="w-[45%] px-3 flex items-center gap-1">
+                  <div>{medicine.name}</div>
+                  {isDisabled && (
+                    <div className="px-2 py-0.5 rounded bg-red-600 text-white text-xs">
+                      Discontinued
+                    </div>
+                  )}
+                </div>
                 <div className="w-[45%] text-center text-sm">
                   {medicine.stocks.length > 0 ? stockText : "--"}
                 </div>

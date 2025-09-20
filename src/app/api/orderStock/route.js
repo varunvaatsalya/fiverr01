@@ -221,31 +221,73 @@ export async function GET(req) {
           },
         },
       },
+      // {
+      //   $project: {
+      //     _id: 1,
+      //     name: 1,
+      //     packetSize: 1,
+      //     manufacturer: "$manufacturerDoc.name",
+      //     salts: "$saltDocs.name",
+      //     unitLabels: 1,
+      //     status: 1,
+      //     // totalBoxes: 1,
+      //     totalStrips: 1,
+      //     medicineType: 1,
+      //     minimumStockCount: 1,
+      //     maximumStockCount: 1,
+      //     stockOrderInfo: 1,
+      //     latestSource: 1,
+      //     latestOffer: 1,
+      //   },
+      // },
+      // {
+      //   $sort: { name: 1 },
+      // },
       {
-        $project: {
-          _id: 1,
-          name: 1,
-          packetSize: 1,
-          manufacturer: "$manufacturerDoc.name",
-          salts: "$saltDocs.name",
-          // totalBoxes: 1,
-          totalStrips: 1,
-          medicineType: 1,
-          minimumStockCount: 1,
-          maximumStockCount: 1,
-          stockOrderInfo: 1,
-          latestSource: 1,
-          latestOffer: 1,
+        $facet: {
+          enabled: [
+            { $match: { status: { $ne: "disable" } } },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                packetSize: 1,
+                manufacturer: "$manufacturerDoc.name",
+                salts: "$saltDocs.name",
+                unitLabels: 1,
+                status: 1,
+                totalStrips: 1,
+                medicineType: 1,
+                minimumStockCount: 1,
+                maximumStockCount: 1,
+                stockOrderInfo: 1,
+                latestSource: 1,
+                latestOffer: 1,
+              },
+            },
+            { $sort: { name: 1 } },
+          ],
+          disabled: [
+            { $match: { status: "disable" } },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                manufacturer: "$manufacturerDoc.name",
+                salts: "$saltDocs.name",
+                status: 1,
+              },
+            },
+            { $sort: { name: 1 } },
+          ],
         },
-      },
-      {
-        $sort: { name: 1 },
       },
     ]);
 
     return NextResponse.json(
       {
-        medicinesWithStock,
+        enabledMeds: medicinesWithStock[0].enabled,
+        disabledMeds: medicinesWithStock[0].disabled,
         message:
           medicinesWithStock.length > 0
             ? "Medicines fetched successfully"

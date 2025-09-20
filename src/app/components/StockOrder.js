@@ -34,6 +34,7 @@ function StockOrder({ manufacturers, vendors }) {
   const [vendorId, setVendorId] = useState("");
   const [orderStatus, setOrderStatus] = useState("yetToBeOrdered");
   const [data, setData] = useState([]);
+  const [disableMeds, setDisableMeds] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchedMedicines, setSearchedMedicines] = useState([]);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
@@ -54,11 +55,13 @@ function StockOrder({ manufacturers, vendors }) {
       .then((data) => {
         if (!data.success) {
           showError(data.message);
+          return;
         }
-        setData(data.medicinesWithStock);
-        // console.log(data.medicinesWithStock);
+        setDisableMeds(data?.disabledMeds || []);
+        setData(data?.enabledMeds || []);
+        console.log(data);
         let sources = Array.from(
-          data?.medicinesWithStock
+          (data?.enabledMeds || [])
             ?.filter((item) => item.latestSource !== null)
             .reduce((map, { latestSource }) => {
               if (!map.has(latestSource.id)) {
@@ -75,11 +78,13 @@ function StockOrder({ manufacturers, vendors }) {
   }, []);
 
   useEffect(() => {
-    filterData(data);
+    filterData();
   }, [data]);
 
   useEffect(() => {
-    filterData();
+    if (stockType === "blocked") {
+      setFilteredData(disableMeds);
+    } else filterData();
   }, [stockType, vendorId, orderStatus, isRemoveAllZero]);
 
   function filterData() {
@@ -203,6 +208,7 @@ function StockOrder({ manufacturers, vendors }) {
   }, [selectedMedicines]);
 
   const handleCheckboxChange = (medicine) => {
+    if (medicine.status === "disable") return;
     if (selectedMedicineMap.has(medicine._id)) {
       setSelectedMedicines((prev) =>
         prev.filter((m) => m._id !== medicine._id)
@@ -224,50 +230,55 @@ function StockOrder({ manufacturers, vendors }) {
   };
 
   const groupedBySource = useMemo(() => {
-  if (isManualMode) {
-    return {
-      1: {
-        sourceId: "1",
-        sourceName: "Manual Mode",
-        items: selectedMedicines,
-      },
-    };
-  }
-
-  const groups = selectedMedicines.reduce((acc, medicine) => {
-    const sourceId = medicine.latestSource?.id || "0";
-    const sourceName =
-      medicine.latestSource?.name || "Last Source Not Available!";
-    const sourceType = medicine.latestSource?.type || "";
-
-    if (!acc[sourceId]) {
-      acc[sourceId] = {
-        sourceId,
-        sourceType,
-        sourceName,
-        items: [],
+    if (isManualMode) {
+      return {
+        1: {
+          sourceId: "1",
+          sourceName: "Manual Mode",
+          items: selectedMedicines,
+        },
       };
     }
 
-    acc[sourceId].items.push(medicine);
-    return acc;
-  }, {});
+    const groups = selectedMedicines.reduce((acc, medicine) => {
+      const sourceId = medicine.latestSource?.id || "0";
+      const sourceName =
+        medicine.latestSource?.name || "Last Source Not Available!";
+      const sourceType = medicine.latestSource?.type || "";
 
-  const sortedEntries = Object.values(groups).sort((a, b) => {
-    if (a.sourceName === "Last Source Not Available!" && b.sourceName !== "Last Source Not Available!") {
-      return -1;
-    }
-    if (b.sourceName === "Last Source Not Available!" && a.sourceName !== "Last Source Not Available!") {
-      return 1;
-    }
-    return a.sourceName.localeCompare(b.sourceName);
-  });
-  return sortedEntries.reduce((acc, group) => {
-    acc[group.sourceId] = group;
-    return acc;
-  }, {});
-}, [selectedMedicines, isManualMode]);
+      if (!acc[sourceId]) {
+        acc[sourceId] = {
+          sourceId,
+          sourceType,
+          sourceName,
+          items: [],
+        };
+      }
 
+      acc[sourceId].items.push(medicine);
+      return acc;
+    }, {});
+
+    const sortedEntries = Object.values(groups).sort((a, b) => {
+      if (
+        a.sourceName === "Last Source Not Available!" &&
+        b.sourceName !== "Last Source Not Available!"
+      ) {
+        return -1;
+      }
+      if (
+        b.sourceName === "Last Source Not Available!" &&
+        a.sourceName !== "Last Source Not Available!"
+      ) {
+        return 1;
+      }
+      return a.sourceName.localeCompare(b.sourceName);
+    });
+    return sortedEntries.reduce((acc, group) => {
+      acc[group.sourceId] = group;
+      return acc;
+    }, {});
+  }, [selectedMedicines, isManualMode]);
 
   const toggleOpenCollapse = (sourceId) => {
     setOpenCollapsedSources((prev) => ({
@@ -293,16 +304,19 @@ function StockOrder({ manufacturers, vendors }) {
     ) {
       return;
     }
-    const newSelectedMedicines = searchedMedicines.map((medicine) => ({
-      ...medicine,
-      quantity:
-        medicine.minimumStockCount &&
-        medicine.maximumStockCount &&
-        medicine.minimumStockCount?.godown >= medicine.totalStrips &&
-        medicine.maximumStockCount?.godown >= medicine.minimumStockCount?.godown
-          ? medicine.maximumStockCount?.godown - medicine.totalStrips
-          : "",
-    }));
+    const newSelectedMedicines = searchedMedicines
+      .filter((medicine) => medicine.status !== "disable")
+      .map((medicine) => ({
+        ...medicine,
+        quantity:
+          medicine.minimumStockCount &&
+          medicine.maximumStockCount &&
+          medicine.minimumStockCount?.godown >= medicine.totalStrips &&
+          medicine.maximumStockCount?.godown >=
+            medicine.minimumStockCount?.godown
+            ? medicine.maximumStockCount?.godown - medicine.totalStrips
+            : "",
+      }));
     setSelectedMedicines(newSelectedMedicines);
   };
 
@@ -475,6 +489,7 @@ Required Quantity: *${qtyStr}*
                 className="bg-gray-700 rounded-lg text-white px-2 py-1"
               >
                 <option value="all">All</option>
+                <option value="blocked">Blocked</option>
                 <option value="outofstock">Out of Stock</option>
                 <option value="belowMinstockCount">
                   Below Min stock Count
@@ -513,7 +528,8 @@ Required Quantity: *${qtyStr}*
                 className="px-3 py-1 border border-gray-500 hover:bg-gray-600 rounded-full flex justify-center items-center gap-2"
                 disabled={
                   searchedMedicines.length === 0 ||
-                  searchedMedicines.length === selectedMedicines.length
+                  searchedMedicines.length === selectedMedicines.length ||
+                  stockType === "blocked"
                 }
                 onClick={handleSelectAll}
               >
@@ -600,19 +616,26 @@ Required Quantity: *${qtyStr}*
                   >
                     {details.manufacturer}
                   </div>
+
                   <div className="w-[10%] flex justify-end gap-2 items-center px-2">
-                    {(details.minimumStockCount?.godown === undefined ||
-                      details.minimumStockCount?.godown >=
-                        details.totalStrips) && (
-                      <FaRegDotCircle className="size-4 animate-pulse text-red-600" />
-                    )}
-                    <input
-                      type="checkbox"
-                      className="size-5 cursor-pointer"
-                      checked={selectedMedicineMap.has(details._id)}
-                      onChange={() => handleCheckboxChange(details)}
-                      id={index}
-                    />
+                    {stockType !== "blocked" &&
+                      details?.status !== "disable" && (
+                        <>
+                          {(details.minimumStockCount?.godown === undefined ||
+                            details.minimumStockCount?.godown >=
+                              details.totalStrips) && (
+                            <FaRegDotCircle className="size-4 animate-pulse text-red-600" />
+                          )}
+                          <input
+                            type="checkbox"
+                            className="size-5 cursor-pointer"
+                            disabled={details.status === "disable"}
+                            checked={selectedMedicineMap.has(details._id)}
+                            onChange={() => handleCheckboxChange(details)}
+                            id={index}
+                          />
+                        </>
+                      )}
                   </div>
                   <div className="w-[5%] text-center">
                     {details.minimumStockCount?.godown !== undefined

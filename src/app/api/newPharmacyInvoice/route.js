@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../utils/jwt";
-import Patient from "../../models/Patients";
-import Medicine from "../../models/Medicine";
-import RetailStock from "../../models/RetailStock";
-import PharmacyInvoice from "../../models/PharmacyInvoice";
-import Admission from "../../models/Admissions";
-import { generateUniqueId } from "../../utils/counter";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import Patient from "@/app/models/Patients";
+import Medicine from "@/app/models/Medicine";
+import RetailStock from "@/app/models/RetailStock";
+import PharmacyInvoice from "@/app/models/PharmacyInvoice";
+import Admission from "@/app/models/Admissions";
+import { generateUniqueId } from "@/app/utils/counter";
 import AuditTrail from "@/app/models/AuditTrail";
 
 let cache = {
@@ -125,7 +125,7 @@ export async function GET(req) {
       const medicineIds = recentMedicines.map((m) => m._id);
 
       const medicines = await Medicine.find({ _id: { $in: medicineIds } })
-        .select("name _id packetSize isTablets")
+        .select("name _id packetSize isTablets status salts")
         .populate({
           path: "salts",
           select: "name _id",
@@ -244,6 +244,24 @@ export async function POST(req) {
   try {
     const result = [];
     const requestedMedicineIds = requestedMedicine.map((med) => med.medicineId);
+
+    const disabledMeds = await Medicine.find({
+      _id: { $in: requestedMedicineIds },
+      status: "disable",
+    }).select("_id name");
+
+    if (disabledMeds.length > 0) {
+      return NextResponse.json(
+        {
+          message: `Some medicines are not available for sale: ${disabledMeds
+            .map((m) => m.name)
+            .join(", ")}`,
+          success: false,
+        },
+        { status: 400 }
+      );
+    }
+    
     const retailStock = await RetailStock.find({
       medicine: { $in: requestedMedicineIds },
     });

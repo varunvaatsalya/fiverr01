@@ -269,7 +269,7 @@ function PharmacyInvoiceSearchList({
                           <div className="py-1 px-4 ">
                             Subtotal:{" "}
                             <span className="text-blue-500 font-semibold">
-                              {invoice.price.subtotal}
+                              {parseFloat(invoice.price.subtotal?.toFixed(2))}
                             </span>
                           </div>
                           <div className="py-1 px-4 ">
@@ -283,7 +283,7 @@ function PharmacyInvoiceSearchList({
                       <div className="py-1 px-4 ">
                         Total:{" "}
                         <span className="text-blue-500 font-semibold">
-                          {invoice.price.total}
+                          {parseFloat(invoice.price.total?.toFixed(2))}
                         </span>
                       </div>
                       <div className="py-1 px-4 ">

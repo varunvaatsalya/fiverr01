@@ -79,7 +79,7 @@ function NewPharmacyInvoice({
         packetSize: item.medicineId.packetSize,
         quantity: item.quantity,
       }));
-      console.log(expressData);
+      // console.log(expressData);
       setSelectedMedicines(outputArray);
     }
   }, [expressData]);
@@ -139,7 +139,7 @@ function NewPharmacyInvoice({
     const medTimer = setTimeout(async () => {
       if (!medQuery) {
         if (recentMedicines.length > 0) setMedicineOptions(recentMedicines);
-        console.log(recentMedicines);
+        // console.log(recentMedicines);
         return;
       }
       try {
@@ -164,6 +164,7 @@ function NewPharmacyInvoice({
   }, [medQuery]);
 
   const handleCheckboxChange = (medicine) => {
+    if (medicine.status === "disable") return;
     setRequestedMedicineDetails(null);
     setDiscount("");
     if (selectedMedicines.some((m) => m._id === medicine._id)) {
@@ -207,6 +208,12 @@ function NewPharmacyInvoice({
           tablets: Number(medicine.quantity.tablets) || 0,
           normalQuantity: Number(medicine.quantity.normalQuantity) || 0,
         };
+
+        const isDisContinued = medicine.status === "disable";
+
+        if (isDisContinued) {
+          throw new Error(`Medicine ${medicine.name} is discontinued`);
+        }
 
         const isTabletInvalid =
           medicine.isTablets &&
@@ -492,6 +499,7 @@ function NewPharmacyInvoice({
                       const alreadySelected = selectedMedicines.some(
                         (med) => med._id === m._id
                       );
+                      let isDisabled = m.status === "disable" || false;
                       let medName =
                         m.salts.name.length > 30
                           ? m.name +
@@ -500,10 +508,15 @@ function NewPharmacyInvoice({
                             "..."
                           : m.name + " - " + m.salts.name;
 
+                      if (isDisabled) {
+                        medName += " (Discontinued)";
+                      }
+
                       return (
                         <CommandItem
                           key={m._id}
                           value={medName}
+                          disabled={isDisabled}
                           onSelect={() => {
                             if (!alreadySelected) {
                               handleCheckboxChange(m);

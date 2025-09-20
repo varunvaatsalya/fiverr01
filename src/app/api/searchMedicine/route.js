@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import Medicine from "../../models/Medicine";
-import { verifyTokenWithLogout } from "../../utils/jwt";
+import dbConnect from "@/app/lib/Mongodb";
+import Medicine from "@/app/models/Medicine";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
 
 export async function POST(req) {
   await dbConnect();
@@ -31,7 +31,7 @@ export async function POST(req) {
     const searchedMedicine = await Medicine.find({
       name: { $regex: query, $options: "i" },
     })
-      .select("name _id packetSize isTablets")
+      .select("name _id packetSize isTablets status salts")
       .populate({
         path: "salts",
         select: "name _id",
