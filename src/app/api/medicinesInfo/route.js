@@ -5,6 +5,7 @@ import Medicine from "@/app/models/Medicine";
 // import { Stock } from "@/app/models/Stock";
 // import RetailStock from "@/app/models/RetailStock";
 import { Manufacturer, Salt } from "@/app/models";
+import UnitOption from "@/app/models/UnitOption";
 
 export async function GET(req) {
   await dbConnect();
@@ -94,12 +95,13 @@ export async function GET(req) {
     //   })
     // );
 
-    let medicinesMetaInfo = { manufacturers: [], salts: [] };
+    let medicinesMetaInfo = { manufacturers: [], salts: [], units: null };
     if (metaData === "1") {
       medicinesMetaInfo.manufacturers = await Manufacturer.find().sort({
         name: 1,
       });
       medicinesMetaInfo.salts = await Salt.find().sort({ name: 1 });
+      medicinesMetaInfo.units = await UnitOption.findOne();
     }
 
     return NextResponse.json(

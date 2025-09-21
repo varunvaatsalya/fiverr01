@@ -16,6 +16,11 @@ function NewMedicineForm() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isEditPermission, setIsEditPermission] = useState(false);
+  const [unitOptions, setUnitOptions] = useState({
+    level0: [],
+    level1: [],
+    level2: [],
+  });
 
   useEffect(() => {
     fetch("/api/medicineMetaData?manufacturer=1&salts=1")
@@ -25,6 +30,13 @@ function NewMedicineForm() {
         // setVendors(data.response.vendors);
         setSalts(data.response.salts);
         setIsEditPermission(data.editPermission);
+      });
+    fetch("/api/newMedicine/medicineUnits")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.units) {
+          setUnitOptions(data.units);
+        }
       });
   }, []);
 
@@ -332,7 +344,7 @@ function NewMedicineForm() {
                 <div className="font-semibold">Packet Size:</div>
                 <div className="flex gap-2 items-center border border-gray-600 p-1 rounded-md">
                   <span>1</span>
-                  <input
+                  {/* <input
                     type="text"
                     {...register(`medicines.${index}.unitLabels.level2`, {
                       required: "level 2 name is required",
@@ -341,7 +353,21 @@ function NewMedicineForm() {
                       },
                     })}
                     className="w-28 px-1 h-8 rounded-lg bg-gray-600"
-                  />
+                  /> */}
+                  <select
+                    {...register(`medicines.${index}.unitLabels.level2`, {
+                      required: "level 2 unit is required",
+                    })}
+                    className="w-40 h-8 rounded-lg bg-gray-600 text-white px-1"
+                    defaultValue="box"
+                  >
+                    <option value="box">box</option>
+                    {unitOptions?.level2?.map((opt) => (
+                      <option key={opt} value={opt.toLowerCase()}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
                   <span>=</span>
                   <input
                     type="number"
@@ -356,7 +382,7 @@ function NewMedicineForm() {
                     placeholder="Enter value"
                     className="w-28 px-1 h-8 rounded-lg bg-gray-600"
                   />
-                  <input
+                  {/* <input
                     type="text"
                     {...register(`medicines.${index}.unitLabels.level1`, {
                       required: "level 1 name is required",
@@ -365,7 +391,21 @@ function NewMedicineForm() {
                       },
                     })}
                     className="w-28 px-1 h-8 rounded-lg bg-gray-600"
-                  />
+                  /> */}
+                  <select
+                    {...register(`medicines.${index}.unitLabels.level1`, {
+                      required: "level 1 unit is required",
+                    })}
+                    className="w-40 h-8 rounded-lg bg-gray-600 text-white px-1"
+                    defaultValue="pack"
+                  >
+                    <option value="pack">pack</option>
+                    {unitOptions?.level1?.map((opt) => (
+                      <option key={opt} value={opt.toLowerCase()}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 {isTablets && (
                   <div className="flex gap-2 items-center border border-gray-600 p-1 rounded-md">
@@ -385,7 +425,7 @@ function NewMedicineForm() {
                       placeholder="Enter Value"
                       className="w-28 px-1 h-8 rounded-lg bg-gray-600"
                     />
-                    <input
+                    {/* <input
                       type="text"
                       {...register(`medicines.${index}.unitLabels.level0`, {
                         required: "level 0 name is required",
@@ -394,7 +434,21 @@ function NewMedicineForm() {
                         },
                       })}
                       className="w-28 px-1 h-8 rounded-lg bg-gray-600"
-                    />
+                    /> */}
+                    <select
+                      {...register(`medicines.${index}.unitLabels.level0`, {
+                        required: "level 0 unit is required",
+                      })}
+                      className="w-40 h-8 rounded-lg bg-gray-600 text-white px-1"
+                      defaultValue="unit"
+                    >
+                      <option value="unit">unit</option>
+                      {unitOptions?.level0?.map((opt) => (
+                        <option key={opt} value={opt.toLowerCase()}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 )}
                 {!editMedicineSection && (

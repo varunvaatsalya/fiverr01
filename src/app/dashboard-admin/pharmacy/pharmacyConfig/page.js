@@ -1,5 +1,5 @@
 import React from "react";
-import { FaCircleInfo, FaListCheck } from "react-icons/fa6";
+import { FaCircleInfo, FaListCheck, FaScaleUnbalanced } from "react-icons/fa6";
 import { MdMedicalInformation } from "react-icons/md";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
@@ -27,6 +27,13 @@ function Page() {
       icon: <FaListCheck size={40} />,
       link: "/dashboard-admin/pharmacy/pharmacyConfig/medicineInfo",
       color: "bg-violet-700",
+    },
+    {
+      name: "Medicine Units",
+      description: "You can show the medicine's Units data here",
+      icon: <FaScaleUnbalanced size={40} />,
+      link: "/dashboard-admin/pharmacy/pharmacyConfig/medicineUnits",
+      color: "bg-fuchsia-700",
     },
   ];
 

@@ -376,7 +376,7 @@ function MedicineInfo() {
                         {/* Box */}
                         <div className="flex gap-2 items-center px-2 py-1.5 bg-gray-100 rounded-lg border">
                           <span>1</span>
-                          <input
+                          {/* <input
                             type="text"
                             value={
                               editedMed.unitLabels?.level2 ??
@@ -394,7 +394,32 @@ function MedicineInfo() {
                             }}
                             // disabled={!editMode}
                             className="w-24 border px-2 py-1 rounded"
-                          />
+                          /> */}
+                          <select
+                            value={
+                              editedMed.unitLabels?.level2 ??
+                              med.unitLabels?.level2 ??
+                              "box"
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value.toLowerCase();
+                              handleEditChange(med._id, "unitLabels", {
+                                ...med.unitLabels,
+                                ...editedMed.unitLabels,
+                                level2: value,
+                              });
+                            }}
+                            disabled={!editMode}
+                            className="w-40 border px-2 py-1 rounded"
+                          >
+                            <option value="box">box</option>
+                            {(metaData?.units?.level2 || []).map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+
                           <span>=</span>
                           <input
                             type="number"
@@ -413,7 +438,7 @@ function MedicineInfo() {
                             // disabled={!editMode}
                             className="w-16 border px-2 py-1 rounded"
                           />
-                          <input
+                          {/* <input
                             type="text"
                             value={
                               editedMed.unitLabels?.level1 ??
@@ -431,7 +456,31 @@ function MedicineInfo() {
                             }}
                             // disabled={!editMode}
                             className="w-24 border px-2 py-1 rounded"
-                          />
+                          /> */}
+                          <select
+                            value={
+                              editedMed.unitLabels?.level1 ??
+                              med.unitLabels?.level1 ??
+                              "pack"
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value.toLowerCase();
+                              handleEditChange(med._id, "unitLabels", {
+                                ...med.unitLabels,
+                                ...editedMed.unitLabels,
+                                level1: value,
+                              });
+                            }}
+                            disabled={!editMode}
+                            className="w-40 border px-2 py-1 rounded"
+                          >
+                            <option value="pack">pack</option>
+                            {(metaData?.units?.level1 || []).map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         {(editedMed.isTablets ?? med.isTablets) && (
                           <div className="flex gap-2 items-center px-2 py-1.5 bg-gray-100 rounded-lg border">
@@ -459,7 +508,7 @@ function MedicineInfo() {
                               // disabled={!editMode}
                               className="w-16 border px-2 py-1 rounded"
                             />
-                            <input
+                            {/* <input
                               type="text"
                               value={
                                 editedMed.unitLabels?.level0 ??
@@ -477,7 +526,31 @@ function MedicineInfo() {
                               }}
                               // disabled={!editMode}
                               className="w-24 border px-2 py-1 rounded"
-                            />
+                            /> */}
+                            <select
+                              value={
+                                editedMed.unitLabels?.level0 ??
+                                med.unitLabels?.level0 ??
+                                "unit"
+                              }
+                              onChange={(e) => {
+                                const value = e.target.value.toLowerCase();
+                                handleEditChange(med._id, "unitLabels", {
+                                  ...med.unitLabels,
+                                  ...editedMed.unitLabels,
+                                  level0: value,
+                                });
+                              }}
+                              disabled={!editMode}
+                              className="w-40 border px-2 py-1 rounded"
+                            >
+                              <option value="unit">unit</option>
+                              {(metaData?.units?.level0 || []).map((opt) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                         )}
                         {Object.keys(editedMed).length > 0 && (
