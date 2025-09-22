@@ -9,12 +9,13 @@ function Page() {
   const [lastUpdated, setLastUpdated] = useState([]);
   const [loading, setLoading] = useState(false);
   const [monthYear, setMonthYear] = useState([]);
+  const [selectedLetter, setSelectedLetter] = useState("A");
 
   const fetchData = async () => {
     setLoading(true);
     try {
       // const response = await fetch("/api/newMedicine?sellRecord=1");
-      const response = await fetch("/api/newMedicine/monthlySellRecord");
+      const response = await fetch(`/api/newMedicine/monthlySellRecord?letter=${selectedLetter}&months=6`);
       const data = await response.json();
       setMedicineData(data.trends);
       setLastUpdated(data.lastUpdated);
@@ -28,7 +29,7 @@ function Page() {
   };
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedLetter]);
 
   const updateData = async () => {
     setLoading(true);
@@ -88,6 +89,8 @@ function Page() {
         loading={loading}
         updateData={updateData}
         resetData={resetData}
+        selectedLetter={selectedLetter}
+        setSelectedLetter={setSelectedLetter}
       />
     </div>
   );

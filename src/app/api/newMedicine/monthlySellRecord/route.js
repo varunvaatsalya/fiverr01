@@ -7,6 +7,7 @@ import SystemConfig from "@/app/models/SystemConfig";
 
 export async function GET(req) {
   await dbConnect();
+  let letter = req.nextUrl.searchParams.get("letter");
   let all = req.nextUrl.searchParams.get("all");
   let months = req.nextUrl.searchParams.get("months");
 
@@ -52,6 +53,7 @@ export async function GET(req) {
     }
     months = parseInt(months) || 6;
     if (months > 6) months = 6;
+    letter = letter || "A";
 
     const today = new Date();
     let currentYear = today.getFullYear();
@@ -85,6 +87,11 @@ export async function GET(req) {
       },
       { $unwind: "$medicine" },
       // Lookup salt
+      {
+        $match: {
+          "medicine.name": { $regex: `^${letter}`, $options: "i" },
+        },
+      },
       {
         $lookup: {
           from: "salts",
@@ -182,6 +189,7 @@ export async function GET(req) {
     );
   }
 }
+
 export async function PUT(req) {
   await dbConnect();
 

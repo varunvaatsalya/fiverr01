@@ -20,6 +20,8 @@ function MedicineSellRecord({
   loading,
   updateData,
   resetData,
+  selectedLetter,
+  setSelectedLetter,
 }) {
   const monthNames = [
     "Jan",
@@ -52,43 +54,54 @@ function MedicineSellRecord({
   return (
     <div className="w-full flex-1 flex flex-col min-h-0 text-black bg-white rounded-md border border-gray-200 shadow-sm p-4">
       {/* Top controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div className="flex gap-2 flex-wrap items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
+        <div className="">
+          <Button variant="destructive" onClick={resetData} disabled={loading}>
+            {loading ? "Processing..." : "Reset Data"}
+          </Button>
           {lastUpdated && (
             <p className="text-sm text-muted-foreground">
               Last Updated: {new Date(lastUpdated).toLocaleString()}
             </p>
           )}
-          <Button
-            variant="destructive"
-            onClick={resetData}
-            disabled={loading}
-          >
-            {loading ? "Processing..." : "Reset Data"}
-          </Button>
         </div>
 
-        <div className="flex gap-2 flex-wrap">
-          <input
-            type="text"
-            placeholder="Search by Medicine or Salt"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <Button
-            onClick={updateData}
-            disabled={loading}
-            className="min-w-[120px]"
-          >
-            {loading ? (
-              "Updating..."
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" /> Update Data
-              </>
-            )}
-          </Button>
+        <div className="flex flex-col gap-2 flex-wrap items-end">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Search by Medicine or Salt"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <Button onClick={updateData} disabled={loading}>
+              <RefreshCw
+                className={"mr-2 h-4 w-4 " + (loading ? "animate-spin" : "")}
+              />
+              {loading ? "Updating..." : "Update Data"}
+            </Button>
+          </div>
+          <div className="flex flex-wrap justify-center items-center gap-2 px-2">
+            {[..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].map((letter) => {
+              return (
+                <button
+                  key={letter}
+                  onClick={() => {
+                    setSelectedLetter(letter);
+                  }}
+                  className={
+                    "w-5 text-xs font-semibold aspect-square border border-gray-900 text-black hover:bg-gray-800 hover:text-gray-100 rounded flex justify-center items-center" +
+                    (selectedLetter === letter
+                      ? " bg-gray-800 text-gray-100"
+                      : "")
+                  }
+                >
+                  {letter}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
