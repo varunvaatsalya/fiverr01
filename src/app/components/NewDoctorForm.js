@@ -2,10 +2,17 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Loading from "./Loading";
+import { showError } from "../utils/toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
-function NewDoctorForm({ setNewUserSection, setEntity }) {
+function NewDoctorForm({
+  setNewUserSection,
+  setEntity,
+  editDoctor,
+  setEditDoctor,
+}) {
   // const router = useRouter();
-  const [departments, setDepartments] = useState([])
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -22,35 +29,63 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
     fetchData();
   }, []);
 
-
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
+    reset,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      departments: [],
+    },
+  });
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState(null);
 
+  useEffect(() => {
+    if (editDoctor) {
+      let departmentsIds =
+        editDoctor.departments?.map((dept) => dept._id) ||
+        (editDoctor.department ? [editDoctor.department._id] : []);
+
+      setValue("name", editDoctor.name);
+      setValue("email", editDoctor.email);
+      setValue("specialty", editDoctor.specialty);
+      setValue("charge", editDoctor.charge);
+      setValue("departments", departmentsIds);
+    } else {
+      reset();
+    }
+  }, [editDoctor, departments]);
 
   const onSubmit = async (data) => {
     setSubmitting(true);
     try {
+      const body = editDoctor ? { ...data, _id: editDoctor._id } : data;
       let result = await fetch("/api/newDoctor", {
-        method: "POST",
+        method: editDoctor ? "PUT" : "POST",
         headers: {
-          "Content-Type": "application/json", // Set the header for JSON
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data), // Properly stringify the data
+        body: JSON.stringify(body),
       });
-
-      // Parsing the response as JSON
       result = await result.json();
-      // Check if login was successful
+
       if (result.success) {
-        setEntity((prevDoctors) => [result.doctor, ...prevDoctors]);
+        if (editDoctor) {
+          setEntity((prevDoctors) =>
+            prevDoctors.map((doctor) =>
+              doctor._id === result.doctor._id ? result.doctor : doctor
+            )
+          );
+        } else {
+          setEntity((prevDoctors) => [result.doctor, ...prevDoctors]);
+        }
+        setEditDoctor(null);
         setNewUserSection((prev) => !prev);
       } else {
-        setMessage(result.message);
+        showError(result.message);
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -58,17 +93,20 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
       setSubmitting(false);
     }
   };
+
+  const departmentsValue = watch("departments");
   return (
     <div>
       <h2 className="font-bold text-2xl text-white">
-        Details of new <span className="text-blue-500">Doctors</span>
+        Details of {editDoctor ? "edit" : "new"}{" "}
+        <span className="text-blue-500">Doctors</span>
       </h2>
       <hr className="border border-slate-800 w-full my-2" />
-      {message && (
-        <div className="my-1 text-center text-red-500">{message}</div>
-      )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="w-[95%] px-2 md:w-4/5 lg:w-3/4 mx-auto my-2">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-[95%] px-2 md:w-4/5 lg:w-3/4 mx-auto my-2"
+      >
         <input
           id="name"
           type="text"
@@ -98,7 +136,7 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
         />
         <div className=" py-1 text-sm text-red-500 text-start px-2">
           {errors.specialty ? "* " + errors.specialty.message : ""}
-        </div>        
+        </div>
         <input
           id="charge"
           type="number"
@@ -111,22 +149,46 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
         </div>
 
         <div className="mb-4">
-        <label className="block font-semibold mb-2 text-gray-100" htmlFor="department">
-          Select Department
-        </label>
-        <select
-          id="department"
-          {...register("department", { required: "Department is required" })}
-          className="mt-1 block px-4 py-3 text-white w-full bg-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-150 ease-in-out"
-        >
-          <option value="">-- Select a Department --</option>
-          {departments.map((department, index) => (
-            <option key={index} value={department._id}>
-              {department.name}
-            </option>
-          ))}
-        </select>
-      </div>
+          <label className="block font-semibold mb-2 text-gray-100">
+            Select Department
+          </label>
+          <div className="border rounded-md p-2 max-h-60 overflow-y-auto">
+            {departments.length > 0 ? (
+              departments.map((dept) => (
+                <label
+                  key={dept._id}
+                  className="flex items-center gap-2 mb-1 cursor-pointer hover:bg-gray-800 px-1 rounded"
+                >
+                  <Checkbox
+                    className="bg-gray-600 border-white"
+                    checked={departmentsValue.includes(dept._id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setValue("departments", [
+                          ...departmentsValue,
+                          dept._id,
+                        ]);
+                      } else {
+                        setValue(
+                          "departments",
+                          departmentsValue.filter((v) => v !== dept._id)
+                        );
+                      }
+                    }}
+                  />
+                  {dept.name}
+                </label>
+              ))
+            ) : (
+              <div className="text-sm text-gray-600">No Departments</div>
+            )}
+          </div>
+          {errors.departments && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.departments.message}
+            </p>
+          )}
+        </div>
 
         <hr className="border border-slate-800 w-full my-2" />
         <div className="flex px-4 gap-3 justify-end">
@@ -134,6 +196,7 @@ function NewDoctorForm({ setNewUserSection, setEntity }) {
             className="w-20 h-8 py-1 border border-slate-300 text-white dark:border-slate-700 rounded-lg font-semibold cursor-pointer"
             onClick={() => {
               setNewUserSection((prev) => !prev);
+              setEditDoctor(null);
             }}
           >
             Cancel

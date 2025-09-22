@@ -108,6 +108,15 @@ export async function GET(req) {
           "stocks.0": { $exists: true }, // Remove documents where stocks array becomes empty after filtering
         },
       },
+      // Sort stocks array by expiryDate ascending
+      {
+        $addFields: {
+          stocks: {
+            $sortArray: { input: "$stocks", sortBy: { expiryDate: 1 } },
+          },
+          earliestExpiry: { $min: "$stocks.expiryDate" }, // Earliest stock expiry for sorting documents
+        },
+      },
       {
         $lookup: {
           from: "medicines",
@@ -135,6 +144,8 @@ export async function GET(req) {
           as: "medicine.salts",
         },
       },
+      // Sort documents by earliestExpiry
+      { $sort: { earliestExpiry: 1 } },
       {
         $project: {
           _id: 1,

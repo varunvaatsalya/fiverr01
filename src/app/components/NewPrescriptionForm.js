@@ -299,7 +299,7 @@ const NewPrescriptionForm = ({
     );
 
   const filteredDoctors = details.doctors.filter(
-    (doctor) => doctor.department === selectedDepartment
+    (doctor) => doctor.departments.includes(selectedDepartment)
   );
 
   let grandTotal =

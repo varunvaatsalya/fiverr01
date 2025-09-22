@@ -1,83 +1,90 @@
 import React from "react";
-import { FaFileArrowUp, FaHouseMedicalFlag, FaOutdent } from "react-icons/fa6";
-import { MdAccountBalanceWallet, MdFormatListBulletedAdd, MdSpeakerNotes } from "react-icons/md";
-import { BsClipboardDataFill, BsReceipt } from "react-icons/bs";
-import { BiTransferAlt } from "react-icons/bi";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
+import { FaHouseMedicalFlag, FaNotesMedical } from "react-icons/fa6";
+import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 import Link from "next/link";
-import { IoCreate } from "react-icons/io5";
-import { FaFileInvoice, FaNotesMedical } from "react-icons/fa";
+import {
+  Archive,
+  BarChart2,
+  Clipboard,
+  File,
+  FilePlus,
+  FileText,
+  ListPlus,
+  Receipt,
+  Repeat,
+  UploadCloud,
+} from "lucide-react";
 
 function Page() {
   const Works = [
     {
       name: "Analytics",
       description: "You can view pharmacy accounts here",
-      icon: <MdAccountBalanceWallet size={50} />,
+      icon: BarChart2,
       link: "/dashboard-admin/pharmacy/pharmacyAnalytics",
       color: "bg-emerald-700",
     },
     {
       name: "Create Invoices",
       description: "You can Create pharmacy Invoices here",
-      icon: <IoCreate size={50} />,
+      icon: FilePlus,
       link: "/dashboard-admin/pharmacy/newInvoices",
       color: "bg-gray-800",
     },
     {
       name: "Invoices",
       description: "You can show all the pharmacy Invoices here",
-      icon: <BsReceipt size={50} />,
+      icon: FileText,
       link: "/dashboard-admin/pharmacy/invoices",
       color: "bg-rose-900",
     },
     {
       name: "Express Billing",
       description: "You can show all the pharmacy Express Invoices here",
-      icon: <MdSpeakerNotes size={50} />,
+      icon: File,
       link: "/dashboard-admin/pharmacy/pharmacyExpressBilling",
       color: "bg-sky-600",
     },
     {
       name: "Retail Works",
       description: "You can see all the IPD Patient Records",
-      icon: <BsClipboardDataFill size={50} />,
+      icon: Clipboard,
       link: "/dashboard-admin/pharmacy/retails",
       color: "bg-amber-800",
     },
     {
       name: "GoDown",
       description: "You can view all the Medicine Stock here",
-      icon: <FaOutdent size={50} />,
+      icon: Archive,
       link: "/dashboard-admin/pharmacy/godown",
       color: "bg-blue-900",
     },
     {
       name: "Requests",
       description: "You can view all the retails godown Stock Requests here",
-      icon: <BiTransferAlt size={50} />,
+      icon: Repeat,
       link: "/dashboard-admin/pharmacy/retailGodownRequests",
       color: "bg-yellow-700",
     },
     {
       name: "Sell Records",
       description: "You can view all the pharmacy Sell Records here",
-      icon: <FaFileInvoice size={50} />,
+      icon: Receipt,
       link: "/dashboard-admin/pharmacy/sellDataRecord",
       color: "bg-amber-800",
     },
     {
       name: "Pharmacy Config",
       description: "You can edit & create pharmacy items",
-      icon: <MdFormatListBulletedAdd size={50} />,
+      icon: ListPlus,
       link: "/dashboard-admin/pharmacy/pharmacyConfig",
       color: "bg-green-800",
     },
     {
       name: "Bulk Uploads",
       description: "You can upload pharmacy items in bulk here",
-      icon: <FaFileArrowUp size={50} />,
+      icon: UploadCloud,
       link: "/dashboard-admin/pharmacy/uploads",
       color: "bg-fuchsia-900",
     },
@@ -88,13 +95,14 @@ function Page() {
       <Navbar route={["Pharmacy"]} />
       <div className="flex-grow flex flex-wrap justify-center items-center gap-8 p-6">
         {Works.map((workCard) => {
+          const Icon = workCard.icon;
           return (
             <Link
               href={workCard.link}
               key={workCard.link}
               className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
             >
-              {workCard.icon}
+              <Icon size={40} />
               <div className="font-bold text-xl">{workCard.name}</div>
               <div className="text-center">{workCard.description}</div>
             </Link>

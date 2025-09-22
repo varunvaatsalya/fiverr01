@@ -75,8 +75,6 @@ export async function GET(req) {
 
     let Model = sectionType === "hospital" ? HospitalStock : Stock;
 
-    // console.log("Today:", today, "Target Date:", targetDate);
-
     const expiringStocks = await Model.aggregate([
       {
         $match: {
@@ -121,6 +119,18 @@ export async function GET(req) {
           medicine: { $first: "$medicine" }, // Keep only one medicine data
           stocks: { $push: "$$ROOT" }, // Collect all stocks for this medicine
         },
+      },
+      {
+        $addFields: {
+          stocks: {
+            $sortArray: { input: "$stocks", sortBy: { expiryDate: 1 } },
+          },
+          earliestExpiry: { $min: "$stocks.expiryDate" }, // Earliest batch for medicine
+        },
+      },
+      // Sort medicines by earliestExpiry
+      {
+        $sort: { earliestExpiry: 1 },
       },
       {
         $project: {

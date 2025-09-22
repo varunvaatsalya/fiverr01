@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import Doctor from "../../models/Doctors";
-import { verifyTokenWithLogout } from "../../utils/jwt";
+import dbConnect from "@/app/lib/Mongodb";
+import Doctor from "@/app/models/Doctors";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
 
 function generateUID() {
   const prefix = "DR";
@@ -47,9 +47,11 @@ export async function GET(req) {
     } else {
       doctors = await Doctor.find()
         .sort({ _id: -1 })
-        .populate("department", "name _id");
+        .populate("department", "name _id")
+        .populate("departments", "name _id");
     }
 
+    console.log(doctors[0]);
     return NextResponse.json(
       { doctors, userRole, userEditPermission, success: true },
       { status: 200 }
@@ -90,10 +92,17 @@ export async function POST(req) {
       { status: 403 }
     );
   }
-  const { name, email, specialty, charge, department } = await req.json();
+  const { name, email, specialty, charge, department, departments } =
+    await req.json();
 
   try {
     // Check if email is unique
+    if (departments.length === 0) {
+      return NextResponse.json(
+        { message: "At least one department must be selected", success: false },
+        { status: 400 }
+      );
+    }
     const existingDoctor = await Doctor.findOne({ email });
     if (existingDoctor) {
       return NextResponse.json(
@@ -113,6 +122,7 @@ export async function POST(req) {
       specialty,
       charge,
       department,
+      departments,
       drid,
     });
 
@@ -167,7 +177,10 @@ export async function PUT(req) {
     );
   }
 
-  const { _id, name, email, specialty, charge, department } = await req.json();
+  const body = await req.json();
+
+  const { _id, name, email, specialty, charge, department, departments } = body;
+  console.log(body)
 
   try {
     // Check if patient exists
@@ -179,22 +192,36 @@ export async function PUT(req) {
       );
     }
 
+    if (existingDoctor.email !== email) {
+      const emailExists = await Doctor.findOne({ email });
+      if (emailExists) {
+        return NextResponse.json(
+          { message: "Email already exists", success: false },
+          { status: 400 }
+        );
+      }
+    }
+    if (departments.length === 0) {
+      return NextResponse.json(
+        { message: "At least one department must be selected", success: false },
+        { status: 400 }
+      );
+    }
     // Update patient details
     existingDoctor.name = name;
     existingDoctor.email = email;
     existingDoctor.specialty = specialty;
     existingDoctor.charge = charge;
-    existingDoctor.department = department;
+    // existingDoctor.department = department;
+    existingDoctor.departments = departments;
 
     // Save updated patient to the database
     await existingDoctor.save();
 
-    const updatedNewDoctor = await Doctor.findById(existingDoctor._id).populate(
-      {
-        path: "department",
-        select: "name",
-      }
-    );
+    const updatedNewDoctor = await Doctor.findById(existingDoctor._id).populate([
+    { path: "department", select: "name" },
+    { path: "departments", select: "name" },
+  ]);
 
     // Send response with updated patient details
     return NextResponse.json(

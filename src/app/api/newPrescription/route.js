@@ -80,7 +80,7 @@ export async function GET(req) {
         .exec();
 
       // Fetch all doctors with only _id, name, and associated department ID
-      const doctors = await Doctor.find({}, "_id name department").exec();
+      const doctors = await Doctor.find({}, "_id name department departments").exec();
 
       // Fetch all departments with _id, name, and items with prices
       const departments = await Department.find({}, "_id name items").exec();

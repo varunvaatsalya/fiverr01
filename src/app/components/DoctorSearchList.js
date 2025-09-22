@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import AddSection from "./AddSection";
 import NewDoctorForm from "./NewDoctorForm";
-import EditDoctorForm from "./EditDoctorForm";
+// import EditDoctorForm from "./EditDoctorForm";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { IoPersonAdd } from "react-icons/io5";
@@ -11,7 +11,7 @@ function DoctorSearchList({ doctors, setDoctors, accessInfo }) {
   const [newUserSection, setNewUserSection] = useState(false);
   const [resData, setResData] = useState([]);
   const [editDoctor, setEditDoctor] = useState(null);
-
+console.log(doctors)
   useEffect(() => {
     setResData(doctors);
   }, [doctors]);
@@ -35,7 +35,7 @@ function DoctorSearchList({ doctors, setDoctors, accessInfo }) {
         <AddSection
           setNewUserSection={setNewUserSection}
           setEntity={setDoctors}
-          FormComponent={editDoctor ? EditDoctorForm : NewDoctorForm}
+          FormComponent={NewDoctorForm}
           editDoctor={editDoctor}
           setEditDoctor={setEditDoctor}
         />
@@ -87,10 +87,13 @@ function DoctorSearchList({ doctors, setDoctors, accessInfo }) {
                     {"(" + doctor.email + ")"}
                   </div>
                   <div className="text-xl my-1 font-semibold capitalize">
-                    {doctor.department.name}
+                    {doctor.departments[0]?.name || doctor.department.name}
+                    <span className="text-sm italic text-blue-600">{doctor.departments.length > 1
+                      ? " + " + (doctor.departments.length - 1) + " more"
+                      : ""}</span>
                   </div>
                   <div className="font-medium capitalize">
-                    Visting Charge: {doctor.charge?doctor.charge:"#"}
+                    Visting Charge: {doctor.charge ? doctor.charge : "#"}
                   </div>
                   <div
                     className="mx-auto my-1 font-semibold py-2 px-5 cursor-pointer rounded-full bg-gray-100 text-black"

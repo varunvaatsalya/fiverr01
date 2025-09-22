@@ -16,8 +16,15 @@ const doctorSchema = new mongoose.Schema({
   department: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Department",
-    required: true,
-  }, // Reference to Department
+    // required: true,
+  },
+  departments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Department",
+      required: true,
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
