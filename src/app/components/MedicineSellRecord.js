@@ -19,6 +19,7 @@ function MedicineSellRecord({
   monthYear,
   loading,
   updateData,
+  resetData,
 }) {
   const monthNames = [
     "Jan",
@@ -52,11 +53,20 @@ function MedicineSellRecord({
     <div className="w-full flex-1 flex flex-col min-h-0 text-black bg-white rounded-md border border-gray-200 shadow-sm p-4">
       {/* Top controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        {lastUpdated && (
-          <p className="text-sm text-muted-foreground">
-            Last Updated: {new Date(lastUpdated).toLocaleString()}
-          </p>
-        )}
+        <div className="flex gap-2 flex-wrap items-center">
+          {lastUpdated && (
+            <p className="text-sm text-muted-foreground">
+              Last Updated: {new Date(lastUpdated).toLocaleString()}
+            </p>
+          )}
+          <Button
+            variant="destructive"
+            onClick={resetData}
+            disabled={loading}
+          >
+            {loading ? "Processing..." : "Reset Data"}
+          </Button>
+        </div>
 
         <div className="flex gap-2 flex-wrap">
           <input

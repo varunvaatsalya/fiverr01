@@ -52,6 +52,30 @@ function Page() {
     }
   };
 
+  const resetData = async () => {
+    if (!window.confirm("Are you sure you want to reset the data?")) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch("/api/newMedicine/monthlySellRecord", {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (data.success) {
+        showSuccess(data.message);
+        fetchData();
+      } else {
+        showError(data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      showError("Failed to fetch data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-full min-h-screen h-screen flex flex-col items-center">
       <div className="w-full">
@@ -63,6 +87,7 @@ function Page() {
         monthYear={monthYear}
         loading={loading}
         updateData={updateData}
+        resetData={resetData}
       />
     </div>
   );
