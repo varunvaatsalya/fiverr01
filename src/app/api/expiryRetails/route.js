@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/app/lib/Mongodb";
 import { verifyTokenWithLogout } from "@/app/utils/jwt";
-import RetailStock from "@/app/models/RetailStock";
+import RetailStock, { HospitalRetailStock } from "@/app/models/RetailStock";
 
 export async function GET(req) {
   await dbConnect();
@@ -9,6 +9,7 @@ export async function GET(req) {
   let days = req.nextUrl.searchParams.get("days");
   let month = req.nextUrl.searchParams.get("month");
   let year = req.nextUrl.searchParams.get("year");
+  let sectionType = req.nextUrl.searchParams.get("sectionType");
 
   const token = req.cookies.get("authToken");
   if (!token) {
@@ -74,7 +75,9 @@ export async function GET(req) {
       dateFilter = { $gte: startDate, $lte: endDate }; // beech wale
     }
 
-    const expiringStocks = await RetailStock.aggregate([
+    let Model = sectionType === "hospital" ? HospitalRetailStock : RetailStock;
+
+    const expiringStocks = await Model.aggregate([
       {
         $match: { "stocks.expiryDate": dateFilter }, // Match documents having at least one stock in this range
       },

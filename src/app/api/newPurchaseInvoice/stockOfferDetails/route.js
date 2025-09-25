@@ -1,5 +1,6 @@
 import dbConnect from "@/app/lib/Mongodb";
 import { Stock } from "@/app/models";
+import { HospitalStock } from "@/app/models/Stock";
 import { verifyTokenWithLogout } from "@/app/utils/jwt";
 import { NextResponse } from "next/server";
 
@@ -29,11 +30,52 @@ export async function GET(req) {
   }
 
   try {
-    const latestStock = await Stock.findOne({ medicine: id })
-      .sort({
-        createdAt: -1,
-      })
-      .select("batchName expiryDate initialQuantity purchasePrice sellingPrice createdAt");
+    // const latestPharmacyStock = await Stock.findOne({ medicine: id })
+    //   .sort({
+    //     createdAt: -1,
+    //   })
+    //   .select("batchName expiryDate initialQuantity purchasePrice sellingPrice createdAt");
+
+    const [latestPharmacyStock, latestHospitalStock] = await Promise.all([
+      Stock.findOne({ medicine: id })
+        .sort({ createdAt: -1 })
+        .select(
+          "batchName expiryDate initialQuantity purchasePrice sellingPrice createdAt"
+        ),
+      HospitalStock.findOne({ medicine: id })
+        .sort({ createdAt: -1 })
+        .select(
+          "batchName expiryDate initialQuantity purchasePrice sellingPrice createdAt"
+        ),
+    ]);
+
+    let latestStock;
+    let latestStockBy = null;
+
+    if (!latestPharmacyStock && !latestHospitalStock) {
+      latestStock = null;
+    } else if (!latestPharmacyStock) {
+      latestStock = latestHospitalStock;
+      latestStockBy = "hospital";
+    } else if (!latestHospitalStock) {
+      latestStock = latestPharmacyStock;
+      latestStockBy = "pharmacy";
+    } else {
+      latestStock =
+        latestPharmacyStock.createdAt > latestHospitalStock.createdAt
+          ? latestPharmacyStock
+          : latestHospitalStock;
+      latestStockBy =
+        latestPharmacyStock.createdAt > latestHospitalStock.createdAt
+          ? "pharmacy"
+          : "hospital";
+    }
+    if (latestStock) {
+      latestStock = {
+        ...latestStock.toObject?.(),
+        by: latestStockBy,
+      };
+    }
 
     return NextResponse.json(
       {

@@ -4,6 +4,11 @@ import Doctor from "@/app/models/Doctors";
 import { verifyTokenWithLogout } from "@/app/utils/jwt";
 
 export async function GET(req) {
+  return NextResponse.json(
+    { message: "Service unavailable", success: false },
+    { status: 200 }
+  );
+
   await dbConnect();
   const token = req.cookies.get("authToken");
   if (!token) {

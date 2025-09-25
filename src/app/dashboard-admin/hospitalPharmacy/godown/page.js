@@ -92,7 +92,8 @@ function Page() {
               className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
             >
               {workCard.icon}
-              <div className="font-bold text-xl">{workCard.name}</div>
+              <div className="text-lg font-semibold">Hospital</div>
+              <div className="font-bold text-xl leading-4">{workCard.name}</div>
               <div className="text-center">{workCard.description}</div>
             </Link>
           );

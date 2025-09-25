@@ -2,10 +2,8 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import NewStockForm from "@/app/components/NewStockForm";
-import { useStockType } from "@/app/context/StockTypeContext";
 
 function Page() {
-  const sectionType = useStockType();
 
   const [medicines, setMedicines] = useState([]);
   const [lists, setLists] = useState([]);
@@ -16,17 +14,16 @@ function Page() {
     async function fetchData() {
       try {
         let result = await fetch(
-          `/api/newPurchaseInvoice?sourceType=${type}${
+          `/api/newPurchaseInvoice?sectionType=hospital&sourceType=${type}${
             medicines.length === 0 ? "&medicinesDetails=1" : ""
-          }${
-            !uniqueID ? "&generateNewId=1" : ""
-          }${sectionType === "hospital" ? "&sectionType=hospital" : ""}`
+          }${!uniqueID ? "&generateNewId=1" : ""}`
         );
         result = await result.json();
         if (result.success) {
           setLists(result.response.lists);
-          if(result.response.medicines) setMedicines(result.response.medicines || []);
-          if(result.response.uniqueID) setUniqueID(result.response.uniqueID);
+          if (result.response.medicines)
+            setMedicines(result.response.medicines || []);
+          if (result.response.uniqueID) setUniqueID(result.response.uniqueID);
         } else {
           setMessage(result.message);
         }
@@ -38,7 +35,7 @@ function Page() {
   }, [type]);
   return (
     <div className="bg-white min-h-screen">
-      <Navbar route={["Hospital", "GoDown", "New Stock"]} />
+      <Navbar route={["GoDown", "New Stock"]} />
       <NewStockForm
         medicines={medicines}
         lists={lists}

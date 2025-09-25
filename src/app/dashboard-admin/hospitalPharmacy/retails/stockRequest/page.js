@@ -2,11 +2,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import RetailStockRequest from "@/app/components/RetailStockRequest";
-import { useStockType } from "@/app/context/StockTypeContext";
 import { showError } from "@/app/utils/toast";
 
 function Page() {
-  const sectionType = useStockType();
   const [medicineStock, setMedicineStock] = useState([]);
   const [selectedLetter, setSelectedLetter] = useState("A");
   const [filterType, setFilterType] = useState("outofstock");
@@ -16,15 +14,13 @@ function Page() {
   useEffect(() => {
     setFinding(true);
     fetch(
-      `/api/stockRetail/outofstockmedicines?letter=${selectedLetter}&sectionType=${sectionType}`
+      `/api/stockRetail/outofstockmedicines?letter=${selectedLetter}&sectionType=hospital`
     )
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           setMedicineStock(data.medicines);
-        } else {
-          showError(data.message || "Stock Details Fetch Error");
-        }
+        } else showError(data.message || "Stock Details Fetch Error");
       });
     setFinding(false);
   }, [selectedLetter]);
@@ -52,8 +48,11 @@ function Page() {
         return med.requests?.some((req) => req.status === "Approved");
       }
 
-      if (filterType === "outofstock") {
+      if (filterType === "belowminimum") {
         return med.totalStrips < (med.minimumStockCount || 0);
+      }
+      if (filterType === "outofstock") {
+        return med.totalStrips < (med.minimumStockCount / 2 || 0);
       }
 
       return true;
@@ -101,6 +100,7 @@ function Page() {
           >
             <option value="all">All</option>
             <option value="outofstock">Out of Stock</option>
+            <option value="belowminimum">Below Minimum</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
           </select>

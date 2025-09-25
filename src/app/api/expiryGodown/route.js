@@ -70,7 +70,7 @@ export async function GET(req) {
     if (expired === "1") {
       dateFilter = { $lt: endDate }; // sirf expire ho chuke
     } else {
-      dateFilter = { $gte: startDate, $lte: endDate }; // beech wale
+      dateFilter = { $gte: startDate, $lte: endDate };
     }
 
     let Model = sectionType === "hospital" ? HospitalStock : Stock;

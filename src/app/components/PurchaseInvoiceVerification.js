@@ -25,7 +25,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
-
 function PurchaseInvoiceVerification() {
   const rotationSteps = [0, 90, 180, -90];
   const [rotate, setRotate] = useState(0);
@@ -337,7 +336,7 @@ function PurchaseInvoiceVerification() {
                 <div className="text-xl font-bold">
                   Invoice #{invoice.invoiceNumber}
                 </div>
-                <div className="grid grid-cols-2 gap-1 text-sm">
+                <div className="grid grid-cols-2 gap-0.5 text-sm">
                   <span className="text-muted-foreground">
                     Vendor Inovice ID:
                   </span>
@@ -351,6 +350,20 @@ function PurchaseInvoiceVerification() {
                   <span className="text-muted-foreground">Received Date:</span>
                   <span className="uppercase">
                     {formatDateToIST(invoice.receivedDate)}
+                  </span>
+
+                  <span className="text-muted-foreground">From:</span>
+                  <span>
+                    <Badge
+                      className={
+                        "uppercase text-white " +
+                        (invoice.sectionType !== "hospital"
+                          ? "bg-green-600"
+                          : "bg-blue-500")
+                      }
+                    >
+                      {invoice.sectionType}
+                    </Badge>
                   </span>
                   <span className="text-muted-foreground">Backdated:</span>
                   <span>

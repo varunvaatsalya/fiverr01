@@ -1,10 +1,10 @@
 import React from "react";
-import { FaHandHoldingMedical } from "react-icons/fa";
-import { TbChartInfographic, TbClockExclamation, TbEditCircle } from "react-icons/tb";
+// import { FaHandHoldingMedical } from "react-icons/fa";
+import { TbChartInfographic } from "react-icons/tb";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import Link from "next/link";
-import { IoBagAddSharp, IoStatsChart } from "react-icons/io5";
+import { IoBagAddSharp } from "react-icons/io5";
 
 function Page() {
   const Works = [
@@ -29,13 +29,13 @@ function Page() {
       link: "/dashboard-admin/hospitalPharmacy/retails/stockRequest",
       color: "bg-rose-700",
     },
-    {
-      name: "Medicine Sell Report",
-      description: "You can show all the medicine sell report.",
-      icon: <IoStatsChart  size={50} />,
-      link: "/dashboard-admin/hospitalPharmacy/retails/medicineSellReport",
-      color: "bg-teal-700",
-    },
+    // {
+    //   name: "Medicine Sell Report",
+    //   description: "You can show all the medicine sell report.",
+    //   icon: <IoStatsChart  size={50} />,
+    //   link: "/dashboard-admin/hospitalPharmacy/retails/medicineSellReport",
+    //   color: "bg-teal-700",
+    // },
     // {
     //   name: "Stock Expiring Soon",
     //   description:
@@ -66,7 +66,8 @@ function Page() {
               className={`${workCard.color} w-full p-3 h-60 md:w-2/5 lg:w-1/5 text-white rounded-xl flex flex-col justify-center items-center space-y-1 hover:scale-105`}
             >
               {workCard.icon}
-              <div className="font-bold text-xl">{workCard.name}</div>
+              <div className="text-lg font-semibold">Hospital</div>
+              <div className="font-bold text-xl leading-4">{workCard.name}</div>
               <div className="text-center">{workCard.description}</div>
             </Link>
           );

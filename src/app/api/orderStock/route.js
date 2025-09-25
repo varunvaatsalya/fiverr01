@@ -212,6 +212,17 @@ export async function GET(req) {
       },
       {
         $addFields: {
+          stockOrderInfo: {
+            $cond: [
+              { $eq: [sectionType, "hospital"] },
+              "$stockHospitalOrderInfo",
+              "$stockOrderInfo",
+            ],
+          },
+        },
+      },
+      {
+        $addFields: {
           latestOffer: {
             $cond: {
               if: { $gt: [{ $size: { $ifNull: ["$offers", []] } }, 0] },

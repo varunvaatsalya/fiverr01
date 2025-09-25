@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import PurchaseInvoiceSearchList from "../../../../components/PurchaseInvoiceSearchList";
-import { useStockType } from "@/app/context/StockTypeContext";
+import PurchaseInvoiceSearchList from "@/app/components/PurchaseInvoiceSearchList";
 
 function Page() {
   const [purchaseInvoices, setPurchaseInvoices] = useState([]);
@@ -9,15 +8,11 @@ function Page() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
-  const sectionType = useStockType();
-
   useEffect(() => {
     async function fetchData(page) {
       try {
         let result = await fetch(
-          `/api/newPurchaseInvoice?page=${page}${
-            sectionType === "hospital" ? "&sectionType=hospital" : ""
-          }`
+          `/api/newPurchaseInvoice?page=${page}&sectionType=hospital`
         );
         result = await result.json();
         if (result.success) {

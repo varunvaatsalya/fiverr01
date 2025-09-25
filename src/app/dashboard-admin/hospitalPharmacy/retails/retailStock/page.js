@@ -2,11 +2,25 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import RetailStock from "@/app/components/RetailStock";
+import { showError } from "@/app/utils/toast";
+
+const alphabets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ#"];
 
 function Page() {
   const [medicineStock, setMedicineStock] = useState({});
   const [selectedLetter, setSelectedLetter] = useState("A");
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (query.length > 0) {
+      const firstChar = query[0].toUpperCase();
+      const isAlphabet = /^[A-Z]$/.test(firstChar);
+
+      if (firstChar !== selectedLetter) {
+        setSelectedLetter(isAlphabet ? firstChar : "#");
+      }
+    }
+  }, [query]);
 
   const groupAndCountMedicines = (medicines) => {
     const grouped = {};
@@ -26,24 +40,24 @@ function Page() {
   };
 
   useEffect(() => {
-    fetch("/api/stockRetail?sectionType=hospital")
+    const encodedLetter = encodeURIComponent(selectedLetter);
+    fetch(`/api/stockRetail?letter=${encodedLetter}&sectionType=hospital`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           let groupdData = groupAndCountMedicines(data.medicines);
-          console.log(data.medicines);
+          // console.log(data.medicines);
           setMedicineStock(groupdData);
-          setSelectedLetter(Object.keys(groupdData)[0]);
-        } else console.log(data.message);
+        } else showError(data.message);
       });
-  }, []);
-  
+  }, [selectedLetter]);
+
   return (
     <div>
       <Navbar route={["Pharmacy", "Retails", "Stock Info"]} />
       <div className="flex flex-col-reverse lg:flex-row items-center justify-center gap-2 my-2">
         <div className="flex flex-wrap justify-center items-center w-full gap-2 px-2">
-          {Object.keys(medicineStock).map((letter) => {
+          {alphabets.map((letter) => {
             return (
               <button
                 key={letter}
@@ -58,12 +72,10 @@ function Page() {
                 }
               >
                 {letter}
-                {medicineStock[letter].requestCount ? (
+                {medicineStock && medicineStock[letter]?.requestCount > 0 && (
                   <div className="absolute -top-2 -right-2 w-4 aspect-square rounded-full bg-red-600 text-white text-[8px]">
                     {medicineStock[letter].requestCount}
                   </div>
-                ) : (
-                  ""
                 )}
               </button>
             );

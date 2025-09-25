@@ -68,12 +68,12 @@ function RequestSearchList({
   const statusStyle = {
     All: "bg-white text-black",
     Fulfilled: "bg-green-200 text-green-700",
-    "Fulfilled (Partial)": "bg-teal-200 text-teal-800",
-    Pending: "bg-yellow-200 text-yellow-500",
-    Approved: "bg-violet-200 text-violet-500",
-    Returned: "bg-pink-200 text-pink-500",
-    Rejected: "bg-red-200 text-red-500",
-    Disputed: "bg-rose-200 text-rose-500",
+    "Fulfilled (Partial)": "bg-teal-200 text-teal-700",
+    Pending: "bg-yellow-200 text-yellow-700",
+    Approved: "bg-violet-200 text-violet-700",
+    Returned: "bg-pink-200 text-pink-600",
+    Rejected: "bg-red-200 text-red-600",
+    Disputed: "bg-rose-200 text-rose-600",
   };
 
   const handleNextPage = () => {
@@ -183,7 +183,15 @@ function RequestSearchList({
                         {medicine?.name}
                       </TableCell>
                       <TableCell>{req.manufacturerData?.name}</TableCell>
-                      <TableCell>{req.status}</TableCell>
+                      <TableCell>
+                        <span
+                          className={
+                            "px-2 py-0.5 rounded " + statusStyle[req.status]
+                          }
+                        >
+                          {req.status}
+                        </span>
+                      </TableCell>
                       <TableCell>{req.requestedQuantity}</TableCell>
                       <TableCell>
                         {req.enteredRemainingQuantity} /{" "}

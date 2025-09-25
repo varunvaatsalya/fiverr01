@@ -24,6 +24,7 @@ function NewStockForm({
   const [recentStock, setRecentStock] = useState({});
 
   const sectionType = useStockType();
+  2;
 
   useEffect(() => {
     async function fetchEditInvoices() {
@@ -267,7 +268,12 @@ function NewStockForm({
       className="w-full px-4 py-2 space-y-2 text-black rounded shadow"
     >
       <div className="flex items-center justify-between px-3">
-        <h2 className="text-xl font-bold">New Purchase Invoice</h2>
+        <h2 className="text-xl font-bold">
+          <span className="text-blue-600">
+            {sectionType === "hospital" ? "Hospital's" : "Pharmacy's"}
+          </span>{" "}
+          New Purchase Invoice
+        </h2>
         <select
           name="editInvoice"
           id="editInvoice"
@@ -293,7 +299,7 @@ function NewStockForm({
               reset(defaultValues);
               setType("vendor");
             }
-            console.log(getValues());
+            // console.log(getValues());
           }}
           className="border border-gray-300 rounded px-2 py-1 bg-gray-50"
         >
@@ -590,6 +596,9 @@ function NewStockForm({
           // );
           // let totalAmount = parseFloat((costPrice * quantity).toFixed(2));
 
+          const mfgDate = watch(`stocks.${index}.mfgDate`);
+          const expiryDate = watch(`stocks.${index}.expiryDate`);
+
           return (
             <div
               key={field.id}
@@ -621,6 +630,10 @@ function NewStockForm({
                             new Date(recentStock[medicineId].createdAt),
                             "MM/yy"
                           )}
+                        </p>
+                        <p className="font-semibold">From:</p>
+                        <p className="text-red-600 capitalize">
+                          {recentStock[medicineId].by}
                         </p>
                       </div>
                     </div>
@@ -681,6 +694,7 @@ function NewStockForm({
                   {...register(`stocks.${index}.mfgDate`, {
                     required: "Mfg Date is required",
                   })}
+                  max={expiryDate || undefined}
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                 />
                 <input
@@ -689,6 +703,7 @@ function NewStockForm({
                   {...register(`stocks.${index}.expiryDate`, {
                     required: "Expiry Date is required",
                   })}
+                  min={mfgDate || undefined}
                   className="flex-1 min-w-28 px-1 h-8 rounded-lg bg-gray-700"
                 />
                 <input
