@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { formatDateToIST } from "@/app/utils/date";
+// import { formatDateToIST } from "@/app/utils/date";
 import { showSuccess, showError } from "@/app/utils/toast";
 import { Button } from "@/components/ui/button";
 
@@ -33,6 +33,7 @@ export default function EditStockForm() {
   };
 
   const handleStripsChange = (medicineId, stockId, strips, stripsPerBox) => {
+    let totalStrips = strips && strips >= 0 ? parseInt(strips, 10) : 0;
     setStocks((prev) =>
       prev.map((med) =>
         med.medicineId === medicineId
@@ -44,8 +45,8 @@ export default function EditStockForm() {
                       ...stock,
                       quantity: {
                         ...stock.quantity,
-                        totalStrips: strips,
-                        ...calculateBoxesAndExtra(strips, stripsPerBox),
+                        totalStrips,
+                        ...calculateBoxesAndExtra(totalStrips, stripsPerBox),
                       },
                     }
                   : stock
@@ -59,10 +60,10 @@ export default function EditStockForm() {
       const exists = prev.find((p) => p.stockId === stockId);
       if (exists) {
         return prev.map((p) =>
-          p.stockId === stockId ? { ...p, totalStrips: strips } : p
+          p.stockId === stockId ? { ...p, totalStrips } : p
         );
       } else {
-        return [...prev, { stockId, totalStrips: strips }];
+        return [...prev, { stockId, totalStrips }];
       }
     });
   };
@@ -261,15 +262,15 @@ export default function EditStockForm() {
                     <Input
                       type="number"
                       className="w-full"
-                      value={stock.quantity.totalStrips || ""}
-                      onChange={(e) =>
+                      value={parseInt(stock.quantity.totalStrips, 10) ?? ""}
+                      onChange={(e) => {
                         handleStripsChange(
                           med.medicineId,
                           stock._id,
-                          parseInt(e.target.value || "0"),
+                          e.target.value,
                           med.packetSize.strips
-                        )
-                      }
+                        );
+                      }}
                     />
                     {changedStocks.some((stk) => stk.stockId === stock._id) && (
                       <div className="rounded px-2 text-sm bg-red-200 text-red-800 font-semibold">

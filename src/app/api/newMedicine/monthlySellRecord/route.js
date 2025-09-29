@@ -545,10 +545,17 @@ export async function PUT(req) {
       updateOne: {
         filter: { medicineId: r.medicineId, year: r.year, month: r.month },
         update: {
-          $set: {
+          $inc: {
             totalInvoices: Number(r.totalInvoices),
             totalSoldTablets: Math.round(r.totalSoldTablets),
             totalRevenue: Number(r.totalRevenue),
+          },
+          $setOnInsert: {
+            medicineId: r.medicineId,
+            year: r.year,
+            month: r.month,
+          },
+          $set: {
             lastUpdatedAt: new Date(),
           },
         },

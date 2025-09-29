@@ -603,7 +603,7 @@ export async function PUT(req) {
           continue;
         }
 
-        if (totalStrips) {
+        if (totalStrips !== undefined && totalStrips !== null) {
           const stripsPerBox = stock.medicine.packetSize?.strips;
 
           if (!stripsPerBox || stripsPerBox <= 0) {
