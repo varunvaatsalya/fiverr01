@@ -79,7 +79,9 @@ export async function POST(req) {
     const { medicine, requestedQuantity, approvedQuantity } = request;
 
     if (status === "received") {
-      let retailStock = await RetailStockModel.findOne({ medicine: medicine._id });
+      let retailStock = await RetailStockModel.findOne({
+        medicine: medicine._id,
+      });
 
       if (!retailStock) {
         retailStock = new RetailStockModel({

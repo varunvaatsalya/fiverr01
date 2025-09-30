@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import StockRequest from "@/app/components/StockRequest";
+import { showError } from "@/app/utils/toast";
 
 function Page() {
   const [stockRequest, setStockRequests] = useState([]);
@@ -20,7 +21,10 @@ function Page() {
 
           setStockRequests(pendingRequests);
           setApprovedStockRequests(approvedRequests);
-        } else console.log(data.message);
+        } else {
+          showError("Something went wrong!");
+          console.log(data.message);
+        }
       });
   }, []);
   return (

@@ -30,7 +30,7 @@ function StockRequest({
 
   const stockList = useMemo(() => {
     let d = isOpenApprovedSection ? approvedStockRequest : stockRequest;
-    console.log(d);
+    // console.log(d);
     return d;
   }, [isOpenApprovedSection, approvedStockRequest, stockRequest]);
 
@@ -45,7 +45,7 @@ function StockRequest({
   async function handlePrintStocks() {
     if (!printableDetails) return;
     let allAllocatedStocks = printableDetails.flatMap((req) =>
-      req.allocatedStocks.map((batch) => ({
+      (req.allocatedStocks || []).map((batch) => ({
         Medicine_Name: req.medicine,
         Batch_Name: batch.batchName,
         Expiry_Date: format(new Date(batch.expiryDate), "MM/yy"),
@@ -75,15 +75,21 @@ function StockRequest({
 
   async function handleGetDetails() {
     if (selectedReqs.length === 0) return;
+    let reqsToFetch = selectedReqs
+      .filter((req) => req.isRequiredToFetchStocks)
+      .map((req) => ({
+        requestId: req._id,
+        name: req.medicine.name,
+        enteredTransferQty: req.enteredTransferQty,
+      }));
+    if (reqsToFetch.length === 0) return;
+
     setFetchingDetails(true);
     try {
       let result = await fetch(`/api/stockRequest/resolveRequest`, {
         method: "POST",
         body: JSON.stringify({
-          requests: selectedReqs.map((req) => ({
-            requestId: req._id,
-            enteredTransferQty: req.enteredTransferQty,
-          })),
+          requests: reqsToFetch,
           sectionType,
         }),
       });
@@ -94,7 +100,7 @@ function StockRequest({
         setSelectedReqs((prevReqs) =>
           prevReqs.map((req) => {
             const stock = result.stockResults.find(
-              (s) => s.requestId === req._id
+              (s) => s.requestId === req._id && s.success
             );
             return stock
               ? {
@@ -102,8 +108,9 @@ function StockRequest({
                   ...{
                     approvedQuantity: stock.allocatedStocks,
                     remainingStrips: stock.remainingStrips,
+                    isRequiredToFetchStocks: false,
                   },
-                } // merge stock data into matched req
+                }
               : req;
           })
         );
@@ -226,7 +233,12 @@ function StockRequest({
                 selectedReqs.length === stockPendingRequests.length
               }
               onClick={() => {
-                setSelectedReqs(stockPendingRequests.map((request) => request));
+                setSelectedReqs(
+                  stockPendingRequests.map((request) => ({
+                    ...request,
+                    isRequiredToFetchStocks: true,
+                  }))
+                );
               }}
             >
               <div className="flex justify-center items-center outline outline-1 outline-offset-1 outline-gray-800 w-5 h-5 rounded-full">
@@ -337,7 +349,11 @@ function StockRequest({
                         setSelectedReqs((reqs) =>
                           reqs.filter((req) => req._id !== request._id)
                         );
-                      } else setSelectedReqs((prev) => [...prev, request]);
+                      } else
+                        setSelectedReqs((prev) => [
+                          ...prev,
+                          { ...request, isRequiredToFetchStocks: true },
+                        ]);
                     }}
                     className="p-2 hover:bg-gray-300 rounded-lg cursor-pointer"
                   >
@@ -400,19 +416,22 @@ function StockRequest({
                           min={1}
                           value={req.enteredTransferQty || ""}
                           onChange={(e) => {
-                            setSelectedReqs((prev) =>
-                              prev.map((Req) =>
-                                Req._id === req._id
-                                  ? {
-                                      ...Req,
-                                      enteredTransferQty: parseFloat(
-                                        e.target.value
-                                      ),
-                                    }
-                                  : Req
-                              )
-                            );
-                            SetPrintableDetails(null);
+                            const value = e.target.value;
+                            const enteredTransferQty = parseInt(value, 10) || 0;
+                            if (enteredTransferQty >= 0) {
+                              setSelectedReqs((prev) =>
+                                prev.map((Req) =>
+                                  Req._id === req._id
+                                    ? {
+                                        ...Req,
+                                        enteredTransferQty,
+                                        isRequiredToFetchStocks: true,
+                                      }
+                                    : Req
+                                )
+                              );
+                              SetPrintableDetails(null);
+                            }
                           }}
                           placeholder="Strips"
                           className="px-2 py-1 bg-gray-700 rounded-lg w-32"
@@ -442,49 +461,55 @@ function StockRequest({
                         </div>
                       </div>
                       {req.approvedQuantity &&
-                        req.approvedQuantity.length > 0 && (
-                          <div className="px-2">
-                            <div className="grid grid-cols-5 items-center gap-2 bg-gray-800 rounded-lg py-0.5">
-                              <div>Batch</div>
-                              <div>Expiry</div>
-                              <div>Packet</div>
-                              <div>Avl</div>
-                              <div>Allocated</div>
-                            </div>
-                            {req.approvedQuantity.map((batch, it) => (
-                              <div
-                                key={batch.batchName + it}
-                                className="grid grid-cols-5 items-center gap-2 py-0.5"
-                              >
-                                <div>{batch.batchName}</div>
-                                <div>
-                                  {format(new Date(batch.expiryDate), "MM/yy")}
-                                </div>
-                                <div>
-                                  {`${batch.packetSize.strips} Pack, ${batch.packetSize.tabletsPerStrip} U`}
-                                </div>
-                                <div>
-                                  {batch.available ? (
-                                    <>
-                                      <span className="text-blue-500 font-semibold">
-                                        {batch.available.totalStrips}
-                                      </span>
-                                      {`=${batch.available.boxes}B+${batch.available.extra}P`}
-                                    </>
-                                  ) : (
-                                    "--"
-                                  )}
-                                </div>
-                                <div>
-                                  <span className="text-blue-500 font-semibold">
-                                    {batch.quantity.totalStrips}
-                                  </span>
-                                  {`=${batch.quantity.boxes}B+${batch.quantity.extra}P`}
-                                </div>
-                              </div>
-                            ))}
+                      req.approvedQuantity.length > 0 ? (
+                        <div className="px-2">
+                          <div className="grid grid-cols-5 items-center gap-2 bg-gray-800 rounded-lg py-0.5">
+                            <div>Batch</div>
+                            <div>Expiry</div>
+                            <div>Packet</div>
+                            <div>Avl</div>
+                            <div>Allocated</div>
                           </div>
-                        )}
+                          {req.approvedQuantity.map((batch, it) => (
+                            <div
+                              key={batch.batchName + it}
+                              className="grid grid-cols-5 items-center gap-2 py-0.5"
+                            >
+                              <div>{batch.batchName}</div>
+                              <div>
+                                {format(new Date(batch.expiryDate), "MM/yy")}
+                              </div>
+                              <div>
+                                {`${batch.packetSize.strips} Pack, ${batch.packetSize.tabletsPerStrip} U`}
+                              </div>
+                              <div>
+                                {batch.available ? (
+                                  <>
+                                    <span className="text-blue-500 font-semibold">
+                                      {batch.available.totalStrips}
+                                    </span>
+                                    {`=${batch.available.boxes}B+${batch.available.extra}P`}
+                                  </>
+                                ) : (
+                                  "--"
+                                )}
+                              </div>
+                              <div>
+                                <span className="text-blue-500 font-semibold">
+                                  {batch.quantity.totalStrips}
+                                </span>
+                                {`=${batch.quantity.boxes}B+${batch.quantity.extra}P`}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-500 mt-0.5">
+                          {req.isRequiredToFetchStocks
+                            ? 'press "Get Details" to fetch stock details'
+                            : "No Stocks Allocated"}
+                        </div>
+                      )}
                     </div>
                   ))
                 ) : (

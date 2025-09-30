@@ -164,7 +164,7 @@ function NewPharmacyInvoice({
   }, [medQuery]);
 
   const handleCheckboxChange = (medicine) => {
-    if (medicine.status === "disable") return;
+    // if (medicine.status === "disable") return;
     setRequestedMedicineDetails(null);
     setDiscount("");
     if (selectedMedicines.some((m) => m._id === medicine._id)) {
@@ -209,11 +209,11 @@ function NewPharmacyInvoice({
           normalQuantity: Number(medicine.quantity.normalQuantity) || 0,
         };
 
-        const isDisContinued = medicine.status === "disable";
+        // const isDisContinued = medicine.status === "disable";
 
-        if (isDisContinued) {
-          throw new Error(`Medicine ${medicine.name} is discontinued`);
-        }
+        // if (isDisContinued) {
+        //   throw new Error(`Medicine ${medicine.name} is discontinued`);
+        // }
 
         const isTabletInvalid =
           medicine.isTablets &&
@@ -499,7 +499,7 @@ function NewPharmacyInvoice({
                       const alreadySelected = selectedMedicines.some(
                         (med) => med._id === m._id
                       );
-                      let isDisabled = m.status === "disable" || false;
+                      // let isDisabled = m.status === "disable" || false;
                       let medName =
                         m.salts.name.length > 30
                           ? m.name +
@@ -508,15 +508,15 @@ function NewPharmacyInvoice({
                             "..."
                           : m.name + " - " + m.salts.name;
 
-                      if (isDisabled) {
-                        medName += " (Discontinued)";
-                      }
+                      // if (isDisabled) {
+                      //   medName += " (Discontinued)";
+                      // }
 
                       return (
                         <CommandItem
                           key={m._id}
                           value={medName}
-                          disabled={isDisabled}
+                          // disabled={isDisabled}
                           onSelect={() => {
                             if (!alreadySelected) {
                               handleCheckboxChange(m);

@@ -46,6 +46,7 @@ function RetailStock({
       setFilteredMedicines(medicineStock?.medicines);
     }
   }, [query]);
+
   async function handleCreateRequest() {
     setSubmitting(true);
     try {
@@ -93,10 +94,11 @@ function RetailStock({
         }
         setRequestedQuantity("");
         setEnteredRemainingQuantity("");
-        setMessage("");
+        // setMessage("");
         setTimeout(() => {
           setRequestedMedicine(null);
           setMessage("");
+          setResponseMessage("");
         }, 2000);
       }
     } catch (error) {
@@ -496,33 +498,48 @@ function RetailStock({
                       )}
                     </div>
                   ))}
-                  {medicine.retailStocks[0]?.stocks?.map((stock, index1) => {
-                    let batchStockText = `Total ${label1}: ${
-                      stock.quantity.totalStrips
-                    } = ${label2}: ${stock.quantity.boxes}, Extra: ${
-                      stock.quantity.extra
-                    }${
-                      stock.quantity.tablets > 0
-                        ? `, ${label0}: ${stock.quantity.tablets}`
-                        : ""
-                    }`;
-                    return (
-                      <div
-                        key={index1}
-                        className="w-full rounded-xl my-1 bg-gray-300 p-2 flex flex-wrap gap-3 justify-around items-center"
-                      >
-                        <div className="">{stock.batchName}</div>
-                        <div className="">
-                          {"Expiry: " + stock.expiryDate.split("T")[0]}
-                        </div>
-                        <div className="">{"MRP: " + stock.sellingPrice}</div>
-                        <div className="">{batchStockText}</div>
-                        {/* <div className="w-[10%]">
+                  <div className="w-full py-1 max-h-48 overflow-y-auto">
+                    {medicine.retailStocks[0]?.stocks?.map((stock, index1) => {
+                      let batchStockText = `Total ${label1}: ${
+                        stock.quantity.totalStrips
+                      } = ${label2}: ${stock.quantity.boxes}, Extra: ${
+                        stock.quantity.extra
+                      }${
+                        stock.quantity.tablets > 0
+                          ? `, ${label0}: ${stock.quantity.tablets}`
+                          : ""
+                      }`;
+                      return (
+                        <div
+                          key={index1}
+                          className="w-full rounded-xl my-1 bg-gray-300 p-2"
+                        >
+                          <div className="flex flex-wrap gap-3 justify-around items-center">
+                            <div className="">{stock.batchName}</div>
+                            <div className="">
+                              {"Expiry: " + stock.expiryDate.split("T")[0]}
+                            </div>
+                            <div className="">
+                              {"MRP: " + stock.sellingPrice}
+                            </div>
+                            <div className="">{batchStockText}</div>
+                            {/* <div className="w-[10%]">
                         {"P: " + stock.purchasePrice}
                       </div> */}
-                      </div>
-                    );
-                  })}
+                          </div>
+                          {stock.createdAt && (
+                            <div className="text-sm text-center text-gray-500 font-semibold">
+                              {"Stock Added on: " +
+                                format(
+                                  new Date(stock.createdAt),
+                                  "dd/MM/yy | hh:mm a"
+                                )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

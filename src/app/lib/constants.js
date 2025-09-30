@@ -1,0 +1,1 @@
+export const MEDICINE_SELL_EXPIRY_BUFFER_DAYS = 60;

@@ -3,17 +3,13 @@ import dbConnect from "@/app/lib/Mongodb";
 import { verifyTokenWithLogout } from "@/app/utils/jwt";
 import { Stock, HospitalStock } from "@/app/models/Stock";
 import Request, { HospitalRequest } from "@/app/models/Request";
+import { MEDICINE_SELL_EXPIRY_BUFFER_DAYS } from "@/app/lib/constants";
 
-async function allocateStocks(medicine, requestedQuantity, StockModel) {
-  const packetSize = medicine.packetSize;
+const today = new Date();
+const cutoffDate = new Date(today);
+cutoffDate.setDate(cutoffDate.getDate() + MEDICINE_SELL_EXPIRY_BUFFER_DAYS);
 
-  // FIFO: Expiry-date ascending
-  const stocks = await StockModel.find({
-    medicine: medicine._id,
-    "quantity.totalStrips": { $gt: 0 },
-  })
-    .sort({ expiryDate: 1 })
-    .lean();
+async function allocateStocks(packetSize, requestedQuantity, stocks = []) {
 
   let allocatedStocks = [];
   let remainingStrips = requestedQuantity;
@@ -87,29 +83,64 @@ export async function POST(req) {
   try {
     let results = [];
 
+    const requestIds = requests.map((r) => r.requestId);
+
+    const requestDocs = await RequestModel.find({
+      _id: { $in: requestIds },
+      status: "Pending",
+    }).populate({
+      path: "medicine",
+      select: "_id name packetSize salts",
+      populate: { path: "salts", select: "name" },
+    });
+
+    const requestMap = {};
+    requestDocs.forEach((doc) => {
+      requestMap[doc._id.toString()] = doc;
+    });
+
+    const medicineIds = requestDocs.map((doc) => doc.medicine._id);
+
+    const allStocks = await StockModel.find({
+      medicine: { $in: medicineIds },
+      "quantity.totalStrips": { $gt: 0 },
+      expiryDate: { $gt: cutoffDate },
+    })
+      .sort({ expiryDate: 1 })
+      .lean();
+
+    const stocksMap = {};
+    allStocks.forEach((stock) => {
+      const medId = stock.medicine.toString();
+      if (!stocksMap[medId]) stocksMap[medId] = [];
+      stocksMap[medId].push(stock);
+    });
+
     for (const reqItem of requests) {
       const { requestId, enteredTransferQty } = reqItem;
 
-      const requestDoc = await RequestModel.findById(requestId).populate({
-        path: "medicine",
-        select: "_id name packetSize salts",
-        populate: { path: "salts", select: "name" },
-      });
+      const requestDoc = requestMap[requestId];
 
       if (!requestDoc) {
-        results.push({ requestId, error: "Request not found" });
+        results.push({
+          requestId,
+          message: "Request not found",
+          success: false,
+        });
         continue;
       }
 
       // Quantity: modified or original
       const requestedQuantity =
-        enteredTransferQty || requestDoc.requestedQuantity;
+        parseInt(enteredTransferQty) ||
+        parseInt(requestDoc.requestedQuantity || 0);
 
+      const stocks = stocksMap[requestDoc.medicine._id.toString()] || [];
       // FIFO Allocation
       const { allocatedStocks, remainingStrips } = await allocateStocks(
-        requestDoc.medicine,
+        requestDoc.medicine.packetSize,
         requestedQuantity,
-        StockModel
+        stocks
       );
 
       results.push({
@@ -118,6 +149,7 @@ export async function POST(req) {
         allocatedStocks,
         remainingStrips,
         status: "Preview",
+        success: true,
       });
     }
 
@@ -208,11 +240,19 @@ export async function PUT(req) {
     const requestedQuantity =
       enteredTransferQty || requestDoc.requestedQuantity;
 
+    const stocks = await StockModel.find({
+      medicine: requestDoc.medicine._id,
+      "quantity.totalStrips": { $gt: 0 },
+      expiryDate: { $gt: cutoffDate },
+    })
+      .sort({ expiryDate: 1 })
+      .lean();
+
     // FIFO Allocation
     const { allocatedStocks, remainingStrips } = await allocateStocks(
-      requestDoc.medicine,
+      requestDoc.medicine.packetSize,
       requestedQuantity,
-      StockModel
+      stocks
     );
     requestDoc.status = "Approved";
     requestDoc.approvedQuantity = allocatedStocks;

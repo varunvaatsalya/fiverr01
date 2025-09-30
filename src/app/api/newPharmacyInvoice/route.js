@@ -8,6 +8,7 @@ import PharmacyInvoice from "@/app/models/PharmacyInvoice";
 import Admission from "@/app/models/Admissions";
 import { generateUniqueId } from "@/app/utils/counter";
 import AuditTrail from "@/app/models/AuditTrail";
+import { MEDICINE_SELL_EXPIRY_BUFFER_DAYS } from "@/app/lib/constants";
 
 let cache = {
   data: null,
@@ -245,26 +246,30 @@ export async function POST(req) {
     const result = [];
     const requestedMedicineIds = requestedMedicine.map((med) => med.medicineId);
 
-    const disabledMeds = await Medicine.find({
-      _id: { $in: requestedMedicineIds },
-      status: "disable",
-    }).select("_id name");
+    // const disabledMeds = await Medicine.find({
+    //   _id: { $in: requestedMedicineIds },
+    //   status: "disable",
+    // }).select("_id name");
 
-    if (disabledMeds.length > 0) {
-      return NextResponse.json(
-        {
-          message: `Some medicines are not available for sale: ${disabledMeds
-            .map((m) => m.name)
-            .join(", ")}`,
-          success: false,
-        },
-        { status: 400 }
-      );
-    }
-    
+    // if (disabledMeds.length > 0) {
+    //   return NextResponse.json(
+    //     {
+    //       message: `Some medicines are not available for sale: ${disabledMeds
+    //         .map((m) => m.name)
+    //         .join(", ")}`,
+    //       success: false,
+    //     },
+    //     { status: 400 }
+    //   );
+    // }
+
     const retailStock = await RetailStock.find({
       medicine: { $in: requestedMedicineIds },
     });
+
+    const today = new Date();
+    let cutoffDate = new Date(today);
+    cutoffDate.setDate(cutoffDate.getDate() + MEDICINE_SELL_EXPIRY_BUFFER_DAYS);
 
     for (const request of requestedMedicine) {
       const { medicineId, isTablets, quantity } = request;
@@ -272,6 +277,15 @@ export async function POST(req) {
       const stock = retailStock.find((rs) => rs.medicine.equals(medicineId));
 
       if (!stock || !stock.stocks || stock.stocks.length === 0) {
+        result.push({ medicineId, status: "Out of Stock" });
+        continue;
+      }
+
+      let updatedStocks = stock.stocks
+        .filter((s) => new Date(s.expiryDate) > cutoffDate)
+        .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+
+      if (updatedStocks.length === 0) {
         result.push({ medicineId, status: "Out of Stock" });
         continue;
       }
@@ -284,10 +298,6 @@ export async function POST(req) {
         strips: initialQuantity.strips,
         tablets: initialQuantity.tablets,
       };
-
-      let updatedStocks = [...stock.stocks].sort(
-        (a, b) => new Date(a.expiryDate) - new Date(b.expiryDate)
-      );
 
       const allocatedQuantities = [];
 

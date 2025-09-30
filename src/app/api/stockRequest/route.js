@@ -7,6 +7,7 @@ import Request, { HospitalRequest } from "@/app/models/Request";
 import { Manufacturer } from "@/app/models/MedicineMetaData";
 import RetailStock, { HospitalRetailStock } from "@/app/models/RetailStock";
 import mongoose from "mongoose";
+import { MEDICINE_SELL_EXPIRY_BUFFER_DAYS } from "@/app/lib/constants";
 
 export async function GET(req) {
   await dbConnect();
@@ -211,9 +212,19 @@ export async function POST(req) {
       medicinesData.map((m) => [m._id.toString(), m])
     );
 
+    const today = new Date();
+    const cutoffDate = new Date(today);
+    cutoffDate.setDate(cutoffDate.getDate() + MEDICINE_SELL_EXPIRY_BUFFER_DAYS);
+
     const StockModel = sectionType === "hospital" ? HospitalStock : Stock;
     const stockData = await StockModel.aggregate([
-      { $match: { medicine: { $in: medicineIds } } },
+      {
+        $match: {
+          medicine: { $in: medicineIds },
+          "quantity.totalStrips": { $gt: 0 },
+          expiryDate: { $gt: cutoffDate },
+        },
+      },
       {
         $group: {
           _id: "$medicine",
@@ -221,7 +232,7 @@ export async function POST(req) {
         },
       },
     ]);
-    console.log(medicineIds, stockData);
+    // console.log(medicineIds, stockData);
 
     const stockMap = new Map(
       stockData.map((s) => [s._id.toString(), s.totalAvailableStrips])
@@ -257,7 +268,7 @@ export async function POST(req) {
 
       enteredRemainingQuantity = Number(enteredRemainingQuantity);
       requestedQuantity = Number(requestedQuantity);
-      console.log(request);
+      // console.log(request);
 
       if (!medicine || !requestedQuantity || enteredRemainingQuantity == null) {
         responses.push({
@@ -303,6 +314,7 @@ export async function POST(req) {
         requestedQuantity,
         notes,
         status,
+        createdAt: new Date(),
       };
       docsToInsert.push(doc);
 

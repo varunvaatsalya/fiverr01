@@ -3,12 +3,16 @@ import React, { useEffect, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import RetailStock from "@/app/components/RetailStock";
 import { showError } from "@/app/utils/toast";
+import { useSearchParams } from "next/navigation";
 
 const alphabets = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ#"];
 
 function Page() {
+  const searchParams = useSearchParams();
+  const letter = searchParams.get("letter")?.toUpperCase();
+
   const [medicineStock, setMedicineStock] = useState({});
-  const [selectedLetter, setSelectedLetter] = useState("A");
+  const [selectedLetter, setSelectedLetter] = useState(letter || "A");
   const [query, setQuery] = useState("");
 
   useEffect(() => {

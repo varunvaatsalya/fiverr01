@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../lib/Mongodb";
-import { verifyTokenWithLogout } from "../../utils/jwt";
-import Medicine from "../../models/Medicine";
-import { Stock, HospitalStock } from "../../models/Stock";
+import dbConnect from "@/app/lib/Mongodb";
+import { verifyTokenWithLogout } from "@/app/utils/jwt";
+import Medicine from "@/app/models/Medicine";
+import { Stock, HospitalStock } from "@/app/models/Stock";
 import PurchaseInvoice, {
   HospitalPurchaseInvoice,
-} from "../../models/PurchaseInvoice";
+} from "@/app/models/PurchaseInvoice";
 import PendingPurchaseInvoice from "@/app/models/PendingPurchaseInvoice";
 
 function getInvoiceModel(typesectionType) {
