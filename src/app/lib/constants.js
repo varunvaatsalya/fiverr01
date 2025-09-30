@@ -1,1 +1,2 @@
 export const MEDICINE_SELL_EXPIRY_BUFFER_DAYS = 60;
+export const MEDICINE_STOCK_LIMIT_UPDATE_MS = 15 * 60 * 1000; // 15 minutes

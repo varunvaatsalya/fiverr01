@@ -3,12 +3,11 @@ import dbConnect from "@/app/lib/Mongodb";
 import { verifyTokenWithLogout } from "@/app/utils/jwt";
 import PharmacyInvoice from "@/app/models/PharmacyInvoice";
 import Medicine from "@/app/models/Medicine";
+import { MEDICINE_STOCK_LIMIT_UPDATE_MS } from "@/app/lib/constants";
 
 let cache = {
   timestamp: 0,
 };
-
-const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 
 export async function GET(req) {
   await dbConnect();
@@ -41,7 +40,7 @@ export async function GET(req) {
     return res;
   }
 
-  if (Date.now() - cache.timestamp < CACHE_DURATION) {
+  if (Date.now() - cache.timestamp < MEDICINE_STOCK_LIMIT_UPDATE_MS) {
     return NextResponse.json(
       { message: "Try to update after 15 minutes...", success: false },
       { status: 400 }
@@ -53,8 +52,12 @@ export async function GET(req) {
     const LONG_TERM_DAYS = 140;
     const SHORT_TERM_DAYS = 28;
 
-    const longTermFrom = new Date(Date.now() - LONG_TERM_DAYS * 24 * 60 * 60 * 1000);
-    const shortTermFrom = new Date(Date.now() - SHORT_TERM_DAYS * 24 * 60 * 60 * 1000);
+    const longTermFrom = new Date(
+      Date.now() - LONG_TERM_DAYS * 24 * 60 * 60 * 1000
+    );
+    const shortTermFrom = new Date(
+      Date.now() - SHORT_TERM_DAYS * 24 * 60 * 60 * 1000
+    );
 
     const soldMedicines = await PharmacyInvoice.aggregate([
       {
