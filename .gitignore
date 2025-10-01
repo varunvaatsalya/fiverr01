@@ -17,6 +17,7 @@
 /build
 
 /uploads
+/docker-hms
 # misc
 .DS_Store
 *.pem
