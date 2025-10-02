@@ -31,5 +31,5 @@ jobs:
             cd ${{ secrets.DEPLOY_PATH }}
             npm install --production
             NODE_OPTIONS="--max-old-space-size=4096" npm run build
-            pm2 restart ${{ secrets.PM2_APP_NAME }} || pm2 start npm --name ${{ secrets.PM2_APP_NAME }} -- start
+            pm2 restart ${{ secrets.PM2_APP_NAME }}
           EOF

@@ -1,9 +1,8 @@
 import Link from "next/link";
+import RedisStatus from "./RedisStatus"
 import LoggedInUser from "./LoggedInUser";
-// import { isRedisConnected } from "../lib/redis";
 
 export default function Navbar({ route }) {
-  // const redisStatus = isRedisConnected() || false;
   return (
     <header className="bg-slate-900 text-white p-4 sm:px-6 lg:px-8 flex justify-between items-center gap-2">
       <Link
@@ -19,10 +18,8 @@ export default function Navbar({ route }) {
             </div>
           );
         })}
-        {/* <div className="text-xs">
-          {redisStatus ? "Redis Connected" : "Redis Not Connected"}
-        </div> */}
       </Link>
+      <RedisStatus />
       <LoggedInUser />
     </header>
   );

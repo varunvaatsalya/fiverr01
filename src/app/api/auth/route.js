@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import dbConnect from "../../lib/Mongodb";
-import { generateToken, verifyTokenWithLogout } from "../../utils/jwt";
-
-import User from "../../models/Users";
-import Admin from "../../models/Admins";
+import dbConnect from "@/app/lib/Mongodb";
+import { generateToken, verifyTokenWithLogout } from "@/app/utils/jwt";
+import User from "@/app/models/Users";
+import Admin from "@/app/models/Admins";
 import { credentials as DEFAULT_ADMIN } from "@/app/credentials";
 import LoginHistory from "@/app/models/LoginHistory";
-// import LoginInfo from "../../models/LoginInfo";
+import { isRedisConnected } from "@/app/lib/redis";
+// import LoginInfo from "@/app/models/LoginInfo";
 
 export async function GET(req) {
   await dbConnect();
@@ -30,7 +30,9 @@ export async function GET(req) {
       { status: 403 }
     );
   }
-
+  if (userRole === "admin") {
+    decoded.redisStatus = isRedisConnected();
+  }
   return NextResponse.json({ user: decoded, success: true }, { status: 200 });
 }
 
@@ -100,6 +102,7 @@ export async function POST(req) {
       };
 
       const token = await generateToken(user);
+      user.redisStatus = isRedisConnected();
 
       cookies().set({
         name: "authToken",

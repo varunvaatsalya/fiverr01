@@ -2,10 +2,10 @@ import { redisService } from "@/app/lib/redis";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
-  return NextResponse.json(
-    { message: "Service Unavailble, its under maintenance" },
-    { status: 200 }
-  );
+//   return NextResponse.json(
+//     { message: "Service Unavailble, its under maintenance" },
+//     { status: 200 }
+//   );
   try {
     const data = await redisService.get("testKey");
     if (data) {
@@ -28,10 +28,10 @@ export async function GET(req) {
 }
 
 export async function DELETE(req) {
-  return NextResponse.json(
-    { message: "Service Unavailble, its under maintenance" },
-    { status: 200 }
-  );
+//   return NextResponse.json(
+//     { message: "Service Unavailble, its under maintenance" },
+//     { status: 200 }
+//   );
 
   try {
     await redisService.del("testKey");
