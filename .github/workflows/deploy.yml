@@ -9,25 +9,27 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    env:
-      DEPLOY_ENABLED: ${{ secrets.DEPLOY_ENABLED }}
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Setup SSH key
-        if: env.DEPLOY_ENABLED != 'false'
         uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.DO_PRIVATE_KEY }}
 
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Copy code to server
+        run: |
+          rsync -avz --exclude='.git' ./ root@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_PATH }}/
+
       - name: Deploy on server
         run: |
-          ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} << 'EOF'
-            cd fiverr01
-            git pull origin main
-            npm install
+          ssh root@${{ secrets.SERVER_IP }} << EOF
+            cd ${{ secrets.DEPLOY_PATH }}
+            npm install --production
             NODE_OPTIONS="--max-old-space-size=4096" npm run build
-            pm2 restart fiverr01-app
+            pm2 restart ${{ secrets.PM2_APP_NAME }} || pm2 start npm --name ${{ secrets.PM2_APP_NAME }} -- start
           EOF
