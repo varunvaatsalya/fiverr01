@@ -76,6 +76,8 @@ function RequestSearchList({
     Disputed: "bg-rose-200 text-rose-600",
   };
 
+  console.log(stockRequests);
+
   const handleNextPage = () => {
     if (stockRequests.length === limit) {
       setPage(page + 1);
