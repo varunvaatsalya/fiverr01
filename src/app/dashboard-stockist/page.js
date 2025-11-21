@@ -97,13 +97,13 @@ function Page() {
       link: "/dashboard-stockist/pharmacyConfig",
       color: "bg-green-800",
     },
-    {
-      name: "Retail Stock Edit",
-      description: "From here you can see & edit retail inventory.",
-      icon: <TbEditCircle size={50} />,
-      link: "/dashboard-stockist/stockEdit",
-      color: "bg-fuchsia-700",
-    },
+    // {
+    //   name: "Retail Stock Edit",
+    //   description: "From here you can see & edit retail inventory.",
+    //   icon: <TbEditCircle size={50} />,
+    //   link: "/dashboard-stockist/stockEdit",
+    //   color: "bg-fuchsia-700",
+    // },
     {
       name: "Godown Stock Edit",
       description: "You can View & Edit godown stock here",

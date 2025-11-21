@@ -2,6 +2,21 @@
 
 const mongoose = require("mongoose");
 
+const HistorySchema = new mongoose.Schema({
+  editedByRole: {
+    type: String,
+  },
+  editedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  changes: {
+    before: { type: mongoose.Schema.Types.Mixed },
+    after: { type: mongoose.Schema.Types.Mixed },
+  },
+  changedAt: { type: Date, default: Date.now },
+});
+
 const stockSchema = new mongoose.Schema({
   medicine: {
     type: mongoose.Schema.Types.ObjectId,
@@ -96,6 +111,7 @@ const stockSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  updatehistory: [HistorySchema],
   createdAt: {
     type: Date,
     default: Date.now,

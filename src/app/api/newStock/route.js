@@ -565,7 +565,7 @@ export async function PUT(req) {
 
   const decoded = await verifyTokenWithLogout(token.value);
   const userRole = decoded?.role;
-  const userEditPermission = decoded?.editPermission;
+  // const userEditPermission = decoded?.editPermission;
   if (!decoded || !userRole) {
     let res = NextResponse.json(
       { message: "Invalid token.", success: false },
@@ -575,8 +575,8 @@ export async function PUT(req) {
     return res;
   }
   if (
-    userRole !== "admin" &&
-    (userRole !== "stockist" || !userEditPermission)
+    userRole !== "admin" 
+    // && (userRole !== "stockist" || !userEditPermission)
   ) {
     return NextResponse.json(
       { message: "Access denied. admins only.", success: false },
@@ -603,6 +603,9 @@ export async function PUT(req) {
           continue;
         }
 
+        const before = {};
+        const after = {};
+
         if (totalStrips !== undefined && totalStrips !== null) {
           const stripsPerBox = stock.medicine.packetSize?.strips;
 
@@ -614,6 +617,16 @@ export async function PUT(req) {
           const boxes = Math.floor(totalStrips / stripsPerBox);
           const extra = totalStrips % stripsPerBox;
 
+          if (totalStrips !== stock.quantity.totalStrips) {
+            before.quantity = { ...stock.quantity };
+            after.quantity = {
+              ...stock.quantity,
+              totalStrips,
+              boxes,
+              extra,
+            };
+          }
+
           stock.quantity = {
             ...stock.quantity,
             totalStrips,
@@ -623,13 +636,34 @@ export async function PUT(req) {
         }
 
         if (sellingPrice) {
+          if (sellingPrice !== stock.sellingPrice) {
+            before.sellingPrice = stock.sellingPrice;
+            after.sellingPrice = sellingPrice;
+          }
           stock.sellingPrice = parseFloat(sellingPrice.toFixed(2));
         }
 
         if (expiryDate) {
+          if (
+            new Date(expiryDate).getTime() !==
+            new Date(stock.expiryDate).getTime()
+          ) {
+            before.expiryDate = stock.expiryDate;
+            after.expiryDate = new Date(expiryDate);
+          }
           stock.expiryDate = new Date(expiryDate); // ensure Date type
         }
-
+        if (Object.keys(after).length > 0) {
+          stock.updatehistory.push({
+            editedByRole: userRole,
+            editedBy: userRole === "admin" ? null : decoded._id,
+            changes: {
+              before,
+              after,
+            },
+            changedAt: new Date(),
+          });
+        }
         await stock.save();
       } catch (err) {
         // If even stock or medicine fetching throws error
